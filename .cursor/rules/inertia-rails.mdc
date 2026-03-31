@@ -1,0 +1,179 @@
+---
+description: Build and maintain Rails + Inertia.js features using server-driven routing, controller props, redirects for validation, and shared data patterns.
+globs:
+  - app/controllers/**/*.rb
+  - app/models/**/*.rb
+  - app/views/**/*.rb
+  - app/frontend/**/*
+  - app/javascript/**/*
+  - config/routes.rb
+  - spec/requests/**/*.rb
+  - spec/system/**/*.rb
+alwaysApply: false
+---
+
+# Inertia Rails
+
+Use this rule when working on Rails + Inertia.js features.
+
+## Core Principles
+
+### 1. Server-Driven Architecture
+
+Prefer Rails controllers and routes as the source of truth.
+
+Use Inertia responses instead of traditional views when building Inertia pages:
+
+```ruby
+render inertia: "Users/Show", props: { user: user.as_json }
+```
+
+### 2. No Client-Side Routing
+
+- Keep routes in `config/routes.rb`
+- Let Inertia intercept links and form submissions
+- Do not build a separate SPA router unless there is a very strong reason
+
+### 3. Convention-Based Component Resolution
+
+When possible, follow Inertia Rails conventions for controller/action to page mapping.
+
+Example:
+- `UsersController#show`
+- page component at `app/frontend/pages/users/show.(jsx|tsx|vue|svelte)`
+
+Use explicit component names only when conventions are not enough.
+
+### 4. Validation via Redirects
+
+Prefer traditional Rails validation flow over JSON `422` API-style errors:
+
+1. Validate in the controller or model layer
+2. Redirect back or re-render through Inertia
+3. Surface validation errors through shared props
+4. Preserve form state with Inertia form helpers
+
+### 5. Shared Data
+
+Use shared props sparingly for global concerns:
+- current user
+- flash
+- navigation state
+- lightweight notifications
+
+Avoid putting large datasets into shared props.
+
+## Decision Guide
+
+When working on an Inertia feature, classify the task first:
+
+1. Setup Inertia in a Rails project
+2. Create a new page/component
+3. Build a form with validation
+4. Add shared data such as auth or flash
+5. Handle redirects and navigation
+6. Debug an Inertia issue
+7. Test an Inertia controller or flow
+8. Optimize with partial reloads
+9. Something else
+
+Then apply the relevant guidance below.
+
+## Setup Guidance
+
+When setting up Inertia:
+
+- keep Rails controllers as the app boundary
+- ensure client pages resolve predictably from controller actions
+- verify requests return Inertia responses rather than full HTML reload behavior
+- keep the stack simple and avoid introducing a parallel JSON API
+
+## Page and Component Guidance
+
+When creating a page:
+
+- prefer controller-provided props over client-side fetching
+- keep props explicit and minimal
+- name pages consistently with Rails controller/action structure
+- only override component names when necessary
+
+## Form Guidance
+
+When building forms:
+
+- use standard Rails validation and redirect patterns
+- let Inertia preserve form state
+- display validation errors from props
+- prefer a single authoritative submit path from the server
+
+## Shared Data Guidance
+
+When adding shared data:
+
+- use shared props for data needed on most pages
+- keep payloads small
+- avoid per-page heavy queries in shared data
+- keep authentication and flash centralized
+
+## Navigation Guidance
+
+When handling navigation:
+
+- prefer Inertia links and form helpers
+- verify navigation stays in SPA mode
+- avoid patterns that force full page reloads unless intentionally leaving the Inertia app
+
+## Debugging Guidance
+
+When debugging:
+
+- confirm the controller is returning an Inertia response
+- confirm the expected component name is resolved
+- inspect the props payload on the client
+- verify redirects, flashes, and validation errors are propagating correctly
+
+Useful client-side check:
+
+```javascript
+console.log(usePage().props)
+```
+
+Useful server-side check:
+
+```ruby
+render inertia: "Page", props: { debug: true }
+```
+
+## Testing Guidance
+
+When testing Inertia flows:
+
+- cover controller responses and redirects
+- verify expected props are present
+- verify validation errors appear after failed submissions
+- verify navigation stays in Inertia mode where applicable
+
+## Partial Reload Guidance
+
+When optimizing:
+
+- prefer partial reloads for large prop payloads
+- reload only the data needed for the next interaction
+- keep shared props stable and lightweight
+
+## Verification Checklist
+
+After every change, verify:
+
+1. The page renders with an Inertia response
+2. Props arrive on the client
+3. Navigation works without a full reload
+4. Forms submit through Inertia requests
+5. Validation errors display correctly
+
+Suggested status report:
+
+- `Inertia response: OK`
+- `Props received: <count> keys`
+- `Navigation: SPA mode OK/FAIL`
+- `Ready for testing`

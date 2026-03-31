@@ -1,0 +1,127 @@
+---
+description: Hotwire (Turbo Drive, Frames, Streams) and Stimulus — 37signals-style patterns; apply when editing app/javascript, views, models (broadcasts), and Turbo in Rails
+globs:
+  - app/javascript/**/*.js
+  - app/views/**/*
+  - app/models/**/*
+alwaysApply: false
+---
+
+# Hotwire and Stimulus (Rails)
+
+Full code examples and longer snippets live in `.cursor/rules/hotwire.md`. This file is the concise checklist for generation and review.
+
+## Turbo Morphing
+
+- Enable globally when needed: `turbo_refreshes_with method: :morph, scroll: :preserve`.
+- Listen for `turbo:morph-element` to restore client-side state (timers, UI).
+- Use `data-turbo-permanent` for elements that must survive morphs.
+- Keep DOM `id` values unique; duplicates break morphing.
+- For frames with `src`, use `refresh: :morph` (or `refresh: "morph"`) so the frame is not torn out during page morphs.
+
+## Turbo Frames
+
+- Wrap independent form sections in frames so partial responses do not reset everything.
+- Heavy content: `loading: "lazy"` on the frame.
+- Prefer in-place updates via `turbo_stream.replace` / stream responses instead of unnecessary redirects.
+- `data-turbo-frame="_parent"` targets the parent frame without hard-coding the parent id.
+
+### Broadcast streams and DOM
+
+- The first argument to `broadcast_*_to` is the **subscription name** (channel); it does not have to match a `turbo-frame` id.
+- `target:` is the **element id** in the page. One `turbo_stream_from` can drive multiple `target`s on the same stream.
+- To update only frame contents: `broadcast_update_to` + a partial **without** a `<turbo-frame>` wrapper; the wrapper stays in the parent view.
+- To replace the whole node: `broadcast_replace_to` — the rendered fragment must supply a valid root (often the same frame id for follow-up updates).
+
+## Common issues
+
+| Symptom | Fix direction |
+|--------|----------------|
+| Timers break after morph | Subscribe to `turbo:morph-element` |
+| Form resets | Turbo Frame around the section |
+| Pagination breaks | Unique ids |
+| Flicker on replace | `method: :morph` on the stream |
+| localStorage / drafts | Restore on `turbo:morph-element`; use `nextFrame()` if needed |
+
+## Stimulus
+
+- Prefer the **Values API** over manual `getAttribute` — clearer types and contract.
+- Use **camelCase** in JS; `data-*-value` in markup follows Stimulus conventions.
+- In **`disconnect()`**, clear timers, `removeEventListener`, `IntersectionObserver.disconnect`, etc.
+- Scope actions with `:self` in `data-action` when appropriate.
+- Shared logic belongs in modules (`debounce`, `throttle`, `nextFrame`, …), not duplicated per controller.
+
+### Timers
+
+```javascript
+// Pattern: private field + clear in disconnect()
+#timer
+connect() { this.#timer = setInterval(...) }
+disconnect() { clearInterval(this.#timer) }
+```
+
+## State and morph
+
+- UI prefs and drafts: localStorage; a brief flash of default UI on first paint is acceptable.
+- After morph, re-read storage; use `await nextFrame()` before applying to the DOM when needed.
+
+## Links instead of JS-only buttons
+
+- Filters and navigation: prefer plain `<a href>` for context menu, new tab, and predictable browser behavior.
+
+## Turbo Streams + morph
+
+For `turbo_stream.replace` on content that includes frames, pass `method: :morph` to reduce flicker. Mark nested frames `data-turbo-permanent` when required.
+
+## Morph events on elements
+
+Prefer `turbo:morph-element` on a specific element via `data-action` over a global `@window` listener when performance matters.
+
+## UI toggles via POST
+
+Toggles (watch, expand, etc.) should use **POST** (`data-turbo-method="post"`) with a Turbo Stream response — not GET with side effects.
+
+## Models and broadcasting
+
+- Use `broadcasts_refreshes` / `broadcast_*_to` as the scenario requires; templates subscribe with `turbo_stream_from` using the **same stream identifier**.
+- Do not conflate concepts: stream name ≠ `turbo-frame` id.
+
+## Forms: auto-submit / auto-save
+
+- Auto-submit on `connect`: single `turbo:submit-end` listener, `requestSubmit`, `aria-busy`.
+- Auto-save: debounce; on `disconnect`, final submit if the form is dirty; watch `#timer` and races.
+
+## Dialogs
+
+- `aria-hidden`, `showModal` / `show`, close on outside click; for open dialogs during morph, `preventDefault` when the event detail would drop `open`.
+- On open, set lazy frames to `loading = "eager"` when needed.
+
+## Fragment cache and personalization
+
+If the cache cannot see `Current.user`, expose flags in `data-*` and style via Stimulus (`itemTargetConnected`, etc.); optional `meta name="current-user-id"` in the layout.
+
+## Tests (turbo-rails)
+
+Use `assert_turbo_frame`, `assert_no_turbo_frame`, and blocks with `assert_select` inside a frame — see turbo-rails docs.
+
+## Flash via Turbo Stream
+
+Extract a concern/helper such as `turbo_stream_flash`, render `replace` on a `#flash` container alongside other actions in `render turbo_stream: [...]`.
+
+## Drag and drop
+
+- Prefer a small Stimulus controller over heavy libraries when enough.
+- `await nextFrame()` before applying classes in `dragstart`; track source container; after a successful drop, remove the node optimistically or wait for the server response.
+- Accessibility: drag handle with `visually-hidden` copy; set `draggable` from the server with a flag.
+
+## @rails/request.js
+
+For consistency with Turbo: `window.fetch = Turbo.fetch` in `application.js` (if you follow that guide pattern).
+
+## Progressive UI enablement
+
+Hide the widget until `connect`, add an `installed` class in `connect`; after morph, wire `data-action` with `turbo:morph@document->...#install` if needed.
+
+## Guiding principle
+
+Less imperative JS where Turbo suffices (navigation, frames, streams). Stimulus is for per-element behavior, lifecycle, and DOM wiring; always clean up in `disconnect`.

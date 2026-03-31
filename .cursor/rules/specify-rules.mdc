@@ -1,0 +1,29 @@
+# mediateca Development Guidelines
+
+Auto-generated from all feature plans. Last updated: 2026-02-12
+
+## Active Technologies
+
+- Ruby 4.0.2 / Rails 8.0 + Rails 8, Hotwire (Turbo + Stimulus), Tailwind CSS, Sidekiq, Active Storage, Devise, Pundit (001-media-broadcast-platform)
+
+## Project Structure
+
+```text
+src/
+tests/
+```
+
+## Commands
+
+# Add commands for Ruby 4.0.2 / Rails 8.0
+
+## Code Style
+
+Ruby 4.0.2 / Rails 8.0: Follow standard conventions
+
+## Recent Changes
+
+- 001-media-broadcast-platform: Added Ruby 4.0.2 / Rails 8.0 + Rails 8, Hotwire (Turbo + Stimulus), Tailwind CSS, Sidekiq, Active Storage, Devise, Pundit
+
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->
