@@ -27,13 +27,13 @@ default: &default
 
 development:
   <<: *default
-  database: mediateca_broadcast_new_development
+  database: mediateca_broadcast_development
 
   # The specified database role being used to connect to PostgreSQL.
   # To create additional roles in PostgreSQL see `$ createuser --help`.
   # When left blank, PostgreSQL will use the default role. This is
   # the same name as the operating system user running Rails.
-  #username: mediateca_broadcast_new
+  #username: mediateca_broadcast
 
   # The password associated with the PostgreSQL role (username).
   #password:
@@ -61,7 +61,7 @@ development:
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: mediateca_broadcast_new_test
+  database: mediateca_broadcast_test
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
@@ -92,18 +92,18 @@ test:
 production:
   primary: &primary_production
     <<: *default
-    database: mediateca_broadcast_new_production
-    username: mediateca_broadcast_new
-    password: <%= ENV["MEDIATECA_BROADCAST_NEW_DATABASE_PASSWORD"] %>
+    database: mediateca_broadcast_production
+    username: mediateca_broadcast
+    password: <%= ENV["MEDIATECA_BROADCAST_DATABASE_PASSWORD"] %>
   cache:
     <<: *primary_production
-    database: mediateca_broadcast_new_production_cache
+    database: mediateca_broadcast_production_cache
     migrations_paths: db/cache_migrate
   queue:
     <<: *primary_production
-    database: mediateca_broadcast_new_production_queue
+    database: mediateca_broadcast_production_queue
     migrations_paths: db/queue_migrate
   cable:
     <<: *primary_production
-    database: mediateca_broadcast_new_production_cable
+    database: mediateca_broadcast_production_cable
     migrations_paths: db/cable_migrate

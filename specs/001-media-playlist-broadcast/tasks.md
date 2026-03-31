@@ -14,12 +14,12 @@
 
 **Purpose**: инициализация проекта и базовых инструментов
 
-- [ ] T001 Initialize Rails 8 app skeleton in `Gemfile`, `config/application.rb`, and `config/routes.rb`
-- [ ] T002 Configure Devcontainer with Ruby 4.x, PostgreSQL 18, ffmpeg in `.devcontainer/devcontainer.json` and `.devcontainer/Dockerfile`
-- [ ] T003 [P] Configure RuboCop and RSpec in `.rubocop.yml`, `.rspec`, and `spec/spec_helper.rb`
-- [ ] T004 [P] Configure Tailwind pipeline in `config/tailwind.config.js` and `app/assets/stylesheets/application.tailwind.css`
-- [ ] T005 [P] Configure Kamal baseline in `config/deploy.yml` and `.kamal/secrets`
-- [ ] T006 Configure Active Storage and queue adapters in `config/storage.yml` and `config/environments/production.rb`
+- [X] T001 Initialize Rails 8 app skeleton in `Gemfile`, `config/application.rb`, and `config/routes.rb`
+- [X] T002 Configure Devcontainer with Ruby 4.x, PostgreSQL 18, ffmpeg in `.devcontainer/devcontainer.json` and `.devcontainer/Dockerfile`
+- [X] T003 [P] Configure RuboCop and RSpec in `.rubocop.yml`, `.rspec`, and `spec/spec_helper.rb`
+- [X] T004 [P] Configure Tailwind pipeline in `config/tailwind.config.js` and `app/assets/stylesheets/application.tailwind.css`
+- [X] T005 [P] Configure Kamal baseline in `config/deploy.yml` and `.kamal/secrets`
+- [X] T006 Configure Active Storage and queue adapters in `config/storage.yml` and `config/environments/production.rb`
 
 ---
 

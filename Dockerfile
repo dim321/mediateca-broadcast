@@ -2,8 +2,8 @@
 # check=error=true
 
 # This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
-# docker build -t mediateca_broadcast_new .
-# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name mediateca_broadcast_new mediateca_broadcast_new
+# docker build -t mediateca_broadcast .
+# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name mediateca_broadcast mediateca_broadcast
 
 # For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
 
@@ -16,7 +16,7 @@ WORKDIR /rails
 
 # Install base packages
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 libvips postgresql-client && \
+    apt-get install --no-install-recommends -y curl ffmpeg libjemalloc2 libvips postgresql-client && \
     ln -s /usr/lib/$(uname -m)-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 

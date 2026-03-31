@@ -1,4 +1,4 @@
-name: "mediateca_broadcast_new"
+name: "mediateca_broadcast"
 
 services:
   rails-app:
@@ -7,7 +7,7 @@ services:
       dockerfile: .devcontainer/Dockerfile
 
     volumes:
-    - ../../mediateca-broadcast-new:/workspaces/mediateca-broadcast-new:cached
+    - ..:/workspaces/mediateca-broadcast:cached
 
     # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity
@@ -21,12 +21,12 @@ services:
     - postgres
 
   postgres:
-    image: postgres:16.1
+    image: postgres:18
     restart: unless-stopped
     networks:
     - default
     volumes:
-    - postgres-data:/var/lib/postgresql/data
+    - postgres-data:/var/lib/postgresql/
     environment:
         POSTGRES_USER: postgres
         POSTGRES_PASSWORD: postgres
