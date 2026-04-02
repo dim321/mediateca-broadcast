@@ -23,7 +23,20 @@
   </head>
 
   <body>
-    <main class="container mx-auto mt-28 px-5 flex">
+    <header class="container mx-auto mt-8 px-5">
+      <nav class="flex items-center gap-4 text-sm">
+        <% if Current.user %>
+          <span class="text-gray-600"><%= Current.user.email %></span>
+          <%= button_to t("layouts.application.sign_out"), logout_path, method: :delete, class: "text-blue-600 underline" %>
+        <% else %>
+          <%= link_to t("layouts.application.sign_in"), login_path, class: "text-blue-600 underline" %>
+        <% end %>
+      </nav>
+      <% flash.each do |type, message| %>
+        <p class="mt-2 rounded px-3 py-2 text-sm <%= type == "notice" ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800" %>"><%= message %></p>
+      <% end %>
+    </header>
+    <main class="container mx-auto mt-8 px-5 flex">
       <%= yield %>
     </main>
   </body>

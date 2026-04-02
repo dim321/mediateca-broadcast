@@ -67,3 +67,8 @@ gem "avo", "~> 3.30", groups: []
 gem "bcrypt", "~> 3.1", groups: []
 
 gem "lograge", "~> 0.14.0", group: :production
+
+gem "slim-rails", "~> 4.0"
+gem "view_component", "~> 4.6"
+
+gem "capybara", "~> 3.40", group: :test
