@@ -29,16 +29,16 @@
 
 **⚠️ CRITICAL**: завершить до начала US1-US5
 
-- [ ] T007 Create initial database migrations for tenancy and identity in `db/migrate/*_create_organizations_users.rb`
-- [ ] T008 Create core media/fleet/scheduling migrations in `db/migrate/*_create_media_and_broadcast_core.rb`
-- [ ] T009 [P] Implement tenant scoping concern in `app/controllers/concerns/current_organization.rb`
-- [ ] T010 [P] Add base models with associations in `app/models/organization.rb` and `app/models/user.rb`
-- [ ] T011 Implement Pundit wiring in `app/controllers/application_controller.rb` and `app/policies/application_policy.rb`
-- [ ] T012 [P] Create Avo base configuration in `config/initializers/avo.rb` and `app/avo/resources/application_resource.rb`
-- [ ] T013 [P] Implement domain folder structure and base service objects in `app/domain/media/base_service.rb`, `app/domain/playlists/base_service.rb`, `app/domain/fleet/base_service.rb`, and `app/domain/scheduling/base_service.rb`
-- [ ] T014 Configure job processing and retries in `config/queue.yml` and `app/jobs/application_job.rb`
-- [ ] T015 [P] Add shared request auth helpers for device API in `spec/support/device_auth_helpers.rb`
-- [ ] T016 Add structured logging baseline in `config/initializers/lograge.rb` and `config/environments/production.rb`
+- [X] T007 Create initial database migrations for tenancy and identity in `db/migrate/*_create_organizations_users.rb`
+- [X] T008 Create core media/fleet/scheduling migrations in `db/migrate/*_create_media_and_broadcast_core.rb`
+- [X] T009 [P] Implement tenant scoping concern in `app/controllers/concerns/current_organization.rb`
+- [X] T010 [P] Add base models with associations in `app/models/organization.rb` and `app/models/user.rb`
+- [X] T011 Implement Pundit wiring in `app/controllers/application_controller.rb` and `app/policies/application_policy.rb`
+- [X] T012 [P] Create Avo base configuration in `config/initializers/avo.rb` and `app/avo/resources/application_resource.rb`
+- [X] T013 [P] Implement domain folder structure and base service objects in `app/domain/media/base_service.rb`, `app/domain/playlists/base_service.rb`, `app/domain/fleet/base_service.rb`, and `app/domain/scheduling/base_service.rb`
+- [X] T014 Configure job processing and retries in `config/queue.yml` and `app/jobs/application_job.rb`
+- [X] T015 [P] Add shared request auth helpers for device API in `spec/support/device_auth_helpers.rb`
+- [X] T016 Add structured logging baseline in `config/initializers/lograge.rb` and `config/environments/production.rb`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
