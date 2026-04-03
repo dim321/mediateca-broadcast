@@ -15,6 +15,14 @@ Rails.application.routes.draw do
 
   resources :media_assets, only: %i[index create update]
 
+  resources :playlists do
+    resources :playlist_items, only: %i[create destroy], path: "items"
+  end
+
+  namespace :internal do
+    patch "playlists/:playlist_id/reorder", to: "playlists/reorders#update", as: :playlist_reorder
+  end
+
   get "login", to: "sessions#new", as: :login
   post "login", to: "sessions#create"
   delete "logout", to: "sessions#destroy", as: :logout

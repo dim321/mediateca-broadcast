@@ -72,3 +72,5 @@ gem "slim-rails", "~> 4.0"
 gem "view_component", "~> 4.6"
 
 gem "capybara", "~> 3.40", group: :test
+
+gem "cuprite", "~> 0.17", group: :test

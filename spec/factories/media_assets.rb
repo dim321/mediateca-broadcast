@@ -18,5 +18,9 @@ FactoryBot.define do
         )
       end
     end
+
+    trait :ready do
+      processing_status { "ready" }
+    end
   end
 end

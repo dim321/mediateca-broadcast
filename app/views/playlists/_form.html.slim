@@ -1,0 +1,6 @@
+= form_with model: playlist, class: "flex flex-col gap-3 max-w-md" do |f|
+  div
+    = f.label :name, t("playlists.form.name"), class: "block text-sm font-medium"
+    = f.text_field :name, class: "mt-1 block w-full rounded border px-3 py-2", required: true
+  = f.submit (playlist.new_record? ? t("playlists.form.submit_create") : t("playlists.form.submit_update")),
+    class: "rounded bg-blue-600 text-white px-4 py-2 w-fit cursor-pointer"

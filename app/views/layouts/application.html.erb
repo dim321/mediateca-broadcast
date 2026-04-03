@@ -27,6 +27,7 @@
       <nav class="flex items-center gap-4 text-sm">
         <% if Current.user %>
           <span class="text-gray-600"><%= Current.user.email %></span>
+          <%= link_to t("layouts.application.playlists"), playlists_path, class: "text-blue-600 underline" %>
           <%= button_to t("layouts.application.sign_out"), logout_path, method: :delete, class: "text-blue-600 underline" %>
         <% else %>
           <%= link_to t("layouts.application.sign_in"), login_path, class: "text-blue-600 underline" %>
