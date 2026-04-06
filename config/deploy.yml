@@ -25,16 +25,18 @@ servers:
 #   host: app.example.com
 
 # Where you keep your container images.
+# Собственный registry через accessory `registry` ниже. Адрес должен быть доступен с машины,
+# где выполняется `kamal deploy` (push), и с хостов из `servers` (pull).
+# Для HTTP без TLS добавьте в /etc/docker/daemon.json на всех этих хостах:
+#   "insecure-registries": ["5.189.195.97:5555"]
+# затем перезапустите Docker. Либо поставьте reverse-proxy с TLS на :443.
 registry:
-  # Alternatives: hub.docker.com / registry.digitalocean.com / ghcr.io / ...
-  server: localhost:5555
-
-  # Needed for authenticated registries.
-  # username: your-user
-
-  # Always use an access token rather than real password when possible.
-  # password:
-  #   - KAMAL_REGISTRY_PASSWORD
+  server: 5.189.195.97:5555
+  # Kamal 2: username/password обязательны, если server не localhost:* (см. Validator::Registry).
+  # Для официального registry:2 без HTTP Basic достаточно фиктивной пары — docker login всё равно вызывается.
+  # Включите htpasswd на registry и перенесите значения в .kamal/secrets (массивы с одним ключом).
+  username: kamal
+  password: kamal
 
 # Inject ENV variables into containers (secrets come from .kamal/secrets).
 # For S3/R2 blobs: list AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY under secret, set ACTIVE_STORAGE_SERVICE=amazon in clear.
@@ -93,13 +95,23 @@ builder:
   #   - RAILS_MASTER_KEY
 
 # Use a different ssh user than root
-# ssh:
-   user: administrator
+ssh:
+  user: administrator
+  port: 5956
 
 # Accessory services (secrets come from .kamal/secrets).
 # DB hostname from the app container: mediateca_broadcast-db (service name + accessory key).
 # Set POSTGRES_PASSWORD and MEDIATECA_BROADCAST_DATABASE_PASSWORD to the same value in .kamal/secrets.
 accessories:
+  # Docker Distribution (mirror.docker.com/library/registry) — приватное хранилище образов для Kamal.
+  # Первый запуск: bin/kamal accessory boot registry
+  registry:
+    image: registry:2
+    host: 5.189.195.97
+    port: "5555:5000"
+    directories:
+      - registry_data:/var/lib/registry
+
   db:
     image: postgres:18
     host: 5.189.195.97
