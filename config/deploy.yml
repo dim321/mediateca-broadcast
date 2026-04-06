@@ -94,7 +94,7 @@ builder:
 
 # Use a different ssh user than root
 # ssh:
-#   user: app
+   user: administrator
 
 # Accessory services (secrets come from .kamal/secrets).
 # DB hostname from the app container: mediateca_broadcast-db (service name + accessory key).
