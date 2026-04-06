@@ -20,9 +20,9 @@ servers:
 #
 # Don't use this when deploying to multiple web servers (then you have to terminate SSL at your load balancer).
 #
-# proxy:
-#   ssl: true
-#   host: app.example.com
+proxy:
+  ssl: true
+  host: broadcast.mediateca.store
 
 # Where you keep your container images.
 # Собственный registry через accessory `registry` ниже. Адрес должен быть доступен с машины,
@@ -31,12 +31,16 @@ servers:
 #   "insecure-registries": ["5.189.195.97:5555"]
 # затем перезапустите Docker. Либо поставьте reverse-proxy с TLS на :443.
 registry:
-  server: 5.189.195.97:5555
+  # server: 5.189.195.97:5555
+  server: cr.yandex
   # Kamal 2: username/password обязательны, если server не localhost:* (см. Validator::Registry).
   # Для официального registry:2 без HTTP Basic достаточно фиктивной пары — docker login всё равно вызывается.
   # Включите htpasswd на registry и перенесите значения в .kamal/secrets (массивы с одним ключом).
-  username: kamal
-  password: kamal
+  # username: kamal
+  username: oauth
+  # password: kamal
+  password:
+    - KAMAL_REGISTRY_PASSWORD
 
 # Inject ENV variables into containers (secrets come from .kamal/secrets).
 # For S3/R2 blobs: list AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY under secret, set ACTIVE_STORAGE_SERVICE=amazon in clear.
@@ -103,14 +107,24 @@ ssh:
 # DB hostname from the app container: mediateca_broadcast-db (service name + accessory key).
 # Set POSTGRES_PASSWORD and MEDIATECA_BROADCAST_DATABASE_PASSWORD to the same value in .kamal/secrets.
 accessories:
-  # Docker Distribution (mirror.docker.com/library/registry) — приватное хранилище образов для Kamal.
-  # Первый запуск: bin/kamal accessory boot registry
-  registry:
-    image: registry:2
+  # Docker Distribution — приватное хранилище образов для Kamal.
+  # Первый запуск: bin/kamal accessory boot registry (после DOCKERHUB_* в .kamal/secrets).
+  #
+  # Kamal перед стартом accessory всегда делает docker login. Без блока registry ниже он
+  # использует корневой registry (ваш :5555), где контейнер ещё не слушает → connection refused.
+  # Вложенный registry указывает, откуда тянуть образ distribution (Docker Hub), не ваш :5555.
+  rgstry:
+    image: registry:3
     host: 5.189.195.97
     port: "5555:5000"
     directories:
       - registry_data:/var/lib/registry
+  #  registry:
+  #    server: docker.io
+  #    username:
+  #      - DOCKERHUB_USERNAME
+  #    password:
+  #      - DOCKERHUB_TOKEN
 
   db:
     image: postgres:18
