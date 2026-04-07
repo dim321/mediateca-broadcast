@@ -1,0 +1,38 @@
+= form_with model: broadcast_point, class: "space-y-4 max-w-xl" do |f|
+  - if broadcast_point.errors.any?
+    ul.text-sm.text-red-700.list-disc.pl-5
+      - broadcast_point.errors.full_messages.each do |msg|
+        li = msg
+  div
+    = f.label :name, class: "block text-sm font-medium"
+    = f.text_field :name, class: "mt-1 border rounded px-3 py-2 w-full"
+  div
+    = f.label :city, class: "block text-sm font-medium"
+    = f.text_field :city, class: "mt-1 border rounded px-3 py-2 w-full"
+  div
+    = f.label :venue_label, class: "block text-sm font-medium"
+    = f.text_field :venue_label, class: "mt-1 border rounded px-3 py-2 w-full"
+  div
+    = f.label :time_zone, class: "block text-sm font-medium"
+    = f.text_field :time_zone, class: "mt-1 border rounded px-3 py-2 w-full", placeholder: "e.g. Krasnoyarsk"
+  div
+    = f.label :status, class: "block text-sm font-medium"
+    = f.select :status, BroadcastPoint.statuses.keys.map { |k| [ k.humanize, k ] }, {}, class: "mt-1 border rounded px-3 py-2 w-full"
+  div
+    p.text-sm.font-medium = t("broadcast_points.form.existing_tags")
+    - if @available_tags.any?
+      .flex.flex-wrap.gap-3.mt-1
+        - @available_tags.each do |tag|
+          label.flex.items-center.gap-2.text-sm
+            = check_box_tag "broadcast_point[tag_ids][]", tag.id, broadcast_point.tag_ids.include?(tag.id), id: "tag_#{tag.id}"
+            = tag.name
+      = hidden_field_tag "broadcast_point[tag_ids][]", ""
+    - else
+      p.text-sm.text-gray-500 = t("broadcast_points.form.no_tags_yet")
+  div
+    = f.label :new_tag_names, class: "block text-sm font-medium"
+    = f.text_field :new_tag_names, class: "mt-1 border rounded px-3 py-2 w-full", placeholder: t("broadcast_points.form.new_tags_placeholder")
+    p.text-xs.text-gray-500.mt-1 = t("broadcast_points.form.new_tags_hint")
+  .flex.gap-3
+    = f.submit class: "rounded bg-blue-600 text-white px-4 py-2 text-sm"
+    = link_to t("broadcast_points.form.cancel"), broadcast_points_path, class: "text-sm text-blue-600 underline py-2"

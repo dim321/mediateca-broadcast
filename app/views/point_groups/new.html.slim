@@ -1,0 +1,15 @@
+- content_for :title, t(".title")
+
+.flex.flex-col.gap-4.w-full.max-w-6xl
+  h1.text-2xl.font-bold = t(".title")
+  = form_with model: @point_group, class: "space-y-4 max-w-xl" do |f|
+    - if @point_group.errors.any?
+      ul.text-sm.text-red-700.list-disc.pl-5
+        - @point_group.errors.full_messages.each do |msg|
+          li = msg
+    div
+      = f.label :name, class: "block text-sm font-medium"
+      = f.text_field :name, class: "mt-1 border rounded px-3 py-2 w-full"
+    .flex.gap-3
+      = f.submit class: "rounded bg-blue-600 text-white px-4 py-2 text-sm"
+      = link_to t(".cancel"), point_groups_path, class: "text-sm text-blue-600 underline py-2"

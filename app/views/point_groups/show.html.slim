@@ -1,0 +1,33 @@
+- content_for :title, t(".title", name: @point_group.name)
+
+.flex.flex-col.gap-6.w-full.max-w-6xl
+  .flex.flex-col.sm:flex-row.sm:items-center.sm:justify-between.gap-4
+    h1.text-2xl.font-bold = t(".title", name: @point_group.name)
+    .flex.flex-wrap.gap-3
+      = link_to t(".edit_name"), edit_point_group_path(@point_group), class: "text-blue-600 underline text-sm"
+      = link_to t(".back"), point_groups_path, class: "text-blue-600 underline text-sm"
+
+  h2.text-lg.font-semibold = t(".members_heading")
+  - if @members.any?
+    ul.list-none.space-y-2
+      - @members.each do |point|
+        li.border.rounded.p-3.bg-white.flex.items-center.justify-between.gap-2
+          div
+            span.font-medium = point.name
+            - if point.city.present?
+              p.text-sm.text-gray-600 = point.city
+          = button_to t(".remove"), remove_member_point_group_path(@point_group), method: :delete, params: { broadcast_point_id: point.id }, class: "text-sm text-red-600 underline shrink-0", form: { data: { turbo_confirm: t(".remove_confirm") } }
+  - else
+    p.text-gray-600 = t(".no_members")
+
+  - if @available_points.any?
+    h2.text-lg.font-semibold.mt-6 = t(".add_heading")
+    = form_with url: add_points_point_group_path(@point_group), method: :post, local: true, class: "border rounded-lg p-4 bg-gray-50 space-y-3" do
+      .flex.flex-wrap.gap-3
+        - @available_points.each do |point|
+          label.flex.items-center.gap-2.text-sm
+            = check_box_tag "broadcast_point_ids[]", point.id, false, id: "add_point_#{point.id}"
+            = point.name
+      = submit_tag t(".add_selected"), class: "rounded bg-blue-600 text-white px-4 py-2 text-sm"
+  - else
+    p.text-gray-600.mt-4 = t(".no_points_to_add")
