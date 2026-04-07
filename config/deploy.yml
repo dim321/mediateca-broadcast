@@ -31,8 +31,8 @@ proxy:
 #   "insecure-registries": ["5.189.195.97:5555"]
 # затем перезапустите Docker. Либо поставьте reverse-proxy с TLS на :443.
 registry:
-  server: 5.189.195.97:5555
-  # server: docker.com
+  # server: 5.189.195.97:5555
+  server: localhost:5555
   # Kamal 2: username/password обязательны, если server не localhost:* (см. Validator::Registry).
   # Для официального registry:2 без HTTP Basic достаточно фиктивной пары — docker login всё равно вызывается.
   # Включите htpasswd на registry и перенесите значения в .kamal/secrets (массивы с одним ключом).
