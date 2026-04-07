@@ -31,7 +31,7 @@ proxy:
 #   "insecure-registries": ["5.189.195.97:5555"]
 # затем перезапустите Docker. Либо поставьте reverse-proxy с TLS на :443.
 registry:
-  # server: 5.189.195.97:5555
+  server: 5.189.195.97:5555
   # server: docker.com
   # Kamal 2: username/password обязательны, если server не localhost:* (см. Validator::Registry).
   # Для официального registry:2 без HTTP Basic достаточно фиктивной пары — docker login всё равно вызывается.
@@ -114,12 +114,12 @@ accessories:
   # Kamal перед стартом accessory всегда делает docker login. Без блока registry ниже он
   # использует корневой registry (ваш :5555), где контейнер ещё не слушает → connection refused.
   # Вложенный registry указывает, откуда тянуть образ distribution (Docker Hub), не ваш :5555.
-  rgstry:
-    image: registry:3
-    host: 5.189.195.97
-    port: "5555:5000"
-    directories:
-      - registry_data:/var/lib/registry
+  # rgstry:
+  #  image: registry:3
+  #  host: 5.189.195.97
+  #  port: "5555:5000"
+  #  directories:
+  #    - registry_data:/var/lib/registry
   #  registry:
   #    server: docker.io
   #    username:
