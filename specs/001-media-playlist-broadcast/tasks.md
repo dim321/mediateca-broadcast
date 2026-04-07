@@ -107,18 +107,18 @@
 
 ### Tests for User Story 3 (MANDATORY) ⚠️
 
-- [ ] T040 [P] [US3] Add model specs for point-tag-group associations in `spec/models/broadcast_point_spec.rb`, `spec/models/tag_spec.rb`, and `spec/models/point_group_spec.rb`
-- [ ] T041 [P] [US3] Add request specs for point filtering and group membership in `spec/requests/broadcast_points_spec.rb` and `spec/requests/point_groups_spec.rb`
-- [ ] T042 [US3] Add system spec for points tagging and grouping in `spec/system/broadcast_points_management_spec.rb`
+- [X] T040 [P] [US3] Add model specs for point-tag-group associations in `spec/models/broadcast_point_spec.rb`, `spec/models/tag_spec.rb`, and `spec/models/point_group_spec.rb`
+- [X] T041 [P] [US3] Add request specs for point filtering and group membership in `spec/requests/broadcast_points_spec.rb` and `spec/requests/point_groups_spec.rb`
+- [X] T042 [US3] Add system spec for points tagging and grouping in `spec/system/broadcast_points_management_spec.rb`
 
 ### Implementation for User Story 3
 
-- [ ] T043 [P] [US3] Implement fleet models in `app/models/broadcast_point.rb`, `app/models/tag.rb`, `app/models/broadcast_point_tag.rb`, `app/models/point_group.rb`, and `app/models/point_group_membership.rb`
-- [ ] T044 [P] [US3] Implement points controller with tag filters in `app/controllers/broadcast_points_controller.rb`
-- [ ] T045 [P] [US3] Implement point groups controller in `app/controllers/point_groups_controller.rb`
-- [ ] T046 [P] [US3] Implement fleet query/service objects in `app/domain/fleet/filter_points.rb` and `app/domain/fleet/group_membership_manager.rb`
-- [ ] T047 [P] [US3] Create fleet Slim views in `app/views/broadcast_points/index.html.slim` and `app/views/point_groups/show.html.slim`
-- [ ] T048 [US3] Add fleet routes in `config/routes.rb`
+- [X] T043 [P] [US3] Implement fleet models in `app/models/broadcast_point.rb`, `app/models/tag.rb`, `app/models/broadcast_point_tag.rb`, `app/models/point_group.rb`, and `app/models/point_group_membership.rb`
+- [X] T044 [P] [US3] Implement points controller with tag filters in `app/controllers/broadcast_points_controller.rb`
+- [X] T045 [P] [US3] Implement point groups controller in `app/controllers/point_groups_controller.rb`
+- [X] T046 [P] [US3] Implement fleet query/service objects in `app/domain/fleet/filter_points.rb` and `app/domain/fleet/group_membership_manager.rb`
+- [X] T047 [P] [US3] Create fleet Slim views in `app/views/broadcast_points/index.html.slim` and `app/views/point_groups/show.html.slim`
+- [X] T048 [US3] Add fleet routes in `config/routes.rb`
 
 **Checkpoint**: US3 independently delivers points, tags, filters, and groups
 

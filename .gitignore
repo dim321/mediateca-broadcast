@@ -12,8 +12,10 @@
 # Vendor bundle (e.g. bundle install --path vendor/bundle)
 /vendor/bundle
 
-# Ignore all environment files.
-/.env*
+# Local environment — never commit secrets (use .env.example as a template only).
+/.env
+/.env.*
+!/.env.example
 
 # Ignore all logfiles and tempfiles.
 /log/*
