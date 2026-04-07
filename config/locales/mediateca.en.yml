@@ -1,0 +1,78 @@
+# frozen_string_literal: true
+
+en:
+  layouts:
+    application:
+      sign_in: Sign in
+      sign_out: Sign out
+      playlists: Playlists
+  playlists:
+    index:
+      title: Playlists
+      new_playlist: New playlist
+      empty: No playlists yet.
+      media_library: Media library
+    new:
+      title: New playlist
+    edit:
+      title: Edit playlist
+    form:
+      name: Name
+      submit_create: Create playlist
+      submit_update: Save changes
+    show:
+      title: "%{name}"
+      items_heading: Playlist items
+      add_heading: Add media
+      select_media: Select a file…
+      add_item: Add to playlist
+      remove_item: Remove
+      edit_playlist: Edit playlist
+      back: Back to playlists
+      media_library: Media library
+      no_items: No items yet. Add ready media from the library.
+      no_media_available: No ready media left to add. Upload files in the media library first.
+    create:
+      created: Playlist created.
+    update:
+      updated: Playlist updated.
+    destroy:
+      destroyed: Playlist deleted.
+    playlist_items:
+      create:
+        created: Item added to playlist.
+      destroy:
+        destroyed: Item removed from playlist.
+  media_assets:
+    authentication_required: Please sign in to continue.
+    index:
+      title: Media library
+      upload_heading: Upload
+      upload_submit: Upload
+    create:
+      created: File uploaded. Processing started.
+      create_failed: Could not upload file.
+  sessions:
+    new:
+      title: Sign in
+      email: Email
+      password: Password
+      submit: Sign in
+    create:
+      signed_in: Signed in successfully.
+      invalid_credentials: Invalid email or password.
+    destroy:
+      signed_out: Signed out.
+  activerecord:
+    errors:
+      models:
+        media_asset:
+          attributes:
+            file:
+              unsupported_type: is not a supported format
+              blank: must be selected
+        playlist_item:
+          attributes:
+            media_asset:
+              wrong_organization: must belong to the same organization as the playlist
+              not_ready: must be ready before adding to a playlist

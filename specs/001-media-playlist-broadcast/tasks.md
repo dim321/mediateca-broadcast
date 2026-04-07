@@ -52,21 +52,21 @@
 
 ### Tests for User Story 1 (MANDATORY) ⚠️
 
-- [ ] T017 [P] [US1] Add model specs for `MediaAsset` invariants and statuses in `spec/models/media_asset_spec.rb`
-- [ ] T018 [P] [US1] Add request specs for upload endpoint and validation errors in `spec/requests/media_assets_spec.rb`
-- [ ] T019 [P] [US1] Add job specs for metadata extraction flow in `spec/jobs/process_media_metadata_job_spec.rb`
-- [ ] T020 [US1] Add system spec for upload, preview, and status updates in `spec/system/media_upload_spec.rb`
+- [X] T017 [P] [US1] Add model specs for `MediaAsset` invariants and statuses in `spec/models/media_asset_spec.rb`
+- [X] T018 [P] [US1] Add request specs for upload endpoint and validation errors in `spec/requests/media_assets_spec.rb`
+- [X] T019 [P] [US1] Add job specs for metadata extraction flow in `spec/jobs/process_media_metadata_job_spec.rb`
+- [X] T020 [US1] Add system spec for upload, preview, and status updates in `spec/system/media_upload_spec.rb`
 
 ### Implementation for User Story 1
 
-- [ ] T021 [P] [US1] Implement `MediaAsset` model and enums in `app/models/media_asset.rb`
-- [ ] T022 [P] [US1] Implement upload and index actions in `app/controllers/media_assets_controller.rb`
-- [ ] T023 [P] [US1] Create upload/index Slim views in `app/views/media_assets/index.html.slim` and `app/views/media_assets/_media_asset.html.slim`
-- [ ] T024 [P] [US1] Implement media card component in `app/components/media/media_asset_card_component.rb` and `app/components/media/media_asset_card_component.html.slim`
-- [ ] T025 [US1] Implement metadata processing job with ffprobe integration in `app/jobs/process_media_metadata_job.rb` and `app/domain/media/metadata_extractor.rb`
-- [ ] T026 [US1] Implement preview generation service in `app/domain/media/preview_generator.rb`
-- [ ] T027 [US1] Add Turbo stream updates for media status in `app/views/media_assets/update.turbo_stream.erb`
-- [ ] T028 [US1] Add media upload routes in `config/routes.rb`
+- [X] T021 [P] [US1] Implement `MediaAsset` model and enums in `app/models/media_asset.rb`
+- [X] T022 [P] [US1] Implement upload and index actions in `app/controllers/media_assets_controller.rb`
+- [X] T023 [P] [US1] Create upload/index Slim views in `app/views/media_assets/index.html.slim` and `app/views/media_assets/_media_asset.html.slim`
+- [X] T024 [P] [US1] Implement media card component in `app/components/media/media_asset_card_component.rb` and `app/components/media/media_asset_card_component.html.slim`
+- [X] T025 [US1] Implement metadata processing job with ffprobe integration in `app/jobs/process_media_metadata_job.rb` and `app/domain/media/metadata_extractor.rb`
+- [X] T026 [US1] Implement preview generation service in `app/domain/media/preview_generator.rb`
+- [X] T027 [US1] Add Turbo stream updates for media status in `app/views/media_assets/update.turbo_stream.erb`
+- [X] T028 [US1] Add media upload routes in `config/routes.rb`
 
 **Checkpoint**: US1 works independently and is demo-ready
 
@@ -80,20 +80,20 @@
 
 ### Tests for User Story 2 (MANDATORY) ⚠️
 
-- [ ] T029 [P] [US2] Add model specs for `Playlist` and `PlaylistItem` ordering invariants in `spec/models/playlist_spec.rb` and `spec/models/playlist_item_spec.rb`
-- [ ] T030 [P] [US2] Add request specs for reorder endpoint in `spec/requests/playlists/reorder_spec.rb`
-- [ ] T031 [US2] Add system spec for drag-and-drop reorder flow in `spec/system/playlist_reorder_spec.rb`
+- [X] T029 [P] [US2] Add model specs for `Playlist` and `PlaylistItem` ordering invariants in `spec/models/playlist_spec.rb` and `spec/models/playlist_item_spec.rb`
+- [X] T030 [P] [US2] Add request specs for reorder endpoint in `spec/requests/playlists/reorder_spec.rb`
+- [X] T031 [US2] Add system spec for drag-and-drop reorder flow in `spec/system/playlist_reorder_spec.rb`
 
 ### Implementation for User Story 2
 
-- [ ] T032 [P] [US2] Implement `Playlist` and `PlaylistItem` models in `app/models/playlist.rb` and `app/models/playlist_item.rb`
-- [ ] T033 [P] [US2] Implement playlist CRUD controller in `app/controllers/playlists_controller.rb`
-- [ ] T034 [P] [US2] Implement reorder endpoint in `app/controllers/internal/playlists/reorders_controller.rb`
-- [ ] T035 [P] [US2] Implement reorder domain service in `app/domain/playlists/reorder_items.rb`
-- [ ] T036 [P] [US2] Implement Stimulus drag-and-drop controller in `app/javascript/controllers/playlist_sort_controller.js`
-- [ ] T037 [P] [US2] Create playlist Slim views in `app/views/playlists/index.html.slim` and `app/views/playlists/show.html.slim`
-- [ ] T038 [P] [US2] Create playlist item component in `app/components/playlists/playlist_item_component.rb` and `app/components/playlists/playlist_item_component.html.slim`
-- [ ] T039 [US2] Add playlist and internal reorder routes in `config/routes.rb`
+- [X] T032 [P] [US2] Implement `Playlist` and `PlaylistItem` models in `app/models/playlist.rb` and `app/models/playlist_item.rb`
+- [X] T033 [P] [US2] Implement playlist CRUD controller in `app/controllers/playlists_controller.rb`
+- [X] T034 [P] [US2] Implement reorder endpoint in `app/controllers/internal/playlists/reorders_controller.rb`
+- [X] T035 [P] [US2] Implement reorder domain service in `app/domain/playlists/reorder_items.rb`
+- [X] T036 [P] [US2] Implement Stimulus drag-and-drop controller in `app/javascript/controllers/playlist_sort_controller.js`
+- [X] T037 [P] [US2] Create playlist Slim views in `app/views/playlists/index.html.slim` and `app/views/playlists/show.html.slim`
+- [X] T038 [P] [US2] Create playlist item component in `app/components/playlists/playlist_item_component.rb` and `app/components/playlists/playlist_item_component.html.slim`
+- [X] T039 [US2] Add playlist and internal reorder routes in `config/routes.rb`
 
 **Checkpoint**: US2 is independently functional and persists order correctly
 

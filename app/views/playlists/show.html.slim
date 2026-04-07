@@ -1,0 +1,31 @@
+- content_for :title, t(".title", name: @playlist.name)
+
+.flex.flex-col.gap-6.w-full.max-w-6xl
+  .flex.flex-wrap.items-baseline.justify-between.gap-4
+    h1.text-2xl.font-bold = @playlist.name
+    .flex.flex-wrap.gap-3.text-sm
+      = link_to t(".edit_playlist"), edit_playlist_path(@playlist), class: "text-blue-600 underline"
+      = link_to t(".back"), playlists_path, class: "text-blue-600 underline"
+      = link_to t(".media_library"), root_path, class: "text-blue-600 underline"
+  .flex.flex-col.lg:flex-row.gap-8
+    .flex-1.min-w-0
+      h2.text-lg.font-semibold.mb-3 = t(".items_heading")
+      - if @items.any?
+        div[
+          data-controller="playlist-sort"
+          data-playlist-sort-url-value=internal_playlist_reorder_path(playlist_id: @playlist.id)
+        ]
+          ul.list-none.p-0.m-0[data-playlist-sort-target="list"]
+            - @items.each do |item|
+              = render Playlists::PlaylistItemComponent.new(playlist: @playlist, item: item)
+      - else
+        p.text-gray-600 = t(".no_items")
+    .w-full.lg:w-80.shrink-0
+      h2.text-lg.font-semibold.mb-3 = t(".add_heading")
+      - if @available_media.any?
+        = form_with model: [@playlist, @playlist_item], url: playlist_playlist_items_path(@playlist), class: "flex flex-col gap-2" do |f|
+          = f.collection_select :media_asset_id, @available_media, :id, ->(a) { a.file.filename.to_s },
+            { prompt: t(".select_media") }, class: "block w-full rounded border px-3 py-2 text-sm"
+          = f.submit t(".add_item"), class: "rounded bg-blue-600 text-white px-4 py-2 text-sm w-fit cursor-pointer"
+      - else
+        p.text-gray-600.text-sm = t(".no_media_available")

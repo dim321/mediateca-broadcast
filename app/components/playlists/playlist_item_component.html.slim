@@ -1,0 +1,9 @@
+li.flex.items-center.gap-2.border.rounded.p-2.mb-2.bg-white.cursor-grab.active:cursor-grabbing[
+  data-item-id=item.id
+]
+  span.text-gray-500.select-none.pr-1 aria-hidden="true" ⋮⋮
+  span.flex-1.truncate = item.media_asset.file.filename.to_s
+  = link_to t("playlists.show.remove_item"),
+    playlist_playlist_item_path(playlist, item),
+    data: { turbo_method: :delete },
+    class: "text-red-600 text-sm shrink-0 underline"

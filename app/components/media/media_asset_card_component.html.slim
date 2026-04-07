@@ -1,0 +1,14 @@
+.border.rounded-lg.p-4.shadow-sm.space-y-2.bg-white
+  .flex.gap-4
+    - if media_asset.preview.attached?
+      = image_tag url_for(media_asset.preview), class: "w-24 h-24 object-cover rounded bg-gray-100 shrink-0", alt: ""
+    - else
+      .w-24.h-24.bg-gray-100.rounded.flex.items-center.justify-center.text-xs.text-gray-500.shrink-0
+        | …
+    div.min-w-0.flex-1
+      p.font-medium.truncate title=media_asset.file.filename.to_s = media_asset.file.filename
+      p.text-sm class=status_class = media_asset.processing_status.to_s.humanize
+      - if media_asset.duration_seconds.present?
+        p.text-sm.text-gray-600 #{media_asset.duration_seconds}s
+      - if media_asset.failed? && media_asset.metadata["error"].present?
+        p.text-xs.text-red-600.truncate title=media_asset.metadata["error"] = media_asset.metadata["error"]

@@ -7,7 +7,7 @@ image: mediateca_broadcast
 # Deploy to these servers.
 servers:
   web:
-    - 192.168.0.1
+    - 5.189.195.97
   # job:
   #   hosts:
   #     - 192.168.0.1
@@ -20,27 +20,36 @@ servers:
 #
 # Don't use this when deploying to multiple web servers (then you have to terminate SSL at your load balancer).
 #
-# proxy:
-#   ssl: true
-#   host: app.example.com
+proxy:
+  ssl: true
+  host: broadcast.mediateca.store
 
 # Where you keep your container images.
+# Собственный registry через accessory `registry` ниже. Адрес должен быть доступен с машины,
+# где выполняется `kamal deploy` (push), и с хостов из `servers` (pull).
+# Для HTTP без TLS добавьте в /etc/docker/daemon.json на всех этих хостах:
+#   "insecure-registries": ["5.189.195.97:5555"]
+# затем перезапустите Docker. Либо поставьте reverse-proxy с TLS на :443.
 registry:
-  # Alternatives: hub.docker.com / registry.digitalocean.com / ghcr.io / ...
+  # server: 5.189.195.97:5555
   server: localhost:5555
-
-  # Needed for authenticated registries.
-  # username: your-user
-
-  # Always use an access token rather than real password when possible.
-  # password:
-  #   - KAMAL_REGISTRY_PASSWORD
+  # Kamal 2: username/password обязательны, если server не localhost:* (см. Validator::Registry).
+  # Для официального registry:2 без HTTP Basic достаточно фиктивной пары — docker login всё равно вызывается.
+  # Включите htpasswd на registry и перенесите значения в .kamal/secrets (массивы с одним ключом).
+  # username: kamal
+  username: 
+    - KAMAL_REGISTRY_USER
+  # password: kamal
+  password:
+    - KAMAL_REGISTRY_PASSWORD
 
 # Inject ENV variables into containers (secrets come from .kamal/secrets).
 # For S3/R2 blobs: list AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY under secret, set ACTIVE_STORAGE_SERVICE=amazon in clear.
 env:
   secret:
     - RAILS_MASTER_KEY
+    # Must match POSTGRES_PASSWORD on the db accessory (see .kamal/secrets)
+    - MEDIATECA_BROADCAST_DATABASE_PASSWORD
   clear:
     # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
     # When you start using multiple servers, you should split out job processing to a dedicated machine.
@@ -52,9 +61,8 @@ env:
     # Set number of cores available to the application on each server (default: 1).
     # WEB_CONCURRENCY: 2
 
-    # Match this to any external database server to configure Active Record correctly
-    # Use mediateca_broadcast-db for a db accessory server on same machine via local kamal docker network.
-    # DB_HOST: 192.168.0.2
+    # PostgreSQL accessory (same Docker network): hostname is <service>-<accessory name>
+    DB_HOST: mediateca_broadcast-db
 
     # Log everything from Rails
     # RAILS_LOG_LEVEL: debug
@@ -92,29 +100,43 @@ builder:
   #   - RAILS_MASTER_KEY
 
 # Use a different ssh user than root
-# ssh:
-#   user: app
+ssh:
+  user: administrator
+  port: 5956
 
-# Use accessory services (secrets come from .kamal/secrets).
-# accessories:
-#   db:
-#     image: mysql:8.0
-#     host: 192.168.0.2
-#     # Change to 3306 to expose port to the world instead of just local network.
-#     port: "127.0.0.1:3306:3306"
-#     env:
-#       clear:
-#         MYSQL_ROOT_HOST: '%'
-#       secret:
-#         - MYSQL_ROOT_PASSWORD
-#     files:
-#       - config/mysql/production.cnf:/etc/mysql/my.cnf
-#       - db/production.sql:/docker-entrypoint-initdb.d/setup.sql
-#     directories:
-#       - data:/var/lib/mysql
-#   redis:
-#     image: valkey/valkey:8
-#     host: 192.168.0.2
-#     port: 6379
-#     directories:
-#       - data:/data
+# Accessory services (secrets come from .kamal/secrets).
+# DB hostname from the app container: mediateca_broadcast-db (service name + accessory key).
+# Set POSTGRES_PASSWORD and MEDIATECA_BROADCAST_DATABASE_PASSWORD to the same value in .kamal/secrets.
+accessories:
+  # Docker Distribution — приватное хранилище образов для Kamal.
+  # Первый запуск: bin/kamal accessory boot registry (после DOCKERHUB_* в .kamal/secrets).
+  #
+  # Kamal перед стартом accessory всегда делает docker login. Без блока registry ниже он
+  # использует корневой registry (ваш :5555), где контейнер ещё не слушает → connection refused.
+  # Вложенный registry указывает, откуда тянуть образ distribution (Docker Hub), не ваш :5555.
+  # rgstry:
+  #  image: registry:3
+  #  host: 5.189.195.97
+  #  port: "5555:5000"
+  #  directories:
+  #    - registry_data:/var/lib/registry
+  #  registry:
+  #    server: docker.io
+  #    username:
+  #      - DOCKERHUB_USERNAME
+  #    password:
+  #      - DOCKERHUB_TOKEN
+
+  db:
+    image: postgres:18
+    host: 5.189.195.97
+    port: "127.0.0.1:5432:5432"
+    env:
+      clear:
+        POSTGRES_USER: mediateca_broadcast
+        POSTGRES_DB: mediateca_broadcast_production
+      secret:
+        - POSTGRES_PASSWORD
+    # postgres:18+ uses VOLUME /var/lib/postgresql (PGDATA=/var/lib/postgresql/18/docker); not .../data
+    directories:
+      - data:/var/lib/postgresql

@@ -7,6 +7,15 @@ plugins:
 AllCops:
   NewCops: enable
 
+RSpec/MultipleExpectations:
+  Max: 8
+
+RSpec/ExampleLength:
+  Max: 20
+
+RSpec/AnyInstance:
+  Enabled: false
+
 # Overwrite or add rules to create your own house style
 #
 # # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`

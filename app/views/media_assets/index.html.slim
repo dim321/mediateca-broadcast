@@ -1,0 +1,16 @@
+- content_for :title, t(".title")
+
+.flex.flex-col.gap-6.w-full.max-w-6xl
+  h1.text-2xl.font-bold = t(".title")
+
+  = turbo_stream_from Current.organization, :media_library
+
+  section.mb-4
+    h2.text-lg.font-semibold.mb-2 = t(".upload_heading")
+    = form_with model: @media_asset, url: media_assets_path, local: true, multipart: true, class: "flex flex-col gap-2 max-w-md" do |f|
+      = f.file_field :file, accept: "video/mp4,video/webm,image/*,audio/*,.pdf,.ppt,.pptx", class: "block w-full text-sm"
+      = f.submit t(".upload_submit"), class: "rounded bg-blue-600 text-white px-4 py-2 w-fit cursor-pointer"
+
+  #media_assets_grid.grid.grid-cols-1.md:grid-cols-2.lg:grid-cols-3.gap-4
+    - @media_assets.each do |asset|
+      = render "media_assets/media_asset", media_asset: asset
