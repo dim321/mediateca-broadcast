@@ -7,9 +7,14 @@
 
   section.mb-4
     h2.text-lg.font-semibold.mb-2 = t(".upload_heading")
-    = form_with model: @media_asset, url: media_assets_path, local: true, multipart: true, class: "flex flex-col gap-2 max-w-md" do |f|
-      = f.file_field :file, accept: "video/mp4,video/webm,image/*,audio/*,.pdf,.ppt,.pptx", class: "block w-full text-sm"
-      = f.submit t(".upload_submit"), class: "rounded bg-blue-600 text-white px-4 py-2 w-fit cursor-pointer"
+    = form_with model: @media_asset, url: media_assets_path, local: true, multipart: true, class: "flex flex-col gap-3 max-w-md" do |f|
+      .flex.flex-col.sm:flex-row.sm:flex-wrap.sm:items-center.gap-3 data-controller="file-picker"
+        = f.file_field :file, accept: "video/mp4,video/webm,image/*,audio/*,.pdf,.ppt,.pptx", id: "media_asset_file_input", class: "sr-only", data: { file_picker_target: "input", action: "change->file-picker#sync" }
+        label.inline-flex.items-center.justify-center.rounded-md.border.border-gray-300.bg-white.px-4.py-2.text-sm.font-medium.text-gray-700.shadow-sm.cursor-pointer.transition.hover:bg-gray-50.focus-within:ring-2.focus-within:ring-blue-500.focus-within:ring-offset-2 for="media_asset_file_input"
+          = t(".choose_file_button")
+        span.text-sm.text-gray-600.truncate.max-w-56.sm:max-w-xs.md:max-w-sm data-file-picker-target="name" title=""
+          = t(".no_file_selected")
+      = f.submit t(".upload_submit"), class: "rounded bg-blue-600 text-white px-4 py-2 w-fit cursor-pointer font-medium shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
 
   #media_assets_grid.grid.grid-cols-1.md:grid-cols-2.lg:grid-cols-3.gap-4
     - @media_assets.each do |asset|
