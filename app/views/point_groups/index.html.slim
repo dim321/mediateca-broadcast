@@ -1,0 +1,16 @@
+- content_for :title, t(".title")
+
+.flex.flex-col.gap-4.w-full.max-w-6xl
+  .flex.items-center.justify-between.gap-4
+    h1.text-2xl.font-bold = t(".title")
+    = link_to t(".new_group"), new_point_group_path, class: "rounded bg-blue-600 text-white px-4 py-2 text-sm"
+  p
+    = link_to t(".broadcast_points"), broadcast_points_path, class: "text-blue-600 underline text-sm"
+
+  - if @point_groups.any?
+    ul.list-none.space-y-2
+      - @point_groups.each do |group|
+        li
+          = link_to group.name, group, class: "text-blue-600 underline text-lg"
+  - else
+    p.text-gray-600 = t(".empty")

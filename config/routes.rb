@@ -19,6 +19,15 @@ Rails.application.routes.draw do
     resources :playlist_items, only: %i[create destroy], path: "items"
   end
 
+  resources :broadcast_points, except: :destroy
+
+  resources :point_groups do
+    member do
+      post :add_points
+      delete :remove_member
+    end
+  end
+
   namespace :internal do
     patch "playlists/:playlist_id/reorder", to: "playlists/reorders#update", as: :playlist_reorder
   end

@@ -4,6 +4,9 @@ class Organization < ApplicationRecord
   has_many :users, inverse_of: :organization, dependent: :restrict_with_exception
   has_many :media_assets, dependent: :restrict_with_exception
   has_many :playlists, dependent: :restrict_with_exception
+  has_many :broadcast_points, dependent: :restrict_with_exception
+  has_many :tags, dependent: :restrict_with_exception
+  has_many :point_groups, dependent: :restrict_with_exception
 
   validates :name, presence: true
   validates :time_zone, presence: true

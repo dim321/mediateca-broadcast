@@ -6,6 +6,8 @@ en:
       sign_in: Sign in
       sign_out: Sign out
       playlists: Playlists
+      broadcast_points: Broadcast points
+      point_groups: Point groups
   playlists:
     index:
       title: Playlists
@@ -48,6 +50,8 @@ en:
     index:
       title: Media library
       upload_heading: Upload
+      choose_file_button: Choose file…
+      no_file_selected: No file selected
       upload_submit: Upload
     create:
       created: File uploaded. Processing started.
@@ -76,3 +80,69 @@ en:
             media_asset:
               wrong_organization: must belong to the same organization as the playlist
               not_ready: must be ready before adding to a playlist
+        broadcast_point_tag:
+          attributes:
+            base:
+              organization_mismatch: tag and point must belong to the same organization
+        point_group_membership:
+          attributes:
+            base:
+              organization_mismatch: point and group must belong to the same organization
+  broadcast_points:
+    index:
+      title: Broadcast points
+      new_point: New broadcast point
+      point_groups: Point groups
+      media_library: Media library
+      playlists: Playlists
+      filter_by_tags: Filter by tags (points must have all selected tags)
+      apply_filter: Apply filter
+      clear_filter: Clear filter
+      empty: No broadcast points yet.
+      edit: Edit
+    new:
+      title: New broadcast point
+    edit:
+      title: Edit broadcast point
+    form:
+      existing_tags: Tags
+      no_tags_yet: No tags yet — add new tag names below.
+      new_tags_placeholder: e.g. retail, center-north
+      new_tags_hint: Comma-separated new tags to create and attach.
+      cancel: Cancel
+    create:
+      created: Broadcast point saved.
+    update:
+      updated: Broadcast point updated.
+  point_groups:
+    index:
+      title: Point groups
+      new_group: New group
+      broadcast_points: Broadcast points
+      empty: No groups yet.
+    new:
+      title: New point group
+      cancel: Cancel
+    edit:
+      title: Edit point group
+      cancel: Cancel
+    show:
+      title: "%{name}"
+      edit_name: Edit name
+      back: Back to groups
+      members_heading: Points in this group
+      no_members: No points in this group yet.
+      add_heading: Add points
+      add_selected: Add selected points
+      no_points_to_add: All broadcast points are already in this group.
+      remove: Remove
+      remove_confirm: Remove this point from the group?
+    create:
+      created: Point group created.
+    update:
+      updated: Point group updated.
+    add_points:
+      points_added: Points added to the group.
+      points_add_failed: Some points could not be added.
+    remove_member:
+      member_removed: Point removed from the group.
