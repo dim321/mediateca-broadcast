@@ -18,7 +18,8 @@ default: &default
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
   max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  <% if ENV["DB_HOST"] %>
+  <%# Dev Container: DB_HOST=postgres (см. .devcontainer/devcontainer.json + compose.yaml) %>
+  <% if ENV["DB_HOST"].present? %>
   host: <%= ENV["DB_HOST"] %>
   username: postgres
   password: postgres

@@ -7,6 +7,7 @@ class Organization < ApplicationRecord
   has_many :broadcast_points, dependent: :restrict_with_exception
   has_many :tags, dependent: :restrict_with_exception
   has_many :point_groups, dependent: :restrict_with_exception
+  has_many :schedule_rules, dependent: :restrict_with_exception
 
   validates :name, presence: true
   validates :time_zone, presence: true

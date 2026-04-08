@@ -1,0 +1,7 @@
+- content_for :title, t(".title")
+
+.flex.flex-col.gap-4.w-full.max-w-6xl
+  h1.text-2xl.font-bold = t(".title")
+  = render "form", schedule_rule: @schedule_rule
+  p
+    = link_to t(".back"), schedule_rules_path, class: "text-blue-600 underline text-sm"

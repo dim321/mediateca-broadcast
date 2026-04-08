@@ -18,7 +18,8 @@ services:
     # Use "forwardPorts" in **devcontainer.json** to forward an app port locally.
     # (Adding the "ports" property to this file will not forward from a Codespace.)
     depends_on:
-    - postgres
+      postgres:
+        condition: service_healthy
 
   postgres:
     image: postgres:18
@@ -30,6 +31,12 @@ services:
     environment:
         POSTGRES_USER: postgres
         POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
 
 volumes:
   postgres-data:

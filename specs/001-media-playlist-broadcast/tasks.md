@@ -132,17 +132,17 @@
 
 ### Tests for User Story 4 (MANDATORY) ⚠️
 
-- [ ] T049 [P] [US4] Add model specs for schedule invariants and overlap rules in `spec/models/schedule_rule_spec.rb` and `spec/models/schedule_target_spec.rb`
-- [ ] T050 [P] [US4] Add request specs for schedule CRUD and conflicts in `spec/requests/schedule_rules_spec.rb`
-- [ ] T051 [US4] Add system spec for schedule creation/editing with conflict error in `spec/system/schedule_rules_spec.rb`
+- [X] T049 [P] [US4] Add model specs for schedule invariants and overlap rules in `spec/models/schedule_rule_spec.rb` and `spec/models/schedule_target_spec.rb`
+- [X] T050 [P] [US4] Add request specs for schedule CRUD and conflicts in `spec/requests/schedule_rules_spec.rb`
+- [X] T051 [US4] Add system spec for schedule creation/editing with conflict error in `spec/system/schedule_rules_spec.rb`
 
 ### Implementation for User Story 4
 
-- [ ] T052 [P] [US4] Implement scheduling models in `app/models/schedule_rule.rb` and `app/models/schedule_target.rb`
-- [ ] T053 [P] [US4] Implement scheduling domain services in `app/domain/scheduling/conflict_detector.rb` and `app/domain/scheduling/time_window_resolver.rb`
-- [ ] T054 [P] [US4] Implement schedule controller in `app/controllers/schedule_rules_controller.rb`
-- [ ] T055 [P] [US4] Create schedule Slim views in `app/views/schedule_rules/index.html.slim` and `app/views/schedule_rules/_form.html.slim`
-- [ ] T056 [US4] Add scheduling routes in `config/routes.rb`
+- [X] T052 [P] [US4] Implement scheduling models in `app/models/schedule_rule.rb` and `app/models/schedule_target.rb`
+- [X] T053 [P] [US4] Implement scheduling domain services in `app/domain/scheduling/conflict_detector.rb` and `app/domain/scheduling/time_window_resolver.rb`
+- [X] T054 [P] [US4] Implement schedule controller in `app/controllers/schedule_rules_controller.rb`
+- [X] T055 [P] [US4] Create schedule Slim views in `app/views/schedule_rules/index.html.slim` and `app/views/schedule_rules/_form.html.slim`
+- [X] T056 [US4] Add scheduling routes in `config/routes.rb`
 
 **Checkpoint**: US4 independently manages schedule lifecycle with conflict safety
 

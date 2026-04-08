@@ -35,8 +35,9 @@ module Media
         )
         raise "ffmpeg failed: #{err}" unless status.success? && File.exist?(outfile.path) && File.size(outfile.path).positive?
 
+        jpeg_data = File.binread(outfile.path)
         media_asset.preview.attach(
-          io: File.open(outfile.path),
+          io: StringIO.new(jpeg_data),
           filename: "preview.jpg",
           content_type: "image/jpeg"
         )

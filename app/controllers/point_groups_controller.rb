@@ -50,18 +50,24 @@ class PointGroupsController < ApplicationController
     ids = Array(params[:broadcast_point_ids]).map(&:to_i).reject(&:zero?)
     manager = Fleet::GroupMembershipManager.new(point_group: @point_group)
     errors = 0
+    added = 0
+    member_ids = @point_group.broadcast_point_ids.to_set
     policy_scope(BroadcastPoint).where(id: ids).find_each do |point|
-      next if @point_group.broadcast_point_ids.include?(point.id)
+      next if member_ids.include?(point.id)
 
-      manager.add(point)
-    rescue ArgumentError, ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
-      errors += 1
+      # Narrow rescue: membership create only. DB/load errors should not be swallowed.
+      begin
+        manager.add(point)
+        member_ids << point.id
+        added += 1
+      rescue ArgumentError, ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
+        errors += 1
+      end
     end
-    if errors.positive?
-      redirect_to @point_group, alert: t(".points_add_failed")
-    else
-      redirect_to @point_group, notice: t(".points_added")
-    end
+    flash[:notice] = t(".points_added_count", count: added) if added.positive?
+    flash[:alert] = t(".points_add_failed_count", count: errors) if errors.positive?
+    flash[:notice] = t(".points_none_added") if added.zero? && errors.zero?
+    redirect_to @point_group
   end
 
   def remove_member
