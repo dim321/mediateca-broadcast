@@ -15,7 +15,7 @@ RSpec.describe "Api::V1::DeviceSessions", type: :request do
       expect(body["poll_interval_seconds"]).to eq(45)
       expect(body["device_token"]).to be_present
 
-      expect(BCrypt::Password.new(point.reload.device_token_digest).is_password?(body["device_token"])).to eq(true)
+      expect(BCrypt::Password.new(point.reload.device_token_digest).is_password?(body["device_token"])).to be(true)
     end
 
     it "returns 422 for invalid pairing code" do
