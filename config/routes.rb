@@ -34,6 +34,18 @@ Rails.application.routes.draw do
     patch "playlists/:playlist_id/reorder", to: "playlists/reorders#update", as: :playlist_reorder
   end
 
+  namespace :api do
+    namespace :v1 do
+      resources :device_sessions, only: :create do
+        collection do
+          get :current
+        end
+      end
+
+      get "playback_assignments/current", to: "playback_assignments#current"
+    end
+  end
+
   get "login", to: "sessions#new", as: :login
   post "login", to: "sessions#create"
   delete "logout", to: "sessions#destroy", as: :logout

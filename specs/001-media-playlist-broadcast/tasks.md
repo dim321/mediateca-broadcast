@@ -156,18 +156,18 @@
 
 ### Tests for User Story 5 (MANDATORY) ⚠️
 
-- [ ] T057 [P] [US5] Add request specs for device session endpoints in `spec/requests/api/v1/device_sessions_spec.rb`
-- [ ] T058 [P] [US5] Add request specs for playback assignment endpoint in `spec/requests/api/v1/playback_assignments_spec.rb`
-- [ ] T059 [US5] Add service specs for assignment resolver in `spec/domain/playback/current_assignment_resolver_spec.rb`
+- [X] T057 [P] [US5] Add request specs for device session endpoints in `spec/requests/api/v1/device_sessions_spec.rb`
+- [X] T058 [P] [US5] Add request specs for playback assignment endpoint in `spec/requests/api/v1/playback_assignments_spec.rb`
+- [X] T059 [US5] Add service specs for assignment resolver in `spec/domain/playback/current_assignment_resolver_spec.rb`
 
 ### Implementation for User Story 5
 
-- [ ] T060 [P] [US5] Implement device session controller in `app/controllers/api/v1/device_sessions_controller.rb`
-- [ ] T061 [P] [US5] Implement playback assignments controller in `app/controllers/api/v1/playback_assignments_controller.rb`
-- [ ] T062 [P] [US5] Implement playback domain resolver in `app/domain/playback/current_assignment_resolver.rb`
-- [ ] T063 [P] [US5] Implement signed media URL presenter in `app/domain/playback/media_url_presenter.rb`
-- [ ] T064 [P] [US5] Implement device token policy checks in `app/policies/device_session_policy.rb`
-- [ ] T065 [US5] Add Device API routes in `config/routes.rb`
+- [X] T060 [P] [US5] Implement device session controller in `app/controllers/api/v1/device_sessions_controller.rb`
+- [X] T061 [P] [US5] Implement playback assignments controller in `app/controllers/api/v1/playback_assignments_controller.rb`
+- [X] T062 [P] [US5] Implement playback domain resolver in `app/domain/playback/current_assignment_resolver.rb`
+- [X] T063 [P] [US5] Implement signed media URL presenter in `app/domain/playback/media_url_presenter.rb`
+- [X] T064 [P] [US5] Implement device token policy checks in `app/policies/device_session_policy.rb`
+- [X] T065 [US5] Add Device API routes in `config/routes.rb`
 
 **Checkpoint**: US5 independently serves device playback assignment and media URLs
 
