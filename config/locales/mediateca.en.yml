@@ -8,6 +8,7 @@ en:
       playlists: Playlists
       broadcast_points: Broadcast points
       point_groups: Point groups
+      schedule_rules: Schedules
   playlists:
     index:
       title: Playlists
@@ -88,6 +89,20 @@ en:
           attributes:
             base:
               organization_mismatch: point and group must belong to the same organization
+        schedule_rule:
+          attributes:
+            base:
+              must_have_targets: select at least one point group
+              overlaps_existing: this time window overlaps another schedule for one of the selected groups
+            ends_at:
+              must_be_after_starts: must be after the start time
+            playlist:
+              blank: must be selected
+              wrong_organization: must belong to your organization
+        schedule_target:
+          attributes:
+            point_group:
+              wrong_organization: must belong to the same organization as the schedule
   broadcast_points:
     index:
       title: Broadcast points
@@ -146,3 +161,32 @@ en:
       points_add_failed: Some points could not be added.
     remove_member:
       member_removed: Point removed from the group.
+  schedule_rules:
+    index:
+      title: Broadcast schedules
+      new_schedule: New schedule
+      playlists: Playlists
+      edit: Edit
+      delete: Delete
+      delete_confirm: Delete this schedule?
+      empty: No schedules yet.
+      groups: "Groups: %{names}"
+    new:
+      title: New schedule
+      back: Back to schedules
+    edit:
+      title: Edit schedule
+      back: Back to schedules
+    show:
+      title: "%{name}"
+      edit: Edit schedule
+      back: Back to schedules
+    form:
+      point_groups_heading: Point groups
+      cancel: Cancel
+    create:
+      created: Schedule created.
+    update:
+      updated: Schedule updated.
+    destroy:
+      destroyed: Schedule removed.
