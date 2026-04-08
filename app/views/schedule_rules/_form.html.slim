@@ -1,0 +1,28 @@
+- tz = Current.user.organization.time_zone
+= form_with model: schedule_rule, class: "space-y-4 max-w-xl" do |f|
+  - if schedule_rule.errors.any?
+    ul.text-sm.text-red-700.list-disc.pl-5
+      - schedule_rule.errors.full_messages.each do |msg|
+        li = msg
+  div
+    = f.label :playlist_id, class: "block text-sm font-medium"
+    = f.collection_select :playlist_id, @playlists, :id, :name, { include_blank: true }, class: "mt-1 border rounded px-3 py-2 w-full"
+  div
+    = f.label :starts_at, class: "block text-sm font-medium"
+    = f.datetime_field :starts_at, value: schedule_datetime_field_value(schedule_rule.starts_at, tz), class: "mt-1 border rounded px-3 py-2 w-full"
+  div
+    = f.label :ends_at, class: "block text-sm font-medium"
+    = f.datetime_field :ends_at, value: schedule_datetime_field_value(schedule_rule.ends_at, tz), class: "mt-1 border rounded px-3 py-2 w-full"
+  div
+    = f.label :timezone_context, class: "block text-sm font-medium"
+    = f.select :timezone_context, ScheduleRule.timezone_contexts.keys.map { |k| [k.humanize, k] }, {}, class: "mt-1 border rounded px-3 py-2 w-full"
+  fieldset.space-y-2
+    legend.text-sm.font-medium = t(".point_groups_heading")
+    - @point_groups.each do |group|
+      .flex.items-center.gap-2
+        = check_box_tag "schedule_rule[point_group_ids][]", group.id, schedule_rule.selected_point_group_ids.include?(group.id), id: "schedule_rule_point_group_#{group.id}"
+        = label_tag "schedule_rule_point_group_#{group.id}", group.name, class: "text-sm"
+    = hidden_field_tag "schedule_rule[point_group_ids][]", ""
+  .flex.gap-3
+    = f.submit class: "rounded bg-blue-600 text-white px-4 py-2 text-sm"
+    = link_to t(".cancel"), schedule_rules_path, class: "text-sm text-blue-600 underline py-2"

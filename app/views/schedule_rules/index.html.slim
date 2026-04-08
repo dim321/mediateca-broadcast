@@ -1,0 +1,26 @@
+- content_for :title, t(".title")
+
+.flex.flex-col.gap-4.w-full.max-w-6xl
+  .flex.items-center.justify-between.gap-4
+    h1.text-2xl.font-bold = t(".title")
+    = link_to t(".new_schedule"), new_schedule_rule_path, class: "rounded bg-blue-600 text-white px-4 py-2 text-sm"
+  p
+    = link_to t(".playlists"), playlists_path, class: "text-blue-600 underline text-sm"
+  - if @schedule_rules.any?
+    ul.list-none.space-y-3
+      - tz = Current.user.organization.time_zone
+      - @schedule_rules.each do |rule|
+        li.border.rounded.p-3
+          .font-medium = rule.playlist.name
+          p.text-sm.text-gray-600
+            = l(rule.starts_at.in_time_zone(tz), format: :short)
+            |  —
+            = l(rule.ends_at.in_time_zone(tz), format: :short)
+            |  (#{rule.timezone_context})
+          - if rule.point_groups.any?
+            p.text-sm = t(".groups", names: rule.point_groups.order(:name).map(&:name).join(", "))
+          .flex.gap-3.mt-2
+            = link_to t(".edit"), edit_schedule_rule_path(rule), class: "text-blue-600 underline text-sm"
+            = button_to t(".delete"), schedule_rule_path(rule), method: :delete, class: "text-red-600 underline text-sm bg-transparent border-0 p-0 cursor-pointer", form: { data: { turbo_confirm: t(".delete_confirm") } }
+  - else
+    p.text-gray-600 = t(".empty")

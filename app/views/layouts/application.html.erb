@@ -30,6 +30,7 @@
           <%= link_to t("layouts.application.playlists"), playlists_path, class: "text-blue-600 underline" %>
           <%= link_to t("layouts.application.broadcast_points"), broadcast_points_path, class: "text-blue-600 underline" %>
           <%= link_to t("layouts.application.point_groups"), point_groups_path, class: "text-blue-600 underline" %>
+          <%= link_to t("layouts.application.schedule_rules"), schedule_rules_path, class: "text-blue-600 underline" %>
           <%= button_to t("layouts.application.sign_out"), logout_path, method: :delete, class: "text-blue-600 underline" %>
         <% else %>
           <%= link_to t("layouts.application.sign_in"), login_path, class: "text-blue-600 underline" %>

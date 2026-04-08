@@ -28,6 +28,8 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :schedule_rules
+
   namespace :internal do
     patch "playlists/:playlist_id/reorder", to: "playlists/reorders#update", as: :playlist_reorder
   end

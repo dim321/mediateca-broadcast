@@ -157,8 +157,13 @@ en:
     update:
       updated: Point group updated.
     add_points:
-      points_added: Points added to the group.
-      points_add_failed: Some points could not be added.
+      points_added_count:
+        one: "1 point added to the group."
+        other: "%{count} points added to the group."
+      points_add_failed_count:
+        one: "1 point could not be added."
+        other: "%{count} points could not be added."
+      points_none_added: No new points were added. They may already be in this group, or nothing was selected.
     remove_member:
       member_removed: Point removed from the group.
   schedule_rules:

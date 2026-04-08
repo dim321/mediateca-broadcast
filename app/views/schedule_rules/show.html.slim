@@ -1,0 +1,13 @@
+- content_for :title, t(".title", name: @schedule_rule.playlist.name)
+
+.flex.flex-col.gap-4.w-full.max-w-6xl
+  - tz = Current.user.organization.time_zone
+  h1.text-2xl.font-bold = @schedule_rule.playlist.name
+  p.text-sm.text-gray-600
+    = l(@schedule_rule.starts_at.in_time_zone(tz), format: :long)
+    |  —
+    = l(@schedule_rule.ends_at.in_time_zone(tz), format: :long)
+  p
+    = link_to t(".edit"), edit_schedule_rule_path(@schedule_rule), class: "text-blue-600 underline text-sm"
+  p
+    = link_to t(".back"), schedule_rules_path, class: "text-blue-600 underline text-sm"

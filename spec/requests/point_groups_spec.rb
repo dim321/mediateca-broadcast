@@ -30,7 +30,41 @@ RSpec.describe "PointGroups", type: :request do
       sign_in_as(user)
       post add_points_point_group_path(group), params: { broadcast_point_ids: [ point.id ] }
       expect(response).to redirect_to(point_group_path(group))
+      expect(flash[:notice]).to eq(I18n.t("point_groups.add_points.points_added_count", count: 1))
+      expect(flash[:alert]).to be_nil
       expect(group.reload.broadcast_points).to contain_exactly(point)
+    end
+
+    it "shows notice and alert when some points are added and others fail" do
+      sign_in_as(user)
+      p1 = create(:broadcast_point, organization: org)
+      p2 = create(:broadcast_point, organization: org)
+      calls = 0
+      allow_any_instance_of(Fleet::GroupMembershipManager).to receive(:add).and_wrap_original do |original, bp|
+        calls += 1
+        if calls == 2
+          invalid = PointGroupMembership.new
+          invalid.errors.add(:base, :invalid)
+          raise ActiveRecord::RecordInvalid, invalid
+        end
+        original.call(bp)
+      end
+
+      post add_points_point_group_path(group), params: { broadcast_point_ids: [ p1.id, p2.id ] }
+
+      expect(response).to redirect_to(point_group_path(group))
+      expect(flash[:notice]).to eq(I18n.t("point_groups.add_points.points_added_count", count: 1))
+      expect(flash[:alert]).to eq(I18n.t("point_groups.add_points.points_add_failed_count", count: 1))
+      expect(group.reload.broadcast_point_ids).to include(p1.id)
+      expect(group.reload.broadcast_point_ids).not_to include(p2.id)
+    end
+
+    it "does not show success when all points were already in the group" do
+      sign_in_as(user)
+      create(:point_group_membership, point_group: group, broadcast_point: point)
+      post add_points_point_group_path(group), params: { broadcast_point_ids: [ point.id ] }
+      expect(response).to redirect_to(point_group_path(group))
+      expect(flash[:notice]).to eq(I18n.t("point_groups.add_points.points_none_added"))
     end
 
     it "returns not found for another organization's group" do
