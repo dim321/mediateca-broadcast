@@ -7,7 +7,8 @@ module Avo
 
       self.index_query = lambda {
         rel = query
-        next rel unless model_class.column_names.include?("organization_id")
+        klass = rel.respond_to?(:klass) ? rel.klass : rel
+        next rel unless klass.column_names.include?("organization_id")
 
         org_id = Avo::Current.context[:organization_id]
         next rel.none if org_id.blank?
@@ -17,7 +18,8 @@ module Avo
 
       self.find_record_method = lambda {
         rel = query
-        if model_class.column_names.include?("organization_id")
+        klass = rel.respond_to?(:klass) ? rel.klass : rel
+        if klass.column_names.include?("organization_id")
           org_id = Avo::Current.context[:organization_id]
           rel = org_id.present? ? rel.where(organization_id: org_id) : rel.none
         end
