@@ -1,6 +1,4 @@
-# frozen_string_literal: true
-
-module Avo
-  class MediaAssetsController < Avo::ResourcesController
-  end
+# This controller has been generated to enable Rails' resource routes.
+# More information on https://docs.avohq.io/3.0/controllers.html
+class Avo::MediaAssetsController < Avo::ResourcesController
 end

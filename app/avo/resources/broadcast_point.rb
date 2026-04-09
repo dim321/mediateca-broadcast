@@ -1,23 +1,21 @@
-# frozen_string_literal: true
+class Avo::Resources::BroadcastPoint < Avo::BaseResource
+  # self.includes = []
+  # self.attachments = []
+  # self.search = {
+  #   query: -> { query.ransack(id_eq: q, m: "or").result(distinct: false) }
+  # }
 
-module Avo
-  module Resources
-    class BroadcastPoint < ApplicationResource
-      self.includes = [ :organization ]
-
-      def fields
-        field :id, as: :id
-        field :organization, as: :belongs_to
-        field :name
-        field :city
-        field :venue_label
-        field :time_zone
-        field :status
-        field :device_token_digest, only_on: :show
-        field :created_at
-        field :updated_at
-        field :tags, as: :has_many
-      end
-    end
+  def fields
+    field :id, as: :id
+    field :organization_id, as: :number
+    field :name, as: :text
+    field :city, as: :text
+    field :venue_label, as: :text
+    field :time_zone, as: :text
+    field :status, as: :select, enum: ::BroadcastPoint.statuses
+    field :device_token_digest, as: :text
+    field :organization, as: :belongs_to
+    field :point_group_memberships, as: :has_many
+    field :point_groups, as: :has_many, through: :point_group_memberships
   end
 end
