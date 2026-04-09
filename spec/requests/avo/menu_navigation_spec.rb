@@ -4,10 +4,6 @@ require "rails_helper"
 
 RSpec.describe "Avo menu navigation", type: :request do
   let(:user) { create(:user) }
-
-  before { sign_in_as(user) }
-
-  # Эти URL соответствуют пунктам меню Avo для подключенных ресурсов.
   let(:menu_paths) do
     [
       "/avo",
@@ -17,6 +13,8 @@ RSpec.describe "Avo menu navigation", type: :request do
       "/avo/resources/schedule_rules"
     ]
   end
+
+  before { sign_in_as(user) }
 
   it "allows opening each menu section without server errors" do
     menu_paths.each do |path|
