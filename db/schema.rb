@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_02_132832) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_08_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -62,6 +62,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_02_132832) do
     t.string "time_zone"
     t.datetime "updated_at", null: false
     t.string "venue_label"
+    t.index ["organization_id", "status"], name: "index_broadcast_points_on_organization_id_and_status"
     t.index ["organization_id"], name: "index_broadcast_points_on_organization_id"
   end
 
@@ -74,6 +75,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_02_132832) do
     t.string "processing_status", default: "pending", null: false
     t.datetime "updated_at", null: false
     t.bigint "uploaded_by_id"
+    t.index ["organization_id", "created_at"], name: "index_media_assets_on_organization_id_and_created_at", order: { created_at: :desc }
+    t.index ["organization_id", "processing_status"], name: "index_media_assets_on_organization_id_and_processing_status"
     t.index ["organization_id"], name: "index_media_assets_on_organization_id"
     t.index ["uploaded_by_id"], name: "index_media_assets_on_uploaded_by_id"
   end
@@ -133,6 +136,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_02_132832) do
     t.datetime "starts_at", null: false
     t.string "timezone_context", default: "organization", null: false
     t.datetime "updated_at", null: false
+    t.index ["organization_id", "playlist_id"], name: "index_schedule_rules_on_organization_id_and_playlist_id"
     t.index ["organization_id", "starts_at", "ends_at"], name: "idx_on_organization_id_starts_at_ends_at_962bcc92ff"
     t.index ["organization_id"], name: "index_schedule_rules_on_organization_id"
     t.index ["playlist_id"], name: "index_schedule_rules_on_playlist_id"

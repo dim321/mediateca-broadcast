@@ -3,7 +3,26 @@
 module Avo
   module Resources
     class ApplicationResource < Avo::BaseResource
-      # Наследуйте ресурсы Avo от этого класса для общих полей и scope по тенанту (позже).
+      abstract_resource!
+
+      self.index_query = lambda {
+        rel = query
+        next rel unless model_class.column_names.include?("organization_id")
+
+        org_id = Avo::Current.context[:organization_id]
+        next rel.none if org_id.blank?
+
+        rel.where(organization_id: org_id)
+      }
+
+      self.find_record_method = lambda {
+        rel = query
+        if model_class.column_names.include?("organization_id")
+          org_id = Avo::Current.context[:organization_id]
+          rel = org_id.present? ? rel.where(organization_id: org_id) : rel.none
+        end
+        rel.find(id)
+      }
     end
   end
 end
