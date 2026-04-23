@@ -67,7 +67,7 @@ group :development do
 end
 
 gem "pundit", "~> 2.5", groups: []
-gem "avo", "~> 3.30", groups: []
+gem "avo", "~> 3.31", groups: []
 gem "bcrypt", "~> 3.1", groups: []
 
 gem "lograge", "~> 0.14.0", group: :production
