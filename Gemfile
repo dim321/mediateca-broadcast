@@ -70,7 +70,7 @@ gem "pundit", "~> 2.5", groups: []
 gem "avo", "~> 3.30", groups: []
 gem "bcrypt", "~> 3.1", groups: []
 
-gem "lograge", "~> 0.14.0", group: :production
+gem "lograge", "~> 0.15.0", group: :production
 
 gem "slim-rails", "~> 4.0"
 gem "view_component", "~> 4.6"
