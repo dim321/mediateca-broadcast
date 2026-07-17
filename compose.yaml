@@ -1,0 +1,56 @@
+# Local development only. Production uses Kamal (config/deploy.yml).
+# Usage:
+#   docker compose up --build
+#   docker compose run --rm web bin/rails console
+#   docker compose run --rm web bin/rspec
+#
+# App: http://localhost:3000
+# Postgres: localhost:5432 (user/password: postgres/postgres)
+
+name: mediateca_broadcast
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: bin/dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/rails
+      - bundle:/usr/local/bundle
+    environment:
+      RAILS_ENV: development
+      DB_HOST: postgres
+      BINDING: 0.0.0.0
+      # dotenv-rails also loads .env from the mounted workspace
+    env_file:
+      - path: .env
+        required: false
+    depends_on:
+      postgres:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+
+  postgres:
+    image: postgres:18
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  postgres-data:
+  bundle:
