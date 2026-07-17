@@ -1,0 +1,20 @@
+#!/bin/bash -e
+
+# Keep gems in the named volume in sync with Gemfile.lock.
+bundle check || bundle install
+
+# Stale PID after compose kill prevents Puma from binding.
+rm -f tmp/pids/server.pid
+
+case "${1}" in
+  bin/dev|./bin/dev)
+    bin/rails db:prepare
+    ;;
+  bin/rails|./bin/rails)
+    if [ "${2}" = "server" ]; then
+      bin/rails db:prepare
+    fi
+    ;;
+esac
+
+exec "${@}"

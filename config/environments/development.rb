@@ -12,6 +12,9 @@ Rails.application.configure do
   # Show full error reports.
   config.consider_all_requests_local = true
 
+  # web-console: allow Docker bridge / private networks (requests arrive as 172.x, not 127.0.0.1).
+  config.web_console.allowed_ips = %w[127.0.0.1 ::1 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16]
+
   # Enable server timing.
   config.server_timing = true
 
