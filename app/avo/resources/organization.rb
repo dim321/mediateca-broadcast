@@ -1,4 +1,4 @@
-class Avo::Resources::Organization < Avo::BaseResource
+class Avo::Resources::Organization < Avo::Resources::ApplicationResource
   # self.includes = []
   # self.attachments = []
   # self.search = {

@@ -1,4 +1,4 @@
-class Avo::Resources::MediaAsset < Avo::BaseResource
+class Avo::Resources::MediaAsset < Avo::Resources::ApplicationResource
   # self.includes = []
   # self.attachments = []
   # self.search = {

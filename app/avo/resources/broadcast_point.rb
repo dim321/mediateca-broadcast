@@ -1,4 +1,4 @@
-class Avo::Resources::BroadcastPoint < Avo::BaseResource
+class Avo::Resources::BroadcastPoint < Avo::Resources::ApplicationResource
   # self.includes = []
   # self.attachments = []
   # self.search = {

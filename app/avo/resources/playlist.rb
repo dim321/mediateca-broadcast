@@ -1,4 +1,4 @@
-class Avo::Resources::Playlist < Avo::BaseResource
+class Avo::Resources::Playlist < Avo::Resources::ApplicationResource
   # self.includes = []
   # self.attachments = []
   # self.search = {
