@@ -177,12 +177,12 @@
 
 **Purpose**: сквозные улучшения и финальная валидация перед реализацией по фазам
 
-- [ ] T066 [P] Add Avo resources for core entities in `app/avo/resources/media_asset.rb`, `app/avo/resources/playlist.rb`, `app/avo/resources/broadcast_point.rb`, and `app/avo/resources/schedule_rule.rb`
-- [ ] T067 Add Pundit policy coverage for tenant boundaries in `spec/policies/*_policy_spec.rb`
-- [ ] T068 [P] Add database indexes and constraints refinements in `db/migrate/*_add_indexes_and_constraints.rb`
-- [ ] T069 [P] Add performance smoke specs for tag filtering and schedule queries in `spec/requests/performance/filtering_spec.rb`
-- [ ] T070 Run quickstart validation and update notes in `specs/001-media-playlist-broadcast/quickstart.md`
-- [ ] T071 Final docs sync for API and plan references in `specs/001-media-playlist-broadcast/contracts/device-api-v1.md` and `specs/001-media-playlist-broadcast/plan.md`
+- [X] T066 [P] Add Avo resources for core entities in `app/avo/resources/media_asset.rb`, `app/avo/resources/playlist.rb`, `app/avo/resources/broadcast_point.rb`, and `app/avo/resources/schedule_rule.rb`
+- [X] T067 Add Pundit policy coverage for tenant boundaries in `spec/policies/*_policy_spec.rb`
+- [X] T068 [P] Add database indexes and constraints refinements in `db/migrate/*_add_indexes_and_constraints.rb`
+- [X] T069 [P] Add performance smoke specs for tag filtering and schedule queries in `spec/requests/performance/filtering_spec.rb`
+- [X] T070 Run quickstart validation and update notes in `specs/001-media-playlist-broadcast/quickstart.md`
+- [X] T071 Final docs sync for API and plan references in `specs/001-media-playlist-broadcast/contracts/device-api-v1.md` and `specs/001-media-playlist-broadcast/plan.md`
 
 ---
 

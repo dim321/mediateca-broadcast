@@ -4,6 +4,8 @@
 **Base URL**: `https://{host}/api/v1`  
 **Auth**: `Authorization: Bearer <device_token>` (выдаётся при регистрации точки)
 
+**Реализация в репозитории** (sync Phase 8): эндпоинты в `config/routes.rb` → `Api::V1::DeviceSessionsController`, `Api::V1::PlaybackAssignmentsController`. В ответах JSON идентификаторы сейчас сериализуются как целые **bigint** из PostgreSQL; в примерах ниже поля названы `uuid` как абстрактный стабильный id — клиент MUST трактовать их как непрозрачные строки/числа и не полагаться на формат UUID до отдельного изменения контракта.
+
 ## POST /device_sessions
 
 Обмен краткоживущего **pairing code** (из кабинета) на `device_token`.
