@@ -76,6 +76,7 @@ en:
             file:
               unsupported_type: is not a supported format
               blank: must be selected
+              too_large: must be 1 GiB or smaller
         playlist_item:
           attributes:
             media_asset:

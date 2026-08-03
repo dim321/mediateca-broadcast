@@ -41,4 +41,27 @@ RSpec.describe ProcessMediaMetadataJob, type: :job do
     expect(asset).to be_failed
     expect(asset.metadata["error"]).to eq("boom")
   end
+
+  it "queues video transcoding after metadata extraction" do
+    allow(described_class).to receive(:perform_later)
+    asset = build(:media_asset, organization: organization, uploaded_by: user)
+    asset.file.attach(
+      io: StringIO.new("source video"),
+      filename: "source.mp4",
+      content_type: "video/mp4"
+    )
+    asset.save!
+    result = Media::MetadataExtractor::Result.new(
+      duration_seconds: 30,
+      metadata: { "probe" => "ok" },
+      refined_content_kind: "video"
+    )
+    allow(Media::MetadataExtractor).to receive(:call).and_return(result)
+    allow(Media::PreviewGenerator).to receive(:call)
+
+    expect { described_class.perform_now(asset.id) }
+      .to have_enqueued_job(MediaTranscodeJob).with(asset.id)
+
+    expect(asset.reload).to be_processing
+  end
 end

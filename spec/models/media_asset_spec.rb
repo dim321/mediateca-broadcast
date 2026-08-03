@@ -3,7 +3,9 @@
 require "rails_helper"
 
 RSpec.describe MediaAsset, type: :model do
-  before { allow(ProcessMediaMetadataJob).to receive(:perform_later) }
+  include ActiveJob::TestHelper
+
+  before { ActiveJob::Base.queue_adapter = :test }
 
   describe "validations" do
     it "requires a file on create" do
@@ -24,6 +26,19 @@ RSpec.describe MediaAsset, type: :model do
       expect(asset).not_to be_valid
       expect(asset.errors[:file]).to be_present
     end
+
+    it "rejects files larger than 1 GiB" do
+      asset = build(:media_asset)
+      asset.file.attach(
+        io: StringIO.new("x"),
+        filename: "large.mp4",
+        content_type: "video/mp4"
+      )
+      allow(asset.file).to receive(:byte_size).and_return(MediaAsset::MAX_FILE_SIZE + 1)
+
+      expect(asset).not_to be_valid
+      expect(asset.errors[:file]).to be_present
+    end
   end
 
   describe "processing_status" do
@@ -40,6 +55,14 @@ RSpec.describe MediaAsset, type: :model do
       asset = create(:media_asset, :with_png_file, organization: org, uploaded_by: user)
       expect(asset.organization).to eq(org)
       expect(asset.uploaded_by).to eq(user)
+    end
+  end
+
+  describe "upload processing" do
+    it "enqueues metadata processing after a valid upload" do
+      asset = build(:media_asset, :with_png_file)
+
+      expect { asset.save! }.to have_enqueued_job(ProcessMediaMetadataJob).with { |id| id.present? }
     end
   end
 end

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class MediaAsset < ApplicationRecord
+  MAX_FILE_SIZE = 1.gigabyte
+
   belongs_to :organization
   belongs_to :uploaded_by, class_name: "User", optional: true
 
@@ -9,6 +11,7 @@ class MediaAsset < ApplicationRecord
 
   has_one_attached :file
   has_one_attached :preview
+  has_one_attached :broadcast_file
 
   ALLOWED_CONTENT_TYPES = {
     "video/mp4" => "video",
@@ -47,6 +50,7 @@ class MediaAsset < ApplicationRecord
   validates :organization, presence: true
   validates :content_kind, presence: true, on: :create
   validate :file_must_be_present_and_allowed, on: :create
+  validate :file_size_within_limit, on: :create
 
   before_validation :assign_content_kind_from_file, on: :create
 
@@ -69,6 +73,13 @@ class MediaAsset < ApplicationRecord
     return if ALLOWED_CONTENT_TYPES.key?(file.content_type)
 
     errors.add(:file, :unsupported_type)
+  end
+
+  def file_size_within_limit
+    return unless file.attached?
+    return if file.byte_size <= MAX_FILE_SIZE
+
+    errors.add(:file, :too_large, max_size: MAX_FILE_SIZE)
   end
 
   def assign_content_kind_from_file
