@@ -40,13 +40,20 @@ module Media
       private
 
       def refine_kind_from_streams(streams, declared_content_type:)
-        types = streams.filter_map { |s| s["codec_type"] }.uniq
-        if types.include?("video")
-          "video"
-        elsif types.include?("audio")
-          "audio"
-        elsif declared_content_type&.start_with?("image/")
+        # Prefer declared MIME: ffprobe reports still images (PNG/JPEG) as codec_type=video.
+        if declared_content_type&.start_with?("image/")
           "image"
+        elsif declared_content_type&.start_with?("video/")
+          "video"
+        elsif declared_content_type&.start_with?("audio/")
+          "audio"
+        else
+          types = streams.filter_map { |s| s["codec_type"] }.uniq
+          if types.include?("video")
+            "video"
+          elsif types.include?("audio")
+            "audio"
+          end
         end
       end
 
