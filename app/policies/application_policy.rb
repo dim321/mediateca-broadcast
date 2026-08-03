@@ -16,6 +16,12 @@ class ApplicationPolicy
   def edit? = update?
   def destroy? = false
 
+  private
+
+  def operator?
+    user&.organization&.operator?
+  end
+
   class Scope
     def initialize(user, scope)
       @user = user

@@ -20,4 +20,14 @@ RSpec.describe Organization, type: :model do
       expect(build(:organization, time_zone: '')).not_to be_valid
     end
   end
+
+  describe 'kind' do
+    it 'defaults to client' do
+      expect(build(:organization)).to be_client
+    end
+
+    it 'supports operator organizations' do
+      expect(build(:organization, :operator)).to be_operator
+    end
+  end
 end

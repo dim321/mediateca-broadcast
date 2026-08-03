@@ -5,6 +5,8 @@ class Tag < ApplicationRecord
 
   has_many :broadcast_point_tags, dependent: :destroy
   has_many :broadcast_points, through: :broadcast_point_tags
+  has_many :screen_tags, dependent: :destroy
+  has_many :screens, through: :screen_tags
 
   validates :name, presence: true
   validates :name,

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_08_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_03_034500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -66,6 +66,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_08_120000) do
     t.index ["organization_id"], name: "index_broadcast_points_on_organization_id"
   end
 
+  create_table "locations", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.bigint "organization_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["organization_id", "name"], name: "index_locations_on_organization_id_and_name", unique: true
+    t.index ["organization_id"], name: "index_locations_on_organization_id"
+  end
+
   create_table "media_assets", force: :cascade do |t|
     t.string "content_kind", null: false
     t.datetime "created_at", null: false
@@ -83,9 +92,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_08_120000) do
 
   create_table "organizations", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.string "kind", default: "client", null: false
     t.string "name", null: false
     t.string "time_zone", default: "UTC", null: false
     t.datetime "updated_at", null: false
+    t.index ["kind"], name: "index_organizations_on_kind"
   end
 
   create_table "playlist_items", force: :cascade do |t|
@@ -152,6 +163,41 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_08_120000) do
     t.index ["schedule_rule_id"], name: "index_schedule_targets_on_schedule_rule_id"
   end
 
+  create_table "screen_tags", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "screen_id", null: false
+    t.bigint "tag_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["screen_id", "tag_id"], name: "index_screen_tags_on_screen_id_and_tag_id", unique: true
+    t.index ["screen_id"], name: "index_screen_tags_on_screen_id"
+    t.index ["tag_id"], name: "index_screen_tags_on_tag_id"
+  end
+
+  create_table "screens", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.bigint "organization_id", null: false
+    t.string "orientation", default: "landscape", null: false
+    t.bigint "station_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["organization_id", "station_id", "name"], name: "index_screens_on_organization_id_and_station_id_and_name", unique: true
+    t.index ["organization_id"], name: "index_screens_on_organization_id"
+    t.index ["station_id"], name: "index_screens_on_station_id"
+  end
+
+  create_table "stations", force: :cascade do |t|
+    t.string "agent_token_digest"
+    t.datetime "created_at", null: false
+    t.bigint "location_id", null: false
+    t.string "name", null: false
+    t.integer "offline_cache_hours", default: 24, null: false
+    t.bigint "organization_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["location_id"], name: "index_stations_on_location_id"
+    t.index ["organization_id", "location_id", "name"], name: "index_stations_on_organization_id_and_location_id_and_name", unique: true
+    t.index ["organization_id"], name: "index_stations_on_organization_id"
+  end
+
   create_table "tags", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -176,6 +222,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_08_120000) do
   add_foreign_key "broadcast_point_tags", "broadcast_points"
   add_foreign_key "broadcast_point_tags", "tags"
   add_foreign_key "broadcast_points", "organizations"
+  add_foreign_key "locations", "organizations"
   add_foreign_key "media_assets", "organizations"
   add_foreign_key "media_assets", "users", column: "uploaded_by_id", on_delete: :nullify
   add_foreign_key "playlist_items", "media_assets", on_delete: :restrict
@@ -188,6 +235,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_08_120000) do
   add_foreign_key "schedule_rules", "playlists", on_delete: :restrict
   add_foreign_key "schedule_targets", "point_groups"
   add_foreign_key "schedule_targets", "schedule_rules", on_delete: :cascade
+  add_foreign_key "screen_tags", "screens"
+  add_foreign_key "screen_tags", "tags"
+  add_foreign_key "screens", "organizations"
+  add_foreign_key "screens", "stations"
+  add_foreign_key "stations", "locations"
+  add_foreign_key "stations", "organizations"
   add_foreign_key "tags", "organizations"
   add_foreign_key "users", "organizations"
 end

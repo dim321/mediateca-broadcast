@@ -85,6 +85,10 @@ en:
           attributes:
             base:
               organization_mismatch: tag and point must belong to the same organization
+        screen_tag:
+          attributes:
+            base:
+              organization_mismatch: tag and screen must belong to the same organization
         point_group_membership:
           attributes:
             base:
