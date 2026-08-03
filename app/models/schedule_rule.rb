@@ -2,7 +2,7 @@
 
 class ScheduleRule < ApplicationRecord
   belongs_to :organization
-  belongs_to :playlist
+  belongs_to :rotation
 
   has_many :schedule_targets, dependent: :destroy
   has_many :point_groups, through: :schedule_targets
@@ -14,7 +14,7 @@ class ScheduleRule < ApplicationRecord
 
   validates :starts_at, :ends_at, presence: true
   validate :ends_after_starts
-  validate :playlist_matches_organization
+  validate :rotation_matches_organization
   validate :at_least_one_target
   validate :no_overlapping_schedules
 
@@ -31,12 +31,12 @@ class ScheduleRule < ApplicationRecord
     errors.add(:ends_at, :must_be_after_starts)
   end
 
-  def playlist_matches_organization
-    return unless playlist && organization
+  def rotation_matches_organization
+    return unless rotation && organization
 
-    return if playlist.organization_id == organization_id
+    return if rotation.organization_id == organization_id
 
-    errors.add(:playlist, :wrong_organization)
+    errors.add(:rotation, :wrong_organization)
   end
 
   def at_least_one_target

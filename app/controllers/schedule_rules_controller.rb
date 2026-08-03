@@ -8,7 +8,7 @@ class ScheduleRulesController < ApplicationController
   def index
     authorize ScheduleRule
     @schedule_rules = policy_scope(ScheduleRule)
-      .includes(:playlist, :point_groups)
+      .includes(:rotation, :point_groups)
       .order(starts_at: :desc)
   end
 
@@ -65,16 +65,16 @@ class ScheduleRulesController < ApplicationController
   end
 
   def load_form_collections
-    @playlists = policy_scope(Playlist).order(:name)
+    @rotations = policy_scope(Rotation).order(:name)
     @point_groups = policy_scope(PointGroup).order(:name)
   end
 
   def assign_rule_attributes(rule)
-    playlist = policy_scope(Playlist).find_by(id: schedule_rule_params[:playlist_id])
-    if playlist.blank?
-      rule.errors.add(:playlist, :blank)
+    rotation = policy_scope(Rotation).find_by(id: schedule_rule_params[:rotation_id])
+    if rotation.blank?
+      rule.errors.add(:rotation, :blank)
     else
-      rule.playlist = playlist
+      rule.rotation = rotation
     end
 
     tc = schedule_rule_params[:timezone_context]
@@ -128,6 +128,6 @@ class ScheduleRulesController < ApplicationController
   end
 
   def schedule_rule_params
-    params.require(:schedule_rule).permit(:playlist_id, :starts_at, :ends_at, :timezone_context, point_group_ids: [])
+    params.require(:schedule_rule).permit(:rotation_id, :starts_at, :ends_at, :timezone_context, point_group_ids: [])
   end
 end

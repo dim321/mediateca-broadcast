@@ -1,4 +1,4 @@
-class Avo::Resources::Playlist < Avo::Resources::ApplicationResource
+class Avo::Resources::Rotation < Avo::Resources::ApplicationResource
   # self.includes = []
   # self.attachments = []
   # self.search = {
@@ -10,8 +10,8 @@ class Avo::Resources::Playlist < Avo::Resources::ApplicationResource
     field :organization_id, as: :number
     field :name, as: :text
     field :organization, as: :belongs_to
-    field :playlist_items, as: :has_many
-    field :media_assets, as: :has_many, through: :playlist_items
+    field :rotation_items, as: :has_many
+    field :media_assets, as: :has_many, through: :rotation_items
     field :schedule_rules, as: :has_many
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_03_034500) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_03_040000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -99,27 +99,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_034500) do
     t.index ["kind"], name: "index_organizations_on_kind"
   end
 
-  create_table "playlist_items", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.integer "display_duration_seconds"
-    t.bigint "media_asset_id", null: false
-    t.bigint "playlist_id", null: false
-    t.integer "position", null: false
-    t.datetime "updated_at", null: false
-    t.index ["media_asset_id"], name: "index_playlist_items_on_media_asset_id"
-    t.index ["playlist_id", "position"], name: "index_playlist_items_on_playlist_id_and_position", unique: true
-    t.index ["playlist_id"], name: "index_playlist_items_on_playlist_id"
-  end
-
-  create_table "playlists", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.string "name", null: false
-    t.bigint "organization_id", null: false
-    t.datetime "updated_at", null: false
-    t.index ["organization_id", "name"], name: "index_playlists_on_organization_id_and_name", unique: true
-    t.index ["organization_id"], name: "index_playlists_on_organization_id"
-  end
-
   create_table "point_group_memberships", force: :cascade do |t|
     t.bigint "broadcast_point_id", null: false
     t.datetime "created_at", null: false
@@ -139,18 +118,39 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_034500) do
     t.index ["organization_id"], name: "index_point_groups_on_organization_id"
   end
 
+  create_table "rotation_items", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "display_duration_seconds"
+    t.bigint "media_asset_id", null: false
+    t.integer "position", null: false
+    t.bigint "rotation_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["media_asset_id"], name: "index_rotation_items_on_media_asset_id"
+    t.index ["rotation_id", "position"], name: "index_rotation_items_on_rotation_id_and_position", unique: true
+    t.index ["rotation_id"], name: "index_rotation_items_on_rotation_id"
+  end
+
+  create_table "rotations", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.bigint "organization_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["organization_id", "name"], name: "index_rotations_on_organization_id_and_name", unique: true
+    t.index ["organization_id"], name: "index_rotations_on_organization_id"
+  end
+
   create_table "schedule_rules", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "ends_at", null: false
     t.bigint "organization_id", null: false
-    t.bigint "playlist_id", null: false
+    t.bigint "rotation_id", null: false
     t.datetime "starts_at", null: false
     t.string "timezone_context", default: "organization", null: false
     t.datetime "updated_at", null: false
-    t.index ["organization_id", "playlist_id"], name: "index_schedule_rules_on_organization_id_and_playlist_id"
+    t.index ["organization_id", "rotation_id"], name: "index_schedule_rules_on_organization_id_and_rotation_id"
     t.index ["organization_id", "starts_at", "ends_at"], name: "idx_on_organization_id_starts_at_ends_at_962bcc92ff"
     t.index ["organization_id"], name: "index_schedule_rules_on_organization_id"
-    t.index ["playlist_id"], name: "index_schedule_rules_on_playlist_id"
+    t.index ["rotation_id"], name: "index_schedule_rules_on_rotation_id"
   end
 
   create_table "schedule_targets", force: :cascade do |t|
@@ -225,14 +225,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_034500) do
   add_foreign_key "locations", "organizations"
   add_foreign_key "media_assets", "organizations"
   add_foreign_key "media_assets", "users", column: "uploaded_by_id", on_delete: :nullify
-  add_foreign_key "playlist_items", "media_assets", on_delete: :restrict
-  add_foreign_key "playlist_items", "playlists"
-  add_foreign_key "playlists", "organizations"
   add_foreign_key "point_group_memberships", "broadcast_points"
   add_foreign_key "point_group_memberships", "point_groups"
   add_foreign_key "point_groups", "organizations"
+  add_foreign_key "rotation_items", "media_assets", on_delete: :restrict
+  add_foreign_key "rotation_items", "rotations"
+  add_foreign_key "rotations", "organizations"
   add_foreign_key "schedule_rules", "organizations"
-  add_foreign_key "schedule_rules", "playlists", on_delete: :restrict
+  add_foreign_key "schedule_rules", "rotations", on_delete: :restrict
   add_foreign_key "schedule_targets", "point_groups"
   add_foreign_key "schedule_targets", "schedule_rules", on_delete: :cascade
   add_foreign_key "screen_tags", "screens"

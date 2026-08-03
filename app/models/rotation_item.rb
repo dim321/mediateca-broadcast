@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-class PlaylistItem < ApplicationRecord
-  belongs_to :playlist
+class RotationItem < ApplicationRecord
+  belongs_to :rotation
   belongs_to :media_asset
 
   validates :position, presence: true, numericality: { only_integer: true, greater_than: 0 }
-  validates :position, uniqueness: { scope: :playlist_id }
-  validates :media_asset_id, uniqueness: { scope: :playlist_id }
+  validates :position, uniqueness: { scope: :rotation_id }
+  validates :media_asset_id, uniqueness: { scope: :rotation_id }
   validate :media_asset_matches_organization
   validate :media_asset_must_be_ready
 
@@ -17,13 +17,13 @@ class PlaylistItem < ApplicationRecord
   def assign_position
     return if position.present? && position.positive?
 
-    max = playlist.playlist_items.maximum(:position)
+    max = rotation.rotation_items.maximum(:position)
     self.position = max.to_i + 1
   end
 
   def media_asset_matches_organization
-    return if media_asset.blank? || playlist.blank?
-    return if media_asset.organization_id == playlist.organization_id
+    return if media_asset.blank? || rotation.blank?
+    return if media_asset.organization_id == rotation.organization_id
 
     errors.add(:media_asset, :wrong_organization)
   end

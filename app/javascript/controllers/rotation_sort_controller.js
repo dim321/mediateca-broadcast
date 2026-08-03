@@ -33,7 +33,7 @@ export default class extends Controller {
     fetch(this.urlValue, {
       method: "PATCH",
       headers,
-      body: JSON.stringify({ playlist_item_ids: ids })
+      body: JSON.stringify({ rotation_item_ids: ids })
     }).then((response) => {
       if (!response.ok) console.error("Reorder failed", response.status)
     })

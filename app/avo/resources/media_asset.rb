@@ -17,7 +17,7 @@ class Avo::Resources::MediaAsset < Avo::Resources::ApplicationResource
     field :preview, as: :file
     field :organization, as: :belongs_to
     field :uploaded_by, as: :belongs_to
-    field :playlist_items, as: :has_many
-    field :playlists, as: :has_many, through: :playlist_items
+    field :rotation_items, as: :has_many
+    field :rotations, as: :has_many, through: :rotation_items
   end
 end

@@ -27,12 +27,12 @@ RSpec.describe "Performance smoke (queries)", type: :request do
 
   describe "GET /schedule_rules index" do
     it "держит запросы в разумном пределе при списке расписаний" do
-      playlist = create(:playlist, organization: org)
+      rotation = create(:rotation, organization: org)
       point_group = create(:point_group, organization: org)
       18.times do |i|
         create(:schedule_rule,
           organization: org,
-          playlist: playlist,
+          rotation: rotation,
           point_group: point_group,
           starts_at: Time.utc(2026, 7, i + 1, 10, 0, 0),
           ends_at: Time.utc(2026, 7, i + 1, 12, 0, 0))

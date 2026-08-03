@@ -10,19 +10,19 @@ RSpec.describe "Api::V1::PlaybackAssignments", type: :request do
       group = create(:point_group, organization:)
       create(:point_group_membership, point_group: group, broadcast_point: point)
 
-      playlist = create(:playlist, organization:)
+      rotation = create(:rotation, organization:)
       media_asset = create(:media_asset, :ready, :with_png_file, organization:)
-      create(:playlist_item, playlist:, media_asset:, position: 1)
+      create(:rotation_item, rotation:, media_asset:, position: 1)
       create(
         :schedule_rule,
         organization:,
-        playlist:,
+        rotation:,
         point_group: group,
         starts_at: 30.minutes.ago,
         ends_at: 30.minutes.from_now
       )
 
-      { playlist:, media_asset: }
+      { rotation:, media_asset: }
     end
 
     it "returns current assignment payload" do
@@ -33,7 +33,7 @@ RSpec.describe "Api::V1::PlaybackAssignments", type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to include("assignment_id", "starts_at", "ends_at", "playlist")
-      expect(response.parsed_body.dig("playlist", "id")).to eq(data[:playlist].id)
+      expect(response.parsed_body.dig("playlist", "id")).to eq(data[:rotation].id)
       expect(response.parsed_body.dig("playlist", "items")).to include(
         include("position" => 1, "kind" => data[:media_asset].content_kind)
       )

@@ -5,13 +5,13 @@ require "rails_helper"
 RSpec.describe "ScheduleRules", type: :request do
   let(:user) { create(:user) }
   let(:org) { user.organization }
-  let(:playlist) { create(:playlist, organization: org) }
+  let(:rotation) { create(:rotation, organization: org) }
   let(:point_group) { create(:point_group, organization: org) }
 
   def schedule_params(starts:, ends:)
     {
       schedule_rule: {
-        playlist_id: playlist.id,
+        rotation_id: rotation.id,
         starts_at: starts,
         ends_at: ends,
         timezone_context: "organization",
@@ -28,10 +28,10 @@ RSpec.describe "ScheduleRules", type: :request do
 
     it "lists schedules for the organization" do
       sign_in_as(user)
-      rule = create(:schedule_rule, organization: org, playlist: playlist, point_group: point_group)
+      rule = create(:schedule_rule, organization: org, rotation: rotation, point_group: point_group)
       get schedule_rules_path
       expect(response).to have_http_status(:success)
-      expect(response.body).to include(playlist.name)
+      expect(response.body).to include(rotation.name)
       expect(response.body).to include(point_group.name)
     end
   end
@@ -52,7 +52,7 @@ RSpec.describe "ScheduleRules", type: :request do
     it "rejects overlapping schedules for the same group" do
       create(:schedule_rule,
         organization: org,
-        playlist: playlist,
+        rotation: rotation,
         point_group: point_group,
         starts_at: Time.utc(2026, 8, 1, 9, 0, 0),
         ends_at: Time.utc(2026, 8, 1, 11, 0, 0))
@@ -71,11 +71,11 @@ RSpec.describe "ScheduleRules", type: :request do
     before { sign_in_as(user) }
 
     it "updates the schedule" do
-      rule = create(:schedule_rule, organization: org, playlist: playlist, point_group: point_group)
+      rule = create(:schedule_rule, organization: org, rotation: rotation, point_group: point_group)
 
       patch schedule_rule_path(rule), params: {
         schedule_rule: {
-          playlist_id: playlist.id,
+          rotation_id: rotation.id,
           starts_at: "2026-09-01T08:00",
           ends_at: "2026-09-01T10:00",
           timezone_context: "organization",

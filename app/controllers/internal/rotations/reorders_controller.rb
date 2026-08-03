@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 module Internal
-  module Playlists
+  module Rotations
     class ReordersController < ApplicationController
       before_action :require_user
-      before_action :set_playlist
+      before_action :set_rotation
 
       def update
-        authorize @playlist, :reorder?
-        ::Playlists::ReorderItems.call(playlist: @playlist, ordered_ids: reorder_ids)
+        authorize @rotation, :reorder?
+        ::Rotations::ReorderItems.call(rotation: @rotation, ordered_ids: reorder_ids)
         head :no_content
       rescue ArgumentError
         head :unprocessable_content
@@ -22,12 +22,12 @@ module Internal
         head :unauthorized
       end
 
-      def set_playlist
-        @playlist = policy_scope(Playlist).find(params[:playlist_id])
+      def set_rotation
+        @rotation = policy_scope(Rotation).find(params[:rotation_id])
       end
 
       def reorder_ids
-        raw = params.permit(playlist_item_ids: [])[:playlist_item_ids]
+        raw = params.permit(rotation_item_ids: [])[:rotation_item_ids]
         raise ArgumentError if raw.blank? || !raw.is_a?(Array)
 
         raw.map(&:to_i)

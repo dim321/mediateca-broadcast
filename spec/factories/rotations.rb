@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 FactoryBot.define do
-  factory :playlist do
+  factory :rotation do
     organization
-    sequence(:name) { |n| "Playlist #{n}" }
+    sequence(:name) { |n| "Rotation #{n}" }
   end
 end

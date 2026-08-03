@@ -19,9 +19,10 @@ module Playback
         assignment_id: rule.id,
         starts_at: rule.starts_at.iso8601,
         ends_at: rule.ends_at.iso8601,
+        # Keep the Device API contract stable while Agent clients migrate to rotation terminology.
         playlist: {
-          id: rule.playlist_id,
-          items: playlist_items(rule).map { |item| serialize_item(item) }
+          id: rule.rotation_id,
+          items: rotation_items(rule).map { |item| serialize_item(item) }
         }
       }
     end
@@ -35,14 +36,14 @@ module Playback
         .joins(schedule_targets: { point_group: :point_group_memberships })
         .where(point_group_memberships: { broadcast_point_id: broadcast_point.id })
         .where("schedule_rules.starts_at <= ? AND schedule_rules.ends_at > ?", at, at)
-        .includes(playlist: { playlist_items: { media_asset: [ :file_attachment, :file_blob ] } })
+        .includes(rotation: { rotation_items: { media_asset: [ :file_attachment, :file_blob ] } })
         .order(starts_at: :asc)
         .distinct
         .first
     end
 
-    def playlist_items(rule)
-      rule.playlist.playlist_items
+    def rotation_items(rule)
+      rule.rotation.rotation_items
         .includes(media_asset: [ :file_attachment, :file_blob ])
         .order(:position)
     end

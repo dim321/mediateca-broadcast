@@ -5,8 +5,8 @@
       - schedule_rule.errors.full_messages.each do |msg|
         li = msg
   div
-    = f.label :playlist_id, class: "block text-sm font-medium"
-    = f.collection_select :playlist_id, @playlists, :id, :name, { include_blank: true }, class: "mt-1 border rounded px-3 py-2 w-full"
+    = f.label :rotation_id, class: "block text-sm font-medium"
+    = f.collection_select :rotation_id, @rotations, :id, :name, { include_blank: true }, class: "mt-1 border rounded px-3 py-2 w-full"
   div
     = f.label :starts_at, class: "block text-sm font-medium"
     = f.datetime_field :starts_at, value: schedule_datetime_field_value(schedule_rule.starts_at, tz), class: "mt-1 border rounded px-3 py-2 w-full"

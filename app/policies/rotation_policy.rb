@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class PlaylistPolicy < ApplicationPolicy
+class RotationPolicy < ApplicationPolicy
   def index? = user.present?
 
   def show? = in_organization?

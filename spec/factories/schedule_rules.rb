@@ -7,7 +7,7 @@ FactoryBot.define do
     end
 
     organization
-    playlist { association :playlist, organization: organization }
+    rotation { association :rotation, organization: organization }
     starts_at { Time.utc(2026, 6, 1, 10, 0, 0) }
     ends_at { Time.utc(2026, 6, 1, 12, 0, 0) }
     timezone_context { :organization }

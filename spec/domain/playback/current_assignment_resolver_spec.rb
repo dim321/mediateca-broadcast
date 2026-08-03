@@ -10,20 +10,20 @@ RSpec.describe Playback::CurrentAssignmentResolver do
       point_group = create(:point_group, organization:)
       create(:point_group_membership, point_group:, broadcast_point:)
 
-      playlist = create(:playlist, organization:)
+      rotation = create(:rotation, organization:)
       media_asset = create(:media_asset, :ready, :with_png_file, organization:)
-      item = create(:playlist_item, playlist:, media_asset:, position: 1, display_duration_seconds: 10)
+      item = create(:rotation_item, rotation:, media_asset:, position: 1, display_duration_seconds: 10)
 
       schedule = create(
         :schedule_rule,
         organization:,
-        playlist:,
+        rotation:,
         point_group:,
         starts_at: 1.hour.ago,
         ends_at: 1.hour.from_now
       )
 
-      { broadcast_point:, playlist:, media_asset:, item:, schedule: }
+      { broadcast_point:, rotation:, media_asset:, item:, schedule: }
     end
 
     it "returns the active assignment payload for a broadcast point" do
@@ -36,7 +36,7 @@ RSpec.describe Playback::CurrentAssignmentResolver do
         starts_at: scenario[:schedule].starts_at.iso8601,
         ends_at: scenario[:schedule].ends_at.iso8601
       )
-      expect(payload.dig(:playlist, :id)).to eq(scenario[:playlist].id)
+      expect(payload.dig(:playlist, :id)).to eq(scenario[:rotation].id)
       expect(payload.dig(:playlist, :items)).to contain_exactly(
         include(
           position: scenario[:item].position,

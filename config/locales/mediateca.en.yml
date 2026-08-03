@@ -5,47 +5,47 @@ en:
     application:
       sign_in: Sign in
       sign_out: Sign out
-      playlists: Playlists
+      rotations: Rotations
       broadcast_points: Broadcast points
       point_groups: Point groups
       schedule_rules: Schedules
-  playlists:
+  rotations:
     index:
-      title: Playlists
-      new_playlist: New playlist
-      empty: No playlists yet.
+      title: Rotations
+      new_rotation: New rotation
+      empty: No rotations yet.
       media_library: Media library
     new:
-      title: New playlist
+      title: New rotation
     edit:
-      title: Edit playlist
+      title: Edit rotation
     form:
       name: Name
-      submit_create: Create playlist
+      submit_create: Create rotation
       submit_update: Save changes
     show:
       title: "%{name}"
-      items_heading: Playlist items
+      items_heading: Rotation items
       add_heading: Add media
       select_media: Select a file…
-      add_item: Add to playlist
+      add_item: Add to rotation
       remove_item: Remove
-      edit_playlist: Edit playlist
-      back: Back to playlists
+      edit_rotation: Edit rotation
+      back: Back to rotations
       media_library: Media library
       no_items: No items yet. Add ready media from the library.
       no_media_available: No ready media left to add. Upload files in the media library first.
     create:
-      created: Playlist created.
+      created: Rotation created.
     update:
-      updated: Playlist updated.
+      updated: Rotation updated.
     destroy:
-      destroyed: Playlist deleted.
-    playlist_items:
+      destroyed: Rotation deleted.
+    rotation_items:
       create:
-        created: Item added to playlist.
+        created: Item added to rotation.
       destroy:
-        destroyed: Item removed from playlist.
+        destroyed: Item removed from rotation.
   media_assets:
     authentication_required: Please sign in to continue.
     index:
@@ -77,11 +77,11 @@ en:
               unsupported_type: is not a supported format
               blank: must be selected
               too_large: must be 1 GiB or smaller
-        playlist_item:
+        rotation_item:
           attributes:
             media_asset:
-              wrong_organization: must belong to the same organization as the playlist
-              not_ready: must be ready before adding to a playlist
+              wrong_organization: must belong to the same organization as the rotation
+              not_ready: must be ready before adding to a rotation
         broadcast_point_tag:
           attributes:
             base:
@@ -101,7 +101,7 @@ en:
               overlaps_existing: this time window overlaps another schedule for one of the selected groups
             ends_at:
               must_be_after_starts: must be after the start time
-            playlist:
+            rotation:
               blank: must be selected
               wrong_organization: must belong to your organization
         schedule_target:
@@ -114,7 +114,7 @@ en:
       new_point: New broadcast point
       point_groups: Point groups
       media_library: Media library
-      playlists: Playlists
+      rotations: Rotations
       filter_by_tags: Filter by tags (points must have all selected tags)
       apply_filter: Apply filter
       clear_filter: Clear filter
@@ -175,7 +175,7 @@ en:
     index:
       title: Broadcast schedules
       new_schedule: New schedule
-      playlists: Playlists
+      rotations: Rotations
       edit: Edit
       delete: Delete
       delete_confirm: Delete this schedule?

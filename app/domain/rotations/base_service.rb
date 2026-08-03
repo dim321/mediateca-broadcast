@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Playlists
+module Rotations
   class BaseService < ServiceObject
   end
 end

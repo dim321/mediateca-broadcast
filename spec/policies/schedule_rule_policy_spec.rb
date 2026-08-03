@@ -9,7 +9,7 @@ RSpec.describe ScheduleRulePolicy do
   let(:rule) do
     create(:schedule_rule,
       organization: org,
-      playlist: create(:playlist, organization: org),
+      rotation: create(:rotation, organization: org),
       point_group: create(:point_group, organization: org))
   end
 
@@ -21,7 +21,7 @@ RSpec.describe ScheduleRulePolicy do
     it "запрещает правило другой организации" do
       foreign = create(:schedule_rule,
         organization: other_org,
-        playlist: create(:playlist, organization: other_org),
+        rotation: create(:rotation, organization: other_org),
         point_group: create(:point_group, organization: other_org))
       expect(described_class.new(user, foreign).show?).to be false
     end
@@ -35,7 +35,7 @@ RSpec.describe ScheduleRulePolicy do
     it "запрещает удаление в чужой организации" do
       foreign = create(:schedule_rule,
         organization: other_org,
-        playlist: create(:playlist, organization: other_org),
+        rotation: create(:rotation, organization: other_org),
         point_group: create(:point_group, organization: other_org))
       expect(described_class.new(user, foreign).destroy?).to be false
     end
@@ -46,7 +46,7 @@ RSpec.describe ScheduleRulePolicy do
       rule
       create(:schedule_rule,
         organization: other_org,
-        playlist: create(:playlist, organization: other_org),
+        rotation: create(:rotation, organization: other_org),
         point_group: create(:point_group, organization: other_org))
 
       resolved = described_class::Scope.new(user, ScheduleRule.all).resolve

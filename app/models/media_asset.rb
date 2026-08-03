@@ -6,8 +6,8 @@ class MediaAsset < ApplicationRecord
   belongs_to :organization
   belongs_to :uploaded_by, class_name: "User", optional: true
 
-  has_many :playlist_items, dependent: :restrict_with_exception
-  has_many :playlists, through: :playlist_items
+  has_many :rotation_items, dependent: :restrict_with_exception
+  has_many :rotations, through: :rotation_items
 
   has_one_attached :file
   has_one_attached :preview

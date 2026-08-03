@@ -12,7 +12,7 @@ class Avo::Resources::Organization < Avo::Resources::ApplicationResource
     field :kind, as: :select, enum: ::Organization.kinds
     field :users, as: :has_many
     field :media_assets, as: :has_many
-    field :playlists, as: :has_many
+    field :rotations, as: :has_many
     field :broadcast_points, as: :has_many
     field :point_groups, as: :has_many
     field :schedule_rules, as: :has_many

@@ -4,16 +4,16 @@ require "rails_helper"
 
 RSpec.describe ScheduleRule, type: :model do
   let(:organization) { create(:organization) }
-  let(:playlist) { create(:playlist, organization: organization) }
+  let(:rotation) { create(:rotation, organization: organization) }
   let(:point_group) { create(:point_group, organization: organization) }
 
   def build_rule(**attrs)
     org = attrs.delete(:organization) || organization
-    pl = attrs.delete(:playlist) || playlist
+    pl = attrs.delete(:rotation) || rotation
     pg = attrs.delete(:point_group) || point_group
     attrs = {
       organization: org,
-      playlist: pl,
+      rotation: pl,
       starts_at: Time.utc(2026, 7, 1, 10, 0, 0),
       ends_at: Time.utc(2026, 7, 1, 12, 0, 0),
       timezone_context: :organization
@@ -29,17 +29,17 @@ RSpec.describe ScheduleRule, type: :model do
     expect(rule.errors[:ends_at]).to be_present
   end
 
-  it "requires playlist in the same organization" do
-    other_playlist = create(:playlist)
-    rule = build_rule(playlist: other_playlist)
+  it "requires rotation in the same organization" do
+    other_rotation = create(:rotation)
+    rule = build_rule(rotation: other_rotation)
     expect(rule).not_to be_valid
-    expect(rule.errors[:playlist]).to be_present
+    expect(rule.errors[:rotation]).to be_present
   end
 
   it "rejects overlap on the same point group" do
     create(:schedule_rule,
       organization: organization,
-      playlist: playlist,
+      rotation: rotation,
       point_group: point_group,
       starts_at: Time.utc(2026, 7, 1, 10, 0, 0),
       ends_at: Time.utc(2026, 7, 1, 12, 0, 0))
@@ -55,7 +55,7 @@ RSpec.describe ScheduleRule, type: :model do
   it "allows adjacent windows without overlap (half-open intervals)" do
     create(:schedule_rule,
       organization: organization,
-      playlist: playlist,
+      rotation: rotation,
       point_group: point_group,
       starts_at: Time.utc(2026, 7, 1, 10, 0, 0),
       ends_at: Time.utc(2026, 7, 1, 12, 0, 0))
@@ -70,7 +70,7 @@ RSpec.describe ScheduleRule, type: :model do
   it "allows updating itself without false overlap" do
     rule = create(:schedule_rule,
       organization: organization,
-      playlist: playlist,
+      rotation: rotation,
       point_group: point_group,
       starts_at: Time.utc(2026, 7, 1, 10, 0, 0),
       ends_at: Time.utc(2026, 7, 1, 12, 0, 0))
@@ -85,7 +85,7 @@ RSpec.describe ScheduleRule, type: :model do
   it "requires at least one target" do
     rule = described_class.new(
       organization: organization,
-      playlist: playlist,
+      rotation: rotation,
       starts_at: Time.utc(2026, 7, 1, 10, 0, 0),
       ends_at: Time.utc(2026, 7, 1, 12, 0, 0),
       timezone_context: :organization

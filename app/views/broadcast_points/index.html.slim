@@ -7,7 +7,7 @@
   p
     = link_to t(".point_groups"), point_groups_path, class: "text-blue-600 underline text-sm mr-4"
     = link_to t(".media_library"), root_path, class: "text-blue-600 underline text-sm"
-    = link_to t(".playlists"), playlists_path, class: "text-blue-600 underline text-sm ml-4"
+    = link_to t(".rotations"), rotations_path, class: "text-blue-600 underline text-sm ml-4"
 
   = form_with url: broadcast_points_path, method: :get, local: true, class: "border rounded-lg p-4 bg-gray-50 space-y-2" do
     p.font-medium.text-sm = t(".filter_by_tags")
