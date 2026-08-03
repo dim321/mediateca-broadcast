@@ -8,7 +8,7 @@ class Avo::Resources::Screen < Avo::Resources::ApplicationResource
     field :orientation, as: :select, enum: ::Screen.orientations
     field :organization, as: :belongs_to
     field :station, as: :belongs_to
-    field :screen_tags, as: :has_many
     field :tags, as: :has_many, through: :screen_tags
+    field :screen_tags, as: :has_many
   end
 end

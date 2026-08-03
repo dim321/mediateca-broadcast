@@ -13,6 +13,7 @@ RSpec.describe "Avo menu navigation", type: :request do
       "/avo/resources/locations",
       "/avo/resources/stations",
       "/avo/resources/screens",
+      "/avo/resources/tags",
       "/avo/resources/schedule_rules"
     ]
   end

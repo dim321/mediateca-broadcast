@@ -18,6 +18,10 @@ class Screen < ApplicationRecord
   validates :name, presence: true, uniqueness: { scope: %i[organization_id station_id] }
   validate :station_belongs_to_organization
 
+  scope :operator_catalog, -> {
+    joins(:organization).merge(Organization.operator)
+  }
+
   private
 
   def station_belongs_to_organization

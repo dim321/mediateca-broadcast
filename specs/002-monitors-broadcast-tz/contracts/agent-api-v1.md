@@ -102,9 +102,10 @@ Records proof-of-play start events. Send:
 }
 ```
 
-The Hub accepts only screens belonging to the authenticated station. It creates one
-`PlayLog` per event with `source: "agent"` and the organization of the referenced
-media asset. On success it returns HTTP `201`:
+The Hub accepts only screens belonging to the authenticated station and only
+media assets that appear in that station's current package horizon for the given
+screen. It creates one `PlayLog` per event with `source: "agent"` and the
+organization of the matched media plan. On success it returns HTTP `201`:
 
 ```json
 { "play_log_ids": [101] }

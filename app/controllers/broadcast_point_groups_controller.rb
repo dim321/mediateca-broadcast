@@ -12,7 +12,7 @@ class BroadcastPointGroupsController < ApplicationController
   def show
     authorize @broadcast_point_group
     @members = @broadcast_point_group.screens.includes(:organization, :station).order(:name)
-    @available_screens = Screen.where.not(id: @members.select(:id)).includes(:organization, :station).order(:name)
+    @available_screens = catalog_screens.where.not(id: @members.select(:id)).includes(:organization, :station).order(:name)
   end
 
   def new
@@ -47,10 +47,20 @@ class BroadcastPointGroupsController < ApplicationController
   def add_screens
     authorize @broadcast_point_group, :add_screens?
     screen_ids = Array(params[:screen_ids]).compact_blank.map(&:to_i).uniq
-    screens = Screen.where(id: screen_ids)
-    @broadcast_point_group.screens << screens
+    screens = catalog_screens.where(id: screen_ids)
+
+    if screens.size != screen_ids.size
+      redirect_to @broadcast_point_group, alert: t(".screens_not_in_catalog")
+      return
+    end
+
+    ActiveRecord::Base.transaction do
+      screens.each do |screen|
+        @broadcast_point_group.broadcast_point_group_memberships.create!(screen:)
+      end
+    end
     redirect_to @broadcast_point_group, notice: t(".screens_added", count: screens.size)
-  rescue ActiveRecord::RecordNotUnique
+  rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
     redirect_to @broadcast_point_group, alert: t(".screens_not_added")
   end
 
@@ -75,5 +85,9 @@ class BroadcastPointGroupsController < ApplicationController
 
   def broadcast_point_group_params
     params.require(:broadcast_point_group).permit(:name)
+  end
+
+  def catalog_screens
+    Screen.operator_catalog
   end
 end

@@ -6,7 +6,7 @@ RSpec.describe 'Api::Agent::V1::Configs', type: :request do
   describe 'GET /api/agent/v1/config' do
     it 'returns this station cache policy and screens' do
       token = SecureRandom.hex(16)
-      station = create(:station, offline_cache_hours: 48)
+      station = create(:station, organization: create(:organization, :operator), offline_cache_hours: 48)
       station.assign_agent_token!(token)
       screen = create(:screen, organization: station.organization, station:, orientation: :portrait)
 

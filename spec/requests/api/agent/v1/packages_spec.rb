@@ -5,13 +5,14 @@ require 'rails_helper'
 RSpec.describe 'Api::Agent::V1::Packages', type: :request do
   describe 'GET /api/agent/v1/package' do
     it 'returns broadcast media for active plans on this station only' do
-      organization = create(:organization)
-      station = create(:station, organization:)
-      screen = create(:screen, organization:, station:)
+      client = create(:organization, :client)
+      operator = create(:organization, :operator)
+      station = create(:station, organization: operator)
+      screen = create(:screen, organization: operator, station:)
       token = station.assign_agent_token!
-      media_asset, rotation = create_rotation(organization)
-      plan = create_plan(organization:, rotation:, screen:)
-      create_plan(organization:, rotation:, screen: create(:screen, organization:))
+      media_asset, rotation = create_rotation(client)
+      plan = create_plan(organization: client, rotation:, screen:)
+      create_plan(organization: client, rotation:, screen: create(:screen, organization: operator))
 
       get '/api/agent/v1/package', headers: agent_authorization_headers(token), as: :json
 
@@ -24,7 +25,7 @@ RSpec.describe 'Api::Agent::V1::Packages', type: :request do
 
     it 'returns an empty package for a station without matching plans' do
       token = SecureRandom.hex(16)
-      station = create(:station)
+      station = create(:station, organization: create(:organization, :operator))
       station.assign_agent_token!(token)
 
       get '/api/agent/v1/package', headers: agent_authorization_headers(token), as: :json

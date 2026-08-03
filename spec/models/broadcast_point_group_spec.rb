@@ -32,12 +32,22 @@ RSpec.describe BroadcastPointGroup, type: :model do
 
     it 'does not add the same screen twice' do
       group = create(:broadcast_point_group)
-      screen = create(:screen)
+      screen = create(:screen, organization: create(:organization, :operator))
       create(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen)
 
       duplicate = build(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen)
 
       expect(duplicate).not_to be_valid
+    end
+
+    it 'rejects screens that do not belong to an operator organization' do
+      group = create(:broadcast_point_group)
+      screen = create(:screen, organization: create(:organization, :client))
+
+      membership = build(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen)
+
+      expect(membership).not_to be_valid
+      expect(membership.errors[:screen]).to be_present
     end
   end
 end

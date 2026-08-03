@@ -92,6 +92,11 @@ en:
           attributes:
             base:
               organization_mismatch: tag and screen must belong to the same organization
+        broadcast_point_group_membership:
+          attributes:
+            screen:
+              not_in_operator_catalog: must belong to an operator organization
+              overlaps_existing_media_plan: overlaps an existing media plan for this screen
         point_group_membership:
           attributes:
             base:
@@ -245,6 +250,7 @@ en:
         one: 1 screen added to the group.
         other: "%{count} screens added to the group."
       screens_not_added: Screens could not be added to the group.
+      screens_not_in_catalog: Only operator catalog screens can be added to the group.
     remove_member:
       member_removed: Screen removed from the group.
   media_plans:

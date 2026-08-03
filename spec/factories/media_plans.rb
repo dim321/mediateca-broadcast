@@ -11,7 +11,7 @@ FactoryBot.define do
     after(:build) do |media_plan|
       next if media_plan.broadcast_point_group.screens.exists?
 
-      screen = create(:screen)
+      screen = create(:screen, organization: create(:organization, :operator))
       create(:broadcast_point_group_membership, broadcast_point_group: media_plan.broadcast_point_group, screen: screen)
     end
   end
