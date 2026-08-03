@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_03_040000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_03_041000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_040000) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "broadcast_point_group_memberships", force: :cascade do |t|
+    t.bigint "broadcast_point_group_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "screen_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["broadcast_point_group_id", "screen_id"], name: "index_broadcast_point_group_memberships_unique", unique: true
+    t.index ["broadcast_point_group_id"], name: "idx_on_broadcast_point_group_id_7614dd11c4"
+    t.index ["screen_id"], name: "index_broadcast_point_group_memberships_on_screen_id"
+  end
+
+  create_table "broadcast_point_groups", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.bigint "organization_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["organization_id", "name"], name: "index_broadcast_point_groups_on_organization_id_and_name", unique: true
+    t.index ["organization_id"], name: "index_broadcast_point_groups_on_organization_id"
   end
 
   create_table "broadcast_point_tags", force: :cascade do |t|
@@ -88,6 +107,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_040000) do
     t.index ["organization_id", "processing_status"], name: "index_media_assets_on_organization_id_and_processing_status"
     t.index ["organization_id"], name: "index_media_assets_on_organization_id"
     t.index ["uploaded_by_id"], name: "index_media_assets_on_uploaded_by_id"
+  end
+
+  create_table "media_plans", force: :cascade do |t|
+    t.bigint "broadcast_point_group_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "ends_at", null: false
+    t.bigint "organization_id", null: false
+    t.bigint "rotation_id", null: false
+    t.datetime "starts_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["broadcast_point_group_id"], name: "index_media_plans_on_broadcast_point_group_id"
+    t.index ["organization_id", "starts_at", "ends_at"], name: "index_media_plans_on_organization_id_and_starts_at_and_ends_at"
+    t.index ["organization_id"], name: "index_media_plans_on_organization_id"
+    t.index ["rotation_id"], name: "index_media_plans_on_rotation_id"
   end
 
   create_table "organizations", force: :cascade do |t|
@@ -219,12 +252,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_040000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "broadcast_point_group_memberships", "broadcast_point_groups", on_delete: :cascade
+  add_foreign_key "broadcast_point_group_memberships", "screens"
+  add_foreign_key "broadcast_point_groups", "organizations"
   add_foreign_key "broadcast_point_tags", "broadcast_points"
   add_foreign_key "broadcast_point_tags", "tags"
   add_foreign_key "broadcast_points", "organizations"
   add_foreign_key "locations", "organizations"
   add_foreign_key "media_assets", "organizations"
   add_foreign_key "media_assets", "users", column: "uploaded_by_id", on_delete: :nullify
+  add_foreign_key "media_plans", "broadcast_point_groups", on_delete: :restrict
+  add_foreign_key "media_plans", "organizations"
+  add_foreign_key "media_plans", "rotations", on_delete: :restrict
   add_foreign_key "point_group_memberships", "broadcast_points"
   add_foreign_key "point_group_memberships", "point_groups"
   add_foreign_key "point_groups", "organizations"

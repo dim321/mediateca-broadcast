@@ -6,6 +6,8 @@ class Screen < ApplicationRecord
 
   has_many :screen_tags, dependent: :destroy
   has_many :tags, through: :screen_tags
+  has_many :broadcast_point_group_memberships, dependent: :restrict_with_exception
+  has_many :broadcast_point_groups, through: :broadcast_point_group_memberships
 
   enum :orientation, {
     landscape: "landscape",

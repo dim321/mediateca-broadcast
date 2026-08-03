@@ -8,6 +8,8 @@ en:
       rotations: Rotations
       broadcast_points: Broadcast points
       point_groups: Point groups
+      broadcast_point_groups: Screen groups
+      media_plans: Media plans
       schedule_rules: Schedules
   rotations:
     index:
@@ -108,6 +110,18 @@ en:
           attributes:
             point_group:
               wrong_organization: must belong to the same organization as the schedule
+        media_plan:
+          attributes:
+            base:
+              overlaps_existing: overlaps an existing media plan
+            ends_at:
+              must_be_after_starts: must be after the start time
+            rotation:
+              wrong_organization: must belong to your organization
+              not_broadcast_ready: must contain only broadcast-ready media
+            broadcast_point_group:
+              wrong_organization: must belong to your organization
+              must_have_screens: must contain at least one screen
   broadcast_points:
     index:
       title: Broadcast points
@@ -200,3 +214,59 @@ en:
       updated: Schedule updated.
     destroy:
       destroyed: Schedule removed.
+  broadcast_point_groups:
+    index:
+      title: Screen groups
+      new_group: New screen group
+      empty: No screen groups yet.
+    new:
+      title: New screen group
+    edit:
+      title: Edit screen group
+    form:
+      cancel: Cancel
+    show:
+      edit_name: Edit name
+      back: Back to screen groups
+      members_heading: Screens in this group
+      no_members: No screens in this group yet.
+      add_heading: Add screens
+      add_selected: Add selected screens
+      no_screens_to_add: All screens are already in this group.
+      screen_owner: "%{organization} · %{station}"
+      remove: Remove
+      remove_confirm: Remove this screen from the group?
+    create:
+      created: Screen group created.
+    update:
+      updated: Screen group updated.
+    add_screens:
+      screens_added:
+        one: 1 screen added to the group.
+        other: "%{count} screens added to the group."
+      screens_not_added: Screens could not be added to the group.
+    remove_member:
+      member_removed: Screen removed from the group.
+  media_plans:
+    index:
+      title: Media plans
+      new_media_plan: New media plan
+      edit: Edit
+      delete: Delete
+      delete_confirm: Delete this media plan?
+      empty: No media plans yet.
+    new:
+      title: New media plan
+    edit:
+      title: Edit media plan
+    form:
+      cancel: Cancel
+    show:
+      edit: Edit media plan
+      back: Back to media plans
+    create:
+      created: Media plan created.
+    update:
+      updated: Media plan updated.
+    destroy:
+      destroyed: Media plan removed.

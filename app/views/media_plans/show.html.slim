@@ -1,0 +1,13 @@
+- content_for :title, @media_plan.rotation.name
+
+.flex.flex-col.gap-4.w-full.max-w-6xl
+  - time_zone = Current.user.organization.time_zone
+  h1.text-2xl.font-bold = @media_plan.rotation.name
+  p.text-sm = @media_plan.broadcast_point_group.name
+  p.text-sm.text-gray-600
+    = l(@media_plan.starts_at.in_time_zone(time_zone), format: :long)
+    |  —
+    = l(@media_plan.ends_at.in_time_zone(time_zone), format: :long)
+  .flex.gap-3
+    = link_to t('.edit'), edit_media_plan_path(@media_plan), class: 'text-blue-600 underline text-sm'
+    = link_to t('.back'), media_plans_path, class: 'text-blue-600 underline text-sm'

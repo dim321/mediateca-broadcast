@@ -28,6 +28,15 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :broadcast_point_groups do
+    member do
+      post :add_screens
+      delete :remove_member
+    end
+  end
+
+  resources :media_plans
+
   resources :schedule_rules
 
   namespace :internal do

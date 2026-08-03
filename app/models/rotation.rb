@@ -5,6 +5,7 @@ class Rotation < ApplicationRecord
   has_many :rotation_items, dependent: :destroy
   has_many :media_assets, through: :rotation_items
   has_many :schedule_rules, dependent: :restrict_with_exception
+  has_many :media_plans, dependent: :restrict_with_exception
 
   validates :name, presence: true
   validates :name, uniqueness: { scope: :organization_id, case_sensitive: true }
