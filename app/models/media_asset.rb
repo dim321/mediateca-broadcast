@@ -8,6 +8,7 @@ class MediaAsset < ApplicationRecord
 
   has_many :rotation_items, dependent: :restrict_with_exception
   has_many :rotations, through: :rotation_items
+  has_many :play_logs, dependent: :restrict_with_exception
 
   has_one_attached :file
   has_one_attached :preview

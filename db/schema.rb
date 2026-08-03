@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_03_041000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_03_043000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -130,6 +130,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_041000) do
     t.string "time_zone", default: "UTC", null: false
     t.datetime "updated_at", null: false
     t.index ["kind"], name: "index_organizations_on_kind"
+  end
+
+  create_table "play_logs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "media_asset_id", null: false
+    t.bigint "organization_id", null: false
+    t.bigint "screen_id", null: false
+    t.string "source", default: "agent", null: false
+    t.datetime "started_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["media_asset_id"], name: "index_play_logs_on_media_asset_id"
+    t.index ["organization_id", "started_at"], name: "index_play_logs_on_organization_id_and_started_at"
+    t.index ["organization_id"], name: "index_play_logs_on_organization_id"
+    t.index ["screen_id", "started_at"], name: "index_play_logs_on_screen_id_and_started_at"
+    t.index ["screen_id"], name: "index_play_logs_on_screen_id"
   end
 
   create_table "point_group_memberships", force: :cascade do |t|
@@ -264,6 +279,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_041000) do
   add_foreign_key "media_plans", "broadcast_point_groups", on_delete: :restrict
   add_foreign_key "media_plans", "organizations"
   add_foreign_key "media_plans", "rotations", on_delete: :restrict
+  add_foreign_key "play_logs", "media_assets"
+  add_foreign_key "play_logs", "organizations"
+  add_foreign_key "play_logs", "screens"
   add_foreign_key "point_group_memberships", "broadcast_points"
   add_foreign_key "point_group_memberships", "point_groups"
   add_foreign_key "point_groups", "organizations"

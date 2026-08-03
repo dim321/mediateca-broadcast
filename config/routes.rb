@@ -53,6 +53,14 @@ Rails.application.routes.draw do
 
       get "playback_assignments/current", to: "playback_assignments#current"
     end
+
+    namespace :agent do
+      namespace :v1 do
+        get :package, to: "packages#show"
+        get :config, to: "configs#show"
+        post :play_events, to: "play_events#create"
+      end
+    end
   end
 
   get "login", to: "sessions#new", as: :login

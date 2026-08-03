@@ -18,6 +18,7 @@ class Organization < ApplicationRecord
   has_many :locations, dependent: :restrict_with_exception
   has_many :stations, dependent: :restrict_with_exception
   has_many :screens, dependent: :restrict_with_exception
+  has_many :play_logs, dependent: :restrict_with_exception
 
   validates :name, presence: true
   validates :time_zone, presence: true
