@@ -65,6 +65,21 @@ class MediaAsset < ApplicationRecord
     duration_seconds
   end
 
+  def broadcast_ready?
+    return false unless ready?
+    return true unless video?
+
+    broadcast_file.attached?
+  end
+
+  def broadcast_delivery_attachment
+    return unless ready?
+    return broadcast_file if video? && broadcast_file.attached?
+    return if video?
+
+    file if file.attached?
+  end
+
   private
 
   def file_must_be_present_and_allowed

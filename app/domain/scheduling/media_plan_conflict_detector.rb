@@ -26,7 +26,7 @@ module Scheduling
         .where("media_plans.starts_at < ? AND media_plans.ends_at > ?", ends_at, starts_at)
         .distinct
       scope = scope.where.not(id: exclude_media_plan.id) if exclude_media_plan&.persisted?
-      scope.to_a
+      scope
     end
   end
 end

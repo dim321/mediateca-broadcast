@@ -11,6 +11,12 @@ class Rotation < ApplicationRecord
   validates :name, uniqueness: { scope: :organization_id, case_sensitive: true }
 
   def ordered_items
-    rotation_items.includes(media_asset: { file_attachment: :blob }).order(:position)
+    if rotation_items.loaded?
+      rotation_items.sort_by(&:position)
+    else
+      rotation_items
+        .includes(media_asset: [ { file_attachment: :blob }, { broadcast_file_attachment: :blob } ])
+        .order(:position)
+    end
   end
 end

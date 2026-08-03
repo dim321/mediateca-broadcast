@@ -26,7 +26,7 @@ module Api
             screen: current_station.screens.find(event[:screen_id]),
             media_asset:,
             started_at: event[:started_at],
-            source: "agent"
+            source: :agent
           )
         end
       end

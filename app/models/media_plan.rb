@@ -38,34 +38,32 @@ class MediaPlan < ApplicationRecord
 
   def broadcast_point_group_has_screens
     return if broadcast_point_group.blank?
-    return if broadcast_point_group.screens.exists?
+    return if conflict_screen_ids.any?
 
     errors.add(:broadcast_point_group, :must_have_screens)
   end
 
   def rotation_is_broadcast_ready
     return if rotation.blank?
-    return if rotation.ordered_items.all? { |item| media_asset_broadcast_ready?(item.media_asset) }
+    return if rotation.ordered_items.all? { |item| item.media_asset.broadcast_ready? }
 
     errors.add(:rotation, :not_broadcast_ready)
   end
 
-  def media_asset_broadcast_ready?(media_asset)
-    return false unless media_asset.ready?
-    return true unless media_asset.video?
-
-    media_asset.broadcast_file.attached?
-  end
-
   def no_overlapping_media_plans
     return if broadcast_point_group.blank? || starts_at.blank? || ends_at.blank?
+    return if conflict_screen_ids.blank?
 
     conflicts = Scheduling::MediaPlanConflictDetector.call(
       starts_at: starts_at,
       ends_at: ends_at,
-      screen_ids: broadcast_point_group.screen_ids,
+      screen_ids: conflict_screen_ids,
       exclude_media_plan: persisted? ? self : nil
     )
     errors.add(:base, :overlaps_existing) if conflicts.any?
+  end
+
+  def conflict_screen_ids
+    @conflict_screen_ids ||= broadcast_point_group.screen_ids
   end
 end

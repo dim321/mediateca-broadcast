@@ -1,11 +1,7 @@
 # frozen_string_literal: true
 
 module Agent
-  class ConfigBuilder
-    def self.call(station:)
-      new(station:).call
-    end
-
+  class ConfigBuilder < BaseService
     def initialize(station:)
       @station = station
     end
@@ -14,7 +10,7 @@ module Agent
       {
         station_id: station.id,
         offline_cache_hours: station.offline_cache_hours,
-        screens: station.screens.order(:id).map(&method(:screen_payload))
+        screens: station.screens.order(:id).map { |screen| screen_payload(screen) }
       }
     end
 

@@ -1,12 +1,8 @@
 # frozen_string_literal: true
 
 module Agent
-  class PackageBuilder
-    def self.call(station:, now: Time.current)
-      new(station:, now:).call
-    end
-
-    def initialize(station:, now:)
+  class PackageBuilder < BaseService
+    def initialize(station:, now: Time.current)
       @station = station
       @now = now
     end
@@ -36,9 +32,7 @@ module Agent
     end
 
     def items
-      media_plans.filter_map do |media_plan|
-        plan_payload(media_plan)
-      end
+      media_plans.filter_map { |media_plan| plan_payload(media_plan) }
     end
 
     def media_plans
@@ -46,13 +40,16 @@ module Agent
         .joins(broadcast_point_group: :screens)
         .where(screens: { station_id: station.id })
         .where("media_plans.starts_at <= ? AND media_plans.ends_at >= ?", horizon, now)
-        .includes(rotation: { rotation_items: { media_asset: [ { file_attachment: :blob }, { broadcast_file_attachment: :blob } ] } })
+        .includes(
+          broadcast_point_group: :screens,
+          rotation: { rotation_items: { media_asset: [ { file_attachment: :blob }, { broadcast_file_attachment: :blob } ] } }
+        )
         .distinct
         .order(:starts_at, :id)
     end
 
     def plan_payload(media_plan)
-      rotation_items = media_plan.rotation.ordered_items.filter_map { media_payload(it) }
+      rotation_items = media_plan.rotation.ordered_items.filter_map { |item| media_payload(item) }
       return if rotation_items.empty?
 
       {
@@ -70,14 +67,14 @@ module Agent
 
     def station_screen_ids(media_plan)
       media_plan.broadcast_point_group.screens
-        .where(station_id: station.id)
-        .order(:id)
-        .pluck(:id)
+        .select { |screen| screen.station_id == station.id }
+        .sort_by(&:id)
+        .map(&:id)
     end
 
     def media_payload(rotation_item)
       media_asset = rotation_item.media_asset
-      attachment = attachment_for(media_asset)
+      attachment = media_asset.broadcast_delivery_attachment
       return unless attachment
 
       {
@@ -89,13 +86,6 @@ module Agent
           mime_type: attachment.blob.content_type
         }
       }
-    end
-
-    def attachment_for(media_asset)
-      return unless media_asset.ready?
-      return media_asset.broadcast_file if media_asset.video? && media_asset.broadcast_file.attached?
-      return if media_asset.video?
-      media_asset.file if media_asset.file.attached?
     end
 
     def signed_blob_path(attachment)

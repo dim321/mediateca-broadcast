@@ -23,7 +23,8 @@ class ProcessMediaMetadataJob < ApplicationJob
       if result.refined_content_kind.present?
         attrs[:content_kind] = result.refined_content_kind
       end
-      attrs[:processing_status] = attrs.fetch(:content_kind, media_asset.content_kind) == "video" ? :processing : :ready
+      kind = attrs.fetch(:content_kind, media_asset.content_kind).to_s
+      attrs[:processing_status] = kind == MediaAsset.content_kinds[:video] ? :processing : :ready
       media_asset.update!(attrs)
       MediaTranscodeJob.perform_later(media_asset.id) if media_asset.video?
     end
