@@ -15,7 +15,7 @@ require 'rails_helper'
 #
 # Indexes
 #
-#  index_organizations_on_kind  (kind)
+#  index_organizations_one_operator  (kind) UNIQUE WHERE ((kind)::text = 'operator'::text)
 #
 RSpec.describe Organization, type: :model do
   describe 'associations' do
@@ -44,5 +44,18 @@ RSpec.describe Organization, type: :model do
     it 'supports operator organizations' do
       expect(build(:organization, :operator)).to be_operator
     end
+
+    it 'allows only one operator organization' do
+      create(:organization, :operator)
+
+      expect(build(:organization, :operator)).not_to be_valid
+    end
+
+    it 'allows many client organizations' do
+      create(:organization, :client)
+
+      expect(build(:organization, :client)).to be_valid
+    end
   end
 end
+

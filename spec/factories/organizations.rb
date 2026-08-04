@@ -13,7 +13,7 @@
 #
 # Indexes
 #
-#  index_organizations_on_kind  (kind)
+#  index_organizations_one_operator  (kind) UNIQUE WHERE ((kind)::text = 'operator'::text)
 #
 FactoryBot.define do
   factory :organization do

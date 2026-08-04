@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_03_043000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_04_103454) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -103,7 +103,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_043000) do
     t.string "name", null: false
     t.string "time_zone", default: "UTC", null: false
     t.datetime "updated_at", null: false
-    t.index ["kind"], name: "index_organizations_on_kind"
+    t.index ["kind"], name: "index_organizations_one_operator", unique: true, where: "((kind)::text = 'operator'::text)"
   end
 
   create_table "play_logs", force: :cascade do |t|

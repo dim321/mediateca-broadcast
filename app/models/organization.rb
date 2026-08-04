@@ -13,7 +13,7 @@
 #
 # Indexes
 #
-#  index_organizations_on_kind  (kind)
+#  index_organizations_one_operator  (kind) UNIQUE WHERE ((kind)::text = 'operator'::text)
 #
 class Organization < ApplicationRecord
   enum :kind, {
@@ -30,4 +30,6 @@ class Organization < ApplicationRecord
 
   validates :name, presence: true
   validates :time_zone, presence: true
+  validates :kind, uniqueness: true, if: :operator?
 end
+
