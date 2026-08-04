@@ -40,29 +40,38 @@ module Media
       private
 
       def refine_kind_from_streams(streams, declared_content_type:)
-        types = streams.filter_map { |s| s["codec_type"] }.uniq
+        # Prefer declared MIME: ffprobe reports still images (PNG/JPEG) as codec_type=video.
+        kind_from_declared_mime(declared_content_type) || kind_from_streams(streams)
+      end
+
+      def kind_from_declared_mime(content_type)
+        if content_type&.start_with?("image/")
+          "image"
+        elsif content_type&.start_with?("video/")
+          "video"
+        elsif content_type&.start_with?("audio/")
+          "audio"
+        elsif content_type == "application/pdf"
+          "document"
+        elsif content_type&.include?("presentation")
+          "presentation"
+        end
+      end
+
+      def kind_from_streams(streams)
+        types = streams.filter_map { |stream| stream["codec_type"] }.uniq
         if types.include?("video")
           "video"
         elsif types.include?("audio")
           "audio"
-        elsif declared_content_type&.start_with?("image/")
-          "image"
         end
       end
 
       def fallback_result(declared_content_type:, error:)
-        kind =
-          if declared_content_type&.start_with?("video/") then "video"
-          elsif declared_content_type&.start_with?("audio/") then "audio"
-          elsif declared_content_type&.start_with?("image/") then "image"
-          elsif declared_content_type == "application/pdf" then "document"
-          elsif declared_content_type&.include?("presentation") then "presentation"
-          end
-
         Result.new(
           duration_seconds: nil,
           metadata: { "probe_error" => error },
-          refined_content_kind: kind
+          refined_content_kind: kind_from_declared_mime(declared_content_type)
         )
       end
     end

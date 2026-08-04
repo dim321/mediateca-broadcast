@@ -19,9 +19,11 @@ Avo.configure do |config|
 
   ## == Authentication ==
   config.current_user_method = :current_user
-  # Кабинетный вход — в следующих фазах; пока не блокируем /avo в dev/test.
   config.authenticate_with do
-    Rails.env.local? || Current.user.present?
+    next if Rails.env.development? && Current.user.blank?
+    next if Current.user&.organization&.operator?
+
+    redirect_to main_app.root_path
   end
 
   ## == Authorization ==

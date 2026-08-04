@@ -3,14 +3,16 @@
 require "rails_helper"
 
 RSpec.describe "Avo menu navigation", type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, organization: create(:organization, :operator)) }
   let(:menu_paths) do
     [
       "/avo",
       "/avo/resources/media_assets",
-      "/avo/resources/playlists",
-      "/avo/resources/broadcast_points",
-      "/avo/resources/schedule_rules"
+      "/avo/resources/rotations",
+      "/avo/resources/locations",
+      "/avo/resources/stations",
+      "/avo/resources/screens",
+      "/avo/resources/tags"
     ]
   end
 

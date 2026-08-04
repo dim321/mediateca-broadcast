@@ -15,34 +15,30 @@ Rails.application.routes.draw do
 
   resources :media_assets, only: %i[index create update]
 
-  resources :playlists do
-    resources :playlist_items, only: %i[create destroy], path: "items"
+  resources :rotations do
+    resources :rotation_items, only: %i[create destroy], path: "items"
   end
 
-  resources :broadcast_points, except: :destroy
-
-  resources :point_groups do
+  resources :broadcast_point_groups do
     member do
-      post :add_points
+      post :add_screens
       delete :remove_member
     end
   end
 
-  resources :schedule_rules
+  resources :media_plans
 
   namespace :internal do
-    patch "playlists/:playlist_id/reorder", to: "playlists/reorders#update", as: :playlist_reorder
+    patch "rotations/:rotation_id/reorder", to: "rotations/reorders#update", as: :rotation_reorder
   end
 
   namespace :api do
-    namespace :v1 do
-      resources :device_sessions, only: :create do
-        collection do
-          get :current
-        end
+    namespace :agent do
+      namespace :v1 do
+        get :package, to: "packages#show"
+        get :config, to: "configs#show"
+        post :play_events, to: "play_events#create"
       end
-
-      get "playback_assignments/current", to: "playback_assignments#current"
     end
   end
 

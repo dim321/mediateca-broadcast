@@ -4,6 +4,7 @@
 
 org = Organization.find_or_initialize_by(name: "Stive&Barton")
 org.time_zone = "Krasnoyarsk"
+org.kind = :operator
 org.save!
 
 admin = User.find_or_initialize_by(email: "admin@mediateca.store")
