@@ -17,6 +17,11 @@ RSpec.describe MediaAssetPolicy do
       foreign = create(:media_asset, :with_png_file, organization: other_org)
       expect(described_class.new(user, foreign).show?).to be false
     end
+
+    it "разрешает оператору доступ к медиа клиента" do
+      operator = create(:user, organization: create(:organization, :operator))
+      expect(described_class.new(operator, asset).show?).to be true
+    end
   end
 
   describe "update?" do
@@ -38,6 +43,15 @@ RSpec.describe MediaAssetPolicy do
       resolved = described_class::Scope.new(user, MediaAsset.all).resolve
       expect(resolved).to all(have_attributes(organization_id: org.id))
       expect(resolved.count).to eq(1)
+    end
+
+    it "возвращает все активы оператору" do
+      operator = create(:user, organization: create(:organization, :operator))
+      own = create(:media_asset, :with_png_file, organization: org)
+      foreign = create(:media_asset, :with_png_file, organization: other_org)
+
+      resolved = described_class::Scope.new(operator, MediaAsset.all).resolve
+      expect(resolved).to include(own, foreign)
     end
   end
 end

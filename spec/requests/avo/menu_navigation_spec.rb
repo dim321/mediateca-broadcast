@@ -7,12 +7,15 @@ RSpec.describe "Avo menu navigation", type: :request do
   let(:menu_paths) do
     [
       "/avo",
+      "/avo/resources/organizations",
+      "/avo/resources/users",
       "/avo/resources/media_assets",
       "/avo/resources/rotations",
       "/avo/resources/locations",
       "/avo/resources/stations",
       "/avo/resources/screens",
-      "/avo/resources/tags"
+      "/avo/resources/tags",
+      "/avo/resources/play_logs"
     ]
   end
 

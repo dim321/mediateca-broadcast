@@ -17,6 +17,11 @@ RSpec.describe RotationPolicy do
       foreign = create(:rotation, organization: other_org)
       expect(described_class.new(user, foreign).show?).to be false
     end
+
+    it "разрешает оператору плейлист клиента" do
+      operator = create(:user, organization: create(:organization, :operator))
+      expect(described_class.new(operator, rotation).show?).to be true
+    end
   end
 
   describe "destroy?" do
@@ -37,6 +42,15 @@ RSpec.describe RotationPolicy do
 
       resolved = described_class::Scope.new(user, ::Rotation.all).resolve
       expect(resolved.map(&:organization_id).uniq).to eq([ org.id ])
+    end
+
+    it "возвращает все ротации оператору" do
+      operator = create(:user, organization: create(:organization, :operator))
+      own = create(:rotation, organization: org)
+      foreign = create(:rotation, organization: other_org)
+
+      resolved = described_class::Scope.new(operator, ::Rotation.all).resolve
+      expect(resolved).to include(own, foreign)
     end
   end
 end

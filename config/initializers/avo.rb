@@ -14,7 +14,7 @@ Avo.configure do |config|
 
   ## == Set the context ==
   config.set_context do
-    { organization_id: Current.organization&.id }
+    {}
   end
 
   ## == Authentication ==

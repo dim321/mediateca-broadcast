@@ -1,14 +1,11 @@
-class Avo::Resources::User < Avo::Resources::ApplicationResource
-  # self.includes = []
-  # self.attachments = []
-  # self.search = {
-  #   query: -> { query.ransack(id_eq: q, m: "or").result(distinct: false) }
-  # }
+# frozen_string_literal: true
 
+class Avo::Resources::User < Avo::Resources::ApplicationResource
   def fields
     field :id, as: :id
-    field :organization_id, as: :number
     field :email, as: :text
+    field :password, as: :password, revealable: true
+    field :password_confirmation, as: :password, revealable: true
     field :organization, as: :belongs_to
   end
 end
