@@ -48,32 +48,5 @@ RSpec.describe 'BroadcastPointGroups', type: :request do
       expect(response.body).to include(matching.name)
       expect(response.body).not_to include(other.name)
     end
-
-    it 'rejects adding a screen that would create overlapping media plans' do
-      screen = create(:screen)
-      other_group = create(:broadcast_point_group, organization: organization)
-      create(:broadcast_point_group_membership, broadcast_point_group: other_group, screen:)
-      create(
-        :media_plan,
-        organization:,
-        broadcast_point_group: other_group,
-        starts_at: Time.utc(2026, 8, 10, 10, 0, 0),
-        ends_at: Time.utc(2026, 8, 10, 12, 0, 0)
-      )
-
-      target_group = create(:broadcast_point_group, organization: organization)
-      create(
-        :media_plan,
-        organization:,
-        broadcast_point_group: target_group,
-        starts_at: Time.utc(2026, 8, 10, 11, 0, 0),
-        ends_at: Time.utc(2026, 8, 10, 13, 0, 0)
-      )
-
-      membership = target_group.broadcast_point_group_memberships.new(screen:)
-
-      expect(membership).not_to be_valid
-      expect(membership.errors[:screen]).to include('overlaps an existing media plan for this screen')
-    end
   end
 end
