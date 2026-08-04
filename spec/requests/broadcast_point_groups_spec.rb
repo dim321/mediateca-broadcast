@@ -5,7 +5,6 @@ require 'rails_helper'
 RSpec.describe 'BroadcastPointGroups', type: :request do
   let(:user) { create(:user, organization: create(:organization, :client)) }
   let(:organization) { user.organization }
-  let(:operator) { create(:organization, :operator) }
 
   describe 'POST /broadcast_point_groups' do
     it 'creates a screen group in the client organization' do
@@ -21,10 +20,10 @@ RSpec.describe 'BroadcastPointGroups', type: :request do
   end
 
   describe 'POST /broadcast_point_groups/:id/add_screens' do
-    it 'allows adding an operator-owned catalog screen to a client group' do
+    it 'allows adding a fleet catalog screen to a client group' do
       sign_in_as(user)
       group = create(:broadcast_point_group, organization: organization)
-      screen = create(:screen, organization: operator)
+      screen = create(:screen)
 
       post add_screens_broadcast_point_group_path(group), params: { screen_ids: [ screen.id ] }
 
@@ -32,20 +31,26 @@ RSpec.describe 'BroadcastPointGroups', type: :request do
       expect(group.reload.screens).to contain_exactly(screen)
     end
 
-    it 'rejects screens that are not in the operator catalog' do
+    it 'filters available screens by selected tags on show' do
       sign_in_as(user)
       group = create(:broadcast_point_group, organization: organization)
-      client_screen = create(:screen, organization: create(:organization, :client))
+      retail = create(:tag, name: 'retail')
+      lobby = create(:tag, name: 'lobby')
+      matching = create(:screen, name: 'Matching screen')
+      other = create(:screen, name: 'Other screen')
+      create(:screen_tag, screen: matching, tag: retail)
+      create(:screen_tag, screen: matching, tag: lobby)
+      create(:screen_tag, screen: other, tag: retail)
 
-      post add_screens_broadcast_point_group_path(group), params: { screen_ids: [ client_screen.id ] }
+      get broadcast_point_group_path(group), params: { tag_ids: [ retail.id, lobby.id ] }
 
-      expect(response).to redirect_to(broadcast_point_group_path(group))
-      expect(flash[:alert]).to be_present
-      expect(group.reload.screens).to be_empty
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(matching.name)
+      expect(response.body).not_to include(other.name)
     end
 
     it 'rejects adding a screen that would create overlapping media plans' do
-      screen = create(:screen, organization: operator)
+      screen = create(:screen)
       other_group = create(:broadcast_point_group, organization: organization)
       create(:broadcast_point_group_membership, broadcast_point_group: other_group, screen:)
       create(

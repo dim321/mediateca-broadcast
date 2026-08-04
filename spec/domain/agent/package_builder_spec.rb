@@ -6,9 +6,8 @@ RSpec.describe Agent::PackageBuilder do
   describe '.call' do
     it 'includes plans intersecting the station offline-cache horizon' do
       client = create(:organization, :client)
-      operator = create(:organization, :operator)
-      station = create(:station, organization: operator, offline_cache_hours: 24)
-      screen = create(:screen, organization: operator, station:)
+      station = create(:station, offline_cache_hours: 24)
+      screen = create(:screen, station:)
       plan = create_plan(client:, screen:, starts_at: 12.hours.from_now, ends_at: 36.hours.from_now)
 
       package = described_class.call(station:, now: Time.current)

@@ -2,26 +2,16 @@
 
 class TagPolicy < ApplicationPolicy
   def index? = user.present?
-  def show? = in_organization?
+  def show? = user.present?
   def create? = operator?
-  def update? = in_operator_organization?
-  def destroy? = in_operator_organization?
+  def update? = operator?
+  def destroy? = operator?
 
   class Scope < ApplicationPolicy::Scope
     def resolve
       return scope.none unless user
 
-      scope.where(organization_id: user.organization_id)
+      scope.all
     end
-  end
-
-  private
-
-  def in_organization?
-    user.present? && record.organization_id == user.organization_id
-  end
-
-  def in_operator_organization?
-    operator? && record.organization_id == user.organization_id
   end
 end

@@ -6,7 +6,7 @@ RSpec.describe 'MediaPlans', type: :request do
   let(:user) { create(:user, organization: create(:organization, :client)) }
   let(:organization) { user.organization }
   let(:rotation) { create(:rotation, organization: organization) }
-  let(:screen) { create(:screen, organization: create(:organization, :operator)) }
+  let(:screen) { create(:screen) }
   let(:broadcast_point_group) do
     create(:broadcast_point_group, organization: organization).tap do |group|
       create(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen)

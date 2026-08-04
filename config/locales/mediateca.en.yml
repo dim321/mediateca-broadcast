@@ -6,11 +6,8 @@ en:
       sign_in: Sign in
       sign_out: Sign out
       rotations: Rotations
-      broadcast_points: Broadcast points
-      point_groups: Point groups
       broadcast_point_groups: Screen groups
       media_plans: Media plans
-      schedule_rules: Schedules
   rotations:
     index:
       title: Rotations
@@ -84,37 +81,14 @@ en:
             media_asset:
               wrong_organization: must belong to the same organization as the rotation
               not_ready: must be ready before adding to a rotation
-        broadcast_point_tag:
-          attributes:
-            base:
-              organization_mismatch: tag and point must belong to the same organization
         screen_tag:
           attributes:
             base:
-              organization_mismatch: tag and screen must belong to the same organization
+              invalid: is invalid
         broadcast_point_group_membership:
           attributes:
             screen:
-              not_in_operator_catalog: must belong to an operator organization
               overlaps_existing_media_plan: overlaps an existing media plan for this screen
-        point_group_membership:
-          attributes:
-            base:
-              organization_mismatch: point and group must belong to the same organization
-        schedule_rule:
-          attributes:
-            base:
-              must_have_targets: select at least one point group
-              overlaps_existing: this time window overlaps another schedule for one of the selected groups
-            ends_at:
-              must_be_after_starts: must be after the start time
-            rotation:
-              blank: must be selected
-              wrong_organization: must belong to your organization
-        schedule_target:
-          attributes:
-            point_group:
-              wrong_organization: must belong to the same organization as the schedule
         media_plan:
           attributes:
             base:
@@ -127,98 +101,6 @@ en:
             broadcast_point_group:
               wrong_organization: must belong to your organization
               must_have_screens: must contain at least one screen
-  broadcast_points:
-    index:
-      title: Broadcast points
-      new_point: New broadcast point
-      point_groups: Point groups
-      media_library: Media library
-      rotations: Rotations
-      filter_by_tags: Filter by tags (points must have all selected tags)
-      apply_filter: Apply filter
-      clear_filter: Clear filter
-      empty: No broadcast points yet.
-      edit: Edit
-    new:
-      title: New broadcast point
-    edit:
-      title: Edit broadcast point
-    form:
-      existing_tags: Tags
-      no_tags_yet: No tags yet — add new tag names below.
-      new_tags_placeholder: e.g. retail, center-north
-      new_tags_hint: Comma-separated new tags to create and attach.
-      cancel: Cancel
-    create:
-      created: Broadcast point saved.
-    update:
-      updated: Broadcast point updated.
-  point_groups:
-    index:
-      title: Point groups
-      new_group: New group
-      broadcast_points: Broadcast points
-      empty: No groups yet.
-    new:
-      title: New point group
-      cancel: Cancel
-    edit:
-      title: Edit point group
-      cancel: Cancel
-    show:
-      title: "%{name}"
-      edit_name: Edit name
-      back: Back to groups
-      members_heading: Points in this group
-      no_members: No points in this group yet.
-      add_heading: Add points
-      add_selected: Add selected points
-      no_points_to_add: All broadcast points are already in this group.
-      remove: Remove
-      remove_confirm: Remove this point from the group?
-    create:
-      created: Point group created.
-    update:
-      updated: Point group updated.
-    add_points:
-      points_added_count:
-        one: "1 point added to the group."
-        other: "%{count} points added to the group."
-      points_add_failed_count:
-        one: "1 point could not be added."
-        other: "%{count} points could not be added."
-      points_none_added: No new points were added. They may already be in this group, or nothing was selected.
-    remove_member:
-      member_removed: Point removed from the group.
-  schedule_rules:
-    index:
-      title: Broadcast schedules
-      new_schedule: New schedule
-      rotations: Rotations
-      edit: Edit
-      delete: Delete
-      delete_confirm: Delete this schedule?
-      empty: No schedules yet.
-      groups: "Groups: %{names}"
-    new:
-      title: New schedule
-      back: Back to schedules
-    edit:
-      title: Edit schedule
-      back: Back to schedules
-    show:
-      title: "%{name}"
-      edit: Edit schedule
-      back: Back to schedules
-    form:
-      point_groups_heading: Point groups
-      cancel: Cancel
-    create:
-      created: Schedule created.
-    update:
-      updated: Schedule updated.
-    destroy:
-      destroyed: Schedule removed.
   broadcast_point_groups:
     index:
       title: Screen groups
@@ -236,9 +118,12 @@ en:
       members_heading: Screens in this group
       no_members: No screens in this group yet.
       add_heading: Add screens
+      filter_by_tags: Filter by tags (screens must have all selected tags)
+      apply_filter: Apply filter
+      clear_filter: Clear filter
       add_selected: Add selected screens
-      no_screens_to_add: All screens are already in this group.
-      screen_owner: "%{organization} · %{station}"
+      no_screens_to_add: No screens match the current filter, or all screens are already in this group.
+      screen_station: "%{station}"
       remove: Remove
       remove_confirm: Remove this screen from the group?
     create:
@@ -250,7 +135,7 @@ en:
         one: 1 screen added to the group.
         other: "%{count} screens added to the group."
       screens_not_added: Screens could not be added to the group.
-      screens_not_in_catalog: Only operator catalog screens can be added to the group.
+      screens_not_in_catalog: Only catalog screens can be added to the group.
     remove_member:
       member_removed: Screen removed from the group.
   media_plans:

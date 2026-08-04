@@ -6,10 +6,9 @@ RSpec.describe 'Api::Agent::V1::PlayEvents', type: :request do
   describe 'POST /api/agent/v1/play_events' do
     it 'records a start event as a play log for package media' do
       client = create(:organization, :client)
-      operator = create(:organization, :operator)
-      station = create(:station, organization: operator)
+      station = create(:station)
       token = station.assign_agent_token!
-      screen = create(:screen, organization: operator, station:)
+      screen = create(:screen, station:)
       media_asset = create(:media_asset, :ready, :with_png_file, organization: client)
       rotation = create(:rotation, organization: client)
       create(:rotation_item, rotation:, media_asset:, position: 1)
@@ -41,10 +40,9 @@ RSpec.describe 'Api::Agent::V1::PlayEvents', type: :request do
     end
 
     it 'rejects events for a screen on another station' do
-      operator = create(:organization, :operator)
-      station = create(:station, organization: operator)
+      station = create(:station)
       token = station.assign_agent_token!
-      other_screen = create(:screen, organization: operator)
+      other_screen = create(:screen)
       media_asset = create(:media_asset, :ready, :with_png_file, organization: create(:organization, :client))
 
       expect do
@@ -55,11 +53,10 @@ RSpec.describe 'Api::Agent::V1::PlayEvents', type: :request do
     end
 
     it 'rejects media assets that are not in the station package' do
-      operator = create(:organization, :operator)
       client = create(:organization, :client)
-      station = create(:station, organization: operator)
+      station = create(:station)
       token = station.assign_agent_token!
-      screen = create(:screen, organization: operator, station:)
+      screen = create(:screen, station:)
       media_asset = create(:media_asset, :ready, :with_png_file, organization: client)
 
       expect do

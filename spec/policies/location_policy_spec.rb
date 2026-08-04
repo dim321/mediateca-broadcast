@@ -3,13 +3,11 @@
 require 'rails_helper'
 
 RSpec.describe LocationPolicy do
-  let(:operator_organization) { create(:organization, :operator) }
-  let(:client_organization) { create(:organization, :client) }
-  let(:operator_user) { create(:user, organization: operator_organization) }
-  let(:client_user) { create(:user, organization: client_organization) }
-  let(:location) { create(:location, organization: operator_organization) }
+  let(:operator_user) { create(:user, organization: create(:organization, :operator)) }
+  let(:client_user) { create(:user, organization: create(:organization, :client)) }
+  let(:location) { create(:location) }
 
-  it 'allows an operator to manage its locations' do
+  it 'allows an operator to manage locations' do
     policy = described_class.new(operator_user, location)
 
     expect(policy).to be_index
@@ -23,12 +21,17 @@ RSpec.describe LocationPolicy do
     expect(described_class.new(client_user, location)).not_to be_create
   end
 
-  it 'scopes locations to the operator organization' do
-    foreign_location = create(:location, organization: create(:organization, :operator))
+  it 'scopes all locations to operator users' do
+    other_location = create(:location)
 
     resolved = described_class::Scope.new(operator_user, Location.all).resolve
 
-    expect(resolved).to contain_exactly(location)
-    expect(resolved).not_to include(foreign_location)
+    expect(resolved).to include(location, other_location)
+  end
+
+  it 'scopes no locations to client users' do
+    resolved = described_class::Scope.new(client_user, Location.all).resolve
+
+    expect(resolved).to be_empty
   end
 end

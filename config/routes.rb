@@ -19,15 +19,6 @@ Rails.application.routes.draw do
     resources :rotation_items, only: %i[create destroy], path: "items"
   end
 
-  resources :broadcast_points, except: :destroy
-
-  resources :point_groups do
-    member do
-      post :add_points
-      delete :remove_member
-    end
-  end
-
   resources :broadcast_point_groups do
     member do
       post :add_screens
@@ -37,23 +28,11 @@ Rails.application.routes.draw do
 
   resources :media_plans
 
-  resources :schedule_rules
-
   namespace :internal do
     patch "rotations/:rotation_id/reorder", to: "rotations/reorders#update", as: :rotation_reorder
   end
 
   namespace :api do
-    namespace :v1 do
-      resources :device_sessions, only: :create do
-        collection do
-          get :current
-        end
-      end
-
-      get "playback_assignments/current", to: "playback_assignments#current"
-    end
-
     namespace :agent do
       namespace :v1 do
         get :package, to: "packages#show"

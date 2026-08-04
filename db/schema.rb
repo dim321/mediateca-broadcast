@@ -61,37 +61,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_043000) do
     t.index ["organization_id"], name: "index_broadcast_point_groups_on_organization_id"
   end
 
-  create_table "broadcast_point_tags", force: :cascade do |t|
-    t.bigint "broadcast_point_id", null: false
-    t.datetime "created_at", null: false
-    t.bigint "tag_id", null: false
-    t.datetime "updated_at", null: false
-    t.index ["broadcast_point_id", "tag_id"], name: "index_broadcast_point_tags_on_broadcast_point_id_and_tag_id", unique: true
-    t.index ["broadcast_point_id"], name: "index_broadcast_point_tags_on_broadcast_point_id"
-    t.index ["tag_id"], name: "index_broadcast_point_tags_on_tag_id"
-  end
-
-  create_table "broadcast_points", force: :cascade do |t|
-    t.string "city"
-    t.datetime "created_at", null: false
-    t.string "device_token_digest"
-    t.string "name", null: false
-    t.bigint "organization_id", null: false
-    t.string "status", default: "unknown", null: false
-    t.string "time_zone"
-    t.datetime "updated_at", null: false
-    t.string "venue_label"
-    t.index ["organization_id", "status"], name: "index_broadcast_points_on_organization_id_and_status"
-    t.index ["organization_id"], name: "index_broadcast_points_on_organization_id"
-  end
-
   create_table "locations", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
-    t.bigint "organization_id", null: false
     t.datetime "updated_at", null: false
-    t.index ["organization_id", "name"], name: "index_locations_on_organization_id_and_name", unique: true
-    t.index ["organization_id"], name: "index_locations_on_organization_id"
+    t.index ["name"], name: "index_locations_on_name", unique: true
   end
 
   create_table "media_assets", force: :cascade do |t|
@@ -147,25 +121,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_043000) do
     t.index ["screen_id"], name: "index_play_logs_on_screen_id"
   end
 
-  create_table "point_group_memberships", force: :cascade do |t|
-    t.bigint "broadcast_point_id", null: false
-    t.datetime "created_at", null: false
-    t.bigint "point_group_id", null: false
-    t.datetime "updated_at", null: false
-    t.index ["broadcast_point_id"], name: "index_point_group_memberships_on_broadcast_point_id"
-    t.index ["point_group_id", "broadcast_point_id"], name: "index_point_group_memberships_unique", unique: true
-    t.index ["point_group_id"], name: "index_point_group_memberships_on_point_group_id"
-  end
-
-  create_table "point_groups", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.string "name", null: false
-    t.bigint "organization_id", null: false
-    t.datetime "updated_at", null: false
-    t.index ["organization_id", "name"], name: "index_point_groups_on_organization_id_and_name", unique: true
-    t.index ["organization_id"], name: "index_point_groups_on_organization_id"
-  end
-
   create_table "rotation_items", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "display_duration_seconds"
@@ -187,30 +142,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_043000) do
     t.index ["organization_id"], name: "index_rotations_on_organization_id"
   end
 
-  create_table "schedule_rules", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.datetime "ends_at", null: false
-    t.bigint "organization_id", null: false
-    t.bigint "rotation_id", null: false
-    t.datetime "starts_at", null: false
-    t.string "timezone_context", default: "organization", null: false
-    t.datetime "updated_at", null: false
-    t.index ["organization_id", "rotation_id"], name: "index_schedule_rules_on_organization_id_and_rotation_id"
-    t.index ["organization_id", "starts_at", "ends_at"], name: "idx_on_organization_id_starts_at_ends_at_962bcc92ff"
-    t.index ["organization_id"], name: "index_schedule_rules_on_organization_id"
-    t.index ["rotation_id"], name: "index_schedule_rules_on_rotation_id"
-  end
-
-  create_table "schedule_targets", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.bigint "point_group_id", null: false
-    t.bigint "schedule_rule_id", null: false
-    t.datetime "updated_at", null: false
-    t.index ["point_group_id"], name: "index_schedule_targets_on_point_group_id"
-    t.index ["schedule_rule_id", "point_group_id"], name: "index_schedule_targets_unique", unique: true
-    t.index ["schedule_rule_id"], name: "index_schedule_targets_on_schedule_rule_id"
-  end
-
   create_table "screen_tags", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "screen_id", null: false
@@ -224,12 +155,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_043000) do
   create_table "screens", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
-    t.bigint "organization_id", null: false
     t.string "orientation", default: "landscape", null: false
     t.bigint "station_id", null: false
     t.datetime "updated_at", null: false
-    t.index ["organization_id", "station_id", "name"], name: "index_screens_on_organization_id_and_station_id_and_name", unique: true
-    t.index ["organization_id"], name: "index_screens_on_organization_id"
+    t.index ["station_id", "name"], name: "index_screens_on_station_id_and_name", unique: true
     t.index ["station_id"], name: "index_screens_on_station_id"
   end
 
@@ -239,20 +168,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_043000) do
     t.bigint "location_id", null: false
     t.string "name", null: false
     t.integer "offline_cache_hours", default: 24, null: false
-    t.bigint "organization_id", null: false
     t.datetime "updated_at", null: false
+    t.index ["location_id", "name"], name: "index_stations_on_location_id_and_name", unique: true
     t.index ["location_id"], name: "index_stations_on_location_id"
-    t.index ["organization_id", "location_id", "name"], name: "index_stations_on_organization_id_and_location_id_and_name", unique: true
-    t.index ["organization_id"], name: "index_stations_on_organization_id"
   end
 
   create_table "tags", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
-    t.bigint "organization_id", null: false
     t.datetime "updated_at", null: false
-    t.index "organization_id, lower((name)::text)", name: "index_tags_on_organization_and_lower_name", unique: true
-    t.index ["organization_id"], name: "index_tags_on_organization_id"
+    t.index "lower((name)::text)", name: "index_tags_on_lower_name", unique: true
   end
 
   create_table "users", force: :cascade do |t|
@@ -270,10 +195,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_043000) do
   add_foreign_key "broadcast_point_group_memberships", "broadcast_point_groups", on_delete: :cascade
   add_foreign_key "broadcast_point_group_memberships", "screens"
   add_foreign_key "broadcast_point_groups", "organizations"
-  add_foreign_key "broadcast_point_tags", "broadcast_points"
-  add_foreign_key "broadcast_point_tags", "tags"
-  add_foreign_key "broadcast_points", "organizations"
-  add_foreign_key "locations", "organizations"
   add_foreign_key "media_assets", "organizations"
   add_foreign_key "media_assets", "users", column: "uploaded_by_id", on_delete: :nullify
   add_foreign_key "media_plans", "broadcast_point_groups", on_delete: :restrict
@@ -282,22 +203,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_043000) do
   add_foreign_key "play_logs", "media_assets"
   add_foreign_key "play_logs", "organizations"
   add_foreign_key "play_logs", "screens"
-  add_foreign_key "point_group_memberships", "broadcast_points"
-  add_foreign_key "point_group_memberships", "point_groups"
-  add_foreign_key "point_groups", "organizations"
   add_foreign_key "rotation_items", "media_assets", on_delete: :restrict
   add_foreign_key "rotation_items", "rotations"
   add_foreign_key "rotations", "organizations"
-  add_foreign_key "schedule_rules", "organizations"
-  add_foreign_key "schedule_rules", "rotations", on_delete: :restrict
-  add_foreign_key "schedule_targets", "point_groups"
-  add_foreign_key "schedule_targets", "schedule_rules", on_delete: :cascade
   add_foreign_key "screen_tags", "screens"
   add_foreign_key "screen_tags", "tags"
-  add_foreign_key "screens", "organizations"
   add_foreign_key "screens", "stations"
   add_foreign_key "stations", "locations"
-  add_foreign_key "stations", "organizations"
-  add_foreign_key "tags", "organizations"
   add_foreign_key "users", "organizations"
 end

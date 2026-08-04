@@ -11,8 +11,10 @@ class BroadcastPointGroupsController < ApplicationController
 
   def show
     authorize @broadcast_point_group
-    @members = @broadcast_point_group.screens.includes(:organization, :station).order(:name)
-    @available_screens = catalog_screens.where.not(id: @members.select(:id)).includes(:organization, :station).order(:name)
+    @members = @broadcast_point_group.screens.includes(:station).order(:name)
+    @catalog_tags = policy_scope(Tag).order(:name)
+    @selected_tag_ids = Array(params[:tag_ids]).map(&:to_i).uniq.reject(&:zero?)
+    @available_screens = available_catalog_screens.includes(:station, :tags).order(:name)
   end
 
   def new
@@ -89,5 +91,12 @@ class BroadcastPointGroupsController < ApplicationController
 
   def catalog_screens
     Screen.operator_catalog
+  end
+
+  def available_catalog_screens
+    Fleet::FilterScreens.call(
+      scope: catalog_screens.where.not(id: @members.select(:id)),
+      tag_ids: @selected_tag_ids
+    )
   end
 end

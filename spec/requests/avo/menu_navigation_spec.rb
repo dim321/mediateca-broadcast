@@ -9,12 +9,10 @@ RSpec.describe "Avo menu navigation", type: :request do
       "/avo",
       "/avo/resources/media_assets",
       "/avo/resources/rotations",
-      "/avo/resources/broadcast_points",
       "/avo/resources/locations",
       "/avo/resources/stations",
       "/avo/resources/screens",
-      "/avo/resources/tags",
-      "/avo/resources/schedule_rules"
+      "/avo/resources/tags"
     ]
   end
 

@@ -6,18 +6,17 @@ RSpec.describe 'Avo screen tags', type: :request do
   it 'lets an operator create a tag and attach it to a screen' do
     organization = create(:organization, :operator)
     user = create(:user, organization:)
-    screen = create(:screen, organization:)
+    screen = create(:screen)
 
     sign_in_as(user)
 
     post '/avo/resources/tags', params: {
       tag: {
-        name: 'Lobby',
-        organization_id: organization.id
+        name: 'Lobby'
       }
     }
 
-    tag = Tag.find_by!(name: 'Lobby', organization:)
+    tag = Tag.find_by!(name: 'Lobby')
     expect(response).to redirect_to(%r{/avo/resources/tags})
 
     post '/avo/resources/screen_tags', params: {

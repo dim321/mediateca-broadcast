@@ -13,18 +13,15 @@ require 'rails_helper'
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
 #  location_id         :bigint           not null
-#  organization_id     :bigint           not null
 #
 # Indexes
 #
-#  index_stations_on_location_id                               (location_id)
-#  index_stations_on_organization_id                           (organization_id)
-#  index_stations_on_organization_id_and_location_id_and_name  (organization_id,location_id,name) UNIQUE
+#  index_stations_on_location_id           (location_id)
+#  index_stations_on_location_id_and_name  (location_id,name) UNIQUE
 #
 # Foreign Keys
 #
 #  fk_rails_...  (location_id => locations.id)
-#  fk_rails_...  (organization_id => organizations.id)
 #
 RSpec.describe Station, type: :model do
   describe '#assign_agent_token!' do

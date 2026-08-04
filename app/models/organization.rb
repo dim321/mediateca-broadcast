@@ -24,15 +24,8 @@ class Organization < ApplicationRecord
   has_many :users, inverse_of: :organization, dependent: :restrict_with_exception
   has_many :media_assets, dependent: :restrict_with_exception
   has_many :rotations, dependent: :restrict_with_exception
-  has_many :broadcast_points, dependent: :restrict_with_exception
   has_many :broadcast_point_groups, dependent: :restrict_with_exception
   has_many :media_plans, dependent: :restrict_with_exception
-  has_many :tags, dependent: :restrict_with_exception
-  has_many :point_groups, dependent: :restrict_with_exception
-  has_many :schedule_rules, dependent: :restrict_with_exception
-  has_many :locations, dependent: :restrict_with_exception
-  has_many :stations, dependent: :restrict_with_exception
-  has_many :screens, dependent: :restrict_with_exception
   has_many :play_logs, dependent: :restrict_with_exception
 
   validates :name, presence: true

@@ -4,8 +4,7 @@ require 'rails_helper'
 
 RSpec.describe Scheduling::MediaPlanConflictDetector do
   let(:client) { create(:organization, :client) }
-  let(:operator) { create(:organization, :operator) }
-  let(:screen) { create(:screen, organization: operator) }
+  let(:screen) { create(:screen) }
   let(:rotation) { create(:rotation, organization: client) }
   let(:group) do
     create(:broadcast_point_group, organization: client).tap do |broadcast_point_group|

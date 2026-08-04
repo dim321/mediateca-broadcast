@@ -6,13 +6,12 @@ RSpec.describe 'Api::Agent::V1::Packages', type: :request do
   describe 'GET /api/agent/v1/package' do
     it 'returns broadcast media for active plans on this station only' do
       client = create(:organization, :client)
-      operator = create(:organization, :operator)
-      station = create(:station, organization: operator)
-      screen = create(:screen, organization: operator, station:)
+      station = create(:station)
+      screen = create(:screen, station:)
       token = station.assign_agent_token!
       media_asset, rotation = create_rotation(client)
       plan = create_plan(organization: client, rotation:, screen:)
-      create_plan(organization: client, rotation:, screen: create(:screen, organization: operator))
+      create_plan(organization: client, rotation:, screen: create(:screen))
 
       get '/api/agent/v1/package', headers: agent_authorization_headers(token), as: :json
 
@@ -25,7 +24,7 @@ RSpec.describe 'Api::Agent::V1::Packages', type: :request do
 
     it 'returns an empty package for a station without matching plans' do
       token = SecureRandom.hex(16)
-      station = create(:station, organization: create(:organization, :operator))
+      station = create(:station)
       station.assign_agent_token!(token)
 
       get '/api/agent/v1/package', headers: agent_authorization_headers(token), as: :json

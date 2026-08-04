@@ -3,13 +3,10 @@
 require 'rails_helper'
 
 RSpec.describe 'fleet hierarchy', type: :model do
-  let(:organization) { create(:organization, :operator) }
-
   it 'creates a location, station, and portrait screen' do
-    location = Location.create!(organization:, name: 'Central Mall')
-    station = Station.create!(organization:, location:, name: 'Lobby player')
+    location = Location.create!(name: 'Central Mall')
+    station = Station.create!(location:, name: 'Lobby player')
     screen = Screen.create!(
-      organization:,
       station:,
       name: 'Entrance display',
       orientation: :portrait
@@ -22,8 +19,7 @@ RSpec.describe 'fleet hierarchy', type: :model do
 
   it 'defaults station offline cache to 24 hours' do
     station = Station.create!(
-      organization:,
-      location: Location.create!(organization:, name: 'Central Mall'),
+      location: Location.create!(name: 'Central Mall'),
       name: 'Lobby player'
     )
 
@@ -32,7 +28,6 @@ RSpec.describe 'fleet hierarchy', type: :model do
 
   it 'requires a station for a screen' do
     screen = Screen.new(
-      organization:,
       name: 'Entrance display',
       orientation: :landscape
     )
@@ -41,21 +36,13 @@ RSpec.describe 'fleet hierarchy', type: :model do
     expect(screen.errors[:station]).to be_present
   end
 
-  it 'does not allow tags from another organization' do
-    screen = Screen.create!(
-      organization:,
-      station: Station.create!(
-        organization:,
-        location: Location.create!(organization:, name: 'Central Mall'),
-        name: 'Lobby player'
-      ),
-      name: 'Entrance display',
-      orientation: :landscape
-    )
+  it 'allows tagging a screen with a global tag' do
+    screen = create(:screen)
+    tag = create(:tag, name: 'Lobby')
 
-    join = ScreenTag.new(screen:, tag: create(:tag))
+    join = ScreenTag.create!(screen:, tag:)
 
-    expect(join).not_to be_valid
-    expect(join.errors[:base]).to include('tag and screen must belong to the same organization')
+    expect(screen.tags).to contain_exactly(tag)
+    expect(join).to be_persisted
   end
 end

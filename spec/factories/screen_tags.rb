@@ -21,7 +21,9 @@
 #  fk_rails_...  (screen_id => screens.id)
 #  fk_rails_...  (tag_id => tags.id)
 #
-class ScreenTag < ApplicationRecord
-  belongs_to :screen
-  belongs_to :tag
+FactoryBot.define do
+  factory :screen_tag do
+    screen
+    tag
+  end
 end
