@@ -1,5 +1,20 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: organizations
+#
+#  id         :bigint           not null, primary key
+#  kind       :string           default("client"), not null
+#  name       :string           not null
+#  time_zone  :string           default("UTC"), not null
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#
+# Indexes
+#
+#  index_organizations_on_kind  (kind)
+#
 class Organization < ApplicationRecord
   enum :kind, {
     operator: "operator",

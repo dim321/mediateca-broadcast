@@ -2,6 +2,32 @@
 
 require "rails_helper"
 
+# == Schema Information
+#
+# Table name: media_assets
+#
+#  id                :bigint           not null, primary key
+#  content_kind      :string           not null
+#  duration_seconds  :integer
+#  metadata          :jsonb            not null
+#  processing_status :string           default("pending"), not null
+#  created_at        :datetime         not null
+#  updated_at        :datetime         not null
+#  organization_id   :bigint           not null
+#  uploaded_by_id    :bigint
+#
+# Indexes
+#
+#  index_media_assets_on_organization_id                        (organization_id)
+#  index_media_assets_on_organization_id_and_created_at         (organization_id,created_at DESC)
+#  index_media_assets_on_organization_id_and_processing_status  (organization_id,processing_status)
+#  index_media_assets_on_uploaded_by_id                         (uploaded_by_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (organization_id => organizations.id)
+#  fk_rails_...  (uploaded_by_id => users.id) ON DELETE => nullify
+#
 RSpec.describe MediaAsset, type: :model do
   include ActiveJob::TestHelper
 

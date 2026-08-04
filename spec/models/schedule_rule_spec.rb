@@ -2,6 +2,31 @@
 
 require "rails_helper"
 
+# == Schema Information
+#
+# Table name: schedule_rules
+#
+#  id               :bigint           not null, primary key
+#  ends_at          :datetime         not null
+#  starts_at        :datetime         not null
+#  timezone_context :string           default("organization"), not null
+#  created_at       :datetime         not null
+#  updated_at       :datetime         not null
+#  organization_id  :bigint           not null
+#  rotation_id      :bigint           not null
+#
+# Indexes
+#
+#  idx_on_organization_id_starts_at_ends_at_962bcc92ff      (organization_id,starts_at,ends_at)
+#  index_schedule_rules_on_organization_id                  (organization_id)
+#  index_schedule_rules_on_organization_id_and_rotation_id  (organization_id,rotation_id)
+#  index_schedule_rules_on_rotation_id                      (rotation_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (organization_id => organizations.id)
+#  fk_rails_...  (rotation_id => rotations.id) ON DELETE => restrict
+#
 RSpec.describe ScheduleRule, type: :model do
   let(:organization) { create(:organization) }
   let(:rotation) { create(:rotation, organization: organization) }

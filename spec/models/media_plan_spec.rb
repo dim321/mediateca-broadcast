@@ -2,6 +2,32 @@
 
 require 'rails_helper'
 
+# == Schema Information
+#
+# Table name: media_plans
+#
+#  id                       :bigint           not null, primary key
+#  ends_at                  :datetime         not null
+#  starts_at                :datetime         not null
+#  created_at               :datetime         not null
+#  updated_at               :datetime         not null
+#  broadcast_point_group_id :bigint           not null
+#  organization_id          :bigint           not null
+#  rotation_id              :bigint           not null
+#
+# Indexes
+#
+#  index_media_plans_on_broadcast_point_group_id                   (broadcast_point_group_id)
+#  index_media_plans_on_organization_id                            (organization_id)
+#  index_media_plans_on_organization_id_and_starts_at_and_ends_at  (organization_id,starts_at,ends_at)
+#  index_media_plans_on_rotation_id                                (rotation_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (broadcast_point_group_id => broadcast_point_groups.id) ON DELETE => restrict
+#  fk_rails_...  (organization_id => organizations.id)
+#  fk_rails_...  (rotation_id => rotations.id) ON DELETE => restrict
+#
 RSpec.describe MediaPlan, type: :model do
   let(:organization) { create(:organization, :client) }
   let(:rotation) { create(:rotation, organization: organization) }
