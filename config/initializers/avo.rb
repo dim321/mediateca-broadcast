@@ -162,4 +162,24 @@ Avo.configure do |config|
   # config.profile_menu = -> {
   #   link "Profile", path: "/avo/profile", icon: "heroicons/outline/user-circle"
   # }
+
+  # config.main_menu = -> {
+  #   section "Infrastructure", icon: "avo/screens" do
+  #     group "Screens", collapsable: true do
+  #       resource Avo::Resources::Screen
+  #       resource Avo::Resources::Station
+  #       resource Avo::Resources::Location
+  #     end
+  #     group "Tags", collapsable: true do
+  #       resource Avo::Resources::Tag
+  #     end
+  #   end
+  # }
+
+  config.appearance = {
+     logo: "logo-stivebarton-set.png",
+     logomark: "logo-stivebarton-set.png",
+     placeholder: "logo-stivebarton-set.png",
+     favicon: "logo-stivebarton-set.png"
+  }
 end

@@ -15,7 +15,10 @@ RSpec.describe "Avo menu navigation", type: :request do
       "/avo/resources/stations",
       "/avo/resources/screens",
       "/avo/resources/tags",
-      "/avo/resources/play_logs"
+      "/avo/resources/play_logs",
+      "/avo/resources/broadcast_point_groups",
+      "/avo/resources/airtime_quotas",
+      "/avo/resources/airtime_bookings"
     ]
   end
 

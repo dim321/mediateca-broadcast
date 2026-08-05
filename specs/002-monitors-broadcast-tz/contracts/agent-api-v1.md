@@ -34,6 +34,8 @@ screen mapping, media, or rotation ordering changes.
   "items": [
     {
       "media_plan_id": 42,
+      "organization_id": 3,
+      "airtime_booking_id": 15,
       "starts_at": "2026-08-03T02:00:00Z",
       "ends_at": "2026-08-03T05:00:00Z",
       "screen_ids": [7],
@@ -60,11 +62,14 @@ screen mapping, media, or rotation ordering changes.
 }
 ```
 
-`items` includes MediaPlans that intersect the station cache window
-`[now, now + offline_cache_hours]`, and only the screens belonging to the
-authenticated station. Video media uses its prepared `broadcast_file` (`.ts`);
-non-video media uses its original file. A video without a prepared `.ts` is omitted.
-Rotation entries preserve ascending `position`.
+`items` includes **active** MediaPlans that intersect the station cache window
+`[now, now + offline_cache_hours]`, are linked to a **confirmed** `AirtimeBooking`
+whose window covers the plan, and only the screens belonging to the
+authenticated station. Multi-org plans on the same station are returned as a
+union; each item carries `organization_id` and `airtime_booking_id`. Video media
+uses its prepared `broadcast_file` (`.ts`); non-video media uses its original
+file. A video without a prepared `.ts` is omitted. Rotation entries preserve
+ascending `position`. Plans without a confirmed covering booking are omitted.
 
 An eligible station with no media plans receives HTTP `200` with `"items": []` and
 `"screen_map": {}`. It never receives `204`.

@@ -1,0 +1,19 @@
+- time_zone = Current.user.organization.time_zone
+- form_url = local_assigns[:url]
+- form_method = local_assigns.fetch(:method, :post)
+= form_with model: airtime_booking, url: form_url, method: form_method, class: 'space-y-4 max-w-xl' do |f|
+  div
+    = f.label :airtime_quota_id, t('.quota'), class: 'block text-sm font-medium'
+    = f.collection_select :airtime_quota_id, @quotas, :id, ->(q) { "#{q.broadcast_point_group.name} · #{q.seconds_remaining}s left" }, { include_blank: true, selected: @selected_quota&.id || airtime_booking.airtime_quota_id }, class: 'select select-bordered w-full mt-1'
+  div
+    = f.label :starts_at, class: 'block text-sm font-medium'
+    = f.datetime_field :starts_at, value: schedule_datetime_field_value(airtime_booking.starts_at, time_zone), class: 'input input-bordered w-full mt-1'
+  div
+    = f.label :ends_at, class: 'block text-sm font-medium'
+    = f.datetime_field :ends_at, value: schedule_datetime_field_value(airtime_booking.ends_at, time_zone), class: 'input input-bordered w-full mt-1'
+
+  = render 'occupied_slots', occupied_slots: @occupied_slots, time_zone: time_zone
+
+  .flex.gap-3
+    = f.submit submit_label, class: 'btn btn-primary btn-sm'
+    = link_to t('.cancel'), airtime_bookings_path, class: 'btn btn-ghost btn-sm'

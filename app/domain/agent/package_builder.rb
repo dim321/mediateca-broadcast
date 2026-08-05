@@ -37,10 +37,15 @@ module Agent
 
     def media_plans
       MediaPlan
+        .active
+        .joins(:airtime_booking)
         .joins(broadcast_point_group: :screens)
+        .merge(AirtimeBooking.confirmed)
         .where(screens: { station_id: station.id })
-        .where("media_plans.starts_at <= ? AND media_plans.ends_at >= ?", horizon, now)
+        .where('media_plans.starts_at <= ? AND media_plans.ends_at >= ?', horizon, now)
+        .where('airtime_bookings.starts_at <= media_plans.starts_at AND airtime_bookings.ends_at >= media_plans.ends_at')
         .includes(
+          :airtime_booking,
           broadcast_point_group: :screens,
           rotation: { rotation_items: { media_asset: [ { file_attachment: :blob }, { broadcast_file_attachment: :blob } ] } }
         )
@@ -54,6 +59,8 @@ module Agent
 
       {
         media_plan_id: media_plan.id,
+        organization_id: media_plan.organization_id,
+        airtime_booking_id: media_plan.airtime_booking_id,
         starts_at: media_plan.starts_at.iso8601,
         ends_at: media_plan.ends_at.iso8601,
         screen_ids: station_screen_ids(media_plan),
@@ -91,7 +98,7 @@ module Agent
     def signed_blob_path(attachment)
       Rails.application.routes.url_helpers.rails_blob_path(
         attachment,
-        disposition: "inline",
+        disposition: 'inline',
         only_path: true
       )
     end

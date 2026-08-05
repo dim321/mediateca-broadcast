@@ -12,7 +12,7 @@ RSpec.describe Scheduling::MediaPlanConflictDetector do
     end
   end
 
-  it 'finds plans whose windows overlap on any shared screen' do
+  it 'finds same-org plans whose windows overlap on any shared screen' do
     plan = create(
       :media_plan,
       organization: client,
@@ -25,7 +25,8 @@ RSpec.describe Scheduling::MediaPlanConflictDetector do
     conflicts = described_class.call(
       starts_at: Time.utc(2026, 8, 10, 11, 0, 0),
       ends_at: Time.utc(2026, 8, 10, 13, 0, 0),
-      screen_ids: [ screen.id ]
+      screen_ids: [ screen.id ],
+      organization_id: client.id
     )
 
     expect(conflicts).to contain_exactly(plan)
@@ -44,7 +45,29 @@ RSpec.describe Scheduling::MediaPlanConflictDetector do
     conflicts = described_class.call(
       starts_at: Time.utc(2026, 8, 10, 12, 0, 0),
       ends_at: Time.utc(2026, 8, 10, 14, 0, 0),
-      screen_ids: [ screen.id ]
+      screen_ids: [ screen.id ],
+      organization_id: client.id
+    )
+
+    expect(conflicts).to be_empty
+  end
+
+  it 'ignores cross-org overlaps when organization_id is scoped (R10)' do
+    create(
+      :media_plan,
+      organization: client,
+      rotation: rotation,
+      broadcast_point_group: group,
+      starts_at: Time.utc(2026, 8, 10, 10, 0, 0),
+      ends_at: Time.utc(2026, 8, 10, 12, 0, 0)
+    )
+    other = create(:organization, :client)
+
+    conflicts = described_class.call(
+      starts_at: Time.utc(2026, 8, 10, 11, 0, 0),
+      ends_at: Time.utc(2026, 8, 10, 13, 0, 0),
+      screen_ids: [ screen.id ],
+      organization_id: other.id
     )
 
     expect(conflicts).to be_empty

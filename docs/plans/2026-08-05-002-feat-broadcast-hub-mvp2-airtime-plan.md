@@ -518,10 +518,10 @@ AE1–AE7 must have automated coverage (concurrency for AE1).
 
 - [x] U1: role matrix + accountant denials; Avo rotation loads.
 - [x] U2: content_type + visibility on upload; catalog own∪network (AE8).
-- [ ] U3: Book/Cancel/Reschedule domain + FWW/overflow tests.
-- [ ] U4: LK book + Avo quota/booking.
-- [ ] U5: MediaPlan booking gate + org-scoped conflicts.
-- [ ] U6: booking-gated package + LK own-block view.
+- [x] U3: Book/Cancel/Reschedule domain + FWW/overflow tests.
+- [x] U4: LK book + Avo quota/booking.
+- [x] U5: MediaPlan booking gate + org-scoped conflicts.
+- [x] U6: booking-gated package + LK own-block view.
 
 ---
 

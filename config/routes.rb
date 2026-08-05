@@ -28,6 +28,20 @@ Rails.application.routes.draw do
 
   resources :media_plans
 
+  resources :airtime_bookings, only: %i[index show new create] do
+    member do
+      delete :cancel
+      get :reschedule
+      patch :reschedule
+    end
+  end
+
+  get "finance", to: "finance#show", as: :finance
+
+  namespace :fleet do
+    resources :screens, only: %i[index show]
+  end
+
   namespace :internal do
     patch "rotations/:rotation_id/reorder", to: "rotations/reorders#update", as: :rotation_reorder
   end

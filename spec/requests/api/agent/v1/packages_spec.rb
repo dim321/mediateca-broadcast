@@ -67,6 +67,8 @@ RSpec.describe 'Api::Agent::V1::Packages', type: :request do
   def item_for(plan, screen, media_asset)
     include(
       'media_plan_id' => plan.id,
+      'organization_id' => plan.organization_id,
+      'airtime_booking_id' => plan.airtime_booking_id,
       'screen_ids' => [ screen.id ],
       'rotation' => include(
         'items' => [

@@ -6,11 +6,22 @@
         = Current.organization.name
 
   ul.menu.menu-md.px-3.py-4.gap-1.flex-1
-    li
-      = nav_link_to t("layouts.application.media_library"), root_path, controllers: %w[media_assets]
-    li
-      = nav_link_to t("layouts.application.rotations"), rotations_path, controllers: %w[rotations]
-    li
-      = nav_link_to t("layouts.application.broadcast_point_groups"), broadcast_point_groups_path, controllers: %w[broadcast_point_groups]
-    li
-      = nav_link_to t("layouts.application.media_plans"), media_plans_path, controllers: %w[media_plans]
+    - if Current.user&.accountant?
+      li
+        = nav_link_to t("layouts.application.finance"), finance_path, controllers: %w[finance]
+    - else
+      li
+        = nav_link_to t("layouts.application.media_library"), root_path, controllers: %w[media_assets]
+      li
+        = nav_link_to t("layouts.application.rotations"), rotations_path, controllers: %w[rotations]
+      li
+        = nav_link_to t("layouts.application.broadcast_point_groups"), broadcast_point_groups_path, controllers: %w[broadcast_point_groups]
+      li
+        = nav_link_to t("layouts.application.media_plans"), media_plans_path, controllers: %w[media_plans]
+      li
+        = nav_link_to t("layouts.application.airtime_bookings"), airtime_bookings_path, controllers: %w[airtime_bookings]
+      li
+        = nav_link_to t("layouts.application.fleet_screens"), fleet_screens_path, controllers: %w[fleet/screens]
+      - if Current.user&.administrator?
+        li
+          = nav_link_to t("layouts.application.finance"), finance_path, controllers: %w[finance]

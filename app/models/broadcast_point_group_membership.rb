@@ -38,6 +38,7 @@ class BroadcastPointGroupMembership < ApplicationRecord
         starts_at: media_plan.starts_at,
         ends_at: media_plan.ends_at,
         screen_ids: [ screen.id ],
+        organization_id: broadcast_point_group.organization_id,
         exclude_media_plan: media_plan
       )
       if conflicts.any?

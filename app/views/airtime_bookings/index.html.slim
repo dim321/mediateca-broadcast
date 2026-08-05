@@ -1,0 +1,26 @@
+- content_for :title, t('.title')
+- actions = capture do
+  = link_to t('.new_booking'), new_airtime_booking_path, class: 'btn btn-primary btn-sm'
+
+.mx-auto.w-full.max-w-6xl
+  = render 'shared/page_header', title: t('.title'), actions: actions
+
+  - if @airtime_bookings.any?
+    .grid.gap-3
+      - time_zone = Current.user.organization.time_zone
+      - @airtime_bookings.each do |booking|
+        .card.bg-base-100.border.border-base-300.shadow-sm
+          .card-body.gap-2
+            = link_to booking.broadcast_point_group.name, booking, class: 'link link-hover font-medium'
+            p.text-sm.text-base-content/60
+              = t('.status.' + booking.status)
+              |  · 
+              = t('.seconds', count: booking.seconds)
+            p.text-sm.text-base-content/60
+              = l(booking.starts_at.in_time_zone(time_zone), format: :short)
+              |  —
+              = l(booking.ends_at.in_time_zone(time_zone), format: :short)
+  - else
+    .card.bg-base-100.border.border-base-300.shadow-sm
+      .card-body
+        p.text-base-content/60 = t('.empty')

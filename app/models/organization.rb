@@ -26,6 +26,7 @@ class Organization < ApplicationRecord
   has_many :rotations, dependent: :restrict_with_exception
   has_many :broadcast_point_groups, dependent: :restrict_with_exception
   has_many :media_plans, dependent: :restrict_with_exception
+  has_many :airtime_bookings, dependent: :restrict_with_exception
   has_many :play_logs, dependent: :restrict_with_exception
 
   validates :name, presence: true

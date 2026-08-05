@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
 class FleetPolicy < ApplicationPolicy
-  def index? = operator?
+  # Clients get read-only fleet catalog (R13); mutate stays operator-only.
+  def index? = fleet_readable?
 
-  def show? = operator?
+  def show? = fleet_readable?
 
   def create? = operator?
 
@@ -13,9 +14,18 @@ class FleetPolicy < ApplicationPolicy
 
   class Scope < ApplicationPolicy::Scope
     def resolve
-      return scope.none unless user&.organization&.operator?
+      return scope.none unless user
+      return scope.all if operator? || lk_content_access?
 
-      scope.all
+      scope.none
     end
+  end
+
+  private
+
+  def fleet_readable?
+    return false unless user
+
+    operator? || lk_content_access?
   end
 end

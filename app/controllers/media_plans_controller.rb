@@ -8,7 +8,7 @@ class MediaPlansController < ApplicationController
   def index
     authorize MediaPlan
     @media_plans = policy_scope(MediaPlan)
-      .includes(:rotation, :broadcast_point_group)
+      .includes(:rotation, :broadcast_point_group, :airtime_booking)
       .order(starts_at: :desc)
   end
 
@@ -25,8 +25,8 @@ class MediaPlansController < ApplicationController
     @media_plan = policy_scope(MediaPlan).new(organization: Current.user.organization)
     authorize @media_plan
     assign_media_plan_attributes(@media_plan)
-    if @media_plan.save
-      redirect_to media_plans_path, notice: t(".created")
+    if @media_plan.errors.empty? && @media_plan.save
+      redirect_to media_plans_path, notice: t('.created')
     else
       render :new, status: :unprocessable_content
     end
@@ -39,8 +39,8 @@ class MediaPlansController < ApplicationController
   def update
     authorize @media_plan
     assign_media_plan_attributes(@media_plan)
-    if @media_plan.save
-      redirect_to media_plans_path, notice: t(".updated")
+    if @media_plan.errors.empty? && @media_plan.save
+      redirect_to media_plans_path, notice: t('.updated')
     else
       render :edit, status: :unprocessable_content
     end
@@ -49,7 +49,7 @@ class MediaPlansController < ApplicationController
   def destroy
     authorize @media_plan
     @media_plan.destroy!
-    redirect_to media_plans_path, notice: t(".destroyed")
+    redirect_to media_plans_path, notice: t('.destroyed')
   end
 
   private
@@ -57,7 +57,7 @@ class MediaPlansController < ApplicationController
   def require_user
     return if Current.user
 
-    redirect_to login_path, alert: t("media_assets.authentication_required")
+    redirect_to login_path, alert: t('media_assets.authentication_required')
   end
 
   def set_media_plan
@@ -66,12 +66,14 @@ class MediaPlansController < ApplicationController
 
   def load_form_collections
     @rotations = policy_scope(Rotation).order(:name)
-    @broadcast_point_groups = policy_scope(BroadcastPointGroup).order(:name)
+    @airtime_bookings = policy_scope(AirtimeBooking).confirmed.includes(:broadcast_point_group).order(starts_at: :desc)
   end
 
   def assign_media_plan_attributes(media_plan)
+    booking = policy_scope(AirtimeBooking).confirmed.find_by(id: media_plan_params[:airtime_booking_id])
+    media_plan.airtime_booking = booking
+    media_plan.broadcast_point_group = booking&.broadcast_point_group
     media_plan.rotation = policy_scope(Rotation).find_by(id: media_plan_params[:rotation_id])
-    media_plan.broadcast_point_group = policy_scope(BroadcastPointGroup).find_by(id: media_plan_params[:broadcast_point_group_id])
     apply_parsed_times(media_plan)
   end
 
@@ -93,6 +95,6 @@ class MediaPlansController < ApplicationController
   end
 
   def media_plan_params
-    params.require(:media_plan).permit(:rotation_id, :broadcast_point_group_id, :starts_at, :ends_at)
+    params.require(:media_plan).permit(:rotation_id, :airtime_booking_id, :starts_at, :ends_at)
   end
 end
