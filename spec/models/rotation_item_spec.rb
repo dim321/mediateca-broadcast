@@ -43,12 +43,19 @@ RSpec.describe RotationItem, type: :model do
       expect(item.errors[:media_asset]).to be_present
     end
 
-    it "rejects a media asset from another organization" do
+    it "rejects a private media asset from another organization" do
       rotation = create(:rotation)
-      other_asset = create(:media_asset, :ready, :with_png_file)
+      other_asset = create(:media_asset, :ready, :with_png_file, visibility: :organization)
       item = build(:rotation_item, rotation: rotation, media_asset: other_asset, position: 1)
       expect(item).not_to be_valid
       expect(item.errors[:media_asset]).to be_present
+    end
+
+    it "allows a network-shared media asset from another organization" do
+      rotation = create(:rotation)
+      shared = create(:media_asset, :ready, :with_png_file, :network_neutral)
+      item = build(:rotation_item, rotation: rotation, media_asset: shared, position: 1)
+      expect(item).to be_valid
     end
 
     it "rejects duplicate media_asset_id in the same rotation" do

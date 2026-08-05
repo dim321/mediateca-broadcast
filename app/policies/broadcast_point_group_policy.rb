@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
 class BroadcastPointGroupPolicy < ApplicationPolicy
-  def index? = user.present?
+  def index? = lk_content_access?
 
-  def show? = operator_or_in_organization?
+  def show? = lk_content_show?
 
-  def create? = user.present?
+  def create? = client_mutator?
 
-  def update? = operator_or_in_organization?
+  def update? = lk_content_mutate?
 
-  def add_screens? = operator_or_in_organization?
+  def add_screens? = lk_content_mutate?
 
-  def remove_member? = operator_or_in_organization?
+  def remove_member? = lk_content_mutate?
 
   class Scope < ApplicationPolicy::Scope
     def resolve = resolve_tenant_scope

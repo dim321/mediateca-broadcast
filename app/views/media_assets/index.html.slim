@@ -15,6 +15,13 @@
             = t(".choose_file_button")
           span.text-sm.text-base-content/60.truncate.max-w-56.sm:max-w-xs.md:max-w-sm data-file-picker-target="name" title=""
             = t(".no_file_selected")
+        .flex.flex-col.sm:flex-row.gap-3
+          label.floating-label.w-full.sm:w-auto
+            = f.select :content_type, MediaAsset.content_types.keys.map { |k| [t(".content_types.#{k}"), k] }, { include_blank: t(".content_type_blank") }, class: "select select-bordered", required: true
+            span = t(".content_type_label")
+          label.floating-label.w-full.sm:w-auto
+            = f.select :visibility, MediaAsset.visibilities.keys.map { |k| [t(".visibilities.#{k}"), k] }, { include_blank: t(".visibility_blank") }, class: "select select-bordered", required: true
+            span = t(".visibility_label")
         = f.submit t(".upload_submit"), class: "btn btn-primary w-fit"
 
   #media_assets_grid.grid.grid-cols-1.md:grid-cols-2.lg:grid-cols-3.gap-4

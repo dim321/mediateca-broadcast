@@ -9,6 +9,7 @@ require 'rails_helper'
 #  id              :bigint           not null, primary key
 #  email           :string           not null
 #  password_digest :string           not null
+#  role            :string           default("manager"), not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  organization_id :bigint           not null
@@ -17,6 +18,7 @@ require 'rails_helper'
 #
 #  index_users_on_email            (email) UNIQUE
 #  index_users_on_organization_id  (organization_id)
+#  index_users_on_role             (role)
 #
 # Foreign Keys
 #
@@ -62,6 +64,18 @@ RSpec.describe User, type: :model do
     it 'rejects wrong password' do
       user = create(:user, password: 'secretsecret')
       expect(user.authenticate('wrong')).to be_falsey
+    end
+  end
+
+  describe 'role' do
+    it 'defaults to manager' do
+      user = create(:user)
+      expect(user).to be_manager
+    end
+
+    it 'accepts accountant and administrator' do
+      expect(create(:user, :accountant)).to be_accountant
+      expect(create(:user, :administrator)).to be_administrator
     end
   end
 end

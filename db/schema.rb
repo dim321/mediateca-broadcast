@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_04_103454) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_05_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -70,6 +70,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_04_103454) do
 
   create_table "media_assets", force: :cascade do |t|
     t.string "content_kind", null: false
+    t.string "content_type", null: false
     t.datetime "created_at", null: false
     t.integer "duration_seconds"
     t.jsonb "metadata", default: {}, null: false
@@ -77,10 +78,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_04_103454) do
     t.string "processing_status", default: "pending", null: false
     t.datetime "updated_at", null: false
     t.bigint "uploaded_by_id"
+    t.string "visibility", null: false
+    t.index ["content_type"], name: "index_media_assets_on_content_type"
     t.index ["organization_id", "created_at"], name: "index_media_assets_on_organization_id_and_created_at", order: { created_at: :desc }
     t.index ["organization_id", "processing_status"], name: "index_media_assets_on_organization_id_and_processing_status"
     t.index ["organization_id"], name: "index_media_assets_on_organization_id"
     t.index ["uploaded_by_id"], name: "index_media_assets_on_uploaded_by_id"
+    t.index ["visibility"], name: "index_media_assets_on_visibility"
   end
 
   create_table "media_plans", force: :cascade do |t|
@@ -185,9 +189,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_04_103454) do
     t.string "email", null: false
     t.bigint "organization_id", null: false
     t.string "password_digest", null: false
+    t.string "role", default: "manager", null: false
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["organization_id"], name: "index_users_on_organization_id"
+    t.index ["role"], name: "index_users_on_role"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"

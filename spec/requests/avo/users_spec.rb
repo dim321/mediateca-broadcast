@@ -14,10 +14,11 @@ RSpec.describe 'Avo users', type: :request do
     expect(response.body).to include('name="user[password]"')
     expect(response.body).to include('name="user[password_confirmation]"')
     expect(response.body).to include('name="user[organization_id]"')
+    expect(response.body).to include('name="user[role]"')
     expect(response.body).not_to match(/Organization id/i)
   end
 
-  it 'creates a user with password and organization from belongs_to' do
+  it 'creates a user with password, organization and role from belongs_to' do
     operator = create(:organization, :operator)
     target_organization = create(:organization, :client)
     user = create(:user, organization: operator)
@@ -29,6 +30,7 @@ RSpec.describe 'Avo users', type: :request do
           email: 'new-user@example.com',
           password: 'password123456',
           password_confirmation: 'password123456',
+          role: 'accountant',
           organization_id: target_organization.id
         }
       }
@@ -36,6 +38,7 @@ RSpec.describe 'Avo users', type: :request do
 
     created = User.find_by!(email: 'new-user@example.com')
     expect(created.organization).to eq(target_organization)
+    expect(created).to be_accountant
     expect(created.authenticate('password123456')).to eq(created)
   end
 end

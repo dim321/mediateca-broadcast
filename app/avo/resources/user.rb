@@ -6,6 +6,7 @@ class Avo::Resources::User < Avo::Resources::ApplicationResource
     field :email, as: :text
     field :password, as: :password, revealable: true
     field :password_confirmation, as: :password, revealable: true
+    field :role, as: :select, enum: ::User.roles
     field :organization, as: :belongs_to
   end
 end

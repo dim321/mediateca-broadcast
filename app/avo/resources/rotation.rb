@@ -12,6 +12,5 @@ class Avo::Resources::Rotation < Avo::Resources::ApplicationResource
     field :organization, as: :belongs_to
     field :rotation_items, as: :has_many
     field :media_assets, as: :has_many, through: :rotation_items
-    field :schedule_rules, as: :has_many
   end
 end

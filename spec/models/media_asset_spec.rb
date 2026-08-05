@@ -8,9 +8,11 @@ require "rails_helper"
 #
 #  id                :bigint           not null, primary key
 #  content_kind      :string           not null
+#  content_type      :string           not null
 #  duration_seconds  :integer
 #  metadata          :jsonb            not null
 #  processing_status :string           default("pending"), not null
+#  visibility        :string           not null
 #  created_at        :datetime         not null
 #  updated_at        :datetime         not null
 #  organization_id   :bigint           not null
@@ -18,10 +20,12 @@ require "rails_helper"
 #
 # Indexes
 #
+#  index_media_assets_on_content_type                           (content_type)
 #  index_media_assets_on_organization_id                        (organization_id)
 #  index_media_assets_on_organization_id_and_created_at         (organization_id,created_at DESC)
 #  index_media_assets_on_organization_id_and_processing_status  (organization_id,processing_status)
 #  index_media_assets_on_uploaded_by_id                         (uploaded_by_id)
+#  index_media_assets_on_visibility                             (visibility)
 #
 # Foreign Keys
 #
@@ -64,6 +68,13 @@ RSpec.describe MediaAsset, type: :model do
 
       expect(asset).not_to be_valid
       expect(asset.errors[:file]).to be_present
+    end
+
+    it "requires commercial content_type and visibility" do
+      asset = build(:media_asset, :with_png_file, content_type: nil, visibility: nil)
+      expect(asset).not_to be_valid
+      expect(asset.errors[:content_type]).to be_present
+      expect(asset.errors[:visibility]).to be_present
     end
   end
 

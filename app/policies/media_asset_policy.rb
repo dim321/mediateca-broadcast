@@ -1,15 +1,30 @@
 # frozen_string_literal: true
 
 class MediaAssetPolicy < ApplicationPolicy
-  def index? = user.present?
+  def index? = lk_content_access?
 
-  def show? = operator_or_in_organization?
+  def show?
+    return false unless lk_content_access?
+    return true if operator?
+    return true if in_organization?
 
-  def create? = user.present?
+    record.visibility_network?
+  end
 
-  def update? = operator_or_in_organization?
+  def create? = client_mutator?
+
+  def update? = lk_content_mutate?
+
+  def destroy? = lk_content_mutate?
 
   class Scope < ApplicationPolicy::Scope
-    def resolve = resolve_tenant_scope
+    def resolve
+      return scope.none unless user
+      return scope.all if operator?
+      return scope.none unless lk_content_access?
+
+      scope.where(organization_id: user.organization_id)
+        .or(scope.where(visibility: MediaAsset.visibilities[:network]))
+    end
   end
 end

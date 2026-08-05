@@ -5,8 +5,9 @@ class RotationItemsController < ApplicationController
   before_action :set_rotation
 
   def create
-    @item = @rotation.rotation_items.build(rotation_item_params)
     authorize @rotation, :update?
+    media_asset = policy_scope(MediaAsset).find(rotation_item_params[:media_asset_id])
+    @item = @rotation.rotation_items.build(media_asset: media_asset)
     if @item.save
       redirect_to @rotation, notice: t(".created")
     else

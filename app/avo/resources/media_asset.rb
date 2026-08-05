@@ -11,6 +11,8 @@ class Avo::Resources::MediaAsset < Avo::Resources::ApplicationResource
     field :uploaded_by_id, as: :number
     field :processing_status, as: :select, enum: ::MediaAsset.processing_statuses
     field :content_kind, as: :select, enum: ::MediaAsset.content_kinds
+    field :content_type, as: :select, enum: ::MediaAsset.content_types
+    field :visibility, as: :select, enum: ::MediaAsset.visibilities
     field :duration_seconds, as: :number
     field :metadata, as: :code
     field :file, as: :file

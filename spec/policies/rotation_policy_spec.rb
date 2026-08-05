@@ -5,7 +5,7 @@ require "rails_helper"
 RSpec.describe RotationPolicy do
   let(:org) { create(:organization) }
   let(:other_org) { create(:organization) }
-  let(:user) { create(:user, organization: org) }
+  let(:user) { create(:user, :manager, organization: org) }
   let(:rotation) { create(:rotation, organization: org) }
 
   describe "show?" do
@@ -21,6 +21,27 @@ RSpec.describe RotationPolicy do
     it "разрешает оператору плейлист клиента" do
       operator = create(:user, organization: create(:organization, :operator))
       expect(described_class.new(operator, rotation).show?).to be true
+    end
+
+    it "запрещает accountant" do
+      accountant = create(:user, :accountant, organization: org)
+      expect(described_class.new(accountant, rotation).show?).to be false
+    end
+  end
+
+  describe "create?" do
+    it "разрешает manager" do
+      expect(described_class.new(user, Rotation).create?).to be true
+    end
+
+    it "разрешает administrator" do
+      admin = create(:user, :administrator, organization: org)
+      expect(described_class.new(admin, Rotation).create?).to be true
+    end
+
+    it "запрещает accountant (AE7)" do
+      accountant = create(:user, :accountant, organization: org)
+      expect(described_class.new(accountant, Rotation).create?).to be false
     end
   end
 

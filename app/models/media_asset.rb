@@ -6,9 +6,11 @@
 #
 #  id                :bigint           not null, primary key
 #  content_kind      :string           not null
+#  content_type      :string           not null
 #  duration_seconds  :integer
 #  metadata          :jsonb            not null
 #  processing_status :string           default("pending"), not null
+#  visibility        :string           not null
 #  created_at        :datetime         not null
 #  updated_at        :datetime         not null
 #  organization_id   :bigint           not null
@@ -16,10 +18,12 @@
 #
 # Indexes
 #
+#  index_media_assets_on_content_type                           (content_type)
 #  index_media_assets_on_organization_id                        (organization_id)
 #  index_media_assets_on_organization_id_and_created_at         (organization_id,created_at DESC)
 #  index_media_assets_on_organization_id_and_processing_status  (organization_id,processing_status)
 #  index_media_assets_on_uploaded_by_id                         (uploaded_by_id)
+#  index_media_assets_on_visibility                             (visibility)
 #
 # Foreign Keys
 #
@@ -74,8 +78,25 @@ class MediaAsset < ApplicationRecord
     presentation: "presentation"
   }
 
+  # Commercial content class (R11) — distinct from MIME content_kind.
+  # No Ruby default: LK upload must choose explicitly (DB default only backfills legacy rows).
+  enum :content_type, {
+    own: "own",
+    commercial: "commercial",
+    neutral: "neutral",
+    service: "service"
+  }, prefix: true
+
+  # Catalog sharing (R12/KTD9). prefix avoids clashing with belongs_to :organization.
+  enum :visibility, {
+    organization: "organization",
+    network: "network"
+  }, prefix: true
+
   validates :organization, presence: true
   validates :content_kind, presence: true, on: :create
+  validates :content_type, presence: true
+  validates :visibility, presence: true
   validate :file_must_be_present_and_allowed, on: :create
   validate :file_size_within_limit, on: :create
 

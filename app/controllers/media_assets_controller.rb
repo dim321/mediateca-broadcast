@@ -11,7 +11,7 @@ class MediaAssetsController < ApplicationController
   end
 
   def create
-    @media_asset = MediaAsset.new
+    @media_asset = MediaAsset.new(media_asset_create_params)
     @media_asset.organization = Current.user.organization
     @media_asset.uploaded_by = Current.user
     @media_asset.file.attach(media_asset_params[:file]) if media_asset_params[:file].present?
@@ -48,6 +48,10 @@ class MediaAssetsController < ApplicationController
   end
 
   def media_asset_params
-    params.fetch(:media_asset, {}).permit(:file)
+    params.fetch(:media_asset, {}).permit(:file, :content_type, :visibility)
+  end
+
+  def media_asset_create_params
+    media_asset_params.slice(:content_type, :visibility)
   end
 end

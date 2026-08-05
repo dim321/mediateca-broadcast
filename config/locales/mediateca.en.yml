@@ -57,6 +57,18 @@ en:
       choose_file_button: Choose file…
       no_file_selected: No file selected
       upload_submit: Upload
+      content_type_label: Content type
+      content_type_blank: Select content type…
+      visibility_label: Availability
+      visibility_blank: Select availability…
+      content_types:
+        own: Own
+        commercial: Commercial
+        neutral: Neutral
+        service: Service
+      visibilities:
+        organization: My organization only
+        network: Available to all organizations
     create:
       created: File uploaded. Processing started.
       create_failed: Could not upload file.
@@ -83,7 +95,7 @@ en:
         rotation_item:
           attributes:
             media_asset:
-              wrong_organization: must belong to the same organization as the rotation
+              wrong_organization: must belong to your organization or be network-shared
               not_ready: must be ready before adding to a rotation
         screen_tag:
           attributes:

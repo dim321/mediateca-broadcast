@@ -47,6 +47,7 @@ class RotationItem < ApplicationRecord
   def media_asset_matches_organization
     return if media_asset.blank? || rotation.blank?
     return if media_asset.organization_id == rotation.organization_id
+    return if media_asset.visibility_network?
 
     errors.add(:media_asset, :wrong_organization)
   end
