@@ -1,13 +1,16 @@
 - content_for :title, t('.title')
+- actions = capture do
+  = link_to t('.new_group'), new_broadcast_point_group_path, class: 'btn btn-primary btn-sm'
 
-.flex.flex-col.gap-4.w-full.max-w-6xl
-  .flex.items-center.justify-between.gap-4
-    h1.text-2xl.font-bold = t('.title')
-    = link_to t('.new_group'), new_broadcast_point_group_path, class: 'rounded bg-blue-600 text-white px-4 py-2 text-sm'
+.mx-auto.w-full.max-w-6xl
+  = render 'shared/page_header', title: t('.title'), actions: actions
+
   - if @broadcast_point_groups.any?
-    ul.list-none.space-y-2
+    ul.list.bg-base-100.border.border-base-300.rounded-box.shadow-sm
       - @broadcast_point_groups.each do |group|
-        li
-          = link_to group.name, group, class: 'text-blue-600 underline text-lg'
+        li.list-row
+          = link_to group.name, group, class: 'link link-hover text-base font-medium'
   - else
-    p.text-gray-600 = t('.empty')
+    .card.bg-base-100.border.border-base-300.shadow-sm
+      .card-body
+        p.text-base-content/60 = t('.empty')
