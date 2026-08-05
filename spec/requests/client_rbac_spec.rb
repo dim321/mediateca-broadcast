@@ -52,7 +52,7 @@ RSpec.describe 'Client LK RBAC', type: :request do
   end
 
   describe 'role assignment surface' do
-    it 'exposes no non-Avo users controller for client role self-service' do
+    it 'exposes no users controller for client role self-service' do
       expect(File).not_to exist(Rails.root.join('app/controllers/users_controller.rb'))
     end
   end

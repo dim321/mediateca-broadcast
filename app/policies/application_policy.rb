@@ -34,7 +34,7 @@ class ApplicationPolicy
     user&.administrator?
   end
 
-  # Client LK mutators (R15) + operator Avo path.
+  # Client LK mutators (R15) + operator path.
   def client_mutator?
     return false unless user
     return true if operator?

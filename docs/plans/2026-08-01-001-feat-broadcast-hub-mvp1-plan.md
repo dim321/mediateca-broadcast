@@ -11,6 +11,8 @@ execution: code
 
 # Broadcast Hub MVP-1 (MediaPlan-lite) - Plan
 
+> **Примечание (2026-08-05):** gem **Avo** удалён из кодовой базы. Упоминания Avo / `/avo` / `app/avo` ниже — исторические; операторская админка будет заменена на **Administrate**.
+
 ## Goal Capsule
 
 - **Objective:** Пилотный Broadcast Hub: иерархия точек, ротации, медиаплан-lite, prep `.ts`, и минимальный Agent-facing API (package/config + play_events) без реализации Агента.

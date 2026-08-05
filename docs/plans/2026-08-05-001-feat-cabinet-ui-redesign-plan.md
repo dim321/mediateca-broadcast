@@ -12,6 +12,8 @@ execution: code
 
 # Cabinet UI Redesign (Clean SaaS shell) - Plan
 
+> **Примечание (2026-08-05):** gem **Avo** удалён из кодовой базы. Упоминания Avo ниже — исторические; операторская админка будет заменена на **Administrate**.
+
 ## Goal Capsule
 
 - **Objective:** Светлая оболочка личного кабинета мультитенант SaaS (sidebar + workspace) на Tailwind 4 + daisyUI 5, с Hotwire-реактивностью; restyle layout, login и ключевых index-экранов без изменения доменной логики.
@@ -129,7 +131,7 @@ flowchart LR
 - organization switcher / multi-org membership
 - dark theme / theme toggle
 - per-tenant branding (logo/colors)
-- Avo admin restyle
+- Avo admin restyle *(исторически; админка → **Administrate**)*
 - Inertia / React frontend
 - изменение политик, моделей, API
 

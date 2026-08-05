@@ -1,5 +1,4 @@
 Rails.application.routes.draw do
-  mount_avo
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
   # Cabinet (HTML), internal JSON, and Api::V1 device routes are added in later phases (see tasks.md).
 

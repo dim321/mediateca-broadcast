@@ -4,11 +4,12 @@
 > **Дата**: 2026-08-01  
 > **Горизонт**: полный Хаб (MVP‑1…5 + Package API / prep со стороны Хаба)  
 > **Источник ТЗ**: [requirements-analysis.md](./requirements-analysis.md)  
-> **База**: рабочий MVP‑001 ([../001-media-playlist-broadcast/](../001-media-playlist-broadcast/))
+> **База**: рабочий MVP‑001 ([../001-media-playlist-broadcast/](../001-media-playlist-broadcast/))  
+> **Примечание (2026-08-05):** gem **Avo** удалён из кодовой базы. Упоминания Avo / `/avo` / `app/avo` ниже — исторические; операторская админка будет заменена на **Administrate**.
 
 **Scope:** только Хаб (Rails‑монолит `mediateca-broadcast`). Агент — отдельный репозиторий; здесь — контракт Package/Agent API + prep. **Вне scope:** CMS меню, биллинг/оплата, выбор транспорта до ТВ/sync (TBD), power/VLC (Агент).
 
-**Паттерны:** доменные сервисы в `app/domain/*` (`ServiceObject`), Pundit, Solid Queue, Avo + Hotwire/daisyUI, Active Storage.
+**Паттерны:** доменные сервисы в `app/domain/*` (`ServiceObject`), Pundit, Solid Queue, Avo *(→ Administrate)* + Hotwire/daisyUI, Active Storage.
 
 ---
 
