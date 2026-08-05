@@ -1,0 +1,7 @@
+{
+  "name": "mediateca-broadcast",
+  "private": true,
+  "devDependencies": {
+    "daisyui": "^5.7.16"
+  }
+}
