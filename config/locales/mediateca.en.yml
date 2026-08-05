@@ -3,11 +3,15 @@
 en:
   layouts:
     application:
+      brand: Mediateca
       sign_in: Sign in
       sign_out: Sign out
+      media_library: Media library
       rotations: Rotations
       broadcast_point_groups: Screen groups
       media_plans: Media plans
+      open_menu: Open menu
+      close_menu: Close menu
   rotations:
     index:
       title: Rotations
