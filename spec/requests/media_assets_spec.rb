@@ -15,6 +15,7 @@ RSpec.describe "MediaAssets", type: :request do
       sign_in_as(user)
       get root_path
       expect(response).to have_http_status(:success)
+      expect(response.body).to include("turbo-cable-stream-source")
     end
   end
 

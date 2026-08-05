@@ -13,12 +13,16 @@ RSpec.describe "Cabinet shell", type: :system do
     click_button I18n.t("sessions.new.submit")
   end
 
-  it "shows the organization and highlights the active nav section" do
+  it "shows the organization and brand in the sidebar" do
     sign_in_through_ui
 
     expect(page).to have_content("Acme Screens")
     expect(page).to have_content(I18n.t("layouts.application.brand"))
     expect(page).to have_css("a.menu-active", text: I18n.t("layouts.application.media_library"))
+  end
+
+  it "highlights the active nav section while navigating" do
+    sign_in_through_ui
 
     click_link I18n.t("layouts.application.rotations")
     expect(page).to have_content(I18n.t("rotations.index.title"))
@@ -39,5 +43,13 @@ RSpec.describe "Cabinet shell", type: :system do
     expect(page).to have_content(I18n.t("sessions.new.title"))
     expect(page).not_to have_css(".drawer-side")
     expect(page).not_to have_link(I18n.t("layouts.application.rotations"))
+  end
+
+  it "signs the user out from the top bar" do
+    sign_in_through_ui
+    click_button I18n.t("layouts.application.sign_out")
+
+    expect(page).to have_current_path(login_path)
+    expect(page).to have_content(I18n.t("sessions.new.title"))
   end
 end
