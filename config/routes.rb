@@ -1,12 +1,16 @@
 Rails.application.routes.draw do
   namespace :admin do
-      resources :airtime_bookings
-      resources :airtime_quotas
       resources :broadcast_point_groups
       resources :broadcast_point_group_memberships
       resources :locations
       resources :media_assets
-      resources :media_plans
+      resources :media_plans do
+        member do
+          delete :cancel
+          get :reschedule
+          patch :reschedule
+        end
+      end
       resources :organizations
       resources :play_logs
       resources :rotations
@@ -17,7 +21,7 @@ Rails.application.routes.draw do
       resources :tags
       resources :users
 
-      root to: "airtime_bookings#index"
+      root to: "media_plans#index"
     end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
   # Cabinet (HTML), internal JSON, and Api::V1 device routes are added in later phases (see tasks.md).

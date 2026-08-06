@@ -30,16 +30,15 @@ class OrganizationDashboard < Administrate::BaseDashboard
   # Feel free to add, remove, or rearrange items.
   COLLECTION_ATTRIBUTES = %i[
     id
-    airtime_bookings
-    broadcast_point_groups
+    name
     kind
+    media_plans
   ].freeze
 
   # SHOW_PAGE_ATTRIBUTES
   # an array of attributes that will be displayed on the model's show page.
   SHOW_PAGE_ATTRIBUTES = %i[
     id
-    airtime_bookings
     broadcast_point_groups
     kind
     media_assets
@@ -57,14 +56,9 @@ class OrganizationDashboard < Administrate::BaseDashboard
   # an array of attributes that will be displayed
   # on the model's form (`new` and `edit`) pages.
   FORM_ATTRIBUTES = %i[
-    airtime_bookings
     broadcast_point_groups
     kind
-    media_assets
-    media_plans
     name
-    play_logs
-    rotations
     time_zone
     users
   ].freeze

@@ -1,46 +1,39 @@
+# frozen_string_literal: true
+
 module Admin
   class MediaPlansController < Admin::ApplicationController
-    # Overwrite any of the RESTful controller actions to implement custom behavior
-    # For example, you may want to send an email after a foo is updated.
-    #
-    # def update
-    #   super
-    #   send_foo_updated_email(requested_resource)
-    # end
+    def cancel
+      plan = requested_resource
+      Airtime::Cancel.call(plan: plan)
+      redirect_to admin_media_plans_path, notice: 'Media plan cancelled.'
+    rescue ArgumentError => e
+      redirect_to admin_media_plan_path(plan), alert: e.message
+    end
 
-    # Override this method to specify custom lookup behavior.
-    # This will be used to set the resource for the `show`, `edit`, and `update`
-    # actions.
-    #
-    # def find_resource(param)
-    #   Foo.find_by!(slug: param)
-    # end
+    def reschedule
+      @media_plan = requested_resource
 
-    # The result of this lookup will be available as `requested_resource`
+      if request.get?
+        @broadcast_point_groups = BroadcastPointGroup.order(:name)
+        render :reschedule
+        return
+      end
 
-    # Override this if you have certain roles that require a subset
-    # this will be used to set the records shown on the `index` action.
-    #
-    # def scoped_resource
-    #   if current_user.super_admin?
-    #     resource_class
-    #   else
-    #     resource_class.with_less_stuff
-    #   end
-    # end
+      group = BroadcastPointGroup.find(params.require(:broadcast_point_group_id))
+      starts_at = Time.zone.parse(params.require(:starts_at))
+      ends_at = Time.zone.parse(params.require(:ends_at))
 
-    # Override `resource_params` if you want to transform the submitted
-    # data before it's persisted. For example, the following would turn all
-    # empty values into nil values. It uses other APIs such as `resource_class`
-    # and `dashboard`:
-    #
-    # def resource_params
-    #   params.require(resource_class.model_name.param_key).
-    #     permit(dashboard.permitted_attributes(action_name)).
-    #     transform_values { |value| value == "" ? nil : value }
-    # end
-
-    # See https://administrate-demo.herokuapp.com/customizing_controller_actions
-    # for more information
+      Airtime::Reschedule.call(
+        plan: @media_plan,
+        broadcast_point_group: group,
+        starts_at: starts_at,
+        ends_at: ends_at
+      )
+      redirect_to admin_media_plan_path(@media_plan), notice: 'Media plan rescheduled.'
+    rescue Airtime::ConflictError, Airtime::InvalidWindowError, ArgumentError => e
+      @broadcast_point_groups = BroadcastPointGroup.order(:name)
+      flash.now[:alert] = e.message
+      render :reschedule, status: :unprocessable_content
+    end
   end
 end
