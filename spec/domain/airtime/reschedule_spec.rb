@@ -7,83 +7,70 @@ RSpec.describe Airtime::Reschedule do
   let(:group) { create(:broadcast_point_group, organization: organization) }
   let(:screen) { create(:screen) }
   let!(:membership) { create(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen) }
-  let(:quota) do
-    create(
-      :airtime_quota,
-      broadcast_point_group: group,
-      starts_at: Time.utc(2026, 8, 10, 0, 0, 0),
-      ends_at: Time.utc(2026, 8, 11, 0, 0, 0),
-      seconds_total: 3_600,
-      seconds_remaining: 3_000
-    )
-  end
-  let(:booking) do
-    create(
-      :airtime_booking,
+  let(:rotation) { create(:rotation, organization: organization) }
+  let(:plan) do
+    Airtime::OccupyWithPlan.call(
       organization: organization,
       broadcast_point_group: group,
-      airtime_quota: quota,
+      rotation: rotation,
       starts_at: Time.utc(2026, 8, 10, 10, 0, 0),
-      ends_at: Time.utc(2026, 8, 10, 10, 10, 0),
-      seconds: 600
+      ends_at: Time.utc(2026, 8, 10, 10, 10, 0)
     )
   end
 
-  it 'moves booking in place and adjusts remaining' do
+  it 'moves booking and plan windows together' do
     described_class.call(
-      booking: booking,
-      quota: quota,
+      plan: plan,
+      broadcast_point_group: group,
       starts_at: Time.utc(2026, 8, 10, 12, 0, 0),
       ends_at: Time.utc(2026, 8, 10, 12, 5, 0)
     )
 
-    booking.reload
-    expect(booking.starts_at).to eq(Time.utc(2026, 8, 10, 12, 0, 0))
+    plan.reload
+    booking = plan.airtime_booking
+    expect(plan.starts_at).to eq(Time.utc(2026, 8, 10, 12, 0, 0))
+    expect(plan.ends_at).to eq(Time.utc(2026, 8, 10, 12, 5, 0))
+    expect(booking.starts_at).to eq(plan.starts_at)
+    expect(booking.ends_at).to eq(plan.ends_at)
     expect(booking.seconds).to eq(300)
-    expect(quota.reload.seconds_remaining).to eq(3_300)
+    expect(plan.rotation_id).to eq(rotation.id)
   end
 
-  it 'keeps original booking when target slot is busy (AE3)' do
-    Airtime::Book.call(
-      quota: quota.reload,
+  it 'keeps original plan when target slot is busy (AE3)' do
+    Airtime::OccupyWithPlan.call(
       organization: organization,
+      broadcast_point_group: group,
+      rotation: rotation,
       starts_at: Time.utc(2026, 8, 10, 12, 0, 0),
       ends_at: Time.utc(2026, 8, 10, 12, 10, 0)
     )
-    original_starts = booking.starts_at
-    original_remaining = quota.reload.seconds_remaining
+    original_starts = plan.starts_at
+    original_ends = plan.ends_at
 
     expect do
       described_class.call(
-        booking: booking,
-        quota: quota,
+        plan: plan,
+        broadcast_point_group: group,
         starts_at: Time.utc(2026, 8, 10, 12, 0, 0),
         ends_at: Time.utc(2026, 8, 10, 12, 10, 0)
       )
     end.to raise_error(Airtime::ConflictError)
 
-    expect(booking.reload.starts_at).to eq(original_starts)
-    expect(quota.reload.seconds_remaining).to eq(original_remaining)
+    plan.reload
+    expect(plan.starts_at).to eq(original_starts)
+    expect(plan.ends_at).to eq(original_ends)
+    expect(plan.airtime_booking.starts_at).to eq(original_starts)
   end
 
-  it 'invalidates linked media plan when new window no longer covers it (KTD4)' do
-    plan = create(
-      :media_plan,
-      organization: organization,
-      broadcast_point_group: group,
-      airtime_booking: booking,
-      starts_at: booking.starts_at,
-      ends_at: booking.ends_at
-    )
-
+  it 'can move to a free target window' do
     described_class.call(
-      booking: booking,
-      quota: quota,
-      starts_at: Time.utc(2026, 8, 10, 10, 0, 0),
-      ends_at: Time.utc(2026, 8, 10, 10, 5, 0)
+      plan: plan,
+      broadcast_point_group: group,
+      starts_at: Time.utc(2026, 8, 10, 14, 0, 0),
+      ends_at: Time.utc(2026, 8, 10, 14, 20, 0)
     )
 
-    expect(booking.reload.ends_at).to eq(Time.utc(2026, 8, 10, 10, 5, 0))
-    expect(plan.reload).to be_invalidated
+    expect(plan.reload.starts_at).to eq(Time.utc(2026, 8, 10, 14, 0, 0))
+    expect(plan.airtime_booking.reload.ends_at).to eq(Time.utc(2026, 8, 10, 14, 20, 0))
   end
 end

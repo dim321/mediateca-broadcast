@@ -12,7 +12,6 @@ RSpec.configure do |config|
     tables = %w[
       media_plans
       airtime_bookings
-      airtime_quotas
       broadcast_point_group_memberships
       broadcast_point_groups
       rotation_items

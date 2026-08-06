@@ -2,90 +2,84 @@
 
 require 'rails_helper'
 
-RSpec.describe Airtime::Book do
+RSpec.describe Airtime::OccupyWithPlan do
   let(:organization) { create(:organization, :client) }
   let(:group) { create(:broadcast_point_group, organization: organization) }
   let(:screen) { create(:screen) }
   let!(:membership) { create(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen) }
-  let(:quota) do
-    create(
-      :airtime_quota,
-      broadcast_point_group: group,
-      starts_at: Time.utc(2026, 8, 10, 0, 0, 0),
-      ends_at: Time.utc(2026, 8, 11, 0, 0, 0),
-      seconds_total: 3_600
-    )
-  end
+  let(:rotation) { create(:rotation, organization: organization) }
   let(:starts_at) { Time.utc(2026, 8, 10, 10, 0, 0) }
   let(:ends_at) { Time.utc(2026, 8, 10, 10, 10, 0) }
 
-  def book!
-    described_class.call(quota: quota, organization: organization, starts_at: starts_at, ends_at: ends_at)
+  def occupy!
+    described_class.call(
+      organization: organization,
+      broadcast_point_group: group,
+      rotation: rotation,
+      starts_at: starts_at,
+      ends_at: ends_at
+    )
   end
 
-  it 'creates a confirmed booking and decrements remaining' do
-    booking = book!
+  it 'creates a confirmed booking and active media plan together' do
+    plan = occupy!
 
-    expect(booking).to be_confirmed
-    expect(booking.seconds).to eq(600)
-    expect(booking.organization).to eq(organization)
-    expect(quota.reload.seconds_remaining).to eq(3_000)
-  end
-
-  it 'rejects overflow without changing remaining (AE2)' do
-    quota.update!(seconds_remaining: 600)
-
-    expect do
-      described_class.call(
-        quota: quota.reload,
-        organization: organization,
-        starts_at: Time.utc(2026, 8, 10, 12, 0, 0),
-        ends_at: Time.utc(2026, 8, 10, 12, 15, 0)
-      )
-    end.to raise_error(Airtime::OverflowError)
-
-    expect(quota.reload.seconds_remaining).to eq(600)
-    expect(AirtimeBooking.confirmed.count).to eq(0)
+    expect(plan).to be_active
+    expect(plan.starts_at).to eq(starts_at)
+    expect(plan.ends_at).to eq(ends_at)
+    expect(plan.airtime_booking).to be_confirmed
+    expect(plan.airtime_booking.seconds).to eq(600)
+    expect(plan.airtime_booking.organization).to eq(organization)
   end
 
   it 'allows adjacent non-overlapping windows' do
-    book!
+    occupy!
     adjacent = described_class.call(
-      quota: quota.reload,
       organization: organization,
+      broadcast_point_group: group,
+      rotation: rotation,
       starts_at: ends_at,
       ends_at: ends_at + 10.minutes
     )
 
-    expect(adjacent).to be_confirmed
+    expect(adjacent).to be_active
     expect(AirtimeBooking.confirmed.count).to eq(2)
+    expect(MediaPlan.active.count).to eq(2)
   end
 
-  it 'rejects overlapping booking on the same screen' do
-    book!
+  it 'rejects overlapping booking on the same screen without partial writes' do
+    occupy!
 
     expect do
       described_class.call(
-        quota: quota.reload,
         organization: organization,
+        broadcast_point_group: group,
+        rotation: rotation,
         starts_at: starts_at + 5.minutes,
         ends_at: ends_at + 5.minutes
       )
     end.to raise_error(Airtime::ConflictError)
 
-    expect(quota.reload.seconds_remaining).to eq(3_000)
+    expect(AirtimeBooking.confirmed.count).to eq(1)
+    expect(MediaPlan.active.count).to eq(1)
   end
 
   it 'rejects when organization does not own the group' do
     foreign = create(:organization, :client)
 
     expect do
-      described_class.call(quota: quota, organization: foreign, starts_at: starts_at, ends_at: ends_at)
+      described_class.call(
+        organization: foreign,
+        broadcast_point_group: group,
+        rotation: create(:rotation, organization: foreign),
+        starts_at: starts_at,
+        ends_at: ends_at
+      )
     end.to raise_error(ArgumentError, /own the broadcast point group/)
   end
 
   context 'concurrency', :concurrency do
-    it 'lets only one of two overlapping books win (AE1)' do
+    it 'lets only one of two overlapping occupies win (AE1)' do
       ready = Queue.new
       go = Queue.new
       outcomes = Queue.new
@@ -96,14 +90,15 @@ RSpec.describe Airtime::Book do
             ready << true
             go.pop
             begin
-              booking = described_class.call(
-                quota: quota,
+              plan = described_class.call(
                 organization: organization,
+                broadcast_point_group: group,
+                rotation: rotation,
                 starts_at: starts_at,
                 ends_at: ends_at
               )
-              outcomes << [ :ok, booking.id ]
-            rescue Airtime::ConflictError, Airtime::OverflowError => e
+              outcomes << [ :ok, plan.id ]
+            rescue Airtime::ConflictError => e
               outcomes << [ :err, e.class.name ]
             end
           end
@@ -118,44 +113,39 @@ RSpec.describe Airtime::Book do
       expect(results.count { |status, _| status == :ok }).to eq(1)
       expect(results.count { |status, _| status == :err }).to eq(1)
       expect(AirtimeBooking.confirmed.count).to eq(1)
-      expect(quota.reload.seconds_remaining).to eq(3_000)
+      expect(MediaPlan.active.count).to eq(1)
     end
 
-    it 'serializes two quotas sharing one screen (R6)' do
+    it 'serializes two orgs sharing one screen (R6)' do
       org_b = create(:organization, :client)
       group_b = create(:broadcast_point_group, organization: org_b)
       create(:broadcast_point_group_membership, broadcast_point_group: group_b, screen: screen)
-      quota_b = create(
-        :airtime_quota,
-        broadcast_point_group: group_b,
-        starts_at: quota.starts_at,
-        ends_at: quota.ends_at,
-        seconds_total: 3_600
-      )
+      rotation_b = create(:rotation, organization: org_b)
 
       ready = Queue.new
       go = Queue.new
       outcomes = Queue.new
 
       jobs = [
-        [ quota, organization ],
-        [ quota_b, org_b ]
+        [ organization, group, rotation ],
+        [ org_b, group_b, rotation_b ]
       ]
 
-      threads = jobs.map do |q, org|
+      threads = jobs.map do |org, grp, rot|
         Thread.new do
           ActiveRecord::Base.connection_pool.with_connection do
             ready << true
             go.pop
             begin
-              booking = described_class.call(
-                quota: q,
+              plan = described_class.call(
                 organization: org,
+                broadcast_point_group: grp,
+                rotation: rot,
                 starts_at: starts_at,
                 ends_at: ends_at
               )
-              outcomes << [ :ok, booking.id ]
-            rescue Airtime::ConflictError, Airtime::OverflowError => e
+              outcomes << [ :ok, plan.id ]
+            rescue Airtime::ConflictError => e
               outcomes << [ :err, e.class.name ]
             end
           end
@@ -170,6 +160,7 @@ RSpec.describe Airtime::Book do
       expect(results.count { |status, _| status == :ok }).to eq(1)
       expect(results.count { |status, _| status == :err }).to eq(1)
       expect(AirtimeBooking.confirmed.count).to eq(1)
+      expect(MediaPlan.active.count).to eq(1)
     end
   end
 end

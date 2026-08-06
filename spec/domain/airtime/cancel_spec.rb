@@ -7,45 +7,49 @@ RSpec.describe Airtime::Cancel do
   let(:group) { create(:broadcast_point_group, organization: organization) }
   let(:screen) { create(:screen) }
   let!(:membership) { create(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen) }
-  let(:quota) do
-    create(
-      :airtime_quota,
-      broadcast_point_group: group,
-      seconds_total: 3_600,
-      seconds_remaining: 3_000
-    )
-  end
-  let(:booking) do
-    create(
-      :airtime_booking,
+  let(:rotation) { create(:rotation, organization: organization) }
+  let(:starts_at) { Time.utc(2026, 8, 10, 10, 0, 0) }
+  let(:ends_at) { Time.utc(2026, 8, 10, 10, 10, 0) }
+  let(:plan) do
+    Airtime::OccupyWithPlan.call(
       organization: organization,
       broadcast_point_group: group,
-      airtime_quota: quota,
-      starts_at: Time.utc(2026, 8, 10, 10, 0, 0),
-      ends_at: Time.utc(2026, 8, 10, 10, 10, 0),
-      seconds: 600
+      rotation: rotation,
+      starts_at: starts_at,
+      ends_at: ends_at
     )
   end
 
-  it 'cancels and restores seconds when no media plan' do
-    described_class.call(booking: booking)
+  it 'soft-cancels plan and booking together (AE5)' do
+    described_class.call(plan: plan)
 
-    expect(booking.reload).to be_cancelled
-    expect(quota.reload.seconds_remaining).to eq(3_600)
+    expect(plan.reload).to be_cancelled
+    expect(plan.airtime_booking.reload).to be_cancelled
   end
 
-  it 'rejects cancel when an active media plan is linked' do
-    create(
-      :media_plan,
-      organization: organization,
-      broadcast_point_group: group,
-      airtime_booking: booking,
-      starts_at: booking.starts_at,
-      ends_at: booking.ends_at
+  it 'frees the slot so another org can occupy the same window' do
+    described_class.call(plan: plan)
+
+    other = create(:organization, :client)
+    other_group = create(:broadcast_point_group, organization: other)
+    create(:broadcast_point_group_membership, broadcast_point_group: other_group, screen: screen)
+    other_rotation = create(:rotation, organization: other)
+
+    replacement = Airtime::OccupyWithPlan.call(
+      organization: other,
+      broadcast_point_group: other_group,
+      rotation: other_rotation,
+      starts_at: starts_at,
+      ends_at: ends_at
     )
 
-    expect { described_class.call(booking: booking) }.to raise_error(Airtime::CancelBlockedError)
-    expect(booking.reload).to be_confirmed
-    expect(quota.reload.seconds_remaining).to eq(3_000)
+    expect(replacement).to be_active
+    expect(AirtimeBooking.confirmed.count).to eq(1)
+  end
+
+  it 'rejects double cancel' do
+    described_class.call(plan: plan)
+
+    expect { described_class.call(plan: plan.reload) }.to raise_error(ArgumentError, /already cancelled/)
   end
 end

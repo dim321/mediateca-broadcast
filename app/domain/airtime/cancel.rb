@@ -1,31 +1,29 @@
 # frozen_string_literal: true
 
 module Airtime
+  # Soft-cancel a media plan and its internal booking together (KTD5).
   class Cancel < BaseService
-    def initialize(booking:)
-      @booking = booking
+    def initialize(plan:)
+      @plan = plan
     end
 
     def call
-      AirtimeBooking.transaction do
-        locked = AirtimeBooking.lock.find(booking.id)
-        raise ArgumentError, 'booking already cancelled' if locked.cancelled?
+      MediaPlan.transaction do
+        locked_plan = MediaPlan.lock.find(plan.id)
+        raise ArgumentError, 'plan already cancelled' if locked_plan.cancelled?
 
-        # R7 / KTD5 — full association gate; U5 strengthens MediaPlan create path.
-        if locked.media_plans.active.exists?
-          raise Airtime::CancelBlockedError, 'cancel blocked while media plan is linked'
-        end
+        locked_booking = AirtimeBooking.lock.find(locked_plan.airtime_booking_id)
+        ScreenLock.call(screen_ids: locked_booking.broadcast_point_group.screen_ids)
 
-        ScreenLock.call(screen_ids: locked.broadcast_point_group.screen_ids)
-        quota = AirtimeQuota.lock.find(locked.airtime_quota_id)
-        quota.update!(seconds_remaining: quota.seconds_remaining + locked.seconds)
-        locked.update!(status: :cancelled)
-        locked
+        locked_plan.update!(status: :cancelled)
+        locked_booking.update!(status: :cancelled) unless locked_booking.cancelled?
+
+        locked_plan
       end
     end
 
     private
 
-    attr_reader :booking
+    attr_reader :plan
   end
 end
