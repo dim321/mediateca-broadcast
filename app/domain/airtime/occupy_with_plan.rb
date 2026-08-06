@@ -16,7 +16,6 @@ module Airtime
       seconds = booking_seconds
 
       MediaPlan.transaction do
-        screen_ids = broadcast_point_group.screen_ids
         ScreenLock.call(screen_ids: screen_ids)
 
         if ScreenOverlapGuard.call(starts_at: starts_at, ends_at: ends_at, screen_ids: screen_ids).exists?
@@ -49,15 +48,15 @@ module Airtime
     attr_reader :organization, :broadcast_point_group, :rotation, :starts_at, :ends_at
 
     def validate_inputs!
-      raise Airtime::InvalidWindowError, 'starts_at and ends_at required' if starts_at.blank? || ends_at.blank?
-      raise Airtime::InvalidWindowError, 'ends_at must be after starts_at' unless ends_at > starts_at
+      validate_time_window!
       raise ArgumentError, 'organization must own the broadcast point group' unless broadcast_point_group.organization_id == organization.id
       raise ArgumentError, 'organization must own the rotation' unless rotation.organization_id == organization.id
-      raise ArgumentError, 'group must include at least one screen' if broadcast_point_group.screen_ids.empty?
+      raise ArgumentError, 'group must include at least one screen' if screen_ids.empty?
     end
 
-    def booking_seconds
-      (ends_at - starts_at).to_i
+    def screen_ids
+      @screen_ids ||= broadcast_point_group.screen_ids
     end
   end
 end
+
