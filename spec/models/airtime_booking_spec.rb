@@ -13,27 +13,32 @@ require 'rails_helper'
 #  status                   :string           default("confirmed"), not null
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
-#  airtime_quota_id         :bigint           not null
 #  broadcast_point_group_id :bigint           not null
 #  organization_id          :bigint           not null
 #
 # Indexes
 #
 #  idx_on_organization_id_starts_at_ends_at_f3b48d3772  (organization_id,starts_at,ends_at)
-#  index_airtime_bookings_on_airtime_quota_id           (airtime_quota_id)
 #  index_airtime_bookings_on_broadcast_point_group_id   (broadcast_point_group_id)
 #  index_airtime_bookings_on_organization_id            (organization_id)
 #  index_airtime_bookings_on_status                     (status)
 #
 # Foreign Keys
 #
-#  fk_rails_...  (airtime_quota_id => airtime_quotas.id)
 #  fk_rails_...  (broadcast_point_group_id => broadcast_point_groups.id)
 #  fk_rails_...  (organization_id => organizations.id)
 #
 RSpec.describe AirtimeBooking, type: :model do
   it 'defaults to confirmed' do
     expect(build(:airtime_booking)).to be_confirmed
+  end
+
+  it 'builds without an airtime quota' do
+    booking = create(:airtime_booking)
+
+    expect(booking).to be_persisted
+    expect(booking).not_to respond_to(:airtime_quota)
+    expect(booking.attributes).not_to have_key('airtime_quota_id')
   end
 
   describe '#covers_plan?' do

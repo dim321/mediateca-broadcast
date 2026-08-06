@@ -52,18 +52,10 @@ FactoryBot.define do
       next if media_plan.starts_at.blank? || media_plan.ends_at.blank?
 
       seconds = (media_plan.ends_at - media_plan.starts_at).to_i
-      quota = create(
-        :airtime_quota,
-        broadcast_point_group: group,
-        starts_at: media_plan.starts_at - 1.day,
-        ends_at: media_plan.ends_at + 1.day,
-        seconds_total: [ seconds * 2, 86_400 ].max
-      )
       media_plan.airtime_booking = create(
         :airtime_booking,
         organization: media_plan.organization,
         broadcast_point_group: group,
-        airtime_quota: quota,
         starts_at: media_plan.starts_at,
         ends_at: media_plan.ends_at,
         seconds: seconds

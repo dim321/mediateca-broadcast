@@ -39,7 +39,8 @@ class MediaPlan < ApplicationRecord
 
   enum :status, {
     active: 'active',
-    invalidated: 'invalidated'
+    invalidated: 'invalidated',
+    cancelled: 'cancelled'
   }, default: :active
 
   validates :starts_at, :ends_at, presence: true

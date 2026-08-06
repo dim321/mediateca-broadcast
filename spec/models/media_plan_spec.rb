@@ -45,18 +45,10 @@ RSpec.describe MediaPlan, type: :model do
 
   def booking_covering(starts_at, ends_at, group: broadcast_point_group, org: organization)
     seconds = (ends_at - starts_at).to_i
-    quota = create(
-      :airtime_quota,
-      broadcast_point_group: group,
-      starts_at: starts_at - 1.day,
-      ends_at: ends_at + 1.day,
-      seconds_total: [ seconds * 2, 86_400 ].max
-    )
     create(
       :airtime_booking,
       organization: org,
       broadcast_point_group: group,
-      airtime_quota: quota,
       starts_at: starts_at,
       ends_at: ends_at,
       seconds: seconds
@@ -229,5 +221,32 @@ RSpec.describe MediaPlan, type: :model do
     create(:rotation_item, rotation: rotation, media_asset: media_asset)
 
     expect(build_plan).to be_valid
+  end
+
+  it 'accepts cancelled status' do
+    plan = create(
+      :media_plan,
+      organization: organization,
+      rotation: rotation,
+      broadcast_point_group: broadcast_point_group
+    )
+
+    plan.status = :cancelled
+
+    expect(plan).to be_valid
+    expect(plan).to be_cancelled
+  end
+
+  it 'builds without an airtime quota' do
+    plan = build(
+      :media_plan,
+      organization: organization,
+      rotation: rotation,
+      broadcast_point_group: broadcast_point_group
+    )
+
+    expect(plan.airtime_booking).to be_present
+    expect(plan.airtime_booking).not_to respond_to(:airtime_quota)
+    expect(plan).to be_valid
   end
 end

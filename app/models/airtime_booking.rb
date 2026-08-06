@@ -11,26 +11,22 @@
 #  status                   :string           default("confirmed"), not null
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
-#  airtime_quota_id         :bigint           not null
 #  broadcast_point_group_id :bigint           not null
 #  organization_id          :bigint           not null
 #
 # Indexes
 #
 #  idx_on_organization_id_starts_at_ends_at_f3b48d3772  (organization_id,starts_at,ends_at)
-#  index_airtime_bookings_on_airtime_quota_id           (airtime_quota_id)
 #  index_airtime_bookings_on_broadcast_point_group_id   (broadcast_point_group_id)
 #  index_airtime_bookings_on_organization_id            (organization_id)
 #  index_airtime_bookings_on_status                     (status)
 #
 # Foreign Keys
 #
-#  fk_rails_...  (airtime_quota_id => airtime_quotas.id)
 #  fk_rails_...  (broadcast_point_group_id => broadcast_point_groups.id)
 #  fk_rails_...  (organization_id => organizations.id)
 #
 class AirtimeBooking < ApplicationRecord
-  belongs_to :airtime_quota
   belongs_to :organization
   belongs_to :broadcast_point_group
   has_many :media_plans, dependent: :restrict_with_exception
