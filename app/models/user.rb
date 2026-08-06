@@ -28,9 +28,9 @@ class User < ApplicationRecord
   has_secure_password
 
   enum :role, {
-    manager: 'manager',
-    accountant: 'accountant',
-    administrator: 'administrator'
+    manager: "manager",
+    accountant: "accountant",
+    administrator: "administrator"
   }, default: :manager
 
   validates :email, presence: true, uniqueness: { case_sensitive: true },

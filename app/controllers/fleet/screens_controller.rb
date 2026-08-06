@@ -21,7 +21,7 @@ module Fleet
     def require_user
       return if Current.user
 
-      redirect_to login_path, alert: t('media_assets.authentication_required')
+      redirect_to login_path, alert: t("media_assets.authentication_required")
     end
 
     def on_air_plans_for(screen)
@@ -32,7 +32,7 @@ module Fleet
         .joins(broadcast_point_group: :screens)
         .merge(AirtimeBooking.confirmed)
         .where(screens: { id: screen.id })
-        .where('airtime_bookings.starts_at <= media_plans.starts_at AND airtime_bookings.ends_at >= media_plans.ends_at')
+        .where("airtime_bookings.starts_at <= media_plans.starts_at AND airtime_bookings.ends_at >= media_plans.ends_at")
         .includes(:rotation, :broadcast_point_group, :airtime_booking)
         .order(:starts_at)
     end

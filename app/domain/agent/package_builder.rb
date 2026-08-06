@@ -42,8 +42,8 @@ module Agent
         .joins(broadcast_point_group: :screens)
         .merge(AirtimeBooking.confirmed)
         .where(screens: { station_id: station.id })
-        .where('media_plans.starts_at <= ? AND media_plans.ends_at >= ?', horizon, now)
-        .where('airtime_bookings.starts_at <= media_plans.starts_at AND airtime_bookings.ends_at >= media_plans.ends_at')
+        .where("media_plans.starts_at <= ? AND media_plans.ends_at >= ?", horizon, now)
+        .where("airtime_bookings.starts_at <= media_plans.starts_at AND airtime_bookings.ends_at >= media_plans.ends_at")
         .includes(
           :airtime_booking,
           broadcast_point_group: :screens,
@@ -98,7 +98,7 @@ module Agent
     def signed_blob_path(attachment)
       Rails.application.routes.url_helpers.rails_blob_path(
         attachment,
-        disposition: 'inline',
+        disposition: "inline",
         only_path: true
       )
     end

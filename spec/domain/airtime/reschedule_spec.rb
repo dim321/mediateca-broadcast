@@ -6,7 +6,6 @@ RSpec.describe Airtime::Reschedule do
   let(:organization) { create(:organization, :client) }
   let(:group) { create(:broadcast_point_group, organization: organization) }
   let(:screen) { create(:screen) }
-  let!(:membership) { create(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen) }
   let(:rotation) { create(:rotation, organization: organization) }
   let(:plan) do
     Airtime::OccupyWithPlan.call(
@@ -17,6 +16,8 @@ RSpec.describe Airtime::Reschedule do
       ends_at: Time.utc(2026, 8, 10, 10, 10, 0)
     )
   end
+
+  before { create(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen) }
 
   it 'moves booking and plan windows together' do
     described_class.call(

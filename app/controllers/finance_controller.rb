@@ -6,8 +6,8 @@ class FinanceController < ApplicationController
 
   def show
     unless Current.user.accountant? || Current.user.administrator? || Current.user.organization.operator?
-      flash[:alert] = I18n.t('pundit.not_authorized', default: 'You are not authorized to perform this action.')
-      return redirect_back(fallback_location: rails_health_check_path)
+      flash[:alert] = I18n.t("pundit.not_authorized", default: "You are not authorized to perform this action.")
+      redirect_back(fallback_location: rails_health_check_path)
     end
   end
 
@@ -16,6 +16,6 @@ class FinanceController < ApplicationController
   def require_user
     return if Current.user
 
-    redirect_to login_path, alert: t('media_assets.authentication_required')
+    redirect_to login_path, alert: t("media_assets.authentication_required")
   end
 end

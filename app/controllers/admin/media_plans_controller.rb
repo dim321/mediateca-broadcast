@@ -5,7 +5,7 @@ module Admin
     def cancel
       plan = requested_resource
       Airtime::Cancel.call(plan: plan)
-      redirect_to admin_media_plans_path, notice: 'Media plan cancelled.'
+      redirect_to admin_media_plans_path, notice: "Media plan cancelled."
     rescue ArgumentError => e
       redirect_to admin_media_plan_path(plan), alert: e.message
     end
@@ -13,15 +13,18 @@ module Admin
     def reschedule
       @media_plan = requested_resource
 
-      if request.get?
+      if request.get? || request.head?
         load_broadcast_point_groups
         render :reschedule
         return
       end
 
-      group = BroadcastPointGroup.find(params.require(:broadcast_point_group_id))
-      starts_at = Time.zone.parse(params.require(:starts_at))
-      ends_at = Time.zone.parse(params.require(:ends_at))
+      group = @media_plan.organization.broadcast_point_groups.find(params.require(:broadcast_point_group_id))
+      starts_at, ends_at = Scheduling::TimeWindowResolver.utc_range(
+        organization: @media_plan.organization,
+        starts_at_param: params.require(:starts_at),
+        ends_at_param: params.require(:ends_at)
+      )
 
       Airtime::Reschedule.call(
         plan: @media_plan,
@@ -29,7 +32,7 @@ module Admin
         starts_at: starts_at,
         ends_at: ends_at
       )
-      redirect_to admin_media_plan_path(@media_plan), notice: 'Media plan rescheduled.'
+      redirect_to admin_media_plan_path(@media_plan), notice: "Media plan rescheduled."
     rescue Airtime::ConflictError, Airtime::InvalidWindowError, ArgumentError => e
       load_broadcast_point_groups
       flash.now[:alert] = e.message
@@ -39,7 +42,8 @@ module Admin
     private
 
     def load_broadcast_point_groups
-      @broadcast_point_groups = BroadcastPointGroup.order(:name)
+      @time_zone = @media_plan.organization.time_zone
+      @broadcast_point_groups = @media_plan.organization.broadcast_point_groups.order(:name)
     end
   end
 end

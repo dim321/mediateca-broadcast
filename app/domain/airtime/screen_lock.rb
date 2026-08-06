@@ -13,7 +13,9 @@ module Airtime
     def call
       screen_ids.each do |screen_id|
         ApplicationRecord.connection.execute(
-          "SELECT pg_advisory_xact_lock(#{NAMESPACE}, #{screen_id})"
+          ApplicationRecord.sanitize_sql_array(
+            [ "SELECT pg_advisory_xact_lock(?, ?)", NAMESPACE, screen_id ]
+          )
         )
       end
       screen_ids

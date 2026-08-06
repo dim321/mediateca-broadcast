@@ -32,8 +32,8 @@ class AirtimeBooking < ApplicationRecord
   has_many :media_plans, dependent: :restrict_with_exception
 
   enum :status, {
-    confirmed: 'confirmed',
-    cancelled: 'cancelled'
+    confirmed: "confirmed",
+    cancelled: "cancelled"
   }, default: :confirmed
 
   validates :starts_at, :ends_at, :seconds, presence: true

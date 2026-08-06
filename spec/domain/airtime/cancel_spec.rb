@@ -6,7 +6,6 @@ RSpec.describe Airtime::Cancel do
   let(:organization) { create(:organization, :client) }
   let(:group) { create(:broadcast_point_group, organization: organization) }
   let(:screen) { create(:screen) }
-  let!(:membership) { create(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen) }
   let(:rotation) { create(:rotation, organization: organization) }
   let(:starts_at) { Time.utc(2026, 8, 10, 10, 0, 0) }
   let(:ends_at) { Time.utc(2026, 8, 10, 10, 10, 0) }
@@ -19,6 +18,8 @@ RSpec.describe Airtime::Cancel do
       ends_at: ends_at
     )
   end
+
+  before { create(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen) }
 
   it 'soft-cancels plan and booking together (AE5)' do
     described_class.call(plan: plan)

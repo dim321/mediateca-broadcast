@@ -25,7 +25,7 @@ module Scheduling
         .active
         .joins(broadcast_point_group: :broadcast_point_group_memberships)
         .where(broadcast_point_group_memberships: { screen_id: screen_ids })
-        .where('media_plans.starts_at < ? AND media_plans.ends_at > ?', ends_at, starts_at)
+        .where("media_plans.starts_at < ? AND media_plans.ends_at > ?", ends_at, starts_at)
         .distinct
       scope = scope.where(organization_id: organization_id) if organization_id.present?
       scope = scope.where.not(id: exclude_media_plan.id) if exclude_media_plan&.persisted?

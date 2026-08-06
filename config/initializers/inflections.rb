@@ -4,5 +4,5 @@
 
 ActiveSupport::Inflector.inflections(:en) do |inflect|
   # Default Latin rule maps quota → quotum / quota (uncountable-ish).
-  inflect.irregular 'quota', 'quotas'
+  inflect.irregular "quota", "quotas"
 end

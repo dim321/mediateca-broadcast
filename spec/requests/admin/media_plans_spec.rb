@@ -9,7 +9,6 @@ RSpec.describe 'Admin media plans', type: :request do
   let(:client_user) { create(:user, :manager, organization: client) }
   let(:group) { create(:broadcast_point_group, organization: client) }
   let(:screen) { create(:screen) }
-  let!(:membership) { create(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen) }
   let(:rotation) { create(:rotation, organization: client) }
   let(:plan) do
     Airtime::OccupyWithPlan.call(
@@ -20,6 +19,8 @@ RSpec.describe 'Admin media plans', type: :request do
       ends_at: Time.utc(2026, 8, 10, 11, 0, 0)
     )
   end
+
+  before { create(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen) }
 
   describe 'authentication' do
     it 'redirects anonymous users to login' do
@@ -36,7 +37,7 @@ RSpec.describe 'Admin media plans', type: :request do
     end
   end
 
-  context 'as operator' do
+  context "when signed in as operator" do
     before { sign_in_as(operator) }
 
     it 'roots admin at media plans and has no Quotas nav' do

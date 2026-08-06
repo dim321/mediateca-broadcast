@@ -33,4 +33,3 @@ class Organization < ApplicationRecord
   validates :time_zone, presence: true
   validates :kind, uniqueness: true, if: :operator?
 end
-

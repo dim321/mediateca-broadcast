@@ -18,7 +18,7 @@ class ScreenDashboard < Administrate::BaseDashboard
     station: Field::BelongsTo,
     tags: Field::HasMany,
     created_at: Field::DateTime,
-    updated_at: Field::DateTime,
+    updated_at: Field::DateTime
   }.freeze
 
   # COLLECTION_ATTRIBUTES

@@ -15,7 +15,7 @@ class StationDashboard < Administrate::BaseDashboard
     offline_cache_hours: Field::Number,
     screens: Field::HasMany,
     created_at: Field::DateTime,
-    updated_at: Field::DateTime,
+    updated_at: Field::DateTime
   }.freeze
 
   # COLLECTION_ATTRIBUTES

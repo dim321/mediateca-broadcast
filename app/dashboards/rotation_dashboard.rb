@@ -15,7 +15,7 @@ class RotationDashboard < Administrate::BaseDashboard
     organization: Field::BelongsTo,
     rotation_items: Field::HasMany,
     created_at: Field::DateTime,
-    updated_at: Field::DateTime,
+    updated_at: Field::DateTime
   }.freeze
 
   # COLLECTION_ATTRIBUTES

@@ -38,7 +38,7 @@ class MediaPlansController < ApplicationController
       starts_at: starts_at,
       ends_at: ends_at
     )
-    redirect_to media_plans_path, notice: t('.created')
+    redirect_to media_plans_path, notice: t(".created")
   rescue Airtime::ConflictError, Airtime::InvalidWindowError, ArgumentError, ActiveRecord::RecordInvalid => e
     attach_slot_attrs(group, rotation, starts_at, ends_at)
     flash.now[:alert] = e.message
@@ -64,7 +64,7 @@ class MediaPlansController < ApplicationController
 
     @media_plan.rotation = rotation
     if @media_plan.save
-      redirect_to media_plans_path, notice: t('.updated')
+      redirect_to media_plans_path, notice: t(".updated")
     else
       render :edit, status: :unprocessable_content
     end
@@ -73,7 +73,7 @@ class MediaPlansController < ApplicationController
   def cancel
     authorize @media_plan, :cancel?
     Airtime::Cancel.call(plan: @media_plan)
-    redirect_to media_plans_path, notice: t('.cancelled')
+    redirect_to media_plans_path, notice: t(".cancelled")
   rescue ArgumentError => e
     redirect_to media_plan_path(@media_plan), alert: e.message
   end
@@ -81,7 +81,7 @@ class MediaPlansController < ApplicationController
   def reschedule
     authorize @media_plan, :reschedule?
 
-    if request.get?
+    if request.get? || request.head?
       load_occupancy(exclude: @media_plan.airtime_booking)
       return
     end
@@ -96,7 +96,7 @@ class MediaPlansController < ApplicationController
       starts_at: starts_at,
       ends_at: ends_at
     )
-    redirect_to media_plans_path, notice: t('.rescheduled')
+    redirect_to media_plans_path, notice: t(".rescheduled")
   rescue Airtime::ConflictError, Airtime::InvalidWindowError, ArgumentError => e
     flash.now[:alert] = e.message
     render_reschedule_failure(group: group, starts_at: starts_at, ends_at: ends_at)
@@ -107,7 +107,7 @@ class MediaPlansController < ApplicationController
   def require_user
     return if Current.user
 
-    redirect_to login_path, alert: t('media_assets.authentication_required')
+    redirect_to login_path, alert: t("media_assets.authentication_required")
   end
 
   def set_media_plan
@@ -152,7 +152,7 @@ class MediaPlansController < ApplicationController
       @media_plan.errors.add(:starts_at, :blank)
     in :invalid
       @media_plan.errors.add(:starts_at, :invalid)
-    in [begins, ends]
+    in [ begins, ends ]
       starts_at = begins
       ends_at = ends
     end
@@ -205,7 +205,7 @@ class MediaPlansController < ApplicationController
     return false if params_starts.blank? && params_ends.blank?
 
     case parse_slot_window
-    in [starts_at, ends_at]
+    in [ starts_at, ends_at ]
       starts_at != @media_plan.starts_at || ends_at != @media_plan.ends_at
     else
       true

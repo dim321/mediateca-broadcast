@@ -16,15 +16,15 @@ module Airtime
 
       MediaPlan.transaction do
         locked_plan = MediaPlan.lock.find(plan.id)
-        raise ArgumentError, 'cannot reschedule cancelled plan' if locked_plan.cancelled?
-        raise ArgumentError, 'cannot reschedule invalidated plan' if locked_plan.invalidated?
+        raise ArgumentError, "cannot reschedule cancelled plan" if locked_plan.cancelled?
+        raise ArgumentError, "cannot reschedule invalidated plan" if locked_plan.invalidated?
 
         locked_booking = AirtimeBooking.lock.find(locked_plan.airtime_booking_id)
-        raise ArgumentError, 'cannot reschedule cancelled booking' if locked_booking.cancelled?
+        raise ArgumentError, "cannot reschedule cancelled booking" if locked_booking.cancelled?
 
         old_group = locked_booking.broadcast_point_group
         new_group = broadcast_point_group
-        raise ArgumentError, 'organization must own the target group' unless new_group.organization_id == locked_plan.organization_id
+        raise ArgumentError, "organization must own the target group" unless new_group.organization_id == locked_plan.organization_id
 
         lock_screen_ids = if old_group.id == new_group.id
           old_group.screen_ids
@@ -39,7 +39,7 @@ module Airtime
           screen_ids: new_group.screen_ids,
           exclude_booking: locked_booking
         ).exists?
-          raise Airtime::ConflictError, 'target screen slot already booked'
+          raise Airtime::ConflictError, "target screen slot already booked"
         end
 
         locked_booking.update!(
@@ -68,7 +68,7 @@ module Airtime
 
     def validate_inputs!
       validate_time_window!
-      raise ArgumentError, 'target group must include at least one screen' if broadcast_point_group.screen_ids.empty?
+      raise ArgumentError, "target group must include at least one screen" if broadcast_point_group.screen_ids.empty?
     end
   end
 end

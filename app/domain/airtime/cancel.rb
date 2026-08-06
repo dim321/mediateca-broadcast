@@ -10,7 +10,7 @@ module Airtime
     def call
       MediaPlan.transaction do
         locked_plan = MediaPlan.lock.find(plan.id)
-        raise ArgumentError, 'plan already cancelled' if locked_plan.cancelled?
+        raise ArgumentError, "plan already cancelled" if locked_plan.cancelled?
 
         locked_booking = AirtimeBooking.lock.find(locked_plan.airtime_booking_id)
         ScreenLock.call(screen_ids: locked_booking.broadcast_point_group.screen_ids)

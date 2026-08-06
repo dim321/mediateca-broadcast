@@ -25,7 +25,7 @@ module Airtime
         .confirmed
         .joins(broadcast_point_group: :broadcast_point_group_memberships)
         .where(broadcast_point_group_memberships: { screen_id: screen_ids })
-        .where('airtime_bookings.starts_at < ? AND airtime_bookings.ends_at > ?', ends_at, starts_at)
+        .where("airtime_bookings.starts_at < ? AND airtime_bookings.ends_at > ?", ends_at, starts_at)
         .distinct
       scope = scope.where.not(id: exclude_booking.id) if exclude_booking&.persisted?
       scope

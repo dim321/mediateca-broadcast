@@ -38,9 +38,9 @@ class MediaPlan < ApplicationRecord
   belongs_to :airtime_booking
 
   enum :status, {
-    active: 'active',
-    invalidated: 'invalidated',
-    cancelled: 'cancelled'
+    active: "active",
+    invalidated: "invalidated",
+    cancelled: "cancelled"
   }, default: :active
 
   validates :starts_at, :ends_at, presence: true

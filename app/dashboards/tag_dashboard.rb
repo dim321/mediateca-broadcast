@@ -13,7 +13,7 @@ class TagDashboard < Administrate::BaseDashboard
     screen_tags: Field::HasMany,
     screens: Field::HasMany,
     created_at: Field::DateTime,
-    updated_at: Field::DateTime,
+    updated_at: Field::DateTime
   }.freeze
 
   # COLLECTION_ATTRIBUTES

@@ -19,7 +19,7 @@ module Airtime
         ScreenLock.call(screen_ids: screen_ids)
 
         if ScreenOverlapGuard.call(starts_at: starts_at, ends_at: ends_at, screen_ids: screen_ids).exists?
-          raise Airtime::ConflictError, 'screen slot already booked'
+          raise Airtime::ConflictError, "screen slot already booked"
         end
 
         booking = AirtimeBooking.create!(
@@ -49,9 +49,9 @@ module Airtime
 
     def validate_inputs!
       validate_time_window!
-      raise ArgumentError, 'organization must own the broadcast point group' unless broadcast_point_group.organization_id == organization.id
-      raise ArgumentError, 'organization must own the rotation' unless rotation.organization_id == organization.id
-      raise ArgumentError, 'group must include at least one screen' if screen_ids.empty?
+      raise ArgumentError, "organization must own the broadcast point group" unless broadcast_point_group.organization_id == organization.id
+      raise ArgumentError, "organization must own the rotation" unless rotation.organization_id == organization.id
+      raise ArgumentError, "group must include at least one screen" if screen_ids.empty?
     end
 
     def screen_ids
@@ -59,4 +59,3 @@ module Airtime
     end
   end
 end
-

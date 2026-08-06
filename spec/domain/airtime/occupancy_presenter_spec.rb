@@ -6,8 +6,9 @@ RSpec.describe Airtime::OccupancyPresenter do
   let(:org) { create(:organization, :client) }
   let(:group) { create(:broadcast_point_group, organization: org) }
   let(:screen) { create(:screen) }
-  let!(:membership) { create(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen) }
   let(:rotation) { create(:rotation, organization: org) }
+
+  before { create(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen) }
 
   it 'returns start/end only for occupied slots' do
     plan = Airtime::OccupyWithPlan.call(

@@ -6,10 +6,11 @@ RSpec.describe Airtime::OccupyWithPlan do
   let(:organization) { create(:organization, :client) }
   let(:group) { create(:broadcast_point_group, organization: organization) }
   let(:screen) { create(:screen) }
-  let!(:membership) { create(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen) }
   let(:rotation) { create(:rotation, organization: organization) }
   let(:starts_at) { Time.utc(2026, 8, 10, 10, 0, 0) }
   let(:ends_at) { Time.utc(2026, 8, 10, 10, 10, 0) }
+
+  before { create(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen) }
 
   def occupy!
     described_class.call(
@@ -78,7 +79,7 @@ RSpec.describe Airtime::OccupyWithPlan do
     end.to raise_error(ArgumentError, /own the broadcast point group/)
   end
 
-  context 'concurrency', :concurrency do
+  context "when concurrent occupies race", :concurrency do
     it 'lets only one of two overlapping occupies win (AE1)' do
       ready = Queue.new
       go = Queue.new
