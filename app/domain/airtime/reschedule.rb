@@ -12,7 +12,7 @@ module Airtime
 
     def call
       validate_inputs!
-      new_seconds = (ends_at - starts_at).to_i
+      new_seconds = booking_seconds
 
       MediaPlan.transaction do
         locked_plan = MediaPlan.lock.find(plan.id)
@@ -26,8 +26,12 @@ module Airtime
         new_group = broadcast_point_group
         raise ArgumentError, 'organization must own the target group' unless new_group.organization_id == locked_plan.organization_id
 
-        screen_ids = (old_group.screen_ids + new_group.screen_ids).uniq
-        ScreenLock.call(screen_ids: screen_ids)
+        lock_screen_ids = if old_group.id == new_group.id
+          old_group.screen_ids
+        else
+          (old_group.screen_ids + new_group.screen_ids).uniq
+        end
+        ScreenLock.call(screen_ids: lock_screen_ids)
 
         if ScreenOverlapGuard.call(
           starts_at: starts_at,
@@ -45,11 +49,14 @@ module Airtime
           seconds: new_seconds
         )
 
-        locked_plan.update!(
+        # Window/group move is occupancy-only; do not re-run rotation readiness
+        # validations that can block a free-target reschedule (KTD4 / AE3).
+        locked_plan.assign_attributes(
           broadcast_point_group: new_group,
           starts_at: starts_at,
           ends_at: ends_at
         )
+        locked_plan.save!(validate: false)
 
         locked_plan
       end
@@ -60,8 +67,7 @@ module Airtime
     attr_reader :plan, :broadcast_point_group, :starts_at, :ends_at
 
     def validate_inputs!
-      raise Airtime::InvalidWindowError, 'starts_at and ends_at required' if starts_at.blank? || ends_at.blank?
-      raise Airtime::InvalidWindowError, 'ends_at must be after starts_at' unless ends_at > starts_at
+      validate_time_window!
       raise ArgumentError, 'target group must include at least one screen' if broadcast_point_group.screen_ids.empty?
     end
   end

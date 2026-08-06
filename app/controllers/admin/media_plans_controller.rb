@@ -14,7 +14,7 @@ module Admin
       @media_plan = requested_resource
 
       if request.get?
-        @broadcast_point_groups = BroadcastPointGroup.order(:name)
+        load_broadcast_point_groups
         render :reschedule
         return
       end
@@ -31,9 +31,15 @@ module Admin
       )
       redirect_to admin_media_plan_path(@media_plan), notice: 'Media plan rescheduled.'
     rescue Airtime::ConflictError, Airtime::InvalidWindowError, ArgumentError => e
-      @broadcast_point_groups = BroadcastPointGroup.order(:name)
+      load_broadcast_point_groups
       flash.now[:alert] = e.message
       render :reschedule, status: :unprocessable_content
+    end
+
+    private
+
+    def load_broadcast_point_groups
+      @broadcast_point_groups = BroadcastPointGroup.order(:name)
     end
   end
 end

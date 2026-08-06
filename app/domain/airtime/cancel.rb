@@ -15,8 +15,18 @@ module Airtime
         locked_booking = AirtimeBooking.lock.find(locked_plan.airtime_booking_id)
         ScreenLock.call(screen_ids: locked_booking.broadcast_point_group.screen_ids)
 
-        locked_plan.update!(status: :cancelled)
-        locked_booking.update!(status: :cancelled) unless locked_booking.cancelled?
+        # Skip full AR validations: cancel must free the slot even if rotation/media
+        # later became not broadcast-ready or the group lost screens.
+        locked_plan.update_columns(
+          status: MediaPlan.statuses[:cancelled],
+          updated_at: Time.current
+        )
+        unless locked_booking.cancelled?
+          locked_booking.update_columns(
+            status: AirtimeBooking.statuses[:cancelled],
+            updated_at: Time.current
+          )
+        end
 
         locked_plan
       end

@@ -52,4 +52,16 @@ RSpec.describe Airtime::Cancel do
 
     expect { described_class.call(plan: plan.reload) }.to raise_error(ArgumentError, /already cancelled/)
   end
+
+  it 'still cancels when rotation media later becomes not broadcast-ready' do
+    media_asset = create(:media_asset, :ready, :with_png_file, organization: organization)
+    create(:rotation_item, rotation: rotation, media_asset: media_asset)
+    expect(plan).to be_persisted
+
+    media_asset.update_column(:processing_status, 'processing')
+
+    expect { described_class.call(plan: plan) }.not_to raise_error
+    expect(plan.reload).to be_cancelled
+    expect(plan.airtime_booking.reload).to be_cancelled
+  end
 end

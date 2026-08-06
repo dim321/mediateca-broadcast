@@ -171,4 +171,62 @@ RSpec.describe 'MediaPlans', type: :request do
       expect(plan.airtime_booking.reload).to be_cancelled
     end
   end
+
+  describe 'PATCH /media_plans/:id/reschedule' do
+    before { sign_in_as(user) }
+
+    it 'moves the window and keeps the rotation' do
+      plan = Airtime::OccupyWithPlan.call(
+        organization: organization,
+        broadcast_point_group: broadcast_point_group,
+        rotation: rotation,
+        starts_at: Time.utc(2026, 8, 10, 10, 0, 0),
+        ends_at: Time.utc(2026, 8, 10, 12, 0, 0)
+      )
+
+      patch reschedule_media_plan_path(plan), params: {
+        media_plan: {
+          broadcast_point_group_id: broadcast_point_group.id,
+          starts_at: '2026-08-10T14:00',
+          ends_at: '2026-08-10T15:00'
+        }
+      }
+
+      expect(response).to redirect_to(media_plans_path)
+      plan.reload
+      expect(plan.starts_at).to eq(Time.utc(2026, 8, 10, 14, 0, 0))
+      expect(plan.ends_at).to eq(Time.utc(2026, 8, 10, 15, 0, 0))
+      expect(plan.rotation_id).to eq(rotation.id)
+      expect(plan.airtime_booking.starts_at).to eq(plan.starts_at)
+    end
+
+    it 'rejects a busy target and leaves the original window' do
+      plan = Airtime::OccupyWithPlan.call(
+        organization: organization,
+        broadcast_point_group: broadcast_point_group,
+        rotation: rotation,
+        starts_at: Time.utc(2026, 8, 10, 10, 0, 0),
+        ends_at: Time.utc(2026, 8, 10, 11, 0, 0)
+      )
+      Airtime::OccupyWithPlan.call(
+        organization: organization,
+        broadcast_point_group: broadcast_point_group,
+        rotation: rotation,
+        starts_at: Time.utc(2026, 8, 10, 12, 0, 0),
+        ends_at: Time.utc(2026, 8, 10, 13, 0, 0)
+      )
+      original_starts = plan.starts_at
+
+      patch reschedule_media_plan_path(plan), params: {
+        media_plan: {
+          broadcast_point_group_id: broadcast_point_group.id,
+          starts_at: '2026-08-10T12:00',
+          ends_at: '2026-08-10T13:00'
+        }
+      }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(plan.reload.starts_at).to eq(original_starts)
+    end
+  end
 end

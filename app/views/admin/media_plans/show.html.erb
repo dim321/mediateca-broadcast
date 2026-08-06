@@ -17,19 +17,6 @@
     <%= link_to "Reschedule",
           reschedule_admin_media_plan_path(page.resource),
           class: "button" %>
-    <%= link_to(
-          t("administrate.actions.edit_resource", name: page.page_title),
-          [:edit, namespace, page.resource],
-          class: "button",
-        ) if accessible_action?(page.resource, :edit) %>
-
-    <%= button_to(
-          t("administrate.actions.destroy"),
-          [namespace, page.resource],
-          class: "button button--danger",
-          method: :delete,
-          data: { turbo_confirm: t("administrate.actions.confirm") }
-        ) if accessible_action?(page.resource, :destroy) %>
   </div>
 </header>
 

@@ -3,14 +3,13 @@ require "administrate/base_dashboard"
 class BroadcastPointGroupDashboard < Administrate::BaseDashboard
   ATTRIBUTE_TYPES = {
     id: Field::Number,
-    airtime_bookings: Field::HasMany,
     broadcast_point_group_memberships: Field::HasMany,
     media_plans: Field::HasMany,
     name: Field::String,
     organization: Field::BelongsTo,
     screens: Field::HasMany,
     created_at: Field::DateTime,
-    updated_at: Field::DateTime,
+    updated_at: Field::DateTime
   }.freeze
 
   COLLECTION_ATTRIBUTES = %i[
@@ -22,7 +21,6 @@ class BroadcastPointGroupDashboard < Administrate::BaseDashboard
 
   SHOW_PAGE_ATTRIBUTES = %i[
     id
-    airtime_bookings
     broadcast_point_group_memberships
     media_plans
     name

@@ -9,7 +9,7 @@ class MediaPlanDashboard < Administrate::BaseDashboard
   # on pages throughout the dashboard.
   ATTRIBUTE_TYPES = {
     id: Field::Number,
-    airtime_booking: Field::BelongsTo,
+    airtime_booking_id: Field::Number,
     broadcast_point_group: Field::BelongsTo,
     ends_at: Field::DateTime,
     organization: Field::BelongsTo,
@@ -43,22 +43,13 @@ class MediaPlanDashboard < Administrate::BaseDashboard
     starts_at
     ends_at
     status
-    airtime_booking
+    airtime_booking_id
     created_at
     updated_at
   ].freeze
 
-  # FORM_ATTRIBUTES
-  # an array of attributes that will be displayed
-  # on the model's form (`new` and `edit`) pages.
-  FORM_ATTRIBUTES = %i[
-    organization
-    broadcast_point_group
-    rotation
-    starts_at
-    ends_at
-    status
-  ].freeze
+  # FORM_ATTRIBUTES — create/edit disabled; cancel/reschedule only.
+  FORM_ATTRIBUTES = %i[].freeze
 
   # COLLECTION_FILTERS
   # a hash that defines filters that can be used while searching via the search

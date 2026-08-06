@@ -49,7 +49,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :media_plans do
+  resources :media_plans, except: %i[destroy] do
     member do
       delete :cancel
       get :reschedule

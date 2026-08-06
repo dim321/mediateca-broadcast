@@ -40,4 +40,21 @@ RSpec.describe MediaPlanPolicy do
       expect(described_class.new(accountant, plan).update?).to be false
     end
   end
+
+  describe "cancel? / reschedule? / destroy?" do
+    it "разрешает manager cancel и reschedule" do
+      expect(described_class.new(user, plan).cancel?).to be true
+      expect(described_class.new(user, plan).reschedule?).to be true
+    end
+
+    it "запрещает accountant cancel и reschedule" do
+      accountant = create(:user, :accountant, organization: org)
+      expect(described_class.new(accountant, plan).cancel?).to be false
+      expect(described_class.new(accountant, plan).reschedule?).to be false
+    end
+
+    it "запрещает destroy" do
+      expect(described_class.new(user, plan).destroy?).to be false
+    end
+  end
 end
