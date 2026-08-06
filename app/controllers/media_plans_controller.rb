@@ -27,6 +27,7 @@ class MediaPlansController < ApplicationController
     @media_plan = policy_scope(MediaPlan).new(organization: Current.user.organization)
     authorize @media_plan
 
+    group = rotation = starts_at = ends_at = nil
     group, rotation, starts_at, ends_at = resolve_slot_inputs
     return render_new_failure if @media_plan.errors.any?
 
@@ -85,6 +86,7 @@ class MediaPlansController < ApplicationController
       return
     end
 
+    group = starts_at = ends_at = nil
     group, _rotation, starts_at, ends_at = resolve_slot_inputs(require_rotation: false)
     if @media_plan.errors.any?
       load_occupancy(exclude: @media_plan.airtime_booking)
