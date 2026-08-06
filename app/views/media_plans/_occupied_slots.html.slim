@@ -1,11 +1,11 @@
 - if occupied_slots.present?
   .card.bg-base-100.border.border-base-300.shadow-sm.mb-4
     .card-body.gap-2
-      h3.font-medium = t('airtime_bookings.occupied_slots.heading')
+      h3.font-medium = t('media_plans.occupied_slots.heading')
       ul.text-sm.text-base-content/70.space-y-1
         - occupied_slots.each do |slot|
           li
-            = t('airtime_bookings.occupied_slots.occupied')
+            = t('media_plans.occupied_slots.occupied')
             | :
             = l(slot[:starts_at].in_time_zone(time_zone), format: :short)
             |  —

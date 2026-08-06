@@ -9,7 +9,11 @@ class MediaPlanPolicy < ApplicationPolicy
 
   def update? = lk_content_mutate?
 
-  def destroy? = lk_content_mutate?
+  def cancel? = lk_content_mutate?
+
+  def reschedule? = lk_content_mutate?
+
+  def destroy? = false
 
   class Scope < ApplicationPolicy::Scope
     def resolve = resolve_tenant_scope

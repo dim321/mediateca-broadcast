@@ -160,6 +160,7 @@ en:
             base:
               overlaps_existing: overlaps an existing media plan
               outside_booking_window: must fit inside the selected booking window
+              use_reschedule: use Reschedule to change the window or group
             ends_at:
               must_be_after_starts: must be after the start time
             airtime_booking:
@@ -213,23 +214,34 @@ en:
     index:
       title: Media plans
       new_media_plan: New media plan
-      edit: Edit
-      delete: Delete
-      delete_confirm: Delete this media plan?
+      edit: Edit rotation
+      reschedule: Reschedule
+      cancel_plan: Cancel
+      cancel_confirm: Cancel this media plan and free the airtime slot?
       empty: No media plans yet.
     new:
       title: New media plan
     edit:
       title: Edit media plan
+      rotation_only_hint: To change the window or group, use Reschedule.
+    reschedule:
+      title: Reschedule media plan
+      submit: Save new window
+      rescheduled: Media plan rescheduled.
     form:
-      booking: Airtime booking
+      group: Broadcast point group
       cancel: Cancel
+    occupied_slots:
+      heading: Occupied on these screens
+      occupied: Occupied
     show:
-      edit: Edit media plan
+      edit: Edit rotation
+      reschedule: Reschedule
+      cancel_plan: Cancel
       back: Back to media plans
     create:
       created: Media plan created.
     update:
       updated: Media plan updated.
-    destroy:
-      destroyed: Media plan removed.
+    cancel:
+      cancelled: Media plan cancelled.

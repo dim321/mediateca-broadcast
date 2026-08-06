@@ -19,7 +19,8 @@
               = l(media_plan.ends_at.in_time_zone(time_zone), format: :short)
             .card-actions.mt-1
               = link_to t('.edit'), edit_media_plan_path(media_plan), class: 'btn btn-ghost btn-sm'
-              = button_to t('.delete'), media_plan_path(media_plan), method: :delete, class: 'btn btn-ghost btn-sm text-error', form: { data: { turbo_confirm: t('.delete_confirm') } }
+              = link_to t('.reschedule'), reschedule_media_plan_path(media_plan), class: 'btn btn-ghost btn-sm'
+              = button_to t('.cancel_plan'), cancel_media_plan_path(media_plan), method: :delete, class: 'btn btn-ghost btn-sm text-error', form: { data: { turbo_confirm: t('.cancel_confirm') } }
   - else
     .card.bg-base-100.border.border-base-300.shadow-sm
       .card-body

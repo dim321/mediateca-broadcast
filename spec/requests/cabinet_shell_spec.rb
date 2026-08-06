@@ -15,7 +15,7 @@ RSpec.describe "Cabinet shell", type: :request do
     expect(response.body).to include(I18n.t("layouts.application.rotations"))
     expect(response.body).to include(I18n.t("layouts.application.broadcast_point_groups"))
     expect(response.body).to include(I18n.t("layouts.application.media_plans"))
-    expect(response.body).to include(I18n.t("layouts.application.airtime_bookings"))
+    expect(response.body).not_to include(I18n.t("layouts.application.airtime_bookings"))
     expect(response.body).to include(I18n.t("layouts.application.fleet_screens"))
     expect(response.body).to include("menu-active")
   end

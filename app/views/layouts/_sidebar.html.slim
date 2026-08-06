@@ -19,8 +19,6 @@
       li
         = nav_link_to t("layouts.application.media_plans"), media_plans_path, controllers: %w[media_plans]
       li
-        = nav_link_to t("layouts.application.airtime_bookings"), airtime_bookings_path, controllers: %w[airtime_bookings]
-      li
         = nav_link_to t("layouts.application.fleet_screens"), fleet_screens_path, controllers: %w[fleet/screens]
       - if Current.user&.administrator?
         li

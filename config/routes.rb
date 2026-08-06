@@ -45,9 +45,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :media_plans
-
-  resources :airtime_bookings, only: %i[index show new create] do
+  resources :media_plans do
     member do
       delete :cancel
       get :reschedule

@@ -1,5 +1,0 @@
-- content_for :title, t('.title')
-
-.mx-auto.w-full.max-w-6xl
-  = render 'shared/page_header', title: t('.title')
-  = render 'form', airtime_booking: @airtime_booking, submit_label: t('.submit'), url: reschedule_airtime_booking_path(@airtime_booking), method: :patch

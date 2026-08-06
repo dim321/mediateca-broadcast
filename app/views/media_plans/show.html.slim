@@ -4,10 +4,12 @@
   - time_zone = Current.user.organization.time_zone
   h1.text-2xl.font-bold = @media_plan.rotation.name
   p.text-sm = @media_plan.broadcast_point_group.name
-  p.text-sm.text-gray-600
+  p.text-sm.text-base-content/60
     = l(@media_plan.starts_at.in_time_zone(time_zone), format: :long)
     |  —
     = l(@media_plan.ends_at.in_time_zone(time_zone), format: :long)
-  .flex.gap-3
-    = link_to t('.edit'), edit_media_plan_path(@media_plan), class: 'text-blue-600 underline text-sm'
-    = link_to t('.back'), media_plans_path, class: 'text-blue-600 underline text-sm'
+  .flex.gap-3.flex-wrap
+    = link_to t('.edit'), edit_media_plan_path(@media_plan), class: 'btn btn-ghost btn-sm'
+    = link_to t('.reschedule'), reschedule_media_plan_path(@media_plan), class: 'btn btn-ghost btn-sm'
+    = button_to t('.cancel_plan'), cancel_media_plan_path(@media_plan), method: :delete, class: 'btn btn-ghost btn-sm text-error', form: { data: { turbo_confirm: t('media_plans.index.cancel_confirm') } }
+    = link_to t('.back'), media_plans_path, class: 'btn btn-ghost btn-sm'
