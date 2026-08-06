@@ -58,6 +58,18 @@ RSpec.describe Agent::PackageBuilder do
 
       expect(package[:items]).to be_empty
     end
+
+    it 'excludes soft-cancelled plans from the package' do
+      client = create(:organization, :client)
+      station = create(:station, offline_cache_hours: 24)
+      screen = create(:screen, station:)
+      plan = create_plan(client:, screen:, starts_at: 1.hour.ago, ends_at: 2.hours.from_now)
+      Airtime::Cancel.call(plan: plan)
+
+      package = described_class.call(station:, now: Time.current)
+
+      expect(package[:items]).to be_empty
+    end
   end
 
   private

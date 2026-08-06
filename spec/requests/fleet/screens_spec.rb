@@ -21,6 +21,16 @@ RSpec.describe 'Fleet::Screens', type: :request do
     expect(response.body).not_to include(plan_b.rotation.name)
   end
 
+  it 'excludes soft-cancelled plans from on-air' do
+    plan = create_plan(org: org_a, screen: screen, starts_at: 1.hour.ago, ends_at: 1.hour.from_now)
+    Airtime::Cancel.call(plan: plan)
+
+    sign_in_as(manager_a)
+    get fleet_screen_path(screen)
+
+    expect(response.body).not_to include(plan.rotation.name)
+  end
+
   it 'does not call the agent package builder from LK' do
     source = File.read(Rails.root.join('app/controllers/fleet/screens_controller.rb'))
     expect(source).not_to include('Agent::PackageBuilder')

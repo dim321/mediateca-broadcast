@@ -9,7 +9,6 @@ class OrganizationDashboard < Administrate::BaseDashboard
   # on pages throughout the dashboard.
   ATTRIBUTE_TYPES = {
     id: Field::Number,
-    airtime_bookings: Field::HasMany,
     broadcast_point_groups: Field::HasMany,
     kind: Field::Select.with_options(searchable: false, collection: ->(field) { field.resource.class.send(field.attribute.to_s.pluralize).keys }),
     media_assets: Field::HasMany,
@@ -20,7 +19,7 @@ class OrganizationDashboard < Administrate::BaseDashboard
     time_zone: Field::String,
     users: Field::HasMany,
     created_at: Field::DateTime,
-    updated_at: Field::DateTime,
+    updated_at: Field::DateTime
   }.freeze
 
   # COLLECTION_ATTRIBUTES
