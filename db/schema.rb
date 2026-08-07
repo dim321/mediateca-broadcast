@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_08_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_06_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -42,32 +42,52 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_08_120000) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
-  create_table "broadcast_point_tags", force: :cascade do |t|
-    t.bigint "broadcast_point_id", null: false
+  create_table "airtime_bookings", force: :cascade do |t|
+    t.bigint "broadcast_point_group_id", null: false
     t.datetime "created_at", null: false
-    t.bigint "tag_id", null: false
+    t.datetime "ends_at", null: false
+    t.bigint "organization_id", null: false
+    t.integer "seconds", null: false
+    t.datetime "starts_at", null: false
+    t.string "status", default: "confirmed", null: false
     t.datetime "updated_at", null: false
-    t.index ["broadcast_point_id", "tag_id"], name: "index_broadcast_point_tags_on_broadcast_point_id_and_tag_id", unique: true
-    t.index ["broadcast_point_id"], name: "index_broadcast_point_tags_on_broadcast_point_id"
-    t.index ["tag_id"], name: "index_broadcast_point_tags_on_tag_id"
+    t.index ["broadcast_point_group_id"], name: "index_airtime_bookings_on_broadcast_point_group_id"
+    t.index ["organization_id", "starts_at", "ends_at"], name: "idx_on_organization_id_starts_at_ends_at_f3b48d3772"
+    t.index ["organization_id"], name: "index_airtime_bookings_on_organization_id"
+    t.index ["status"], name: "index_airtime_bookings_on_status"
+    t.check_constraint "ends_at > starts_at", name: "airtime_bookings_ends_after_starts"
+    t.check_constraint "seconds > 0", name: "airtime_bookings_seconds_positive"
   end
 
-  create_table "broadcast_points", force: :cascade do |t|
-    t.string "city"
+  create_table "broadcast_point_group_memberships", force: :cascade do |t|
+    t.bigint "broadcast_point_group_id", null: false
     t.datetime "created_at", null: false
-    t.string "device_token_digest"
+    t.bigint "screen_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["broadcast_point_group_id", "screen_id"], name: "index_broadcast_point_group_memberships_unique", unique: true
+    t.index ["broadcast_point_group_id"], name: "idx_on_broadcast_point_group_id_7614dd11c4"
+    t.index ["screen_id"], name: "index_broadcast_point_group_memberships_on_screen_id"
+  end
+
+  create_table "broadcast_point_groups", force: :cascade do |t|
+    t.datetime "created_at", null: false
     t.string "name", null: false
     t.bigint "organization_id", null: false
-    t.string "status", default: "unknown", null: false
-    t.string "time_zone"
     t.datetime "updated_at", null: false
-    t.string "venue_label"
-    t.index ["organization_id", "status"], name: "index_broadcast_points_on_organization_id_and_status"
-    t.index ["organization_id"], name: "index_broadcast_points_on_organization_id"
+    t.index ["organization_id", "name"], name: "index_broadcast_point_groups_on_organization_id_and_name", unique: true
+    t.index ["organization_id"], name: "index_broadcast_point_groups_on_organization_id"
+  end
+
+  create_table "locations", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_locations_on_name", unique: true
   end
 
   create_table "media_assets", force: :cascade do |t|
     t.string "content_kind", null: false
+    t.string "content_type", null: false
     t.datetime "created_at", null: false
     t.integer "duration_seconds"
     t.jsonb "metadata", default: {}, null: false
@@ -75,90 +95,114 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_08_120000) do
     t.string "processing_status", default: "pending", null: false
     t.datetime "updated_at", null: false
     t.bigint "uploaded_by_id"
+    t.string "visibility", null: false
+    t.index ["content_type"], name: "index_media_assets_on_content_type"
     t.index ["organization_id", "created_at"], name: "index_media_assets_on_organization_id_and_created_at", order: { created_at: :desc }
     t.index ["organization_id", "processing_status"], name: "index_media_assets_on_organization_id_and_processing_status"
     t.index ["organization_id"], name: "index_media_assets_on_organization_id"
     t.index ["uploaded_by_id"], name: "index_media_assets_on_uploaded_by_id"
+    t.index ["visibility"], name: "index_media_assets_on_visibility"
+  end
+
+  create_table "media_plans", force: :cascade do |t|
+    t.bigint "airtime_booking_id", null: false
+    t.bigint "broadcast_point_group_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "ends_at", null: false
+    t.bigint "organization_id", null: false
+    t.bigint "rotation_id", null: false
+    t.datetime "starts_at", null: false
+    t.string "status", default: "active", null: false
+    t.datetime "updated_at", null: false
+    t.index ["airtime_booking_id"], name: "index_media_plans_on_airtime_booking_id"
+    t.index ["broadcast_point_group_id"], name: "index_media_plans_on_broadcast_point_group_id"
+    t.index ["organization_id", "starts_at", "ends_at"], name: "index_media_plans_on_organization_id_and_starts_at_and_ends_at"
+    t.index ["organization_id"], name: "index_media_plans_on_organization_id"
+    t.index ["rotation_id"], name: "index_media_plans_on_rotation_id"
+    t.index ["status"], name: "index_media_plans_on_status"
   end
 
   create_table "organizations", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.string "kind", default: "client", null: false
     t.string "name", null: false
     t.string "time_zone", default: "UTC", null: false
     t.datetime "updated_at", null: false
+    t.index ["kind"], name: "index_organizations_one_operator", unique: true, where: "((kind)::text = 'operator'::text)"
   end
 
-  create_table "playlist_items", force: :cascade do |t|
+  create_table "play_logs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "media_asset_id", null: false
+    t.bigint "organization_id", null: false
+    t.bigint "screen_id", null: false
+    t.string "source", default: "agent", null: false
+    t.datetime "started_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["media_asset_id"], name: "index_play_logs_on_media_asset_id"
+    t.index ["organization_id", "started_at"], name: "index_play_logs_on_organization_id_and_started_at"
+    t.index ["organization_id"], name: "index_play_logs_on_organization_id"
+    t.index ["screen_id", "started_at"], name: "index_play_logs_on_screen_id_and_started_at"
+    t.index ["screen_id"], name: "index_play_logs_on_screen_id"
+  end
+
+  create_table "rotation_items", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "display_duration_seconds"
     t.bigint "media_asset_id", null: false
-    t.bigint "playlist_id", null: false
     t.integer "position", null: false
+    t.bigint "rotation_id", null: false
     t.datetime "updated_at", null: false
-    t.index ["media_asset_id"], name: "index_playlist_items_on_media_asset_id"
-    t.index ["playlist_id", "position"], name: "index_playlist_items_on_playlist_id_and_position", unique: true
-    t.index ["playlist_id"], name: "index_playlist_items_on_playlist_id"
+    t.index ["media_asset_id"], name: "index_rotation_items_on_media_asset_id"
+    t.index ["rotation_id", "position"], name: "index_rotation_items_on_rotation_id_and_position", unique: true
+    t.index ["rotation_id"], name: "index_rotation_items_on_rotation_id"
   end
 
-  create_table "playlists", force: :cascade do |t|
+  create_table "rotations", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.bigint "organization_id", null: false
     t.datetime "updated_at", null: false
-    t.index ["organization_id", "name"], name: "index_playlists_on_organization_id_and_name", unique: true
-    t.index ["organization_id"], name: "index_playlists_on_organization_id"
+    t.index ["organization_id", "name"], name: "index_rotations_on_organization_id_and_name", unique: true
+    t.index ["organization_id"], name: "index_rotations_on_organization_id"
   end
 
-  create_table "point_group_memberships", force: :cascade do |t|
-    t.bigint "broadcast_point_id", null: false
+  create_table "screen_tags", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.bigint "point_group_id", null: false
+    t.bigint "screen_id", null: false
+    t.bigint "tag_id", null: false
     t.datetime "updated_at", null: false
-    t.index ["broadcast_point_id"], name: "index_point_group_memberships_on_broadcast_point_id"
-    t.index ["point_group_id", "broadcast_point_id"], name: "index_point_group_memberships_unique", unique: true
-    t.index ["point_group_id"], name: "index_point_group_memberships_on_point_group_id"
+    t.index ["screen_id", "tag_id"], name: "index_screen_tags_on_screen_id_and_tag_id", unique: true
+    t.index ["screen_id"], name: "index_screen_tags_on_screen_id"
+    t.index ["tag_id"], name: "index_screen_tags_on_tag_id"
   end
 
-  create_table "point_groups", force: :cascade do |t|
+  create_table "screens", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
-    t.bigint "organization_id", null: false
+    t.string "orientation", default: "landscape", null: false
+    t.bigint "station_id", null: false
     t.datetime "updated_at", null: false
-    t.index ["organization_id", "name"], name: "index_point_groups_on_organization_id_and_name", unique: true
-    t.index ["organization_id"], name: "index_point_groups_on_organization_id"
+    t.index ["station_id", "name"], name: "index_screens_on_station_id_and_name", unique: true
+    t.index ["station_id"], name: "index_screens_on_station_id"
   end
 
-  create_table "schedule_rules", force: :cascade do |t|
+  create_table "stations", force: :cascade do |t|
+    t.string "agent_token_digest"
     t.datetime "created_at", null: false
-    t.datetime "ends_at", null: false
-    t.bigint "organization_id", null: false
-    t.bigint "playlist_id", null: false
-    t.datetime "starts_at", null: false
-    t.string "timezone_context", default: "organization", null: false
+    t.bigint "location_id", null: false
+    t.string "name", null: false
+    t.integer "offline_cache_hours", default: 24, null: false
     t.datetime "updated_at", null: false
-    t.index ["organization_id", "playlist_id"], name: "index_schedule_rules_on_organization_id_and_playlist_id"
-    t.index ["organization_id", "starts_at", "ends_at"], name: "idx_on_organization_id_starts_at_ends_at_962bcc92ff"
-    t.index ["organization_id"], name: "index_schedule_rules_on_organization_id"
-    t.index ["playlist_id"], name: "index_schedule_rules_on_playlist_id"
-  end
-
-  create_table "schedule_targets", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.bigint "point_group_id", null: false
-    t.bigint "schedule_rule_id", null: false
-    t.datetime "updated_at", null: false
-    t.index ["point_group_id"], name: "index_schedule_targets_on_point_group_id"
-    t.index ["schedule_rule_id", "point_group_id"], name: "index_schedule_targets_unique", unique: true
-    t.index ["schedule_rule_id"], name: "index_schedule_targets_on_schedule_rule_id"
+    t.index ["location_id", "name"], name: "index_stations_on_location_id_and_name", unique: true
+    t.index ["location_id"], name: "index_stations_on_location_id"
   end
 
   create_table "tags", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
-    t.bigint "organization_id", null: false
     t.datetime "updated_at", null: false
-    t.index "organization_id, lower((name)::text)", name: "index_tags_on_organization_and_lower_name", unique: true
-    t.index ["organization_id"], name: "index_tags_on_organization_id"
+    t.index "lower((name)::text)", name: "index_tags_on_lower_name", unique: true
   end
 
   create_table "users", force: :cascade do |t|
@@ -166,28 +210,35 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_08_120000) do
     t.string "email", null: false
     t.bigint "organization_id", null: false
     t.string "password_digest", null: false
+    t.string "role", default: "manager", null: false
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["organization_id"], name: "index_users_on_organization_id"
+    t.index ["role"], name: "index_users_on_role"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "broadcast_point_tags", "broadcast_points"
-  add_foreign_key "broadcast_point_tags", "tags"
-  add_foreign_key "broadcast_points", "organizations"
+  add_foreign_key "airtime_bookings", "broadcast_point_groups"
+  add_foreign_key "airtime_bookings", "organizations"
+  add_foreign_key "broadcast_point_group_memberships", "broadcast_point_groups", on_delete: :cascade
+  add_foreign_key "broadcast_point_group_memberships", "screens"
+  add_foreign_key "broadcast_point_groups", "organizations"
   add_foreign_key "media_assets", "organizations"
   add_foreign_key "media_assets", "users", column: "uploaded_by_id", on_delete: :nullify
-  add_foreign_key "playlist_items", "media_assets", on_delete: :restrict
-  add_foreign_key "playlist_items", "playlists"
-  add_foreign_key "playlists", "organizations"
-  add_foreign_key "point_group_memberships", "broadcast_points"
-  add_foreign_key "point_group_memberships", "point_groups"
-  add_foreign_key "point_groups", "organizations"
-  add_foreign_key "schedule_rules", "organizations"
-  add_foreign_key "schedule_rules", "playlists", on_delete: :restrict
-  add_foreign_key "schedule_targets", "point_groups"
-  add_foreign_key "schedule_targets", "schedule_rules", on_delete: :cascade
-  add_foreign_key "tags", "organizations"
+  add_foreign_key "media_plans", "airtime_bookings", on_delete: :restrict
+  add_foreign_key "media_plans", "broadcast_point_groups", on_delete: :restrict
+  add_foreign_key "media_plans", "organizations"
+  add_foreign_key "media_plans", "rotations", on_delete: :restrict
+  add_foreign_key "play_logs", "media_assets"
+  add_foreign_key "play_logs", "organizations"
+  add_foreign_key "play_logs", "screens"
+  add_foreign_key "rotation_items", "media_assets", on_delete: :restrict
+  add_foreign_key "rotation_items", "rotations"
+  add_foreign_key "rotations", "organizations"
+  add_foreign_key "screen_tags", "screens"
+  add_foreign_key "screen_tags", "tags"
+  add_foreign_key "screens", "stations"
+  add_foreign_key "stations", "locations"
   add_foreign_key "users", "organizations"
 end

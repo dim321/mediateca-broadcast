@@ -5,6 +5,8 @@
 
 **Tests**: Тесты обязательны. Для каждой user story сначала пишутся тесты (Red), затем реализация (Green), затем рефакторинг.
 
+> **Примечание (2026-08-05):** gem **Avo** удалён из кодовой базы. Упоминания Avo / `app/avo` ниже — исторические; операторская админка будет заменена на **Administrate**.
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: можно выполнять параллельно (разные файлы, нет зависимости от незавершенных задач)
@@ -34,7 +36,7 @@
 - [X] T009 [P] Implement tenant scoping concern in `app/controllers/concerns/current_organization.rb`
 - [X] T010 [P] Add base models with associations in `app/models/organization.rb` and `app/models/user.rb`
 - [X] T011 Implement Pundit wiring in `app/controllers/application_controller.rb` and `app/policies/application_policy.rb`
-- [X] T012 [P] Create Avo base configuration in `config/initializers/avo.rb` and `app/avo/resources/application_resource.rb`
+- [X] T012 [P] Create Avo base configuration in `config/initializers/avo.rb` and `app/avo/resources/application_resource.rb` *(исторически; Avo удалён → **Administrate**)*
 - [X] T013 [P] Implement domain folder structure and base service objects in `app/domain/media/base_service.rb`, `app/domain/playlists/base_service.rb`, `app/domain/fleet/base_service.rb`, and `app/domain/scheduling/base_service.rb`
 - [X] T014 Configure job processing and retries in `config/queue.yml` and `app/jobs/application_job.rb`
 - [X] T015 [P] Add shared request auth helpers for device API in `spec/support/device_auth_helpers.rb`
@@ -177,7 +179,7 @@
 
 **Purpose**: сквозные улучшения и финальная валидация перед реализацией по фазам
 
-- [X] T066 [P] Add Avo resources for core entities in `app/avo/resources/media_asset.rb`, `app/avo/resources/playlist.rb`, `app/avo/resources/broadcast_point.rb`, and `app/avo/resources/schedule_rule.rb`
+- [X] T066 [P] Add Avo resources for core entities in `app/avo/resources/media_asset.rb`, `app/avo/resources/playlist.rb`, `app/avo/resources/broadcast_point.rb`, and `app/avo/resources/schedule_rule.rb` *(исторически; Avo удалён → **Administrate**)*
 - [X] T067 Add Pundit policy coverage for tenant boundaries in `spec/policies/*_policy_spec.rb`
 - [X] T068 [P] Add database indexes and constraints refinements in `db/migrate/*_add_indexes_and_constraints.rb`
 - [X] T069 [P] Add performance smoke specs for tag filtering and schedule queries in `spec/requests/performance/filtering_spec.rb`

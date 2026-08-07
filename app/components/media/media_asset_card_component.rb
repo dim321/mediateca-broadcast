@@ -8,12 +8,12 @@ module Media
 
     attr_reader :media_asset
 
-    def status_class
+    def status_badge_class
       case media_asset.processing_status
-      when "ready" then "text-green-700"
-      when "failed" then "text-red-700"
-      when "processing", "pending" then "text-amber-700"
-      else "text-gray-600"
+      when "ready" then "badge-success"
+      when "failed" then "badge-error"
+      when "processing", "pending" then "badge-warning"
+      else "badge-ghost"
       end
     end
   end

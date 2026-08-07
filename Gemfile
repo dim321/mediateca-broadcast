@@ -59,6 +59,7 @@ group :development, :test do
   gem "rspec-rails"
   gem "factory_bot_rails"
   gem "simplecov", require: false
+  gem "annotaterb", require: false
 end
 
 group :development do
@@ -67,7 +68,6 @@ group :development do
 end
 
 gem "pundit", "~> 2.5", groups: []
-gem "avo", "~> 4.0", groups: []
 gem "bcrypt", "~> 3.1", groups: []
 
 gem "lograge", "~> 0.15.0", group: :production
@@ -78,3 +78,5 @@ gem "view_component", "~> 4.6"
 gem "capybara", "~> 3.40", group: :test
 
 gem "cuprite", "~> 0.17", group: :test
+
+gem "administrate", "~> 1.0"

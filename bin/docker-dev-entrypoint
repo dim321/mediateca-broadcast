@@ -3,6 +3,11 @@
 # Keep gems in the named volume in sync with Gemfile.lock.
 bundle check || bundle install
 
+# daisyUI is resolved from node_modules for Tailwind CSS builds.
+if [ -f package.json ]; then
+  npm install --no-fund --no-audit
+fi
+
 # Stale PID after compose kill prevents Puma from binding.
 rm -f tmp/pids/server.pid
 

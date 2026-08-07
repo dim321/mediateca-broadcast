@@ -20,6 +20,8 @@ RSpec.describe "Media upload", type: :system do
 
     visit root_path
     attach_file(Rails.root.join("spec/fixtures/files/1x1.png"))
+    select I18n.t("media_assets.index.content_types.own"), from: "media_asset_content_type"
+    select I18n.t("media_assets.index.visibilities.organization"), from: "media_asset_visibility"
     click_button I18n.t("media_assets.index.upload_submit")
 
     expect(page).to have_content(I18n.t("media_assets.create.created"))

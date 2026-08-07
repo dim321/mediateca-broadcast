@@ -3,49 +3,102 @@
 en:
   layouts:
     application:
+      brand: Mediateca
       sign_in: Sign in
       sign_out: Sign out
-      playlists: Playlists
-      broadcast_points: Broadcast points
-      point_groups: Point groups
-      schedule_rules: Schedules
-  playlists:
+      media_library: Media library
+      rotations: Rotations
+      broadcast_point_groups: Screen groups
+      media_plans: Media plans
+      airtime_bookings: Airtime bookings
+      fleet_screens: On-air screens
+      finance: Finance
+  fleet:
+    screens:
+      index:
+        title: On-air screens
+        empty: No screens in the fleet yet.
+      show:
+        empty: No airtime from your organization on this screen.
+        back: Back to screens
+      open_menu: Open menu
+      close_menu: Close menu
+  finance:
+    show:
+      title: Finance
+      stub: Finance reports will be available in a later release.
+  airtime_bookings:
     index:
-      title: Playlists
-      new_playlist: New playlist
-      empty: No playlists yet.
+      title: Airtime bookings
+      new_booking: New booking
+      empty: No bookings yet.
+      seconds:
+        one: "%{count} second"
+        other: "%{count} seconds"
+      status:
+        confirmed: Confirmed
+        cancelled: Cancelled
+    show:
+      title: Booking
+      reschedule: Reschedule
+      cancel: Cancel booking
+      cancel_confirm: Cancel this booking and return seconds to the quota?
+      back: Back to bookings
+    new:
+      title: New booking
+      submit: Book
+    reschedule:
+      title: Reschedule booking
+      submit: Save new window
+      rescheduled: Booking rescheduled.
+    form:
+      quota: Quota
+      cancel: Cancel
+    occupied_slots:
+      heading: Occupied on these screens
+      occupied: Occupied
+    create:
+      created: Booking confirmed.
+      quota_not_found: Quota not found.
+    cancel:
+      cancelled: Booking cancelled.
+  rotations:
+    index:
+      title: Rotations
+      new_rotation: New rotation
+      empty: No rotations yet.
       media_library: Media library
     new:
-      title: New playlist
+      title: New rotation
     edit:
-      title: Edit playlist
+      title: Edit rotation
     form:
       name: Name
-      submit_create: Create playlist
+      submit_create: Create rotation
       submit_update: Save changes
     show:
       title: "%{name}"
-      items_heading: Playlist items
+      items_heading: Rotation items
       add_heading: Add media
       select_media: Select a file…
-      add_item: Add to playlist
+      add_item: Add to rotation
       remove_item: Remove
-      edit_playlist: Edit playlist
-      back: Back to playlists
+      edit_rotation: Edit rotation
+      back: Back to rotations
       media_library: Media library
       no_items: No items yet. Add ready media from the library.
       no_media_available: No ready media left to add. Upload files in the media library first.
     create:
-      created: Playlist created.
+      created: Rotation created.
     update:
-      updated: Playlist updated.
+      updated: Rotation updated.
     destroy:
-      destroyed: Playlist deleted.
-    playlist_items:
+      destroyed: Rotation deleted.
+    rotation_items:
       create:
-        created: Item added to playlist.
+        created: Item added to rotation.
       destroy:
-        destroyed: Item removed from playlist.
+        destroyed: Item removed from rotation.
   media_assets:
     authentication_required: Please sign in to continue.
     index:
@@ -54,6 +107,18 @@ en:
       choose_file_button: Choose file…
       no_file_selected: No file selected
       upload_submit: Upload
+      content_type_label: Content type
+      content_type_blank: Select content type…
+      visibility_label: Availability
+      visibility_blank: Select availability…
+      content_types:
+        own: Own
+        commercial: Commercial
+        neutral: Neutral
+        service: Service
+      visibilities:
+        organization: My organization only
+        network: Available to all organizations
     create:
       created: File uploaded. Processing started.
       create_failed: Could not upload file.
@@ -76,122 +141,107 @@ en:
             file:
               unsupported_type: is not a supported format
               blank: must be selected
-        playlist_item:
+              too_large: must be 1 GiB or smaller
+        rotation_item:
           attributes:
             media_asset:
-              wrong_organization: must belong to the same organization as the playlist
-              not_ready: must be ready before adding to a playlist
-        broadcast_point_tag:
+              wrong_organization: must belong to your organization or be network-shared
+              not_ready: must be ready before adding to a rotation
+        screen_tag:
           attributes:
             base:
-              organization_mismatch: tag and point must belong to the same organization
-        point_group_membership:
+              invalid: is invalid
+        broadcast_point_group_membership:
+          attributes:
+            screen:
+              overlaps_existing_media_plan: overlaps an existing media plan for this screen
+        media_plan:
           attributes:
             base:
-              organization_mismatch: point and group must belong to the same organization
-        schedule_rule:
-          attributes:
-            base:
-              must_have_targets: select at least one point group
-              overlaps_existing: this time window overlaps another schedule for one of the selected groups
+              overlaps_existing: overlaps an existing media plan
+              outside_booking_window: must fit inside the selected booking window
+              use_reschedule: use Reschedule to change the window or group
             ends_at:
               must_be_after_starts: must be after the start time
-            playlist:
-              blank: must be selected
+            airtime_booking:
+              must_be_confirmed: must be a confirmed booking
               wrong_organization: must belong to your organization
-        schedule_target:
-          attributes:
-            point_group:
-              wrong_organization: must belong to the same organization as the schedule
-  broadcast_points:
+              wrong_group: must match the booking screen group
+            rotation:
+              wrong_organization: must belong to your organization
+              not_broadcast_ready: must contain only broadcast-ready media
+            broadcast_point_group:
+              wrong_organization: must belong to your organization
+              must_have_screens: must contain at least one screen
+  broadcast_point_groups:
     index:
-      title: Broadcast points
-      new_point: New broadcast point
-      point_groups: Point groups
-      media_library: Media library
-      playlists: Playlists
-      filter_by_tags: Filter by tags (points must have all selected tags)
+      title: Screen groups
+      new_group: New screen group
+      empty: No screen groups yet.
+    new:
+      title: New screen group
+    edit:
+      title: Edit screen group
+    form:
+      cancel: Cancel
+    show:
+      edit_name: Edit name
+      back: Back to screen groups
+      members_heading: Screens in this group
+      no_members: No screens in this group yet.
+      add_heading: Add screens
+      filter_by_tags: Filter by tags (screens must have all selected tags)
       apply_filter: Apply filter
       clear_filter: Clear filter
-      empty: No broadcast points yet.
-      edit: Edit
-    new:
-      title: New broadcast point
-    edit:
-      title: Edit broadcast point
-    form:
-      existing_tags: Tags
-      no_tags_yet: No tags yet — add new tag names below.
-      new_tags_placeholder: e.g. retail, center-north
-      new_tags_hint: Comma-separated new tags to create and attach.
-      cancel: Cancel
-    create:
-      created: Broadcast point saved.
-    update:
-      updated: Broadcast point updated.
-  point_groups:
-    index:
-      title: Point groups
-      new_group: New group
-      broadcast_points: Broadcast points
-      empty: No groups yet.
-    new:
-      title: New point group
-      cancel: Cancel
-    edit:
-      title: Edit point group
-      cancel: Cancel
-    show:
-      title: "%{name}"
-      edit_name: Edit name
-      back: Back to groups
-      members_heading: Points in this group
-      no_members: No points in this group yet.
-      add_heading: Add points
-      add_selected: Add selected points
-      no_points_to_add: All broadcast points are already in this group.
+      add_selected: Add selected screens
+      no_screens_to_add: No screens match the current filter, or all screens are already in this group.
+      screen_station: "%{station}"
       remove: Remove
-      remove_confirm: Remove this point from the group?
+      remove_confirm: Remove this screen from the group?
     create:
-      created: Point group created.
+      created: Screen group created.
     update:
-      updated: Point group updated.
-    add_points:
-      points_added_count:
-        one: "1 point added to the group."
-        other: "%{count} points added to the group."
-      points_add_failed_count:
-        one: "1 point could not be added."
-        other: "%{count} points could not be added."
-      points_none_added: No new points were added. They may already be in this group, or nothing was selected.
+      updated: Screen group updated.
+    add_screens:
+      screens_added:
+        one: 1 screen added to the group.
+        other: "%{count} screens added to the group."
+      screens_not_added: Screens could not be added to the group.
+      screens_not_in_catalog: Only catalog screens can be added to the group.
     remove_member:
-      member_removed: Point removed from the group.
-  schedule_rules:
+      member_removed: Screen removed from the group.
+  media_plans:
     index:
-      title: Broadcast schedules
-      new_schedule: New schedule
-      playlists: Playlists
-      edit: Edit
-      delete: Delete
-      delete_confirm: Delete this schedule?
-      empty: No schedules yet.
-      groups: "Groups: %{names}"
+      title: Media plans
+      new_media_plan: New media plan
+      edit: Edit rotation
+      reschedule: Reschedule
+      cancel_plan: Cancel
+      cancel_confirm: Cancel this media plan and free the airtime slot?
+      empty: No media plans yet.
     new:
-      title: New schedule
-      back: Back to schedules
+      title: New media plan
     edit:
-      title: Edit schedule
-      back: Back to schedules
-    show:
-      title: "%{name}"
-      edit: Edit schedule
-      back: Back to schedules
+      title: Edit media plan
+      rotation_only_hint: To change the window or group, use Reschedule.
+    reschedule:
+      title: Reschedule media plan
+      submit: Save new window
+      rescheduled: Media plan rescheduled.
     form:
-      point_groups_heading: Point groups
+      group: Broadcast point group
       cancel: Cancel
+    occupied_slots:
+      heading: Occupied on these screens
+      occupied: Occupied
+    show:
+      edit: Edit rotation
+      reschedule: Reschedule
+      cancel_plan: Cancel
+      back: Back to media plans
     create:
-      created: Schedule created.
+      created: Media plan created.
     update:
-      updated: Schedule updated.
-    destroy:
-      destroyed: Schedule removed.
+      updated: Media plan updated.
+    cancel:
+      cancelled: Media plan cancelled.
