@@ -20,8 +20,14 @@ Binding of a rotation to a broadcast point group for a time window. In the slot 
 ### Soft-cancel
 Releasing an airtime slot by marking the media plan (and its internal booking) cancelled rather than hard-deleting. Cancelled occupancy must not block new placements or appear in on-air packages.
 
+### Invalidated plan
+A media plan taken off air by system/operator invalidation rather than an intentional soft-cancel. Like cancelled, it must not occupy calendar exclusivity or appear in on-air packages; it is not the primary client release path.
+
 ### First-write-wins (FWW)
 Conflict rule for overlapping placements on shared screens: the first successful occupy/reschedule commits; the loser is rejected without mutating the winner’s slot.
+
+### Screen lock
+Transaction-scoped serialization over the screens affected by an occupy or reschedule, so two writers cannot both pass the overlap check in the same window.
 
 ### Screen overlap guard
 The all-organization check that confirmed bookings must not overlap on shared screens. Distinct from same-organization media-plan conflict detection.
@@ -29,11 +35,15 @@ The all-organization check that confirmed bookings must not overlap on shared sc
 ### Media plan conflict (same-org)
 Rule that active media plans from the same organization must not overlap on shared screens. Does not by itself enforce exclusivity between different organizations.
 
+### Occupancy
+The calendar view of busy intervals on a group’s screens for placement UI. Shows only whether a window is occupied and its bounds — not foreign organization identity or booking identifiers.
+
 ## Relationships
 
 - A media plan occupies at most one internal airtime booking (1:1 in the slot model); the booking’s window matches the plan.
 - Cross-org exclusivity on shared screens is owned by the screen overlap guard on confirmed bookings; same-org plan overlap is owned by media plan conflict detection.
 - Soft-cancel of a media plan must free the corresponding booking so FWW can admit a later occupy.
+- Occupy and reschedule take a screen lock before the screen overlap guard; the guard, not same-org media plan conflict detection, is authoritative for FWW.
 
 ## Flagged ambiguities
 
