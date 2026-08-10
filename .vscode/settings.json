@@ -1,0 +1,6 @@
+{
+  "solargraph.diagnostics": true,
+  "solargraph.formatting": false,
+  "ruby.rubocop.onSave": true,
+  "ruby.rubocop.useBundler": true
+}

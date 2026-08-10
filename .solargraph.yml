@@ -1,0 +1,20 @@
+---
+include:
+  - "**/*.rb"
+exclude:
+  - spec/**/*
+  - test/**/*
+  - vendor/**/*
+  - .bundle/**/*
+  - node_modules/**/*
+  - tmp/**/*
+  - storage/**/*
+  - db/schema.rb
+require: []
+domains: []
+# RuboCop reporter is disabled: Solargraph JSON-parses RuboCop stdout and
+# crashes on non-JSON text (e.g. "Found …"), then turns off all diagnostics.
+# Use bin/rubocop / the dedicated RuboCop extension for linting instead.
+reporters: []
+require_paths: []
+max_files: 5000
