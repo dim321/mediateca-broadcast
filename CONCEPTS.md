@@ -8,7 +8,22 @@ Shared domain vocabulary for this project — entities, named processes, and sta
 A calendar window on the screens of a broadcast point group that one client organization may occupy for playback. In the MediaPlan-as-slot model the user-facing slot is created with a media plan; capacity budgets in seconds are not part of the product.
 
 ### Airtime quota
-An operator-defined seconds budget for a group and time window. Settled product direction when selling the whole free calendar: do not use quotas as a prerequisite for placement.
+*(Legacy / anti-pattern.)* An operator-defined seconds budget for a group and time window used as a prerequisite for booking. Do not reintroduce as capacity for calendar placement; free time remains unused calendar intervals (MediaPlan-as-slot).
+
+### Commercial quota
+A lasting percent cap on commercial placement airtime for an owner-homogeneous broadcast point group. Set as percent plus period unit (hour or day); applies indefinitely until changed. Soft-checked after successful media-plan create/reschedule — flash warning, do not block or roll back. Distinct from legacy airtime quota seconds budgets.
+
+### Screen owner
+Optional client organization that owns a Screen. Ownership is per screen. Quotas attach only to broadcast point groups whose screens all share one owner.
+
+### Location operating hours
+Required schedule on a Location used as the denominator for commercial-quota percent. Without operating hours, a commercial quota cannot be set.
+
+### Commercial placement
+A media-plan placement kind counted toward commercial quota. Own/atmosphere placements do not increase the commercial numerator. Foreign commercial on owned screens is allowed only via the owner’s broadcast point group.
+
+### Shows per hour
+Integer N on a media plan. Planned play time for a clock hour is `N × rotation cycle duration`. Multiple commercial plans in the same hour sum without subtracting real on-screen overlap (soft MVP). When the quota period unit is day, checks still slice by hour within the day.
 
 ### Airtime booking
 An internal reservation record for a calendar window on a group. Kept as a non-UX companion under a media plan so shared-screen exclusivity across organizations can be enforced independently of same-org media-plan conflict checks.
@@ -47,4 +62,4 @@ The calendar view of busy intervals on a group’s screens for placement UI. Sho
 
 ## Flagged ambiguities
 
-- “‘Квота’ / ‘бронь’ in older TZ language meant both capacity budget and calendar hold — product now: no capacity quota; booking is internal; user-facing unit is the media plan.”
+- “‘Квота’ / ‘бронь’ in older TZ language meant both capacity budget and calendar hold — product now: no capacity seconds quota for placement; booking is internal; user-facing calendar unit is the media plan. Separately, **commercial quota** is a soft percent cap on commercial placements for owner-homogeneous groups — not a return of AirtimeQuota seconds budgets.”

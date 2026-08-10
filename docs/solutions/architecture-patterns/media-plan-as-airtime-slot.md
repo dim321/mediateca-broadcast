@@ -8,10 +8,11 @@ component: service_object
 severity: medium
 applies_when:
   - Designing or changing airtime slot occupancy on shared screens
-  - Tempted to delete AirtimeBooking or reintroduce AirtimeQuota
+  - Tempted to delete AirtimeBooking or reintroduce seconds AirtimeQuota capacity
   - Changing MediaPlanConflictDetector or ScreenOverlapGuard scope
   - Soft-cancelling or rescheduling media plans on shared screens
   - Adding or auditing occupancy UI for calendar exclusivity
+  - Designing commercial share caps — do not fold soft % math into Guard or revive AirtimeQuota
 tags:
   - airtime
   - media-plan
@@ -21,6 +22,7 @@ tags:
   - screen-overlap-guard
   - soft-cancel
   - architecture
+  - commercial-quota
 related_components:
   - MediaPlan
   - AirtimeBooking
@@ -51,7 +53,7 @@ Cross-org exclusivity lives on confirmed bookings via `Airtime::ScreenOverlapGua
 
 Keep these decisions when touching airtime occupancy:
 
-1. **Drop capacity quotas, keep calendar exclusivity.** Free time is unused calendar intervals on shared screens, not a residual seconds budget. Reintroducing `AirtimeQuota` (model, admin, FK, remaining-seconds races) is an anti-pattern.
+1. **Drop capacity quotas, keep calendar exclusivity.** Free time is unused calendar intervals on shared screens, not a residual seconds budget. Reintroducing `AirtimeQuota` (model, admin, FK, remaining-seconds races) as a **placement prerequisite** is an anti-pattern. A separate product axis — soft **commercial quota** (% share on owner-homogeneous groups, flash after occupy, outside Guard) — is not a return of that capacity model; see `CONCEPTS.md` and `docs/plans/2026-08-10-001-feat-commercial-quota-owner-groups-plan.md`. Do not put commercial-% math inside `ScreenOverlapGuard`.
 
 2. **Keep internal `AirtimeBooking` for cross-org FWW.** Do not delete booking as the occupancy authority. Confirmed bookings are created/updated only inside occupy/reschedule domain services — no LK booking create/index/nav. Booking window must match plan window (same org/group).
 
@@ -70,12 +72,13 @@ Quota capacity added an operator step and overflow races with no commercial valu
 Apply this guidance when:
 
 - Changing create/reschedule/cancel of airtime or media plans on shared multi-org screens.
-- Tempted to delete `AirtimeBooking` or reintroduce `AirtimeQuota`.
+- Tempted to delete `AirtimeBooking` or reintroduce seconds `AirtimeQuota` capacity.
+- Designing commercial share warnings — keep them outside Guard/FWW (CommercialQuota domain when shipped).
 - Touching package/fleet gates that assume confirmed covering booking + active plan.
 - Auditing concurrency: occupy/reschedule must take `ScreenLock` before Guard, not the detector alone.
 - Reviewing admin/LK media-plan release paths — they must call `Airtime::Cancel` / `Airtime::Reschedule`.
 
-This is the **current shipped architecture**, not a pending plan.
+This is the **current shipped architecture** for calendar slots. Commercial quota is planned separately and must not reopen capacity `AirtimeQuota`.
 
 ## Examples
 
@@ -94,6 +97,8 @@ This is the **current shipped architecture**, not a pending plan.
 ## Related
 
 - Plan authority (historical): `docs/plans/2026-08-06-001-feat-media-plan-as-airtime-slot-plan.md`
+- Commercial quota (planned, distinct from capacity): `docs/plans/2026-08-10-001-feat-commercial-quota-owner-groups-plan.md`
+- Vocabulary: `CONCEPTS.md` (Airtime quota vs Commercial quota)
 - Occupy / reschedule / cancel: `app/domain/airtime/occupy_with_plan.rb`, `app/domain/airtime/reschedule.rb`, `app/domain/airtime/cancel.rb`
 - Lock / Guard: `app/domain/airtime/screen_lock.rb`, `app/domain/airtime/screen_overlap_guard.rb`
 - Same-org overlap helper: `app/domain/scheduling/media_plan_conflict_detector.rb`
