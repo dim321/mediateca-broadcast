@@ -32,6 +32,24 @@ RSpec.describe "MediaAssets", type: :request do
       expect(response.body).to include(ActionView::RecordIdentifier.dom_id(shared, :card))
       expect(response.body).not_to include(ActionView::RecordIdentifier.dom_id(private_foreign, :card))
     end
+
+    it "renders a media table with source and broadcast columns" do
+      sign_in_as(user)
+      create(:media_asset, :with_mp4_file, :with_broadcast_ts, :ready,
+             organization: user.organization, uploaded_by: user)
+      create(:media_asset, :with_png_file, :ready,
+             organization: user.organization, uploaded_by: user)
+
+      get media_assets_path
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include(I18n.t("media_assets.index.columns.source"))
+      expect(response.body).to include(I18n.t("media_assets.index.columns.broadcast"))
+      expect(response.body).to include("source.mp4")
+      expect(response.body).to include("source.ts")
+      expect(response.body).to include(I18n.t("media_assets.index.broadcast_na"))
+      expect(response.body).to include('id="media_assets_table"')
+    end
   end
 
   describe "POST /media_assets" do

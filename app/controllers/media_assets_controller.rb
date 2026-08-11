@@ -6,7 +6,11 @@ class MediaAssetsController < ApplicationController
 
   def index
     authorize MediaAsset
-    @media_assets = policy_scope(MediaAsset).with_attached_file.with_attached_preview.order(created_at: :desc)
+    @media_assets = policy_scope(MediaAsset)
+      .with_attached_file
+      .with_attached_preview
+      .with_attached_broadcast_file
+      .order(created_at: :desc)
     @media_asset = MediaAsset.new
   end
 
@@ -21,7 +25,11 @@ class MediaAssetsController < ApplicationController
     if @media_asset.save
       redirect_to media_assets_path, notice: t(".created")
     else
-      @media_assets = policy_scope(MediaAsset).with_attached_file.with_attached_preview.order(created_at: :desc)
+      @media_assets = policy_scope(MediaAsset)
+      .with_attached_file
+      .with_attached_preview
+      .with_attached_broadcast_file
+      .order(created_at: :desc)
       flash.now[:alert] = t(".create_failed")
       render :index, status: :unprocessable_entity
     end

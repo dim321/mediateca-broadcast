@@ -24,6 +24,17 @@
             span = t(".visibility_label")
         = f.submit t(".upload_submit"), class: "btn btn-primary w-fit"
 
-  #media_assets_grid.grid.grid-cols-1.md:grid-cols-2.lg:grid-cols-3.gap-4
-    - @media_assets.each do |asset|
-      = render "media_assets/media_asset", media_asset: asset
+  .overflow-x-auto
+    table.table#media_assets_table
+      thead
+        tr
+          th = t(".columns.preview")
+          th = t(".columns.source")
+          th = t(".columns.broadcast")
+          th = t(".columns.status")
+          th = t(".columns.duration")
+          th = t(".columns.content_type")
+          th = t(".columns.visibility")
+      tbody#media_assets_tbody
+        - @media_assets.each do |asset|
+          = render "media_assets/media_asset", media_asset: asset
