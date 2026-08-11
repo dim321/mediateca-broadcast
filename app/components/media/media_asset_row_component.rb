@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Media
-  class MediaAssetCardComponent < ViewComponent::Base
+  class MediaAssetRowComponent < ViewComponent::Base
     def initialize(media_asset:)
       @media_asset = media_asset
     end
