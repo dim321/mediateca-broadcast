@@ -135,6 +135,8 @@ en:
     create:
       created: File uploaded. Processing started.
       create_failed: Could not upload file.
+      ready: Processing complete. File is ready.
+      failed: Processing failed.
   sessions:
     new:
       title: Sign in

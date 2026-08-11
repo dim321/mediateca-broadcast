@@ -102,4 +102,40 @@ RSpec.describe MediaAsset, type: :model do
       expect { asset.save! }.to have_enqueued_job(ProcessMediaMetadataJob).with { |id| id.present? }
     end
   end
+
+  describe "processing flash broadcast" do
+    let(:organization) { create(:organization) }
+
+    before { allow(ProcessMediaMetadataJob).to receive(:perform_later) }
+
+    it "updates flash when status becomes ready" do
+      asset = create(:media_asset, :with_png_file, organization: organization, processing_status: :processing)
+      allow(asset).to receive(:broadcast_replace_to)
+      allow(asset).to receive(:broadcast_update_to)
+
+      asset.update!(processing_status: :ready, duration_seconds: 12)
+
+      expect(asset).to have_received(:broadcast_update_to).with(
+        [ organization, :media_library ],
+        hash_including(
+          target: "flash",
+          partial: "shared/flash_alert",
+          locals: hash_including(
+            type: :notice,
+            message: I18n.t("media_assets.create.ready")
+          )
+        )
+      )
+    end
+
+    it "does not update flash when status becomes processing" do
+      asset = create(:media_asset, :with_png_file, organization: organization, processing_status: :pending)
+      allow(asset).to receive(:broadcast_replace_to)
+      allow(asset).to receive(:broadcast_update_to)
+
+      asset.update!(processing_status: :processing)
+
+      expect(asset).not_to have_received(:broadcast_update_to)
+    end
+  end
 end

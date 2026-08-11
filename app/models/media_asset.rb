@@ -169,6 +169,23 @@ class MediaAsset < ApplicationRecord
       target: ActionView::RecordIdentifier.dom_id(self, :card),
       partial: "media_assets/media_asset",
       locals: { media_asset: self }
+
+    broadcast_processing_flash if should_broadcast_processing_flash?
   end
 
+  def should_broadcast_processing_flash?
+    return false unless saved_change_to_processing_status?
+
+    ready? || failed?
+  end
+
+  def broadcast_processing_flash
+    type = failed? ? :alert : :notice
+    key = failed? ? "media_assets.create.failed" : "media_assets.create.ready"
+
+    broadcast_update_to [ organization, :media_library ],
+      target: "flash",
+      partial: "shared/flash_alert",
+      locals: { type: type, message: I18n.t(key) }
+  end
 end
