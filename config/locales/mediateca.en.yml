@@ -14,6 +14,8 @@ en:
       airtime_bookings: Airtime bookings
       fleet_screens: On-air screens
       finance: Finance
+      open_menu: Open menu
+      close_menu: Close menu
   fleet:
     screens:
       index:
@@ -22,8 +24,6 @@ en:
       show:
         empty: No airtime from your organization on this screen.
         back: Back to screens
-      open_menu: Open menu
-      close_menu: Close menu
   finance:
     show:
       title: Finance
