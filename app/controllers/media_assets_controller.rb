@@ -26,10 +26,10 @@ class MediaAssetsController < ApplicationController
       redirect_to media_assets_path, notice: t(".created")
     else
       @media_assets = policy_scope(MediaAsset)
-      .with_attached_file
-      .with_attached_preview
-      .with_attached_broadcast_file
-      .order(created_at: :desc)
+        .with_attached_file
+        .with_attached_preview
+        .with_attached_broadcast_file
+        .order(created_at: :desc)
       flash.now[:alert] = t(".create_failed")
       render :index, status: :unprocessable_entity
     end

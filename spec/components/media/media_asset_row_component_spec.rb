@@ -13,6 +13,7 @@ RSpec.describe Media::MediaAssetRowComponent, type: :component do
 
     render_inline(described_class.new(media_asset: asset))
 
+    expect(page).to have_css("tr##{ActionView::RecordIdentifier.dom_id(asset, :card)}")
     expect(page).to have_link("source.mp4")
     expect(page).to have_link("source.ts")
     expect(page).to have_content("Ready")

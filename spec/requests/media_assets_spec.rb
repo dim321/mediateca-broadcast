@@ -100,13 +100,28 @@ RSpec.describe "MediaAssets", type: :request do
   describe "PATCH /media_assets/:id (turbo_stream)" do
     before { sign_in_as(user) }
 
-    it "returns turbo-stream replace" do
-      asset = create(:media_asset, :with_png_file, organization: user.organization, uploaded_by: user)
+    it "returns turbo-stream replace targeting the card tr with source and broadcast cells" do
+      asset = create(:media_asset, :with_mp4_file, :with_broadcast_ts, :ready,
+                     organization: user.organization, uploaded_by: user)
+      card_id = ActionView::RecordIdentifier.dom_id(asset, :card)
       allow(ProcessMediaMetadataJob).to receive(:perform_later)
 
       patch media_asset_path(asset, format: :turbo_stream)
+
       expect(response).to have_http_status(:success)
       expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+
+      doc = Nokogiri::HTML.fragment(response.body)
+      stream = doc.at_css("turbo-stream[action='replace']")
+      expect(stream).to be_present
+      expect(stream["target"]).to eq(card_id)
+
+      row = stream.at_css("template tr##{card_id}")
+      expect(row).to be_present
+      expect(row.name).to eq("tr")
+      expect(row["id"]).to eq(card_id)
+      expect(row.text).to include("source.mp4")
+      expect(row.text).to include("source.ts")
     end
   end
 end
