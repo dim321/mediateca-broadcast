@@ -6,6 +6,8 @@
 #
 #  id                       :bigint           not null, primary key
 #  ends_at                  :datetime         not null
+#  placement_kind           :string           default("own_atmosphere"), not null
+#  shows_per_hour           :integer
 #  starts_at                :datetime         not null
 #  status                   :string           default("active"), not null
 #  created_at               :datetime         not null
@@ -21,6 +23,7 @@
 #  index_media_plans_on_broadcast_point_group_id                   (broadcast_point_group_id)
 #  index_media_plans_on_organization_id                            (organization_id)
 #  index_media_plans_on_organization_id_and_starts_at_and_ends_at  (organization_id,starts_at,ends_at)
+#  index_media_plans_on_placement_kind                             (placement_kind)
 #  index_media_plans_on_rotation_id                                (rotation_id)
 #  index_media_plans_on_status                                     (status)
 #

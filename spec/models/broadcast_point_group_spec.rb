@@ -6,11 +6,13 @@ require 'rails_helper'
 #
 # Table name: broadcast_point_groups
 #
-#  id              :bigint           not null, primary key
-#  name            :string           not null
-#  created_at      :datetime         not null
-#  updated_at      :datetime         not null
-#  organization_id :bigint           not null
+#  id                       :bigint           not null, primary key
+#  commercial_quota_percent :integer
+#  commercial_quota_period  :string
+#  name                     :string           not null
+#  created_at               :datetime         not null
+#  updated_at               :datetime         not null
+#  organization_id          :bigint           not null
 #
 # Indexes
 #
@@ -68,6 +70,66 @@ RSpec.describe BroadcastPointGroup, type: :model do
 
       expect(membership).not_to be_valid
       expect(membership.errors[:screen]).to include('overlaps an existing media plan for this screen')
+    end
+  end
+
+  describe 'commercial quota' do
+    let(:owner) { create(:organization, :client) }
+    let(:location) do
+      create(
+        :location,
+        operating_hours: {
+          "mon" => [ { "start" => "00:00", "end" => "23:59" } ],
+          "tue" => [ { "start" => "00:00", "end" => "23:59" } ],
+          "wed" => [ { "start" => "00:00", "end" => "23:59" } ],
+          "thu" => [ { "start" => "00:00", "end" => "23:59" } ],
+          "fri" => [ { "start" => "00:00", "end" => "23:59" } ],
+          "sat" => [ { "start" => "00:00", "end" => "23:59" } ],
+          "sun" => [ { "start" => "00:00", "end" => "23:59" } ]
+        }
+      )
+    end
+    let(:screen) { create(:screen, station: create(:station, location: location), owner_organization: owner) }
+    let(:group) do
+      create(:broadcast_point_group, organization: owner).tap do |g|
+        create(:broadcast_point_group_membership, broadcast_point_group: g, screen: screen)
+      end
+    end
+
+    it 'rejects quota on a heterogeneous owner group (AE3)' do
+      other = create(:organization, :client)
+      other_screen = create(:screen, owner_organization: other)
+      create(:broadcast_point_group_membership, broadcast_point_group: group, screen: other_screen)
+
+      group.commercial_quota_percent = 60
+      group.commercial_quota_period = :hour
+
+      expect(group).not_to be_valid
+      expect(group.errors[:base]).to be_present
+    end
+
+    it 'rejects quota when location hours are missing (AE6)' do
+      bare = create(:location, operating_hours: {})
+      owned = create(:screen, station: create(:station, location: bare), owner_organization: owner)
+      bare_group = create(:broadcast_point_group, organization: owner)
+      create(:broadcast_point_group_membership, broadcast_point_group: bare_group, screen: owned)
+
+      bare_group.commercial_quota_percent = 60
+      bare_group.commercial_quota_period = :hour
+
+      expect(bare_group).not_to be_valid
+    end
+
+    it 'allows set, update, and clear when homogeneous with hours' do
+      group.commercial_quota_percent = 60
+      group.commercial_quota_period = :hour
+      expect(group.save).to be(true)
+
+      group.update!(commercial_quota_percent: 40)
+      expect(group.reload.commercial_quota_percent).to eq(40)
+
+      group.update!(commercial_quota_percent: nil, commercial_quota_period: nil)
+      expect(group.reload.commercial_quota_configured?).to be(false)
     end
   end
 

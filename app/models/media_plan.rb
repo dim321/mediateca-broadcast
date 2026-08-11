@@ -6,6 +6,8 @@
 #
 #  id                       :bigint           not null, primary key
 #  ends_at                  :datetime         not null
+#  placement_kind           :string           default("own_atmosphere"), not null
+#  shows_per_hour           :integer
 #  starts_at                :datetime         not null
 #  status                   :string           default("active"), not null
 #  created_at               :datetime         not null
@@ -21,6 +23,7 @@
 #  index_media_plans_on_broadcast_point_group_id                   (broadcast_point_group_id)
 #  index_media_plans_on_organization_id                            (organization_id)
 #  index_media_plans_on_organization_id_and_starts_at_and_ends_at  (organization_id,starts_at,ends_at)
+#  index_media_plans_on_placement_kind                             (placement_kind)
 #  index_media_plans_on_rotation_id                                (rotation_id)
 #  index_media_plans_on_status                                     (status)
 #
@@ -43,7 +46,16 @@ class MediaPlan < ApplicationRecord
     cancelled: "cancelled"
   }, default: :active
 
+  enum :placement_kind, {
+    own_atmosphere: "own_atmosphere",
+    commercial: "commercial"
+  }, default: :own_atmosphere
+
   validates :starts_at, :ends_at, presence: true
+  validates :shows_per_hour,
+    presence: true,
+    numericality: { only_integer: true, greater_than_or_equal_to: 1 },
+    if: :commercial?
   validate :ends_after_starts
   validate :rotation_matches_organization
   validate :broadcast_point_group_matches_organization
@@ -53,6 +65,7 @@ class MediaPlan < ApplicationRecord
   validate :booking_matches_organization_and_group
   validate :plan_within_booking_window
   validate :no_overlapping_media_plans, if: :active?
+  validate :placement_channel_allowed
 
   private
 
@@ -73,8 +86,21 @@ class MediaPlan < ApplicationRecord
   def broadcast_point_group_matches_organization
     return if broadcast_point_group.blank? || organization.blank?
     return if broadcast_point_group.organization_id == organization_id
+    return if commercial? && broadcast_point_group.owner_homogeneous?
 
     errors.add(:broadcast_point_group, :wrong_organization)
+  end
+
+  def placement_channel_allowed
+    return if organization.blank? || broadcast_point_group.blank? || placement_kind.blank?
+
+    Airtime::PlacementChannel.assert!(
+      organization: organization,
+      broadcast_point_group: broadcast_point_group,
+      placement_kind: placement_kind
+    )
+  rescue ArgumentError => e
+    errors.add(:base, e.message)
   end
 
   def broadcast_point_group_has_screens

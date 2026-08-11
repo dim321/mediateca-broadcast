@@ -11,6 +11,13 @@
     = f.label :broadcast_point_group_id, t('.group'), class: 'block text-sm font-medium'
     = f.collection_select :broadcast_point_group_id, @broadcast_point_groups, :id, :name, { include_blank: true }, class: 'select select-bordered w-full mt-1'
   div
+    = f.label :placement_kind, t('.placement_kind'), class: 'block text-sm font-medium'
+    = f.select :placement_kind, MediaPlan.placement_kinds.keys.map { |k| [t(".placement_kinds.#{k}"), k] }, {}, class: 'select select-bordered w-full mt-1'
+  div
+    = f.label :shows_per_hour, t('.shows_per_hour'), class: 'block text-sm font-medium'
+    = f.number_field :shows_per_hour, min: 1, class: 'input input-bordered w-full mt-1'
+    p.text-sm.text-base-content/60.mt-1 = t('.shows_per_hour_hint')
+  div
     = f.label :rotation_id, class: 'block text-sm font-medium'
     = f.collection_select :rotation_id, @rotations, :id, :name, { include_blank: true }, class: 'select select-bordered w-full mt-1'
   div

@@ -13,7 +13,9 @@ class MediaPlanDashboard < Administrate::BaseDashboard
     broadcast_point_group: Field::BelongsTo,
     ends_at: Field::DateTime,
     organization: Field::BelongsTo,
+    placement_kind: Field::Select.with_options(searchable: false, collection: ->(field) { field.resource.class.send(field.attribute.to_s.pluralize).keys }),
     rotation: Field::BelongsTo,
+    shows_per_hour: Field::Number,
     starts_at: Field::DateTime,
     status: Field::Select.with_options(searchable: false, collection: ->(field) { field.resource.class.send(field.attribute.to_s.pluralize).keys }),
     created_at: Field::DateTime,
@@ -29,6 +31,7 @@ class MediaPlanDashboard < Administrate::BaseDashboard
     id
     organization
     broadcast_point_group
+    placement_kind
     status
     starts_at
   ].freeze
@@ -40,6 +43,8 @@ class MediaPlanDashboard < Administrate::BaseDashboard
     organization
     broadcast_point_group
     rotation
+    placement_kind
+    shows_per_hour
     starts_at
     ends_at
     status

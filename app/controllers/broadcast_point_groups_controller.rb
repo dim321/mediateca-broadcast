@@ -86,7 +86,14 @@ class BroadcastPointGroupsController < ApplicationController
   end
 
   def broadcast_point_group_params
-    params.require(:broadcast_point_group).permit(:name)
+    params.require(:broadcast_point_group).permit(
+      :name,
+      :commercial_quota_percent,
+      :commercial_quota_period
+    ).tap do |permitted|
+      permitted[:commercial_quota_percent] = nil if permitted[:commercial_quota_percent].blank?
+      permitted[:commercial_quota_period] = nil if permitted[:commercial_quota_period].blank?
+    end
   end
 
   def catalog_screens

@@ -47,7 +47,7 @@
 
           <div id="flash" class="space-y-2 px-4 pt-4 sm:px-6">
             <% flash.each do |type, message| %>
-              <div role="alert" class="alert <%= type.to_s == "notice" ? "alert-success" : "alert-error" %>">
+              <div role="alert" class="alert <%= flash_alert_class(type) %>">
                 <span><%= message %></span>
               </div>
             <% end %>
@@ -66,7 +66,7 @@
     <% else %>
       <div id="flash" class="space-y-2 px-4 pt-4">
         <% flash.each do |type, message| %>
-          <div role="alert" class="alert <%= type.to_s == "notice" ? "alert-success" : "alert-error" %>">
+          <div role="alert" class="alert <%= flash_alert_class(type) %>">
             <span><%= message %></span>
           </div>
         <% end %>

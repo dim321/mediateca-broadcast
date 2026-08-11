@@ -28,6 +28,8 @@ class Organization < ApplicationRecord
   has_many :media_plans, dependent: :restrict_with_exception
   has_many :airtime_bookings, dependent: :restrict_with_exception
   has_many :play_logs, dependent: :restrict_with_exception
+  has_many :owned_screens, class_name: "Screen", foreign_key: :owner_organization_id,
+    inverse_of: :owner_organization, dependent: :nullify
 
   validates :name, presence: true
   validates :time_zone, presence: true

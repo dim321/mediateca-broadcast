@@ -4,11 +4,13 @@
 #
 # Table name: broadcast_point_groups
 #
-#  id              :bigint           not null, primary key
-#  name            :string           not null
-#  created_at      :datetime         not null
-#  updated_at      :datetime         not null
-#  organization_id :bigint           not null
+#  id                       :bigint           not null, primary key
+#  commercial_quota_percent :integer
+#  commercial_quota_period  :string
+#  name                     :string           not null
+#  created_at               :datetime         not null
+#  updated_at               :datetime         not null
+#  organization_id          :bigint           not null
 #
 # Indexes
 #

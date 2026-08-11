@@ -3,12 +3,22 @@
 module Airtime
   # Atomically occupy a calendar slot and attach an active MediaPlan (KTD3).
   class OccupyWithPlan < BaseService
-    def initialize(organization:, broadcast_point_group:, rotation:, starts_at:, ends_at:)
+    def initialize(
+      organization:,
+      broadcast_point_group:,
+      rotation:,
+      starts_at:,
+      ends_at:,
+      placement_kind: :own_atmosphere,
+      shows_per_hour: nil
+    )
       @organization = organization
       @broadcast_point_group = broadcast_point_group
       @rotation = rotation
       @starts_at = starts_at
       @ends_at = ends_at
+      @placement_kind = placement_kind
+      @shows_per_hour = shows_per_hour
     end
 
     def call
@@ -38,18 +48,25 @@ module Airtime
           airtime_booking: booking,
           starts_at: starts_at,
           ends_at: ends_at,
-          status: :active
+          status: :active,
+          placement_kind: placement_kind,
+          shows_per_hour: shows_per_hour
         )
       end
     end
 
     private
 
-    attr_reader :organization, :broadcast_point_group, :rotation, :starts_at, :ends_at
+    attr_reader :organization, :broadcast_point_group, :rotation, :starts_at, :ends_at,
+      :placement_kind, :shows_per_hour
 
     def validate_inputs!
       validate_time_window!
-      raise ArgumentError, "organization must own the broadcast point group" unless broadcast_point_group.organization_id == organization.id
+      PlacementChannel.assert!(
+        organization: organization,
+        broadcast_point_group: broadcast_point_group,
+        placement_kind: placement_kind
+      )
       raise ArgumentError, "organization must own the rotation" unless rotation.organization_id == organization.id
       raise ArgumentError, "group must include at least one screen" if screen_ids.empty?
     end

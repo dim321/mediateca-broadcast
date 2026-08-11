@@ -49,6 +49,8 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :locations, only: %i[index edit update]
+
   resources :media_plans, except: %i[destroy] do
     member do
       delete :cancel

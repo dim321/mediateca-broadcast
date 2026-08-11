@@ -1,0 +1,45 @@
+<%#
+# OperatingHours Form Partial
+%>
+
+<div class="field-unit__label">
+  <%= f.label field.attribute %>
+</div>
+<div class="field-unit__field">
+  <p class="field-unit__hint">
+    Weekly schedule used as the commercial quota denominator. Leave a day blank when closed.
+  </p>
+  <table class="collection-data">
+    <thead>
+      <tr>
+        <th>Day</th>
+        <th>Start</th>
+        <th>End</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% Location::OperatingHours::DAY_KEYS.each do |day| %>
+        <% window = field.window_for(day) %>
+        <tr>
+          <td><%= t("locations.edit.days.#{day}") %></td>
+          <td>
+            <input
+              type="time"
+              name="<%= f.object_name %>[operating_hours][<%= day %>][][start]"
+              value="<%= window['start'] || window[:start] %>"
+              class="field-unit__field"
+            >
+          </td>
+          <td>
+            <input
+              type="time"
+              name="<%= f.object_name %>[operating_hours][<%= day %>][][end]"
+              value="<%= window['end'] || window[:end] %>"
+              class="field-unit__field"
+            >
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

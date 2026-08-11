@@ -13,6 +13,7 @@ class ScreenDashboard < Administrate::BaseDashboard
     broadcast_point_groups: Field::HasMany,
     name: Field::String,
     orientation: Field::Select.with_options(searchable: false, collection: ->(field) { field.resource.class.send(field.attribute.to_s.pluralize).keys }),
+    owner_organization: Field::BelongsTo.with_options(class_name: "Organization"),
     play_logs: Field::HasMany,
     screen_tags: Field::HasMany,
     station: Field::BelongsTo,
@@ -28,9 +29,9 @@ class ScreenDashboard < Administrate::BaseDashboard
   # Feel free to add, remove, or rearrange items.
   COLLECTION_ATTRIBUTES = %i[
     id
-    broadcast_point_group_memberships
-    broadcast_point_groups
     name
+    station
+    owner_organization
   ].freeze
 
   # SHOW_PAGE_ATTRIBUTES
@@ -41,6 +42,7 @@ class ScreenDashboard < Administrate::BaseDashboard
     broadcast_point_groups
     name
     orientation
+    owner_organization
     play_logs
     screen_tags
     station
@@ -53,12 +55,9 @@ class ScreenDashboard < Administrate::BaseDashboard
   # an array of attributes that will be displayed
   # on the model's form (`new` and `edit`) pages.
   FORM_ATTRIBUTES = %i[
-    broadcast_point_group_memberships
-    broadcast_point_groups
     name
     orientation
-    play_logs
-    screen_tags
+    owner_organization
     station
     tags
   ].freeze

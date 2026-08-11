@@ -31,13 +31,16 @@ class MediaPlansController < ApplicationController
     group, rotation, starts_at, ends_at = resolve_slot_inputs
     return render_new_failure if @media_plan.errors.any?
 
-    Airtime::OccupyWithPlan.call(
+    plan = Airtime::OccupyWithPlan.call(
       organization: Current.user.organization,
       broadcast_point_group: group,
       rotation: rotation,
       starts_at: starts_at,
-      ends_at: ends_at
+      ends_at: ends_at,
+      placement_kind: media_plan_params[:placement_kind].presence || :own_atmosphere,
+      shows_per_hour: media_plan_params[:shows_per_hour].presence
     )
+    flash_commercial_quota_warning(plan)
     redirect_to media_plans_path, notice: t(".created")
   rescue Airtime::ConflictError, Airtime::InvalidWindowError, ArgumentError, ActiveRecord::RecordInvalid => e
     attach_slot_attrs(group, rotation, starts_at, ends_at)
@@ -96,6 +99,7 @@ class MediaPlansController < ApplicationController
       starts_at: starts_at,
       ends_at: ends_at
     )
+    flash_commercial_quota_warning(@media_plan.reload)
     redirect_to media_plans_path, notice: t(".rescheduled")
   rescue Airtime::ConflictError, Airtime::InvalidWindowError, ArgumentError => e
     flash.now[:alert] = e.message
@@ -116,7 +120,22 @@ class MediaPlansController < ApplicationController
 
   def load_form_collections
     @rotations = policy_scope(Rotation).order(:name)
-    @broadcast_point_groups = policy_scope(BroadcastPointGroup).order(:name)
+    own_groups = policy_scope(BroadcastPointGroup).to_a
+    owner_groups = BroadcastPointGroup.commercial_eligible_groups_for(Current.user.organization).to_a
+    @broadcast_point_groups = (own_groups + owner_groups).uniq.sort_by(&:name)
+  end
+
+  def find_placement_group
+    id = media_plan_params[:broadcast_point_group_id]
+    policy_scope(BroadcastPointGroup).find_by(id: id) ||
+      BroadcastPointGroup.commercial_eligible_groups_for(Current.user.organization).find_by(id: id)
+  end
+
+  def flash_commercial_quota_warning(plan)
+    result = CommercialQuota::Check.call(plan: plan)
+    return unless result.exceeded
+
+    flash[:warning] = t("media_plans.commercial_quota_exceeded")
   end
 
   def load_occupancy(exclude: nil)
@@ -135,7 +154,7 @@ class MediaPlansController < ApplicationController
   end
 
   def resolve_slot_inputs(require_rotation: true)
-    group = policy_scope(BroadcastPointGroup).find_by(id: media_plan_params[:broadcast_point_group_id])
+    group = find_placement_group
     rotation = if require_rotation
       find_scoped_rotation
     else
@@ -157,7 +176,16 @@ class MediaPlansController < ApplicationController
       ends_at = ends
     end
 
+    attach_placement_attrs
     [ group, rotation, starts_at, ends_at ]
+  end
+
+  def attach_placement_attrs
+    kind = media_plan_params[:placement_kind]
+    @media_plan.placement_kind = kind if kind.present?
+    return unless media_plan_params.key?(:shows_per_hour)
+
+    @media_plan.shows_per_hour = media_plan_params[:shows_per_hour].presence
   end
 
   def parse_slot_window
@@ -217,7 +245,9 @@ class MediaPlansController < ApplicationController
       :rotation_id,
       :broadcast_point_group_id,
       :starts_at,
-      :ends_at
+      :ends_at,
+      :placement_kind,
+      :shows_per_hour
     )
   end
 end

@@ -9,6 +9,7 @@ en:
       media_library: Media library
       rotations: Rotations
       broadcast_point_groups: Screen groups
+      locations: Locations
       media_plans: Media plans
       airtime_bookings: Airtime bookings
       fleet_screens: On-air screens
@@ -173,6 +174,22 @@ en:
             broadcast_point_group:
               wrong_organization: must belong to your organization
               must_have_screens: must contain at least one screen
+            shows_per_hour:
+              blank: is required for commercial placement
+        broadcast_point_group:
+          attributes:
+            base:
+              commercial_quota_incomplete: commercial quota percent and period must be set together
+              commercial_quota_requires_homogeneous_owner: commercial quota requires all screens to share one owner matching the group organization
+              commercial_quota_requires_operating_hours: commercial quota requires operating hours on every screen location
+        screen:
+          attributes:
+            owner_organization:
+              must_be_client: must be a client organization
+        location:
+          attributes:
+            operating_hours:
+              invalid: has an invalid weekly schedule shape
   broadcast_point_groups:
     index:
       title: Screen groups
@@ -184,6 +201,11 @@ en:
       title: Edit screen group
     form:
       cancel: Cancel
+      commercial_quota_percent: Commercial quota %
+      commercial_quota_period: Quota period
+      quota_percent_placeholder: e.g. 60
+      quota_period_blank: No quota
+      quota_hint: Quota applies indefinitely until changed. Requires a homogeneous owner group and location operating hours.
     show:
       edit_name: Edit name
       back: Back to screen groups
@@ -210,6 +232,30 @@ en:
       screens_not_in_catalog: Only catalog screens can be added to the group.
     remove_member:
       member_removed: Screen removed from the group.
+  locations:
+    index:
+      title: Locations
+      empty: No locations with your owned screens yet.
+      hours_status: Operating hours
+      hours_set: Set
+      hours_missing: Missing
+      edit: Edit hours
+    edit:
+      title: "Operating hours — %{name}"
+      hint: Weekly schedule used as the commercial quota denominator. Leave a day blank when closed.
+      start: Start
+      end: End
+      cancel: Cancel
+      days:
+        mon: Monday
+        tue: Tuesday
+        wed: Wednesday
+        thu: Thursday
+        fri: Friday
+        sat: Saturday
+        sun: Sunday
+    update:
+      updated: Location hours updated.
   media_plans:
     index:
       title: Media plans
@@ -231,6 +277,12 @@ en:
     form:
       group: Broadcast point group
       cancel: Cancel
+      placement_kind: Placement kind
+      shows_per_hour: Shows per hour
+      shows_per_hour_hint: Required for commercial placement. Consumption = N × rotation cycle duration.
+      placement_kinds:
+        own_atmosphere: Own / atmosphere
+        commercial: Commercial
     occupied_slots:
       heading: Occupied on these screens
       occupied: Occupied
@@ -245,3 +297,4 @@ en:
       updated: Media plan updated.
     cancel:
       cancelled: Media plan cancelled.
+    commercial_quota_exceeded: Commercial quota would be exceeded for one or more hours in this window. The plan was saved; adjust shows per hour or quota if needed.

@@ -11,7 +11,8 @@ class UserDashboard < Administrate::BaseDashboard
     id: Field::Number,
     email: Field::String,
     organization: Field::BelongsTo,
-    password_digest: Field::String,
+    password: Field::Password,
+    password_confirmation: Field::Password,
     role: Field::Select.with_options(searchable: false, collection: ->(field) { field.resource.class.send(field.attribute.to_s.pluralize).keys }),
     created_at: Field::DateTime,
     updated_at: Field::DateTime
@@ -26,7 +27,8 @@ class UserDashboard < Administrate::BaseDashboard
     id
     email
     organization
-    password_digest
+    role
+    created_at
   ].freeze
 
   # SHOW_PAGE_ATTRIBUTES
@@ -35,7 +37,6 @@ class UserDashboard < Administrate::BaseDashboard
     id
     email
     organization
-    password_digest
     role
     created_at
     updated_at
@@ -47,7 +48,8 @@ class UserDashboard < Administrate::BaseDashboard
   FORM_ATTRIBUTES = %i[
     email
     organization
-    password_digest
+    password
+    password_confirmation
     role
   ].freeze
 

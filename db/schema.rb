@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_06_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_10_122200) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -70,6 +70,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_06_100000) do
   end
 
   create_table "broadcast_point_groups", force: :cascade do |t|
+    t.integer "commercial_quota_percent"
+    t.string "commercial_quota_period"
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.bigint "organization_id", null: false
@@ -81,6 +83,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_06_100000) do
   create_table "locations", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
+    t.jsonb "operating_hours", default: {}, null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_locations_on_name", unique: true
   end
@@ -110,7 +113,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_06_100000) do
     t.datetime "created_at", null: false
     t.datetime "ends_at", null: false
     t.bigint "organization_id", null: false
+    t.string "placement_kind", default: "own_atmosphere", null: false
     t.bigint "rotation_id", null: false
+    t.integer "shows_per_hour"
     t.datetime "starts_at", null: false
     t.string "status", default: "active", null: false
     t.datetime "updated_at", null: false
@@ -118,6 +123,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_06_100000) do
     t.index ["broadcast_point_group_id"], name: "index_media_plans_on_broadcast_point_group_id"
     t.index ["organization_id", "starts_at", "ends_at"], name: "index_media_plans_on_organization_id_and_starts_at_and_ends_at"
     t.index ["organization_id"], name: "index_media_plans_on_organization_id"
+    t.index ["placement_kind"], name: "index_media_plans_on_placement_kind"
     t.index ["rotation_id"], name: "index_media_plans_on_rotation_id"
     t.index ["status"], name: "index_media_plans_on_status"
   end
@@ -181,8 +187,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_06_100000) do
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.string "orientation", default: "landscape", null: false
+    t.bigint "owner_organization_id"
     t.bigint "station_id", null: false
     t.datetime "updated_at", null: false
+    t.index ["owner_organization_id"], name: "index_screens_on_owner_organization_id"
     t.index ["station_id", "name"], name: "index_screens_on_station_id_and_name", unique: true
     t.index ["station_id"], name: "index_screens_on_station_id"
   end
@@ -238,6 +246,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_06_100000) do
   add_foreign_key "rotations", "organizations"
   add_foreign_key "screen_tags", "screens"
   add_foreign_key "screen_tags", "tags"
+  add_foreign_key "screens", "organizations", column: "owner_organization_id"
   add_foreign_key "screens", "stations"
   add_foreign_key "stations", "locations"
   add_foreign_key "users", "organizations"

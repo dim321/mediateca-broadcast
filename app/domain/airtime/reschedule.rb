@@ -24,7 +24,11 @@ module Airtime
 
         old_group = locked_booking.broadcast_point_group
         new_group = broadcast_point_group
-        raise ArgumentError, "organization must own the target group" unless new_group.organization_id == locked_plan.organization_id
+        PlacementChannel.assert!(
+          organization: locked_plan.organization,
+          broadcast_point_group: new_group,
+          placement_kind: locked_plan.placement_kind
+        )
 
         lock_screen_ids = if old_group.id == new_group.id
           old_group.screen_ids

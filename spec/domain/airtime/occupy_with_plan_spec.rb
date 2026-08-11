@@ -76,7 +76,30 @@ RSpec.describe Airtime::OccupyWithPlan do
         starts_at: starts_at,
         ends_at: ends_at
       )
-    end.to raise_error(ArgumentError, /own the broadcast point group/)
+    end.to raise_error(ArgumentError, /own\/atmosphere|organization groups/)
+  end
+
+  it 'allows foreign commercial on an owner-homogeneous group' do
+    owner = create(:organization, :client)
+    owned_screen = create(:screen, owner_organization: owner)
+    owner_group = create(:broadcast_point_group, organization: owner)
+    create(:broadcast_point_group_membership, broadcast_point_group: owner_group, screen: owned_screen)
+    placer = create(:organization, :client)
+    placer_rotation = create(:rotation, organization: placer)
+
+    plan = described_class.call(
+      organization: placer,
+      broadcast_point_group: owner_group,
+      rotation: placer_rotation,
+      starts_at: starts_at,
+      ends_at: ends_at,
+      placement_kind: :commercial,
+      shows_per_hour: 2
+    )
+
+    expect(plan).to be_commercial
+    expect(plan.organization).to eq(placer)
+    expect(plan.broadcast_point_group).to eq(owner_group)
   end
 
   context "when concurrent occupies race", :concurrency do

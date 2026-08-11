@@ -25,6 +25,17 @@ RSpec.describe LocationPolicy do
     expect(described_class.new(client_user, location)).to be_show
   end
 
+  it 'denies client update without owned screens at the location' do
+    expect(described_class.new(client_user, location)).not_to be_update
+  end
+
+  it 'allows client update when they own a screen at the location' do
+    screen = create(:screen, owner_organization: client_user.organization)
+    owned_location = screen.station.location
+
+    expect(described_class.new(client_user, owned_location)).to be_update
+  end
+
   it 'scopes all locations to operator users' do
     other_location = create(:location)
 

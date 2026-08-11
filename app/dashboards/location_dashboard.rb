@@ -10,6 +10,7 @@ class LocationDashboard < Administrate::BaseDashboard
   ATTRIBUTE_TYPES = {
     id: Field::Number,
     name: Field::String,
+    operating_hours: OperatingHoursField,
     stations: Field::HasMany,
     created_at: Field::DateTime,
     updated_at: Field::DateTime
@@ -23,8 +24,8 @@ class LocationDashboard < Administrate::BaseDashboard
   COLLECTION_ATTRIBUTES = %i[
     id
     name
+    operating_hours
     stations
-    created_at
   ].freeze
 
   # SHOW_PAGE_ATTRIBUTES
@@ -32,6 +33,7 @@ class LocationDashboard < Administrate::BaseDashboard
   SHOW_PAGE_ATTRIBUTES = %i[
     id
     name
+    operating_hours
     stations
     created_at
     updated_at
@@ -42,6 +44,7 @@ class LocationDashboard < Administrate::BaseDashboard
   # on the model's form (`new` and `edit`) pages.
   FORM_ATTRIBUTES = %i[
     name
+    operating_hours
     stations
   ].freeze
 
@@ -59,8 +62,7 @@ class LocationDashboard < Administrate::BaseDashboard
 
   # Overwrite this method to customize how locations are displayed
   # across all pages of the admin dashboard.
-  #
-  # def display_resource(location)
-  #   "Location ##{location.id}"
-  # end
+  def display_resource(location)
+    location.name
+  end
 end

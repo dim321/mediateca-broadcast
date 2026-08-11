@@ -126,6 +126,46 @@ RSpec.describe 'MediaPlans', type: :request do
 
       expect(response).to have_http_status(:unprocessable_content)
     end
+
+    it 'creates commercial plan and soft-warns when quota exceeded (AE1)' do
+      location = create(
+        :location,
+        operating_hours: { "mon" => [ { "start" => "10:00", "end" => "11:00" } ] }
+      )
+      owned_screen = create(:screen, station: create(:station, location: location), owner_organization: organization)
+      group = create(:broadcast_point_group, organization: organization)
+      create(:broadcast_point_group_membership, broadcast_point_group: group, screen: owned_screen)
+      group.update!(commercial_quota_percent: 60, commercial_quota_period: :hour)
+
+      asset = create(:media_asset, :ready, :with_png_file, organization: organization)
+      create(:rotation_item, rotation: rotation, media_asset: asset, display_duration_seconds: 240)
+
+      Airtime::OccupyWithPlan.call(
+        organization: organization,
+        broadcast_point_group: group,
+        rotation: rotation,
+        starts_at: Time.utc(2026, 8, 10, 10, 0, 0),
+        ends_at: Time.utc(2026, 8, 10, 10, 30, 0),
+        placement_kind: :commercial,
+        shows_per_hour: 5
+      )
+
+      post media_plans_path, params: {
+        media_plan: {
+          rotation_id: rotation.id,
+          broadcast_point_group_id: group.id,
+          starts_at: '2026-08-10T10:30',
+          ends_at: '2026-08-10T11:00',
+          placement_kind: 'commercial',
+          shows_per_hour: 10
+        }
+      }
+
+      expect(response).to redirect_to(media_plans_path)
+      follow_redirect!
+      expect(response.body).to include(I18n.t('media_plans.commercial_quota_exceeded'))
+      expect(MediaPlan.active.commercial.count).to eq(2)
+    end
   end
 
   describe 'PATCH /media_plans/:id' do

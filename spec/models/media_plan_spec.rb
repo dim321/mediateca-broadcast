@@ -8,6 +8,8 @@ require 'rails_helper'
 #
 #  id                       :bigint           not null, primary key
 #  ends_at                  :datetime         not null
+#  placement_kind           :string           default("own_atmosphere"), not null
+#  shows_per_hour           :integer
 #  starts_at                :datetime         not null
 #  status                   :string           default("active"), not null
 #  created_at               :datetime         not null
@@ -23,6 +25,7 @@ require 'rails_helper'
 #  index_media_plans_on_broadcast_point_group_id                   (broadcast_point_group_id)
 #  index_media_plans_on_organization_id                            (organization_id)
 #  index_media_plans_on_organization_id_and_starts_at_and_ends_at  (organization_id,starts_at,ends_at)
+#  index_media_plans_on_placement_kind                             (placement_kind)
 #  index_media_plans_on_rotation_id                                (rotation_id)
 #  index_media_plans_on_status                                     (status)
 #
@@ -248,5 +251,41 @@ RSpec.describe MediaPlan, type: :model do
     expect(plan.airtime_booking).to be_present
     expect(plan.airtime_booking).not_to respond_to(:airtime_quota)
     expect(plan).to be_valid
+  end
+
+  describe 'placement_kind and shows_per_hour' do
+    it 'defaults to own_atmosphere without shows_per_hour' do
+      plan = build_plan
+
+      expect(plan).to be_own_atmosphere
+      expect(plan).to be_valid
+    end
+
+    it 'requires shows_per_hour for commercial' do
+      plan = build_plan(placement_kind: :commercial, shows_per_hour: nil)
+
+      expect(plan).not_to be_valid
+      expect(plan.errors[:shows_per_hour]).to be_present
+    end
+
+    it 'accepts commercial with shows_per_hour >= 1' do
+      plan = build_plan(placement_kind: :commercial, shows_per_hour: 5)
+
+      expect(plan).to be_valid
+    end
+
+    it 'persists placement enum values' do
+      plan = create(
+        :media_plan,
+        organization: organization,
+        rotation: rotation,
+        broadcast_point_group: broadcast_point_group,
+        placement_kind: :commercial,
+        shows_per_hour: 3
+      )
+
+      expect(plan.reload).to be_commercial
+      expect(plan.shows_per_hour).to eq(3)
+    end
   end
 end

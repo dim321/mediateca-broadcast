@@ -4,6 +4,11 @@ class BroadcastPointGroupDashboard < Administrate::BaseDashboard
   ATTRIBUTE_TYPES = {
     id: Field::Number,
     broadcast_point_group_memberships: Field::HasMany,
+    commercial_quota_percent: Field::Number,
+    commercial_quota_period: Field::Select.with_options(
+      collection: [ [ "", nil ], %w[hour hour], %w[day day] ],
+      include_blank: true
+    ),
     media_plans: Field::HasMany,
     name: Field::String,
     organization: Field::BelongsTo,
@@ -16,7 +21,7 @@ class BroadcastPointGroupDashboard < Administrate::BaseDashboard
     id
     name
     organization
-    media_plans
+    commercial_quota_percent
   ].freeze
 
   SHOW_PAGE_ATTRIBUTES = %i[
@@ -25,6 +30,8 @@ class BroadcastPointGroupDashboard < Administrate::BaseDashboard
     media_plans
     name
     organization
+    commercial_quota_percent
+    commercial_quota_period
     screens
     created_at
     updated_at
@@ -33,6 +40,8 @@ class BroadcastPointGroupDashboard < Administrate::BaseDashboard
   FORM_ATTRIBUTES = %i[
     name
     organization
+    commercial_quota_percent
+    commercial_quota_period
     screens
   ].freeze
 

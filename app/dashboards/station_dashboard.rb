@@ -69,7 +69,7 @@ class StationDashboard < Administrate::BaseDashboard
   # Overwrite this method to customize how stations are displayed
   # across all pages of the admin dashboard.
   #
-  # def display_resource(station)
-  #   "Station ##{station.id}"
-  # end
+  def display_resource(station)
+    station.name
+  end
 end
