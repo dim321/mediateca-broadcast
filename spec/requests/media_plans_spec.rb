@@ -110,7 +110,7 @@ RSpec.describe 'MediaPlans', type: :request do
 
       expect(response).to have_http_status(:success)
       expect(response.body).to include(I18n.t('media_plans.occupied_slots.heading'))
-      expect(response.body).to include('Occupied')
+      expect(response.body).to include(I18n.t('media_plans.occupied_slots.occupied'))
       expect(response.body).not_to include('ForeignOrgXYZ-NeverLeak')
       expect(response.body).not_to include('airtime_booking_id')
     end

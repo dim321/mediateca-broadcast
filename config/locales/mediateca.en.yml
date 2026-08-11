@@ -16,6 +16,11 @@ en:
       finance: Finance
       open_menu: Open menu
       close_menu: Close menu
+      locale: Language
+      locale_ru: RU
+      locale_en: EN
+  pundit:
+    not_authorized: You are not authorized to perform this action.
   fleet:
     screens:
       index:
@@ -95,11 +100,11 @@ en:
       updated: Rotation updated.
     destroy:
       destroyed: Rotation deleted.
-    rotation_items:
-      create:
-        created: Item added to rotation.
-      destroy:
-        destroyed: Item removed from rotation.
+  rotation_items:
+    create:
+      created: Item added to rotation.
+    destroy:
+      destroyed: Item removed from rotation.
   media_assets:
     authentication_required: Please sign in to continue.
     index:
@@ -126,8 +131,15 @@ en:
         broadcast: Broadcast (.ts)
         status: Status
         duration: Duration
+        media_kind: Media type
         content_type: Content type
         visibility: Availability
+      content_kinds:
+        video: Video
+        audio: Audio
+        image: Image
+        document: Document
+        presentation: Presentation
       broadcast_processing: Processing…
       broadcast_na: N/A
       source_label: Source

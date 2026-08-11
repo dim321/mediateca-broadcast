@@ -1,0 +1,330 @@
+# frozen_string_literal: true
+
+ru:
+  layouts:
+    application:
+      brand: Mediateca
+      sign_in: Войти
+      sign_out: Выйти
+      media_library: Медиатека
+      rotations: Ротации
+      broadcast_point_groups: Группы экранов
+      locations: Локации
+      media_plans: Медиапланы
+      airtime_bookings: Бронирования эфира
+      fleet_screens: Экраны в эфире
+      finance: Финансы
+      open_menu: Открыть меню
+      close_menu: Закрыть меню
+      locale: Язык
+      locale_ru: RU
+      locale_en: EN
+  fleet:
+    screens:
+      index:
+        title: Экраны в эфире
+        empty: В парке пока нет экранов.
+      show:
+        empty: На этом экране нет эфира от вашей организации.
+        back: Назад к экранам
+  finance:
+    show:
+      title: Финансы
+      stub: Финансовые отчёты появятся в следующих версиях.
+  airtime_bookings:
+    index:
+      title: Бронирования эфира
+      new_booking: Новое бронирование
+      empty: Бронирований пока нет.
+      seconds:
+        one: "%{count} секунда"
+        few: "%{count} секунды"
+        many: "%{count} секунд"
+        other: "%{count} секунды"
+      status:
+        confirmed: Подтверждено
+        cancelled: Отменено
+    show:
+      title: Бронирование
+      reschedule: Перенести
+      cancel: Отменить бронирование
+      cancel_confirm: Отменить это бронирование и вернуть секунды в квоту?
+      back: Назад к бронированиям
+    new:
+      title: Новое бронирование
+      submit: Забронировать
+    reschedule:
+      title: Перенос бронирования
+      submit: Сохранить новое окно
+      rescheduled: Бронирование перенесено.
+    form:
+      quota: Квота
+      cancel: Отмена
+    occupied_slots:
+      heading: Занято на этих экранах
+      occupied: Занято
+    create:
+      created: Бронирование подтверждено.
+      quota_not_found: Квота не найдена.
+    cancel:
+      cancelled: Бронирование отменено.
+  rotations:
+    index:
+      title: Ротации
+      new_rotation: Новая ротация
+      empty: Ротаций пока нет.
+      media_library: Медиатека
+    new:
+      title: Новая ротация
+    edit:
+      title: Редактирование ротации
+    form:
+      name: Название
+      submit_create: Создать ротацию
+      submit_update: Сохранить изменения
+    show:
+      title: "%{name}"
+      items_heading: Элементы ротации
+      add_heading: Добавить медиа
+      select_media: Выберите файл…
+      add_item: Добавить в ротацию
+      remove_item: Удалить
+      edit_rotation: Редактировать ротацию
+      back: Назад к ротациям
+      media_library: Медиатека
+      no_items: Элементов пока нет. Добавьте готовые медиа из библиотеки.
+      no_media_available: Нет готовых медиа для добавления. Сначала загрузите файлы в медиатеку.
+    create:
+      created: Ротация создана.
+    update:
+      updated: Ротация обновлена.
+    destroy:
+      destroyed: Ротация удалена.
+  rotation_items:
+    create:
+      created: Элемент добавлен в ротацию.
+    destroy:
+      destroyed: Элемент удалён из ротации.
+  media_assets:
+    authentication_required: Войдите, чтобы продолжить.
+    index:
+      title: Медиатека
+      upload_heading: Загрузка
+      choose_file_button: Выбрать файл…
+      no_file_selected: Файл не выбран
+      upload_submit: Загрузить
+      content_type_label: Тип контента
+      content_type_blank: Выберите тип контента…
+      visibility_label: Доступность
+      visibility_blank: Выберите доступность…
+      content_types:
+        own: Собственный
+        commercial: Коммерческий
+        neutral: Нейтральный
+        service: Служебный
+      visibilities:
+        organization: Только моя организация
+        network: Доступно всем организациям
+      columns:
+        preview: Превью
+        source: Исходник
+        broadcast: Эфир (.ts)
+        status: Статус
+        duration: Длительность
+        media_kind: Тип медиа
+        content_type: Тип контента
+        visibility: Доступность
+      content_kinds:
+        video: Видео
+        audio: Аудио
+        image: Изображение
+        document: Документ
+        presentation: Презентация
+      broadcast_processing: Обработка…
+      broadcast_na: Н/Д
+      source_label: Исходник
+      broadcast_label: Эфир
+    create:
+      created: Файл загружен. Обработка началась.
+      create_failed: Не удалось загрузить файл.
+      ready: Обработка завершена. Файл готов.
+      failed: Ошибка обработки.
+  sessions:
+    new:
+      title: Вход
+      email: Email
+      password: Пароль
+      submit: Войти
+    create:
+      signed_in: Вы успешно вошли.
+      invalid_credentials: Неверный email или пароль.
+    destroy:
+      signed_out: Вы вышли из системы.
+  pundit:
+    not_authorized: У вас нет прав для выполнения этого действия.
+  activerecord:
+    errors:
+      models:
+        media_asset:
+          attributes:
+            file:
+              unsupported_type: неподдерживаемый формат
+              blank: необходимо выбрать
+              too_large: должен быть не больше 1 ГиБ
+        rotation_item:
+          attributes:
+            media_asset:
+              wrong_organization: должен принадлежать вашей организации или быть общим в сети
+              not_ready: должен быть готов перед добавлением в ротацию
+        screen_tag:
+          attributes:
+            base:
+              invalid: некорректен
+        broadcast_point_group_membership:
+          attributes:
+            screen:
+              overlaps_existing_media_plan: пересекается с существующим медиапланом для этого экрана
+        media_plan:
+          attributes:
+            base:
+              overlaps_existing: пересекается с существующим медиапланом
+              outside_booking_window: должен укладываться в выбранное окно бронирования
+              use_reschedule: используйте «Перенести», чтобы изменить окно или группу
+            ends_at:
+              must_be_after_starts: должен быть позже времени начала
+            airtime_booking:
+              must_be_confirmed: должно быть подтверждённым бронированием
+              wrong_organization: должно принадлежать вашей организации
+              wrong_group: должно совпадать с группой экранов бронирования
+            rotation:
+              wrong_organization: должна принадлежать вашей организации
+              not_broadcast_ready: должна содержать только медиа, готовые к эфиру
+            broadcast_point_group:
+              wrong_organization: должна принадлежать вашей организации
+              must_have_screens: должна содержать хотя бы один экран
+            shows_per_hour:
+              blank: обязателен для коммерческого размещения
+        broadcast_point_group:
+          attributes:
+            base:
+              commercial_quota_incomplete: процент и период коммерческой квоты должны быть заданы вместе
+              commercial_quota_requires_homogeneous_owner: коммерческая квота требует, чтобы все экраны принадлежали одному владельцу, совпадающему с организацией группы
+              commercial_quota_requires_operating_hours: коммерческая квота требует часов работы у каждой локации экрана
+        screen:
+          attributes:
+            owner_organization:
+              must_be_client: должна быть клиентской организацией
+        location:
+          attributes:
+            operating_hours:
+              invalid: имеет некорректную форму недельного расписания
+  broadcast_point_groups:
+    index:
+      title: Группы экранов
+      new_group: Новая группа экранов
+      empty: Групп экранов пока нет.
+    new:
+      title: Новая группа экранов
+    edit:
+      title: Редактирование группы экранов
+    form:
+      cancel: Отмена
+      commercial_quota_percent: Коммерческая квота %
+      commercial_quota_period: Период квоты
+      quota_percent_placeholder: напр. 60
+      quota_period_blank: Без квоты
+      quota_hint: Квота действует бессрочно, пока не измените. Требует однородную группу владельца и часы работы локаций.
+    show:
+      edit_name: Изменить название
+      back: Назад к группам экранов
+      members_heading: Экраны в этой группе
+      no_members: В этой группе пока нет экранов.
+      add_heading: Добавить экраны
+      filter_by_tags: Фильтр по тегам (экран должен иметь все выбранные теги)
+      apply_filter: Применить фильтр
+      clear_filter: Сбросить фильтр
+      add_selected: Добавить выбранные экраны
+      no_screens_to_add: Нет экранов по текущему фильтру, либо все уже в этой группе.
+      screen_station: "%{station}"
+      remove: Удалить
+      remove_confirm: Удалить этот экран из группы?
+    create:
+      created: Группа экранов создана.
+    update:
+      updated: Группа экранов обновлена.
+    add_screens:
+      screens_added:
+        one: В группу добавлен 1 экран.
+        few: В группу добавлено %{count} экрана.
+        many: В группу добавлено %{count} экранов.
+        other: В группу добавлено %{count} экрана.
+      screens_not_added: Не удалось добавить экраны в группу.
+      screens_not_in_catalog: В группу можно добавить только экраны из каталога.
+    remove_member:
+      member_removed: Экран удалён из группы.
+  locations:
+    index:
+      title: Локации
+      empty: Локаций с вашими экранами пока нет.
+      hours_status: Часы работы
+      hours_set: Заданы
+      hours_missing: Не заданы
+      edit: Изменить часы
+    edit:
+      title: "Часы работы — %{name}"
+      hint: Недельное расписание используется как знаменатель коммерческой квоты. Оставьте день пустым, если закрыто.
+      start: Начало
+      end: Конец
+      cancel: Отмена
+      days:
+        mon: Понедельник
+        tue: Вторник
+        wed: Среда
+        thu: Четверг
+        fri: Пятница
+        sat: Суббота
+        sun: Воскресенье
+    update:
+      updated: Часы работы локации обновлены.
+  media_plans:
+    index:
+      title: Медиапланы
+      new_media_plan: Новый медиаплан
+      edit: Изменить ротацию
+      reschedule: Перенести
+      cancel_plan: Отменить
+      cancel_confirm: Отменить этот медиаплан и освободить слот эфира?
+      empty: Медиапланов пока нет.
+    new:
+      title: Новый медиаплан
+    edit:
+      title: Редактирование медиаплана
+      rotation_only_hint: Чтобы изменить окно или группу, используйте «Перенести».
+    reschedule:
+      title: Перенос медиаплана
+      submit: Сохранить новое окно
+      rescheduled: Медиаплан перенесён.
+    form:
+      group: Группа точек вещания
+      cancel: Отмена
+      placement_kind: Тип размещения
+      shows_per_hour: Показов в час
+      shows_per_hour_hint: Обязательно для коммерческого размещения. Расход = N × длительность цикла ротации.
+      placement_kinds:
+        own_atmosphere: Собственный / атмосфера
+        commercial: Коммерческий
+    occupied_slots:
+      heading: Занято на этих экранах
+      occupied: Занято
+    show:
+      edit: Изменить ротацию
+      reschedule: Перенести
+      cancel_plan: Отменить
+      back: Назад к медиапланам
+    create:
+      created: Медиаплан создан.
+    update:
+      updated: Медиаплан обновлён.
+    cancel:
+      cancelled: Медиаплан отменён.
+    commercial_quota_exceeded: Коммерческая квота была бы превышена в один или несколько часов этого окна. План сохранён; при необходимости уменьшите число показов или квоту.

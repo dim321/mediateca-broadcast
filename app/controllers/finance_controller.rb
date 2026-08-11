@@ -6,7 +6,7 @@ class FinanceController < ApplicationController
 
   def show
     unless Current.user.accountant? || Current.user.administrator? || Current.user.organization.operator?
-      flash[:alert] = I18n.t("pundit.not_authorized", default: "You are not authorized to perform this action.")
+      flash[:alert] = I18n.t("pundit.not_authorized")
       redirect_back(fallback_location: rails_health_check_path)
     end
   end

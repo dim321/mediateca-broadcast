@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-theme="light">
+<html lang="<%= I18n.locale %>" data-theme="light">
   <head>
     <title><%= content_for(:title) || "Mediateca Broadcast" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -40,6 +40,16 @@
             </div>
             <div class="flex-1"></div>
             <div class="flex-none flex items-center gap-2 sm:gap-3">
+              <div class="join" role="group" aria-label="<%= t("layouts.application.locale") %>">
+                <%= button_to t("layouts.application.locale_ru"),
+                      locale_path(locale: :ru),
+                      method: :patch,
+                      class: "btn btn-xs join-item #{I18n.locale == :ru ? "btn-primary" : "btn-ghost"}" %>
+                <%= button_to t("layouts.application.locale_en"),
+                      locale_path(locale: :en),
+                      method: :patch,
+                      class: "btn btn-xs join-item #{I18n.locale == :en ? "btn-primary" : "btn-ghost"}" %>
+              </div>
               <span class="hidden text-sm text-base-content/70 sm:inline"><%= Current.user.email %></span>
               <%= button_to t("layouts.application.sign_out"), logout_path, method: :delete, class: "btn btn-ghost btn-sm" %>
             </div>

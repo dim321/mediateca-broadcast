@@ -167,7 +167,9 @@ RSpec.describe MediaPlan, type: :model do
     )
 
     expect(overlapping).not_to be_valid
-    expect(overlapping.errors[:base]).to include('overlaps an existing media plan')
+    expect(overlapping.errors[:base]).to include(
+      I18n.t('activerecord.errors.models.media_plan.attributes.base.overlaps_existing')
+    )
     expect { overlapping.save! }.to raise_error(ActiveRecord::RecordInvalid)
     expect(described_class.find(original.id).attributes).to include(original.attributes.slice('starts_at', 'ends_at'))
   end
@@ -205,7 +207,9 @@ RSpec.describe MediaPlan, type: :model do
     plan = build_plan
 
     expect(plan).not_to be_valid
-    expect(plan.errors[:rotation]).to include('must contain only broadcast-ready media')
+    expect(plan.errors[:rotation]).to include(
+      I18n.t('activerecord.errors.models.media_plan.attributes.rotation.not_broadcast_ready')
+    )
   end
 
   it 'requires a broadcast file for ready videos' do
@@ -216,7 +220,9 @@ RSpec.describe MediaPlan, type: :model do
     plan = build_plan
 
     expect(plan).not_to be_valid
-    expect(plan.errors[:rotation]).to include('must contain only broadcast-ready media')
+    expect(plan.errors[:rotation]).to include(
+      I18n.t('activerecord.errors.models.media_plan.attributes.rotation.not_broadcast_ready')
+    )
   end
 
   it 'accepts a ready non-video media asset without a broadcast file' do

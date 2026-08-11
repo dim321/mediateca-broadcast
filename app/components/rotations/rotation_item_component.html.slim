@@ -4,11 +4,20 @@ li.flex.items-center.gap-2.border.border-base-300.rounded-box.p-2.mb-2.bg-base-1
   span.text-base-content/50.select-none.pr-1 aria-hidden="true" ⋮⋮
   .flex-1.min-w-0.flex.flex-col.sm:flex-row.sm:items-center.gap-1.sm:gap-3
     .min-w-0
-      span.text-xs.text-base-content/60 = t("media_assets.index.source_label")
-      .truncate = helpers.media_asset_source_link(item.media_asset)
-    .min-w-0
       span.text-xs.text-base-content/60 = t("media_assets.index.broadcast_label")
       .truncate = helpers.media_asset_broadcast_cell(item.media_asset)
+    .min-w-0.shrink-0
+      span.text-xs.text-base-content/60 = t("media_assets.index.columns.duration")
+      div = duration_label
+    .min-w-0.shrink-0
+      span.text-xs.text-base-content/60 = t("media_assets.index.columns.media_kind")
+      div = t("media_assets.index.content_kinds.#{item.media_asset.content_kind}")
+    .min-w-0.shrink-0
+      span.text-xs.text-base-content/60 = t("media_assets.index.columns.content_type")
+      div = t("media_assets.index.content_types.#{item.media_asset.content_type}")
+    .min-w-0.shrink-0
+      span.text-xs.text-base-content/60 = t("media_assets.index.columns.visibility")
+      div = t("media_assets.index.visibilities.#{item.media_asset.visibility}")
   = link_to t("rotations.show.remove_item"),
     rotation_rotation_item_path(rotation, item),
     data: { turbo_method: :delete },

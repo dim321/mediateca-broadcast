@@ -8,5 +8,12 @@ module Rotations
     end
 
     attr_reader :rotation, :item
+
+    def duration_label
+      seconds = item.display_duration_seconds.presence || item.media_asset.duration_seconds
+      return "—" if seconds.blank?
+
+      "#{seconds}s"
+    end
   end
 end

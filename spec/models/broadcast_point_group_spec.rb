@@ -69,7 +69,9 @@ RSpec.describe BroadcastPointGroup, type: :model do
       membership = target_group.broadcast_point_group_memberships.new(screen:)
 
       expect(membership).not_to be_valid
-      expect(membership.errors[:screen]).to include('overlaps an existing media plan for this screen')
+      expect(membership.errors[:screen]).to include(
+        I18n.t('activerecord.errors.models.broadcast_point_group_membership.attributes.screen.overlaps_existing_media_plan')
+      )
     end
   end
 
