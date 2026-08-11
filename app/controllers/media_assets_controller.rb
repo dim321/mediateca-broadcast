@@ -23,7 +23,10 @@ class MediaAssetsController < ApplicationController
     authorize @media_asset
 
     if @media_asset.save
-      redirect_to media_assets_path, notice: t(".created")
+      respond_to do |format|
+        format.turbo_stream
+        format.html { redirect_to media_assets_path, notice: t(".created") }
+      end
     else
       @media_assets = policy_scope(MediaAsset)
         .with_attached_file

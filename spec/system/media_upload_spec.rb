@@ -9,7 +9,7 @@ RSpec.describe "Media upload", type: :system do
 
   before do
     ActiveJob::Base.queue_adapter = :test
-    allow_any_instance_of(MediaAsset).to receive(:broadcast_replace_later_to)
+    allow_any_instance_of(MediaAsset).to receive(:broadcast_replace_to)
   end
 
   it "uploads a file and shows ready status after background job" do

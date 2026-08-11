@@ -1,0 +1,7 @@
+<%= turbo_stream.prepend "media_assets_tbody", partial: "media_assets/media_asset", locals: { media_asset: @media_asset } %>
+<%= turbo_stream.replace "media_asset_upload_form", partial: "media_assets/upload_form", locals: { media_asset: MediaAsset.new } %>
+<%= turbo_stream.update "flash" do %>
+  <div role="alert" class="alert <%= flash_alert_class(:notice) %>">
+    <span><%= t(".created") %></span>
+  </div>
+<% end %>

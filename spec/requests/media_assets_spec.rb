@@ -95,6 +95,29 @@ RSpec.describe "MediaAssets", type: :request do
       expect(response).to redirect_to(media_assets_path)
       expect(MediaAsset.last).to have_attributes(content_type: "own", visibility: "organization")
     end
+
+    it "prepends the asset via turbo_stream without a full redirect" do
+      png = Rails.root.join("spec/fixtures/files/1x1.png")
+      expect do
+        post media_assets_path, params: {
+          media_asset: {
+            file: fixture_file_upload(png, "image/png"),
+            content_type: "own",
+            visibility: "organization"
+          }
+        }, as: :turbo_stream
+      end.to change(MediaAsset, :count).by(1)
+
+      asset = MediaAsset.last
+      card_id = ActionView::RecordIdentifier.dom_id(asset, :card)
+
+      expect(response).to have_http_status(:success)
+      expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+      expect(response.body).to include("turbo-stream action=\"prepend\" target=\"media_assets_tbody\"")
+      expect(response.body).to include(card_id)
+      expect(response.body).to include("turbo-stream action=\"replace\" target=\"media_asset_upload_form\"")
+      expect(response.body).to include(I18n.t("media_assets.create.created"))
+    end
   end
 
   describe "PATCH /media_assets/:id (turbo_stream)" do

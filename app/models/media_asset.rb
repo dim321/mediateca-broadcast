@@ -163,9 +163,12 @@ class MediaAsset < ApplicationRecord
   end
 
   def broadcast_card_refresh
-    broadcast_replace_later_to [ organization, :media_library ],
+    # Synchronous broadcast: fast assets (audio/image) finish during the upload
+    # redirect/navigation window; later jobs often fire with no Cable subscribers.
+    broadcast_replace_to [ organization, :media_library ],
       target: ActionView::RecordIdentifier.dom_id(self, :card),
       partial: "media_assets/media_asset",
       locals: { media_asset: self }
   end
+
 end
