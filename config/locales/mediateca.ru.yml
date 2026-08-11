@@ -276,6 +276,7 @@ ru:
       start: Начало
       end: Конец
       cancel: Отмена
+      copy_monday_to_all: Скопировать пн на все дни
       days:
         mon: Понедельник
         tue: Вторник

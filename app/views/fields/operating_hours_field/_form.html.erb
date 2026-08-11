@@ -5,7 +5,7 @@
 <div class="field-unit__label">
   <%= f.label field.attribute %>
 </div>
-<div class="field-unit__field">
+<div class="field-unit__field" data-operating-hours-root>
   <p class="field-unit__hint">
     Weekly schedule used as the commercial quota denominator. Leave a day blank when closed.
   </p>
@@ -28,6 +28,8 @@
               name="<%= f.object_name %>[operating_hours][<%= day %>][][start]"
               value="<%= window['start'] || window[:start] %>"
               class="field-unit__field"
+              data-operating-hours-day="<%= day %>"
+              data-operating-hours-part="start"
             >
           </td>
           <td>
@@ -36,10 +38,55 @@
               name="<%= f.object_name %>[operating_hours][<%= day %>][][end]"
               value="<%= window['end'] || window[:end] %>"
               class="field-unit__field"
+              data-operating-hours-day="<%= day %>"
+              data-operating-hours-part="end"
             >
           </td>
         </tr>
       <% end %>
     </tbody>
   </table>
+  <p class="field-unit__hint" style="margin-top: 0.75rem;">
+    <button type="button" class="button" data-operating-hours-copy-mon>
+      <%= t("locations.edit.copy_monday_to_all") %>
+    </button>
+  </p>
 </div>
+
+<script>
+  (function () {
+    var roots = document.querySelectorAll("[data-operating-hours-root]");
+    roots.forEach(function (root) {
+      if (root.dataset.operatingHoursBound === "1") return;
+      root.dataset.operatingHoursBound = "1";
+
+      var button = root.querySelector("[data-operating-hours-copy-mon]");
+      if (!button) return;
+
+      button.addEventListener("click", function () {
+        var monStart = root.querySelector(
+          '[data-operating-hours-day="mon"][data-operating-hours-part="start"]'
+        );
+        var monEnd = root.querySelector(
+          '[data-operating-hours-day="mon"][data-operating-hours-part="end"]'
+        );
+        if (!monStart || !monEnd) return;
+
+        var startValue = monStart.value || "";
+        var endValue = monEnd.value || "";
+        var days = <%= Location::OperatingHours::DAY_KEYS.reject { |d| d == "mon" }.to_json %>;
+
+        days.forEach(function (day) {
+          var startInput = root.querySelector(
+            '[data-operating-hours-day="' + day + '"][data-operating-hours-part="start"]'
+          );
+          var endInput = root.querySelector(
+            '[data-operating-hours-day="' + day + '"][data-operating-hours-part="end"]'
+          );
+          if (startInput) startInput.value = startValue;
+          if (endInput) endInput.value = endValue;
+        });
+      });
+    });
+  })();
+</script>

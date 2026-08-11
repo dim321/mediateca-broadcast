@@ -272,6 +272,7 @@ en:
       start: Start
       end: End
       cancel: Cancel
+      copy_monday_to_all: Copy Mon to all days
       days:
         mon: Monday
         tue: Tuesday
