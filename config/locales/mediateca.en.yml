@@ -120,6 +120,18 @@ en:
       visibilities:
         organization: My organization only
         network: Available to all organizations
+      columns:
+        preview: Preview
+        source: Source
+        broadcast: Broadcast (.ts)
+        status: Status
+        duration: Duration
+        content_type: Content type
+        visibility: Availability
+      broadcast_processing: Processing…
+      broadcast_na: N/A
+      source_label: Source
+      broadcast_label: Broadcast
     create:
       created: File uploaded. Processing started.
       create_failed: Could not upload file.

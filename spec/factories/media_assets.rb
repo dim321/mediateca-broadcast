@@ -59,5 +59,27 @@ FactoryBot.define do
       content_type { "neutral" }
       visibility { "network" }
     end
+
+    trait :with_mp4_file do
+      content_kind { "video" }
+      after(:build) do |record|
+        record.file.attach(
+          io: StringIO.new("fake-mp4-bytes"),
+          filename: "source.mp4",
+          content_type: "video/mp4"
+        )
+      end
+    end
+
+    trait :with_broadcast_ts do
+      after(:build) do |record|
+        path = Rails.root.join("spec/fixtures/files/broadcast.ts")
+        record.broadcast_file.attach(
+          io: File.open(path),
+          filename: "source.ts",
+          content_type: "video/mp2t"
+        )
+      end
+    end
   end
 end
