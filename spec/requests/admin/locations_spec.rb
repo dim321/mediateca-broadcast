@@ -36,5 +36,8 @@ RSpec.describe "Admin locations", type: :request do
     expect(response.body).to include(I18n.t("locations.edit.days.mon"))
     expect(response.body).to include(I18n.t("locations.edit.copy_monday_to_all"))
     expect(response.body).to include("data-operating-hours-copy-mon")
+    # ERB <%= %> escapes quotes; JSON for the copy script must stay raw JS.
+    expect(response.body).to include('var days = ["tue","wed","thu","fri","sat","sun"]')
+    expect(response.body).not_to include("var days = [&quot;tue&quot;")
   end
 end

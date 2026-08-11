@@ -74,7 +74,7 @@
 
         var startValue = monStart.value || "";
         var endValue = monEnd.value || "";
-        var days = <%= Location::OperatingHours::DAY_KEYS.reject { |d| d == "mon" }.to_json %>;
+        var days = <%= raw Location::OperatingHours::DAY_KEYS.reject { |d| d == "mon" }.to_json %>;
 
         days.forEach(function (day) {
           var startInput = root.querySelector(
