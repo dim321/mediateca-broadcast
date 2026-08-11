@@ -1,9 +1,15 @@
-li.flex.items-center.gap-2.border.rounded.p-2.mb-2.bg-white.cursor-grab.active:cursor-grabbing[
+li.flex.items-center.gap-2.border.border-base-300.rounded-box.p-2.mb-2.bg-base-100.cursor-grab.active:cursor-grabbing[
   data-item-id=item.id
 ]
-  span.text-gray-500.select-none.pr-1 aria-hidden="true" ⋮⋮
-  span.flex-1.truncate = item.media_asset.file.filename.to_s
+  span.text-base-content/50.select-none.pr-1 aria-hidden="true" ⋮⋮
+  .flex-1.min-w-0.flex.flex-col.sm:flex-row.sm:items-center.gap-1.sm:gap-3
+    .min-w-0
+      span.text-xs.text-base-content/60 = t("media_assets.index.source_label")
+      .truncate = helpers.media_asset_source_link(item.media_asset)
+    .min-w-0
+      span.text-xs.text-base-content/60 = t("media_assets.index.broadcast_label")
+      .truncate = helpers.media_asset_broadcast_cell(item.media_asset)
   = link_to t("rotations.show.remove_item"),
     rotation_rotation_item_path(rotation, item),
     data: { turbo_method: :delete },
-    class: "text-red-600 text-sm shrink-0 underline"
+    class: "link link-error text-sm shrink-0"

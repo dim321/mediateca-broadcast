@@ -24,8 +24,9 @@
       h2.text-lg.font-semibold.mb-3 = t(".add_heading")
       - if @available_media.any?
         = form_with model: [@rotation, @rotation_item], url: rotation_rotation_items_path(@rotation), class: "flex flex-col gap-2" do |f|
-          = f.collection_select :media_asset_id, @available_media, :id, ->(a) { a.file.filename.to_s },
-            { prompt: t(".select_media") }, class: "block w-full rounded border px-3 py-2 text-sm"
+          = f.collection_select :media_asset_id, @available_media, :id,
+            method(:media_asset_select_label),
+            { prompt: t(".select_media") }, class: "select select-bordered w-full"
           = f.submit t(".add_item"), class: "rounded bg-blue-600 text-white px-4 py-2 text-sm w-fit cursor-pointer"
       - else
         p.text-gray-600.text-sm = t(".no_media_available")

@@ -12,9 +12,11 @@ class RotationsController < ApplicationController
   def show
     authorize @rotation
     @items = @rotation.ordered_items
-    @available_media = policy_scope(MediaAsset).ready.with_attached_file.order(created_at: :desc).where.not(
-      id: @rotation.media_asset_ids
-    )
+    @available_media = policy_scope(MediaAsset).ready
+      .with_attached_file
+      .with_attached_broadcast_file
+      .order(created_at: :desc)
+      .where.not(id: @rotation.media_asset_ids)
     @rotation_item = RotationItem.new(rotation: @rotation)
   end
 
