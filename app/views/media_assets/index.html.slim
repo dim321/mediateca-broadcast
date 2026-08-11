@@ -8,21 +8,20 @@
   .card.bg-base-100.border.border-base-300.shadow-sm.mb-6
     .card-body.gap-4
       h2.card-title.text-base = t(".upload_heading")
-      = form_with model: @media_asset, url: media_assets_path, local: true, multipart: true, class: "flex flex-col gap-3" do |f|
-        .flex.flex-col.sm:flex-row.sm:flex-wrap.sm:items-center.gap-3 data-controller="file-picker"
+      = form_with model: @media_asset, url: media_assets_path, local: true, multipart: true, class: "flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end" do |f|
+        .flex.min-w-0.flex-1.items-center.gap-3 data-controller="file-picker"
           = f.file_field :file, accept: "video/mp4,video/webm,image/*,audio/*,.pdf,.ppt,.pptx", id: "media_asset_file_input", class: "sr-only", data: { file_picker_target: "input", action: "change->file-picker#sync" }
-          label.btn.btn-outline.btn-sm.w-fit.cursor-pointer for="media_asset_file_input"
+          label.btn.btn-outline.shrink-0.cursor-pointer for="media_asset_file_input"
             = t(".choose_file_button")
-          span.text-sm.text-base-content/60.truncate.max-w-56.sm:max-w-xs.md:max-w-sm data-file-picker-target="name" title=""
+          span.min-w-0.flex-1.truncate.text-sm.text-base-content/60 data-file-picker-target="name" title=""
             = t(".no_file_selected")
-        .flex.flex-col.sm:flex-row.gap-3
-          label.floating-label.w-full.sm:w-auto
-            = f.select :content_type, MediaAsset.content_types.keys.map { |k| [t(".content_types.#{k}"), k] }, { include_blank: t(".content_type_blank") }, class: "select select-bordered", required: true
-            span = t(".content_type_label")
-          label.floating-label.w-full.sm:w-auto
-            = f.select :visibility, MediaAsset.visibilities.keys.map { |k| [t(".visibilities.#{k}"), k] }, { include_blank: t(".visibility_blank") }, class: "select select-bordered", required: true
-            span = t(".visibility_label")
-        = f.submit t(".upload_submit"), class: "btn btn-primary w-fit"
+        label.floating-label.w-full.lg:w-48
+          = f.select :content_type, MediaAsset.content_types.keys.map { |k| [t(".content_types.#{k}"), k] }, { include_blank: t(".content_type_blank") }, class: "select select-bordered w-full", required: true
+          span = t(".content_type_label")
+        label.floating-label.w-full.lg:w-56
+          = f.select :visibility, MediaAsset.visibilities.keys.map { |k| [t(".visibilities.#{k}"), k] }, { include_blank: t(".visibility_blank") }, class: "select select-bordered w-full", required: true
+          span = t(".visibility_label")
+        = f.submit t(".upload_submit"), class: "btn btn-primary shrink-0"
 
   .overflow-x-auto
     table.table#media_assets_table
