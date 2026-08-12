@@ -85,6 +85,9 @@ asset_path: /rails/public/assets
 # Configure the image builder.
 builder:
   arch: amd64
+  # docker-container (BuildKit) игнорирует insecure-registries из daemon.json и пушит по HTTPS.
+  # Для HTTP-registry без TLS нужен либо driver: docker, либо buildkitd.toml с http=true.
+  driver: docker
 
   # # Build image via remote server (useful for faster amd64 builds on arm64 computers)
   # remote: ssh://docker@docker-builder-server

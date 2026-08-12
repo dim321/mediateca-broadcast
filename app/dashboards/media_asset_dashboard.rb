@@ -9,23 +9,20 @@ class MediaAssetDashboard < Administrate::BaseDashboard
   # on pages throughout the dashboard.
   ATTRIBUTE_TYPES = {
     id: Field::Number,
-    broadcast_file_attachment: Field::HasOne,
-    broadcast_file_blob: Field::HasOne,
+    organization: Field::BelongsTo,
+    uploaded_by: Field::BelongsTo,
     content_kind: Field::Select.with_options(searchable: false, collection: ->(field) { field.resource.class.send(field.attribute.to_s.pluralize).keys }),
     content_type: Field::Select.with_options(searchable: false, collection: ->(field) { field.resource.class.send(field.attribute.to_s.pluralize).keys }),
-    duration_seconds: Field::Number,
-    file_attachment: Field::HasOne,
-    file_blob: Field::HasOne,
-    metadata: Field::String.with_options(searchable: false),
-    organization: Field::BelongsTo,
-    play_logs: Field::HasMany,
-    preview_attachment: Field::HasOne,
-    preview_blob: Field::HasOne,
+    visibility: Field::Select.with_options(searchable: false, collection: ->(field) { field.resource.class.send(field.attribute.to_s.pluralize).keys }),
     processing_status: Field::Select.with_options(searchable: false, collection: ->(field) { field.resource.class.send(field.attribute.to_s.pluralize).keys }),
+    duration_seconds: Field::Number,
+    metadata: Field::String.with_options(searchable: false),
+    file: ActiveStorageAttachmentField,
+    preview: ActiveStorageAttachmentField,
+    broadcast_file: ActiveStorageAttachmentField,
+    play_logs: Field::HasMany,
     rotation_items: Field::HasMany,
     rotations: Field::HasMany,
-    uploaded_by: Field::BelongsTo,
-    visibility: Field::Select.with_options(searchable: false, collection: ->(field) { field.resource.class.send(field.attribute.to_s.pluralize).keys }),
     created_at: Field::DateTime,
     updated_at: Field::DateTime
   }.freeze
@@ -37,32 +34,32 @@ class MediaAssetDashboard < Administrate::BaseDashboard
   # Feel free to add, remove, or rearrange items.
   COLLECTION_ATTRIBUTES = %i[
     id
-    broadcast_file_attachment
-    broadcast_file_blob
+    organization
     content_kind
+    content_type
+    processing_status
+    file
+    created_at
   ].freeze
 
   # SHOW_PAGE_ATTRIBUTES
   # an array of attributes that will be displayed on the model's show page.
   SHOW_PAGE_ATTRIBUTES = %i[
     id
-    broadcast_file_attachment
-    broadcast_file_blob
+    organization
+    uploaded_by
     content_kind
     content_type
-    duration_seconds
-    file_attachment
-    file_blob
-    metadata
-    organization
-    play_logs
-    preview_attachment
-    preview_blob
+    visibility
     processing_status
+    duration_seconds
+    metadata
+    file
+    preview
+    broadcast_file
+    play_logs
     rotation_items
     rotations
-    uploaded_by
-    visibility
     created_at
     updated_at
   ].freeze
@@ -71,23 +68,13 @@ class MediaAssetDashboard < Administrate::BaseDashboard
   # an array of attributes that will be displayed
   # on the model's form (`new` and `edit`) pages.
   FORM_ATTRIBUTES = %i[
-    broadcast_file_attachment
-    broadcast_file_blob
+    organization
+    uploaded_by
     content_kind
     content_type
-    duration_seconds
-    file_attachment
-    file_blob
-    metadata
-    organization
-    play_logs
-    preview_attachment
-    preview_blob
-    processing_status
-    rotation_items
-    rotations
-    uploaded_by
     visibility
+    processing_status
+    duration_seconds
   ].freeze
 
   # COLLECTION_FILTERS
@@ -104,8 +91,7 @@ class MediaAssetDashboard < Administrate::BaseDashboard
 
   # Overwrite this method to customize how media assets are displayed
   # across all pages of the admin dashboard.
-  #
-  # def display_resource(media_asset)
-  #   "MediaAsset ##{media_asset.id}"
-  # end
+  def display_resource(media_asset)
+    "MediaAsset ##{media_asset.id}"
+  end
 end
