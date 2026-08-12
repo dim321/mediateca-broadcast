@@ -1,6 +1,19 @@
 - content_for :title, t('.title')
+- actions = capture do
+  = link_to t('.new_screen'), new_owned_screen_path, class: 'btn btn-primary btn-sm'
 
 .mx-auto.w-full.max-w-6xl
-  = render 'shared/page_header', title: t('.title')
-  - @screens.each do |screen|
-    p = screen.name
+  = render 'shared/page_header', title: t('.title'), actions: actions
+
+  - if @screens.any?
+    ul.list.bg-base-100.border.border-base-300.rounded-box.shadow-sm
+      - @screens.each do |screen|
+        li.list-row.items-center
+          div
+            = link_to screen.name, owned_screen_path(screen), class: 'link link-hover text-base font-medium'
+            p.text-sm.text-base-content/60
+              = "#{screen.station.location.name} · #{screen.station.name} · #{t("owned_screens.form.orientation.#{screen.orientation}")}"
+  - else
+    .card.bg-base-100.border.border-base-300.shadow-sm
+      .card-body
+        p.text-base-content/60 = t('.empty')
