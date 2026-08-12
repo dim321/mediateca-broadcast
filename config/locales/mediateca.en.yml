@@ -14,6 +14,7 @@ en:
       airtime_bookings: Airtime bookings
       fleet_screens: On-air screens
       owned_screens: My screens
+      owned_broadcast_point_groups: My groups
       finance: Finance
       open_menu: Open menu
       close_menu: Close menu
@@ -63,6 +64,45 @@ en:
     destroy:
       destroyed: Screen deleted.
       destroy_restricted: Screen cannot be deleted while it is used in groups or play logs.
+  owned_broadcast_point_groups:
+    index:
+      title: My groups
+      new_group: New owner group
+      empty: No owner groups yet.
+    new:
+      title: New owner group
+    edit:
+      title: Edit owner group
+    form:
+      cancel: Cancel
+      commercial_quota_percent: Commercial quota %
+      commercial_quota_period: Quota period
+      quota_percent_placeholder: e.g. 60
+      quota_period_blank: No quota
+      quota_hint: Quota stays in effect until you change it. Requires a homogeneous owner group and location operating hours.
+    show:
+      edit: Edit
+      back: Back to my groups
+      members_heading: Screens in this group
+      no_members: No screens in this group yet.
+      add_heading: Add owned screens
+      add_selected: Add selected screens
+      no_screens_to_add: No owned screens left to add, or you have none yet.
+      remove: Remove
+      remove_confirm: Remove this screen from the group?
+      quota_summary: "Commercial quota: %{percent}% per %{period}"
+    create:
+      created: Owner group created.
+    update:
+      updated: Owner group updated.
+    add_screens:
+      screens_added:
+        one: Added 1 screen to the group.
+        other: "Added %{count} screens to the group."
+      screens_not_added: Could not add screens to the group.
+      screens_not_owned: You can only add screens you own.
+    remove_member:
+      member_removed: Screen removed from the group.
   finance:
     show:
       title: Finance

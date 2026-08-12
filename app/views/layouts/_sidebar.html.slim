@@ -24,6 +24,8 @@
         = nav_link_to t("layouts.application.fleet_screens"), fleet_screens_path, controllers: %w[fleet/screens]
       li
         = nav_link_to t("layouts.application.owned_screens"), owned_screens_path, controllers: %w[owned_screens]
+      li
+        = nav_link_to t("layouts.application.owned_broadcast_point_groups"), owned_broadcast_point_groups_path, controllers: %w[owned_broadcast_point_groups]
       - if Current.user&.administrator?
         li
           = nav_link_to t("layouts.application.finance"), finance_path, controllers: %w[finance]

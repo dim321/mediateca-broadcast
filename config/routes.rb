@@ -53,6 +53,13 @@ Rails.application.routes.draw do
 
   resources :owned_screens
 
+  resources :owned_broadcast_point_groups do
+    member do
+      post :add_screens
+      delete :remove_member
+    end
+  end
+
   resources :media_plans, except: %i[destroy] do
     member do
       delete :cancel

@@ -1,0 +1,18 @@
+= form_with model: broadcast_point_group, url: (broadcast_point_group.persisted? ? owned_broadcast_point_group_path(broadcast_point_group) : owned_broadcast_point_groups_path), class: 'space-y-4 max-w-xl' do |f|
+  - if broadcast_point_group.errors.any?
+    ul.text-sm.text-error.list-disc.pl-5
+      - broadcast_point_group.errors.full_messages.each do |message|
+        li = message
+  div
+    = f.label :name, class: 'block text-sm font-medium'
+    = f.text_field :name, class: 'input input-bordered w-full mt-1'
+  div
+    = f.label :commercial_quota_percent, t('.commercial_quota_percent'), class: 'block text-sm font-medium'
+    = f.number_field :commercial_quota_percent, min: 1, max: 100, class: 'input input-bordered w-full mt-1', placeholder: t('.quota_percent_placeholder')
+  div
+    = f.label :commercial_quota_period, t('.commercial_quota_period'), class: 'block text-sm font-medium'
+    = f.select :commercial_quota_period, [[t('.quota_period_blank'), ''], %w[hour hour], %w[day day]], {}, class: 'select select-bordered w-full mt-1'
+  p.text-sm.text-base-content/60 = t('.quota_hint')
+  .flex.gap-3
+    = f.submit class: 'btn btn-primary btn-sm'
+    = link_to t('.cancel'), owned_broadcast_point_groups_path, class: 'btn btn-ghost btn-sm'

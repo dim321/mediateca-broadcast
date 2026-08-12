@@ -14,6 +14,7 @@ ru:
       airtime_bookings: Бронирования эфира
       fleet_screens: Экраны в эфире
       owned_screens: Мои экраны
+      owned_broadcast_point_groups: Мои группы
       finance: Финансы
       open_menu: Открыть меню
       close_menu: Закрыть меню
@@ -61,6 +62,47 @@ ru:
     destroy:
       destroyed: Экран удалён.
       destroy_restricted: Нельзя удалить экран, пока он используется в группах или в журнале показов.
+  owned_broadcast_point_groups:
+    index:
+      title: Мои группы
+      new_group: Новая группа владельца
+      empty: Групп владельца пока нет.
+    new:
+      title: Новая группа владельца
+    edit:
+      title: Редактирование группы владельца
+    form:
+      cancel: Отмена
+      commercial_quota_percent: Коммерческая квота %
+      commercial_quota_period: Период квоты
+      quota_percent_placeholder: напр. 60
+      quota_period_blank: Без квоты
+      quota_hint: Квота действует бессрочно, пока не измените. Требует однородную группу владельца и часы работы локаций.
+    show:
+      edit: Изменить
+      back: Назад к моим группам
+      members_heading: Экраны в этой группе
+      no_members: В этой группе пока нет экранов.
+      add_heading: Добавить свои экраны
+      add_selected: Добавить выбранные экраны
+      no_screens_to_add: Нет своих экранов для добавления, либо все уже в группе.
+      remove: Удалить
+      remove_confirm: Удалить этот экран из группы?
+      quota_summary: "Коммерческая квота: %{percent}% за %{period}"
+    create:
+      created: Группа владельца создана.
+    update:
+      updated: Группа владельца обновлена.
+    add_screens:
+      screens_added:
+        one: В группу добавлен 1 экран.
+        few: В группу добавлено %{count} экрана.
+        many: В группу добавлено %{count} экранов.
+        other: В группу добавлено %{count} экрана.
+      screens_not_added: Не удалось добавить экраны в группу.
+      screens_not_owned: Можно добавлять только свои экраны.
+    remove_member:
+      member_removed: Экран удалён из группы.
   finance:
     show:
       title: Финансы
