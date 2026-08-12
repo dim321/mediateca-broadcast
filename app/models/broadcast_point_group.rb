@@ -84,6 +84,9 @@ class BroadcastPointGroup < ApplicationRecord
   end
 
   def commercial_quota_assignment_gates
+    # Empty groups may store intended quota; gates apply once screens exist.
+    return if screens.none?
+
     unless owner_homogeneous?
       errors.add(:base, :commercial_quota_requires_homogeneous_owner)
       return

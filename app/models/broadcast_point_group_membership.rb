@@ -27,6 +27,7 @@ class BroadcastPointGroupMembership < ApplicationRecord
 
   validates :screen_id, uniqueness: { scope: :broadcast_point_group_id }
   validate :no_media_plan_overlap_for_screen
+  validate :compatible_with_group_commercial_quota
 
   private
 
@@ -46,5 +47,19 @@ class BroadcastPointGroupMembership < ApplicationRecord
         break
       end
     end
+  end
+
+  def compatible_with_group_commercial_quota
+    return if screen.blank? || broadcast_point_group.blank?
+    return unless broadcast_point_group.commercial_quota_assigned?
+
+    unless screen.owner_organization_id == broadcast_point_group.organization_id
+      errors.add(:screen, :quota_requires_owner_match)
+      return
+    end
+
+    return if screen.location.operating_hours_configured?
+
+    errors.add(:screen, :quota_requires_operating_hours)
   end
 end

@@ -133,6 +133,13 @@ RSpec.describe BroadcastPointGroup, type: :model do
       group.update!(commercial_quota_percent: nil, commercial_quota_period: nil)
       expect(group.reload.commercial_quota_configured?).to be(false)
     end
+
+    it 'allows assigning quota on an empty group (gates deferred until screens are added)' do
+      empty = build(:broadcast_point_group, organization: owner, commercial_quota_percent: 60, commercial_quota_period: :hour)
+
+      expect(empty).to be_valid
+      expect(empty.save).to be(true)
+    end
   end
 
   private

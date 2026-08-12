@@ -22,6 +22,24 @@ RSpec.describe 'OwnedBroadcastPointGroups', type: :request do
       expect(group.organization).to eq(organization)
       expect(response).to redirect_to(owned_broadcast_point_group_path(group))
     end
+
+    it 'allows creating an empty owner group with commercial quota' do
+      sign_in_as(user)
+
+      expect do
+        post owned_broadcast_point_groups_path, params: {
+          broadcast_point_group: {
+            name: 'Первая группа',
+            commercial_quota_percent: 60,
+            commercial_quota_period: 'hour'
+          }
+        }
+      end.to change(BroadcastPointGroup, :count).by(1)
+
+      group = BroadcastPointGroup.last
+      expect(group).to have_attributes(commercial_quota_percent: 60, commercial_quota_period: 'hour')
+      expect(response).to redirect_to(owned_broadcast_point_group_path(group))
+    end
   end
 
   describe 'POST /owned_broadcast_point_groups/:id/add_screens' do

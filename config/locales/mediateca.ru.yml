@@ -73,11 +73,12 @@ ru:
       title: Редактирование группы владельца
     form:
       cancel: Отмена
+      submit: Сохранить группу
       commercial_quota_percent: Коммерческая квота %
       commercial_quota_period: Период квоты
       quota_percent_placeholder: напр. 60
       quota_period_blank: Без квоты
-      quota_hint: Квота действует бессрочно, пока не измените. Требует однородную группу владельца и часы работы локаций.
+      quota_hint: Квота действует бессрочно, пока не измените. После добавления экранов требуется однородный владелец и часы работы локаций.
     show:
       edit: Изменить
       back: Назад к моим группам
@@ -260,6 +261,8 @@ ru:
           attributes:
             screen:
               overlaps_existing_media_plan: пересекается с существующим медиапланом для этого экрана
+              quota_requires_owner_match: при коммерческой квоте экран должен принадлежать организации группы
+              quota_requires_operating_hours: при коммерческой квоте у локации экрана должны быть заданы часы работы
         media_plan:
           attributes:
             base:

@@ -75,11 +75,12 @@ en:
       title: Edit owner group
     form:
       cancel: Cancel
+      submit: Save group
       commercial_quota_percent: Commercial quota %
       commercial_quota_period: Quota period
       quota_percent_placeholder: e.g. 60
       quota_period_blank: No quota
-      quota_hint: Quota stays in effect until you change it. Requires a homogeneous owner group and location operating hours.
+      quota_hint: Quota stays in effect until you change it. Requires a homogeneous owner group and location operating hours once screens are added.
     show:
       edit: Edit
       back: Back to my groups
@@ -256,6 +257,8 @@ en:
           attributes:
             screen:
               overlaps_existing_media_plan: overlaps an existing media plan for this screen
+              quota_requires_owner_match: must be owned by the group organization when commercial quota is set
+              quota_requires_operating_hours: location must have operating hours when commercial quota is set
         media_plan:
           attributes:
             base:

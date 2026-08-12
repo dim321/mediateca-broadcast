@@ -14,5 +14,5 @@
     = f.select :commercial_quota_period, [[t('.quota_period_blank'), ''], %w[hour hour], %w[day day]], {}, class: 'select select-bordered w-full mt-1'
   p.text-sm.text-base-content/60 = t('.quota_hint')
   .flex.gap-3
-    = f.submit class: 'btn btn-primary btn-sm'
+    = f.submit t('.submit'), class: 'btn btn-primary btn-sm'
     = link_to t('.cancel'), owned_broadcast_point_groups_path, class: 'btn btn-ghost btn-sm'
