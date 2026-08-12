@@ -28,5 +28,9 @@ FactoryBot.define do
     station
     sequence(:name) { |n| "Screen #{n}" }
     orientation { :landscape }
+
+    trait :owned do
+      association :owner_organization, factory: %i[organization client]
+    end
   end
 end
