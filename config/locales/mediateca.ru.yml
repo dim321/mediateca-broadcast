@@ -13,6 +13,7 @@ ru:
       media_plans: Медиапланы
       airtime_bookings: Бронирования эфира
       fleet_screens: Экраны в эфире
+      owned_screens: Мои экраны
       finance: Финансы
       open_menu: Открыть меню
       close_menu: Закрыть меню
@@ -27,6 +28,39 @@ ru:
       show:
         empty: На этом экране нет эфира от вашей организации.
         back: Назад к экранам
+  owned_screens:
+    index:
+      title: Мои экраны
+      new_screen: Добавить экран
+      empty: У вас пока нет своих экранов.
+    new:
+      title: Новый экран
+    edit:
+      title: Редактирование экрана
+    form:
+      location: Локация
+      location_blank: Выберите локацию
+      station: Станция
+      station_blank: Выберите станцию
+      cancel: Отмена
+      orientation:
+        landscape: Альбомная
+        portrait: Портретная
+    show:
+      edit: Изменить
+      delete: Удалить
+      delete_confirm: Удалить этот экран?
+      back: Назад к моим экранам
+      station: Станция
+      location: Локация
+      orientation: Ориентация
+    create:
+      created: Экран создан.
+    update:
+      updated: Экран обновлён.
+    destroy:
+      destroyed: Экран удалён.
+      destroy_restricted: Нельзя удалить экран, пока он используется в группах или в журнале показов.
   finance:
     show:
       title: Финансы

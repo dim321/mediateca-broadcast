@@ -13,6 +13,7 @@ en:
       media_plans: Media plans
       airtime_bookings: Airtime bookings
       fleet_screens: On-air screens
+      owned_screens: My screens
       finance: Finance
       open_menu: Open menu
       close_menu: Close menu
@@ -29,6 +30,39 @@ en:
       show:
         empty: No airtime from your organization on this screen.
         back: Back to screens
+  owned_screens:
+    index:
+      title: My screens
+      new_screen: Add screen
+      empty: You have no owned screens yet.
+    new:
+      title: New screen
+    edit:
+      title: Edit screen
+    form:
+      location: Location
+      location_blank: Select location
+      station: Station
+      station_blank: Select station
+      cancel: Cancel
+      orientation:
+        landscape: Landscape
+        portrait: Portrait
+    show:
+      edit: Edit
+      delete: Delete
+      delete_confirm: Delete this screen?
+      back: Back to my screens
+      station: Station
+      location: Location
+      orientation: Orientation
+    create:
+      created: Screen created.
+    update:
+      updated: Screen updated.
+    destroy:
+      destroyed: Screen deleted.
+      destroy_restricted: Screen cannot be deleted while it is used in groups or play logs.
   finance:
     show:
       title: Finance

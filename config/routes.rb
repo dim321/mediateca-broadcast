@@ -51,6 +51,8 @@ Rails.application.routes.draw do
 
   resources :locations, only: %i[index edit update]
 
+  resources :owned_screens
+
   resources :media_plans, except: %i[destroy] do
     member do
       delete :cancel

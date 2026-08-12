@@ -1,0 +1,5 @@
+- content_for :title, t('.title')
+
+.mx-auto.w-full.max-w-6xl
+  h1.text-2xl.font-semibold = t('.title')
+  = render 'form', screen: @screen
