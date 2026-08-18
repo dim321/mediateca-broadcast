@@ -236,6 +236,52 @@ en:
     destroy:
       signed_out: Signed out.
   activerecord:
+    models:
+      airtime_booking:
+        one: Airtime booking
+        other: Airtime bookings
+      broadcast_point_group:
+        one: Screen group
+        other: Screen groups
+      broadcast_point_group_membership:
+        one: Screen in group
+        other: Screens in group
+      location:
+        one: Location
+        other: Locations
+      media_asset:
+        one: Media asset
+        other: Media assets
+      media_plan:
+        one: Media plan
+        other: Media plans
+      organization:
+        one: Organization
+        other: Organizations
+      play_log:
+        one: Play log
+        other: Play logs
+      rotation:
+        one: Rotation
+        other: Rotations
+      rotation_item:
+        one: Rotation item
+        other: Rotation items
+      screen:
+        one: Screen
+        other: Screens
+      screen_tag:
+        one: Screen tag
+        other: Screen tags
+      station:
+        one: Station
+        other: Stations
+      tag:
+        one: Tag
+        other: Tags
+      user:
+        one: User
+        other: Users
     errors:
       models:
         media_asset:
@@ -293,6 +339,47 @@ en:
           attributes:
             operating_hours:
               invalid: has an invalid weekly schedule shape
+    attributes:
+      airtime_booking:
+        status: Status
+      broadcast_point_group:
+        commercial_quota_percent: Commercial quota %
+        commercial_quota_period: Quota period
+        name: Name
+      location:
+        name: Name
+        operating_hours: Operating hours
+      media_asset:
+        content_kind: Content type
+        content_type: Placement type
+        file: File
+        processing_status: Processing status
+        visibility: Visibility
+      media_plan:
+        broadcast_point_group: Screen group
+        ends_at: Ends at
+        placement_kind: Placement type
+        rotation: Rotation
+        shows_per_hour: Shows per hour
+        starts_at: Starts at
+        status: Status
+      organization:
+        kind: Type
+        name: Name
+        time_zone: Time zone
+      rotation:
+        name: Name
+      screen:
+        name: Name
+        orientation: Orientation
+      station:
+        name: Name
+      tag:
+        name: Name
+      user:
+        email: Email
+        organization: Organization
+        role: Role
   broadcast_point_groups:
     index:
       title: Screen groups
@@ -402,3 +489,226 @@ en:
     cancel:
       cancelled: Media plan cancelled.
     commercial_quota_exceeded: Commercial quota would be exceeded for one or more hours in this window. The plan was saved; adjust shows per hour or quota if needed.
+  administrate:
+    actions:
+      cancel: Cancel
+  admin:
+    media_plans:
+      broadcast_point_group: Screen group
+      cancel: Cancel media plan
+      cancel_confirm: Cancel this media plan and free the airtime slot?
+      cancelled: Media plan cancelled.
+      ends_at: "Ends at (%{time_zone})"
+      reschedule: Reschedule
+      reschedule_title: "Reschedule media plan #%{id}"
+      rescheduled: Media plan rescheduled.
+      save_window: Save new window
+      starts_at: "Starts at (%{time_zone})"
+    fields:
+      operating_hours:
+        copy_monday_to_all: Copy Monday to all days
+        day: Day
+        days:
+          mon: Monday
+          tue: Tuesday
+          wed: Wednesday
+          thu: Thursday
+          fri: Friday
+          sat: Saturday
+          sun: Sunday
+        end: End
+        hint: The weekly schedule is used to calculate the commercial quota. Leave a day blank when closed.
+        missing: Missing
+        set: Set
+        start: Start
+  enums:
+    airtime_booking:
+      status:
+        pending: Pending confirmation
+        confirmed: Confirmed
+        cancelled: Cancelled
+    broadcast_point_group:
+      commercial_quota_period:
+        hour: Hour
+        day: Day
+    media_asset:
+      content_kind:
+        video: Video
+        audio: Audio
+        image: Image
+        document: Document
+        presentation: Presentation
+      content_type:
+        own: Own content
+        commercial: Commercial
+        neutral: Neutral
+        service: Service
+      processing_status:
+        pending: Pending processing
+        processing: Processing
+        ready: Ready
+        failed: Failed
+      visibility:
+        organization: Organization
+        network: Network
+    media_plan:
+      placement_kind:
+        own_atmosphere: Own content / atmosphere
+        commercial: Commercial placement
+      status:
+        active: Active
+        invalidated: Invalidated
+        cancelled: Cancelled
+    organization:
+      kind:
+        operator: Operator
+        client: Client
+    play_log:
+      source:
+        agent: Agent
+    screen:
+      orientation:
+        landscape: Landscape
+        portrait: Portrait
+    user:
+      role:
+        manager: Manager
+        accountant: Accountant
+        administrator: Administrator
+  helpers:
+    label:
+      broadcast_point_group:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        broadcast_point_group_memberships: Screens in group
+        commercial_quota_percent: Commercial quota %
+        commercial_quota_period: Quota period
+        media_plans: Media plans
+        name: Name
+        organization: Organization
+        screens: Screens
+      broadcast_point_group_membership:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        broadcast_point_group: Broadcast point group
+        screen: Screen
+      location:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        name: Name
+        operating_hours: Operating hours
+        stations: Stations
+      media_asset:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        broadcast_file: Broadcast file
+        content_kind: Content type
+        content_type: Placement type
+        duration_seconds: Duration, seconds
+        file: File
+        metadata: Metadata
+        organization: Organization
+        preview: Preview
+        processing_status: Processing status
+        rotations: Rotations
+        visibility: Visibility
+      media_plan:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        airtime_booking_id: Airtime booking ID
+        broadcast_point_group: Broadcast point group
+        ends_at: Ends at
+        organization: Organization
+        placement_kind: Placement type
+        rotation: Rotation
+        shows_per_hour: Shows per hour
+        starts_at: Starts at
+        status: Status
+      organization:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        broadcast_point_groups: Broadcast point groups
+        kind: Type
+        media_assets: Media assets
+        media_plans: Media plans
+        name: Name
+        play_logs: Play logs
+        rotations: Rotations
+        time_zone: Time zone
+        users: Users
+      play_log:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        media_asset: Media asset
+        organization: Organization
+        screen: Screen
+        source: Source
+        started_at: Started at
+      rotation:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        media_assets: Media assets
+        media_plans: Media plans
+        name: Name
+        organization: Organization
+        rotation_items: Rotation items
+      rotation_item:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        display_duration_seconds: Display duration, seconds
+        media_asset: Media asset
+        position: Position
+        rotation: Rotation
+      screen:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        broadcast_point_group_memberships: Group memberships
+        broadcast_point_groups: Broadcast point groups
+        name: Name
+        orientation: Orientation
+        owner_organization: Owner organization
+        play_logs: Play logs
+        screen_tags: Screen tags
+        station: Station
+        tags: Tags
+      screen_tag:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        screen: Screen
+        tag: Tag
+      station:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        agent_token_digest: Agent token
+        location: Location
+        name: Name
+        offline_cache_hours: Offline cache hours
+        screens: Screens
+      tag:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        name: Name
+        screen_tags: Screen tag links
+        screens: Screens
+      user:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        email: Email
+        organization: Organization
+        password: Password
+        password_confirmation: Password confirmation
+        role: Role

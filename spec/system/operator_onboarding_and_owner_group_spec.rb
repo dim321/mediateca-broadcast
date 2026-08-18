@@ -68,7 +68,7 @@ RSpec.describe 'Operator onboarding and owner group', type: :system do
 
     fill_in 'broadcast_point_group_name', with: 'Витрины Командор'
     fill_in I18n.t('owned_broadcast_point_groups.form.commercial_quota_percent'), with: '60'
-    select 'hour', from: 'broadcast_point_group_commercial_quota_period'
+    find('#broadcast_point_group_commercial_quota_period option[value="hour"]').select_option
     click_button I18n.t('owned_broadcast_point_groups.form.submit')
 
     expect(page).to have_content(I18n.t('owned_broadcast_point_groups.create.created'))
@@ -103,7 +103,7 @@ RSpec.describe 'Operator onboarding and owner group', type: :system do
   def create_client_organization(name)
     visit new_admin_organization_path
     fill_in 'organization_name', with: name
-    select 'client', from: 'organization_kind'
+    select I18n.t('enums.organization.kind.client'), from: 'organization_kind'
     submit_admin_form
     expect(page).to have_content(name)
   end
@@ -131,7 +131,7 @@ RSpec.describe 'Operator onboarding and owner group', type: :system do
     select organization_name, from: 'user_organization_id'
     fill_in 'user_password', with: manager_password
     fill_in 'user_password_confirmation', with: manager_password
-    select 'manager', from: 'user_role'
+    select I18n.t('enums.user.role.manager'), from: 'user_role'
     submit_admin_form
     expect(page).to have_content(email)
   end

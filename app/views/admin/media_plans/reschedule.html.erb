@@ -1,8 +1,8 @@
-<% content_for(:title) { "Reschedule Media Plan ##{@media_plan.id}" } %>
+<% content_for(:title) { t("admin.media_plans.reschedule_title", id: @media_plan.id) } %>
 
 <header class="main-content__header">
   <h1 class="main-content__page-title">
-    Reschedule Media Plan #<%= @media_plan.id %>
+    <%= content_for(:title) %>
   </h1>
 </header>
 
@@ -13,7 +13,7 @@
 
   <%= form_with url: reschedule_admin_media_plan_path(@media_plan), method: :patch do %>
     <div class="field-unit">
-      <%= label_tag :broadcast_point_group_id, "Broadcast point group" %>
+      <%= label_tag :broadcast_point_group_id, t("admin.media_plans.broadcast_point_group") %>
       <%= select_tag :broadcast_point_group_id,
             options_from_collection_for_select(
               @broadcast_point_groups,
@@ -24,14 +24,14 @@
             include_blank: true %>
     </div>
     <div class="field-unit">
-      <%= label_tag :starts_at, "Starts at (#{@time_zone})" %>
+      <%= label_tag :starts_at, t("admin.media_plans.starts_at", time_zone: @time_zone) %>
       <%= datetime_field_tag :starts_at, schedule_datetime_field_value(@media_plan.starts_at, @time_zone) %>
     </div>
     <div class="field-unit">
-      <%= label_tag :ends_at, "Ends at (#{@time_zone})" %>
+      <%= label_tag :ends_at, t("admin.media_plans.ends_at", time_zone: @time_zone) %>
       <%= datetime_field_tag :ends_at, schedule_datetime_field_value(@media_plan.ends_at, @time_zone) %>
     </div>
-    <%= submit_tag "Save new window", class: "button" %>
-    <%= link_to "Cancel", admin_media_plan_path(@media_plan), class: "button button--alt" %>
+    <%= submit_tag t("admin.media_plans.save_window"), class: "button" %>
+    <%= link_to t("administrate.actions.cancel"), admin_media_plan_path(@media_plan), class: "button button--alt" %>
   <% end %>
 </section>

@@ -240,6 +240,52 @@ ru:
   pundit:
     not_authorized: У вас нет прав для выполнения этого действия.
   activerecord:
+    models:
+      airtime_booking:
+        one: Бронирование эфира
+        other: Бронирования эфира
+      broadcast_point_group:
+        one: Группа экранов
+        other: Группы экранов
+      broadcast_point_group_membership:
+        one: Экран в группе
+        other: Экраны в группе
+      location:
+        one: Локация
+        other: Локации
+      media_asset:
+        one: Медиафайл
+        other: Медиафайлы
+      media_plan:
+        one: Медиаплан
+        other: Медиапланы
+      organization:
+        one: Организация
+        other: Организации
+      play_log:
+        one: Журнал показа
+        other: Журналы показов
+      rotation:
+        one: Ротация
+        other: Ротации
+      rotation_item:
+        one: Элемент ротации
+        other: Элементы ротации
+      screen:
+        one: Экран
+        other: Экраны
+      screen_tag:
+        one: Тег экрана
+        other: Теги экранов
+      station:
+        one: Станция
+        other: Станции
+      tag:
+        one: Тег
+        other: Теги
+      user:
+        one: Пользователь
+        other: Пользователи
     errors:
       models:
         media_asset:
@@ -297,6 +343,47 @@ ru:
           attributes:
             operating_hours:
               invalid: имеет некорректную форму недельного расписания
+    attributes:
+      airtime_booking:
+        status: Статус
+      broadcast_point_group:
+        commercial_quota_percent: Коммерческая квота, %
+        commercial_quota_period: Период квоты
+        name: Название
+      location:
+        name: Название
+        operating_hours: Часы работы
+      media_asset:
+        content_kind: Тип содержимого
+        content_type: Тип размещения
+        file: Файл
+        processing_status: Статус обработки
+        visibility: Видимость
+      media_plan:
+        broadcast_point_group: Группа экранов
+        ends_at: Окончание
+        placement_kind: Тип размещения
+        rotation: Ротация
+        shows_per_hour: Показов в час
+        starts_at: Начало
+        status: Статус
+      organization:
+        kind: Тип
+        name: Название
+        time_zone: Часовой пояс
+      rotation:
+        name: Название
+      screen:
+        name: Название
+        orientation: Ориентация
+      station:
+        name: Название
+      tag:
+        name: Название
+      user:
+        email: Email
+        organization: Организация
+        role: Роль
   broadcast_point_groups:
     index:
       title: Группы экранов
@@ -408,3 +495,221 @@ ru:
     cancel:
       cancelled: Медиаплан отменён.
     commercial_quota_exceeded: Коммерческая квота была бы превышена в один или несколько часов этого окна. План сохранён; при необходимости уменьшите число показов или квоту.
+  administrate:
+    actions:
+      cancel: Отмена
+  admin:
+    media_plans:
+      broadcast_point_group: Группа экранов
+      cancel: Отменить медиаплан
+      cancel_confirm: Отменить этот медиаплан и освободить слот эфира?
+      cancelled: Медиаплан отменён.
+      ends_at: "Окончание (%{time_zone})"
+      reschedule: Перенести
+      reschedule_title: "Перенос медиаплана #%{id}"
+      rescheduled: Медиаплан перенесён.
+      save_window: Сохранить новое окно
+      starts_at: "Начало (%{time_zone})"
+    fields:
+      operating_hours:
+        copy_monday_to_all: Скопировать понедельник на все дни
+        day: День
+        days:
+          mon: Понедельник
+          tue: Вторник
+          wed: Среда
+          thu: Четверг
+          fri: Пятница
+          sat: Суббота
+          sun: Воскресенье
+        end: Окончание
+        hint: Недельное расписание используется для расчёта коммерческой квоты. Оставьте день пустым, если локация закрыта.
+        missing: Не заданы
+        set: Заданы
+        start: Начало
+  enums:
+    airtime_booking:
+      status:
+        pending: Ожидает подтверждения
+        confirmed: Подтверждено
+        cancelled: Отменено
+    broadcast_point_group:
+      commercial_quota_period:
+        hour: Час
+        day: День
+    media_asset:
+      content_kind:
+        video: Видео
+        audio: Аудио
+        image: Изображение
+        document: Документ
+        presentation: Презентация
+      content_type:
+        own: Собственный контент
+        commercial: Коммерческий
+        neutral: Нейтральный
+        service: Сервисный
+      processing_status:
+        pending: Ожидает обработки
+        processing: Обрабатывается
+        ready: Готов
+        failed: Ошибка
+      visibility:
+        organization: Организация
+        network: Сеть
+    media_plan:
+      placement_kind:
+        own_atmosphere: Собственный контент / атмосфера
+        commercial: Коммерческое размещение
+      status:
+        active: Активен
+        invalidated: Недействителен
+        cancelled: Отменён
+    organization:
+      kind:
+        operator: Оператор
+        client: Клиент
+    play_log:
+      source:
+        agent: Агент
+    screen:
+      orientation:
+        landscape: Альбомная
+        portrait: Портретная
+    user:
+      role:
+        manager: Менеджер
+        accountant: Бухгалтер
+        administrator: Администратор
+  helpers:
+    label:
+      airtime_booking:
+        created_at: Создано
+        updated_at: Обновлено
+        broadcast_point_group: Группа экранов
+        organization: Организация
+        starts_at: Начало
+        ends_at: Окончание
+        seconds: Длительность, сек
+        status: Статус
+      broadcast_point_group:
+        created_at: Создано
+        updated_at: Обновлено
+        broadcast_point_group_memberships: Экраны в группе
+        commercial_quota_percent: Коммерческая квота, %
+        commercial_quota_period: Период квоты
+        media_plans: Медиапланы
+        name: Название
+        organization: Организация
+        screens: Экраны
+      broadcast_point_group_membership:
+        created_at: Создано
+        updated_at: Обновлено
+        broadcast_point_group: Группа экранов
+        screen: Экран
+      location:
+        created_at: Создано
+        updated_at: Обновлено
+        name: Название
+        operating_hours: Часы работы
+        stations: Станции
+      media_asset:
+        created_at: Создано
+        updated_at: Обновлено
+        broadcast_file: Файл для эфира
+        content_kind: Тип содержимого
+        content_type: Тип размещения
+        duration_seconds: Длительность, сек
+        file: Файл
+        metadata: Метаданные
+        organization: Организация
+        preview: Предпросмотр
+        processing_status: Статус обработки
+        rotations: Ротации
+        visibility: Видимость
+      media_plan:
+        created_at: Создано
+        updated_at: Обновлено
+        airtime_booking_id: ID бронирования эфира
+        broadcast_point_group: Группа экранов
+        ends_at: Окончание
+        organization: Организация
+        placement_kind: Тип размещения
+        rotation: Ротация
+        shows_per_hour: Показов в час
+        starts_at: Начало
+        status: Статус
+      organization:
+        created_at: Создано
+        updated_at: Обновлено
+        broadcast_point_groups: Группы экранов
+        kind: Тип
+        media_assets: Медиафайлы
+        media_plans: Медиапланы
+        name: Название
+        play_logs: Журналы показов
+        rotations: Ротации
+        time_zone: Часовой пояс
+        users: Пользователи
+      play_log:
+        created_at: Создано
+        updated_at: Обновлено
+        media_asset: Медиафайл
+        organization: Организация
+        screen: Экран
+        source: Источник
+        started_at: Начало показа
+      rotation:
+        created_at: Создано
+        updated_at: Обновлено
+        media_assets: Медиафайлы
+        media_plans: Медиапланы
+        name: Название
+        organization: Организация
+        rotation_items: Элементы ротации
+      rotation_item:
+        created_at: Создано
+        updated_at: Обновлено
+        display_duration_seconds: Длительность показа, сек
+        media_asset: Медиафайл
+        position: Позиция
+        rotation: Ротация
+      screen:
+        created_at: Создано
+        updated_at: Обновлено
+        broadcast_point_group_memberships: Вхождения в группы
+        broadcast_point_groups: Группы экранов
+        name: Название
+        orientation: Ориентация
+        owner_organization: Организация-владелец
+        play_logs: Журналы показов
+        screen_tags: Теги экрана
+        station: Станция
+        tags: Теги
+      screen_tag:
+        created_at: Создано
+        updated_at: Обновлено
+        screen: Экран
+        tag: Тег
+      station:
+        created_at: Создано
+        updated_at: Обновлено
+        agent_token_digest: Токен агента
+        location: Локация
+        name: Название
+        offline_cache_hours: Часы офлайн-кэша
+        screens: Экраны
+      tag:
+        created_at: Создано
+        updated_at: Обновлено
+        name: Название
+        screen_tags: Связи с экранами
+        screens: Экраны
+      user:
+        created_at: Создано
+        updated_at: Обновлено
+        email: Email
+        organization: Организация
+        password: Пароль
+        password_confirmation: Подтверждение пароля
+        role: Роль

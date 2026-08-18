@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::Base
   include CurrentOrganization
+  include LocaleSwitching
   include Pundit::Authorization
 
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
@@ -7,8 +8,6 @@ class ApplicationController < ActionController::Base
 
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
-
-  around_action :switch_locale
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
 
@@ -20,12 +19,6 @@ class ApplicationController < ActionController::Base
 
   def pundit_user
     Current.user
-  end
-
-  def switch_locale(&action)
-    locale = session[:locale].presence || I18n.default_locale
-    locale = I18n.default_locale unless I18n.available_locales.map(&:to_s).include?(locale.to_s)
-    I18n.with_locale(locale, &action)
   end
 
   def user_not_authorized

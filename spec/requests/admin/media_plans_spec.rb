@@ -46,7 +46,7 @@ RSpec.describe 'Admin media plans', type: :request do
       expect(response).to have_http_status(:success)
       expect(response.body).not_to include('Airtime quotas')
       expect(response.body).not_to include('Airtime Quotas')
-      expect(response.body).to match(/Media [Pp]lans/)
+      expect(response.body).to include(I18n.t("activerecord.models.media_plan", count: 2))
     end
 
     it 'lets an operator cancel a client plan and free the slot' do
@@ -82,8 +82,8 @@ RSpec.describe 'Admin media plans', type: :request do
 
       expect(response).to have_http_status(:success)
       expect(response.body).not_to include('Destroy')
-      expect(response.body).to include('Cancel plan')
-      expect(response.body).to include('Reschedule')
+      expect(response.body).to include(I18n.t("admin.media_plans.cancel"))
+      expect(response.body).to include(I18n.t("admin.media_plans.reschedule"))
       expect(response.body).not_to include('Edit')
     end
 

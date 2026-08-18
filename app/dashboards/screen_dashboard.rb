@@ -12,7 +12,7 @@ class ScreenDashboard < Administrate::BaseDashboard
     broadcast_point_group_memberships: Field::HasMany,
     broadcast_point_groups: Field::HasMany,
     name: Field::String,
-    orientation: Field::Select.with_options(searchable: false, collection: ->(field) { field.resource.class.send(field.attribute.to_s.pluralize).keys }),
+    orientation: LocalizedSelectField.with_options(searchable: false),
     owner_organization: Field::BelongsTo.with_options(class_name: "Organization"),
     play_logs: Field::HasMany,
     screen_tags: Field::HasMany,

@@ -10,7 +10,7 @@ class OrganizationDashboard < Administrate::BaseDashboard
   ATTRIBUTE_TYPES = {
     id: Field::Number,
     broadcast_point_groups: Field::HasMany,
-    kind: Field::Select.with_options(searchable: false, collection: ->(field) { field.resource.class.send(field.attribute.to_s.pluralize).keys }),
+    kind: LocalizedSelectField.with_options(searchable: false),
     media_assets: Field::HasMany,
     media_plans: Field::HasMany,
     name: Field::String,

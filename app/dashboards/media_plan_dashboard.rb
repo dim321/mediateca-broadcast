@@ -13,11 +13,11 @@ class MediaPlanDashboard < Administrate::BaseDashboard
     broadcast_point_group: Field::BelongsTo,
     ends_at: Field::DateTime,
     organization: Field::BelongsTo,
-    placement_kind: Field::Select.with_options(searchable: false, collection: ->(field) { field.resource.class.send(field.attribute.to_s.pluralize).keys }),
+    placement_kind: LocalizedSelectField.with_options(searchable: false),
     rotation: Field::BelongsTo,
     shows_per_hour: Field::Number,
     starts_at: Field::DateTime,
-    status: Field::Select.with_options(searchable: false, collection: ->(field) { field.resource.class.send(field.attribute.to_s.pluralize).keys }),
+    status: LocalizedSelectField.with_options(searchable: false),
     created_at: Field::DateTime,
     updated_at: Field::DateTime
   }.freeze

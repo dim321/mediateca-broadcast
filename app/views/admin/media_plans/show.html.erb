@@ -10,11 +10,11 @@
   </h1>
 
   <div>
-    <%= link_to "Cancel plan",
+    <%= link_to t("admin.media_plans.cancel"),
           cancel_admin_media_plan_path(page.resource),
-          data: { turbo_method: :delete, turbo_confirm: "Cancel this media plan and free the slot?" },
+          data: { turbo_method: :delete, turbo_confirm: t("admin.media_plans.cancel_confirm") },
           class: "button" %>
-    <%= link_to "Reschedule",
+    <%= link_to t("admin.media_plans.reschedule"),
           reschedule_admin_media_plan_path(page.resource),
           class: "button" %>
   </div>

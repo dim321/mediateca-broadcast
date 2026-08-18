@@ -5,7 +5,7 @@ module Admin
     def cancel
       plan = requested_resource
       Airtime::Cancel.call(plan: plan)
-      redirect_to admin_media_plans_path, notice: "Media plan cancelled."
+      redirect_to admin_media_plans_path, notice: t("admin.media_plans.cancelled")
     rescue ArgumentError => e
       redirect_to admin_media_plan_path(plan), alert: e.message
     end
@@ -32,7 +32,7 @@ module Admin
         starts_at: starts_at,
         ends_at: ends_at
       )
-      redirect_to admin_media_plan_path(@media_plan), notice: "Media plan rescheduled."
+      redirect_to admin_media_plan_path(@media_plan), notice: t("admin.media_plans.rescheduled")
     rescue Airtime::ConflictError, Airtime::InvalidWindowError, ArgumentError => e
       load_broadcast_point_groups
       flash.now[:alert] = e.message

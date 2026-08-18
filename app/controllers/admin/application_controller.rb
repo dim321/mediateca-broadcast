@@ -3,6 +3,7 @@
 module Admin
   class ApplicationController < Administrate::ApplicationController
     include CurrentOrganization
+    include LocaleSwitching
 
     helper ApplicationHelper
 

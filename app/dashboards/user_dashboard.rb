@@ -13,7 +13,7 @@ class UserDashboard < Administrate::BaseDashboard
     organization: Field::BelongsTo,
     password: Field::Password,
     password_confirmation: Field::Password,
-    role: Field::Select.with_options(searchable: false, collection: ->(field) { field.resource.class.send(field.attribute.to_s.pluralize).keys }),
+    role: LocalizedSelectField.with_options(searchable: false),
     created_at: Field::DateTime,
     updated_at: Field::DateTime
   }.freeze

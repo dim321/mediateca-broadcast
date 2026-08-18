@@ -15,7 +15,7 @@ class OperatingHoursField < Administrate::Field::Base
       next if windows.blank?
 
       parts = windows.map { |w| "#{w['start']}–#{w['end']}" }.join(", ")
-      "#{day}: #{parts}"
+      "#{I18n.t("admin.fields.operating_hours.days.#{day}")}: #{parts}"
     end.join("; ")
   end
 

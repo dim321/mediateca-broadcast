@@ -5,8 +5,7 @@ class BroadcastPointGroupDashboard < Administrate::BaseDashboard
     id: Field::Number,
     broadcast_point_group_memberships: Field::HasMany,
     commercial_quota_percent: Field::Number,
-    commercial_quota_period: Field::Select.with_options(
-      collection: [ [ "", nil ], %w[hour hour], %w[day day] ],
+    commercial_quota_period: LocalizedSelectField.with_options(
       include_blank: true
     ),
     media_plans: Field::HasMany,
