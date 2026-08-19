@@ -15,25 +15,6 @@ class OwnedScreensController < ApplicationController
     authorize @screen, policy_class: OwnedScreenPolicy
   end
 
-  def new
-    @screen = Screen.new(orientation: :landscape)
-    authorize @screen, policy_class: OwnedScreenPolicy
-    load_form_collections
-  end
-
-  def create
-    @screen = Screen.new(screen_params)
-    @screen.owner_organization = Current.user.organization
-    authorize @screen, policy_class: OwnedScreenPolicy
-
-    if station_matches_location? && @screen.save
-      redirect_to owned_screen_path(@screen), notice: t('.created')
-    else
-      load_form_collections
-      render :new, status: :unprocessable_content
-    end
-  end
-
   def edit
     authorize @screen, policy_class: OwnedScreenPolicy
     load_form_collections

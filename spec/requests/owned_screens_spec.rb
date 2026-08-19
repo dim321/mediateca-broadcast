@@ -9,51 +9,20 @@ RSpec.describe 'OwnedScreens', type: :request do
   let(:station) { create(:station, location: location) }
 
   describe 'POST /owned_screens' do
-    it 'creates a screen owned by the current organization' do
-      sign_in_as(user)
-
+    it 'is not routed in the client cabinet' do
       expect do
-        post owned_screens_path, params: {
-          location_id: location.id,
-          screen: { name: 'Lobby Left', orientation: 'landscape', station_id: station.id }
-        }
-      end.to change(Screen, :count).by(1)
-
-      screen = Screen.last
-      expect(screen.owner_organization).to eq(organization)
-      expect(screen.station).to eq(station)
-      expect(response).to redirect_to(owned_screen_path(screen))
+        Rails.application.routes.recognize_path('/owned_screens', method: :post)
+      end.to raise_error(ActionController::RoutingError)
     end
+  end
 
-    it 'ignores client-supplied owner_organization_id' do
+  describe 'GET /owned_screens/new' do
+    it 'does not expose a create form' do
       sign_in_as(user)
-      other = create(:organization, :client)
 
-      post owned_screens_path, params: {
-        location_id: location.id,
-        screen: {
-          name: 'Forced Owner',
-          orientation: 'portrait',
-          station_id: station.id,
-          owner_organization_id: other.id
-        }
-      }
+      get '/owned_screens/new'
 
-      expect(Screen.last.owner_organization).to eq(organization)
-    end
-
-    it 'rejects station that does not belong to submitted location' do
-      sign_in_as(user)
-      other_station = create(:station, location: create(:location))
-
-      expect do
-        post owned_screens_path, params: {
-          location_id: location.id,
-          screen: { name: 'Mismatch', orientation: 'landscape', station_id: other_station.id }
-        }
-      end.not_to change(Screen, :count)
-
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response).to have_http_status(:not_found)
     end
   end
 
@@ -70,6 +39,7 @@ RSpec.describe 'OwnedScreens', type: :request do
       expect(response.body).to include('Mine')
       expect(response.body).not_to include('FleetOnly')
       expect(response.body).not_to include('OtherOrg')
+      expect(response.body).not_to include('/owned_screens/new')
     end
 
     it 'denies accountant' do

@@ -1,9 +1,7 @@
 - content_for :title, t('.title')
-- actions = capture do
-  = link_to t('.new_screen'), new_owned_screen_path, class: 'btn btn-primary btn-sm'
 
 .mx-auto.w-full.max-w-6xl
-  = render 'shared/page_header', title: t('.title'), actions: actions
+  = render 'shared/page_header', title: t('.title')
 
   - if @screens.any?
     ul.list.bg-base-100.border.border-base-300.rounded-box.shadow-sm

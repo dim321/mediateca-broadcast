@@ -12,11 +12,11 @@ RSpec.describe OwnedScreenPolicy do
   let(:unowned) { create(:screen) }
 
   describe 'permissions' do
-    it 'allows manager CRUD on own org screen' do
+    it 'allows manager to view and update own org screen, but not create' do
       policy = described_class.new(manager, owned_screen)
       expect(policy).to be_index
       expect(policy).to be_show
-      expect(policy).to be_create
+      expect(policy).not_to be_create
       expect(policy).to be_update
       expect(policy).to be_destroy
     end

@@ -1,4 +1,4 @@
-= form_with model: screen, url: (screen.persisted? ? owned_screen_path(screen) : owned_screens_path), class: 'space-y-4 max-w-xl', data: { controller: 'location-station' } do |f|
+= form_with model: screen, url: owned_screen_path(screen), class: 'space-y-4 max-w-xl', data: { controller: 'location-station' } do |f|
   - if screen.errors.any?
     ul.text-sm.text-error.list-disc.pl-5
       - screen.errors.full_messages.each do |message|

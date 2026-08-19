@@ -46,6 +46,18 @@ RSpec.describe 'Operator onboarding and owner group', type: :system do
 
     expect(User.manager.joins(:organization).where(organizations: { name: %w[Командор Аллея] }).count).to eq(2)
 
+    location = Location.find_by!(name: 'Локация 1')
+    station = location.stations.find_by!(name: 'Станция A')
+
+    [ 'Витрина 1', 'Витрина 2', 'Витрина 3' ].each do |screen_name|
+      create_owned_screen_in_admin(screen_name, station:, organization_name: 'Командор')
+    end
+
+    komandor = Organization.find_by!(name: 'Командор')
+    expect(komandor.owned_screens.where(station:).pluck(:name)).to contain_exactly('Витрина 1', 'Витрина 2', 'Витрина 3')
+
+    create_owner_group_in_admin('Витрины Командор', organization_name: 'Командор')
+
     visit root_path
     click_button I18n.t('layouts.application.sign_out')
     expect(page).to have_current_path(login_path)
@@ -53,26 +65,17 @@ RSpec.describe 'Operator onboarding and owner group', type: :system do
     sign_in_through_ui(komandor_manager_email, manager_password)
     expect(page).to have_content('Командор')
 
-    location = Location.find_by!(name: 'Локация 1')
-    station = location.stations.find_by!(name: 'Станция A')
-
-    [ 'Витрина 1', 'Витрина 2', 'Витрина 3' ].each do |screen_name|
-      create_owned_screen(screen_name, location:, station:)
-    end
-
-    komandor = Organization.find_by!(name: 'Командор')
-    expect(komandor.owned_screens.where(station:).pluck(:name)).to contain_exactly('Витрина 1', 'Витрина 2', 'Витрина 3')
+    click_link I18n.t('layouts.application.owned_screens')
+    expect(page).to have_content('Витрина 1')
+    expect(page).to have_content('Витрина 2')
+    expect(page).to have_content('Витрина 3')
+    expect(page).not_to have_css('a[href="/owned_screens/new"]')
 
     click_link I18n.t('layouts.application.owned_broadcast_point_groups')
-    click_link I18n.t('owned_broadcast_point_groups.index.new_group')
-
-    fill_in 'broadcast_point_group_name', with: 'Витрины Командор'
-    fill_in I18n.t('owned_broadcast_point_groups.form.commercial_quota_percent'), with: '60'
-    find('#broadcast_point_group_commercial_quota_period option[value="hour"]').select_option
-    click_button I18n.t('owned_broadcast_point_groups.form.submit')
-
-    expect(page).to have_content(I18n.t('owned_broadcast_point_groups.create.created'))
     expect(page).to have_content('Витрины Командор')
+    expect(page).not_to have_css('a[href="/owned_broadcast_point_groups/new"]')
+    click_link 'Витрины Командор'
+
     expect(page).to have_content(
       I18n.t('owned_broadcast_point_groups.show.quota_summary', percent: 60, period: 'hour')
     )
@@ -136,18 +139,26 @@ RSpec.describe 'Operator onboarding and owner group', type: :system do
     expect(page).to have_content(email)
   end
 
-  def create_owned_screen(name, location:, station:)
-    click_link I18n.t('layouts.application.owned_screens')
-    click_link I18n.t('owned_screens.index.new_screen')
-    select location.name, from: 'location_id'
-    select "#{station.name} (#{location.name})", from: 'screen_station_id'
+  def create_owned_screen_in_admin(name, station:, organization_name:)
+    visit new_admin_screen_path
     fill_in 'screen_name', with: name
-    click_button I18n.t('helpers.submit.create', model: Screen.model_name.human)
-    expect(page).to have_content(I18n.t('owned_screens.create.created'))
+    select organization_name, from: 'screen_owner_organization_id'
+    find("#screen_station_id option[value='#{station.id}']").select_option
+    submit_admin_form
+    expect(page).to have_content(name)
+  end
+
+  def create_owner_group_in_admin(name, organization_name:)
+    visit new_admin_broadcast_point_group_path
+    fill_in 'broadcast_point_group_name', with: name
+    select organization_name, from: 'broadcast_point_group_organization_id'
+    fill_in 'broadcast_point_group_commercial_quota_percent', with: '60'
+    find('#broadcast_point_group_commercial_quota_period option[value="hour"]').select_option
+    submit_admin_form
     expect(page).to have_content(name)
   end
 
   def submit_admin_form
-    within('form') { find('input[type=submit]').click }
+    within('section.main-content__body form') { find('input[type=submit]').click }
   end
 end

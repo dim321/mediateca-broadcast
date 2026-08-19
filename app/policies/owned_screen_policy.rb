@@ -14,13 +14,6 @@ class OwnedScreenPolicy < ApplicationPolicy
     record.owner_organization_id == user.organization_id
   end
 
-  def create?
-    return false unless user
-    return false if operator?
-
-    client_mutator?
-  end
-
   def update? = show? && client_mutator?
 
   def destroy? = update?

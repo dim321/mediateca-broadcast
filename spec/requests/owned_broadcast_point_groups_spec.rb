@@ -9,36 +9,35 @@ RSpec.describe 'OwnedBroadcastPointGroups', type: :request do
   let(:fleet_screen) { create(:screen) }
 
   describe 'POST /owned_broadcast_point_groups' do
-    it 'creates a group for the organization with quota fields' do
-      sign_in_as(user)
-
+    it 'is not routed in the client cabinet' do
       expect do
-        post owned_broadcast_point_groups_path, params: {
-          broadcast_point_group: { name: 'My owner group' }
-        }
-      end.to change(BroadcastPointGroup, :count).by(1)
-
-      group = BroadcastPointGroup.last
-      expect(group.organization).to eq(organization)
-      expect(response).to redirect_to(owned_broadcast_point_group_path(group))
+        Rails.application.routes.recognize_path('/owned_broadcast_point_groups', method: :post)
+      end.to raise_error(ActionController::RoutingError)
     end
+  end
 
-    it 'allows creating an empty owner group with commercial quota' do
+  describe 'GET /owned_broadcast_point_groups/new' do
+    it 'does not expose a create form' do
       sign_in_as(user)
 
-      expect do
-        post owned_broadcast_point_groups_path, params: {
-          broadcast_point_group: {
-            name: 'Первая группа',
-            commercial_quota_percent: 60,
-            commercial_quota_period: 'hour'
-          }
-        }
-      end.to change(BroadcastPointGroup, :count).by(1)
+      get '/owned_broadcast_point_groups/new'
 
-      group = BroadcastPointGroup.last
-      expect(group).to have_attributes(commercial_quota_percent: 60, commercial_quota_period: 'hour')
-      expect(response).to redirect_to(owned_broadcast_point_group_path(group))
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe 'GET /owned_broadcast_point_groups' do
+    it 'lists only groups of the current organization' do
+      sign_in_as(user)
+      create(:broadcast_point_group, organization: organization, name: 'Mine')
+      create(:broadcast_point_group, name: 'OtherOrg')
+
+      get owned_broadcast_point_groups_path
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Mine')
+      expect(response.body).not_to include('OtherOrg')
+      expect(response.body).not_to include('/owned_broadcast_point_groups/new')
     end
   end
 

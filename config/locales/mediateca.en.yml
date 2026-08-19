@@ -34,10 +34,7 @@ en:
   owned_screens:
     index:
       title: My screens
-      new_screen: Add screen
       empty: You have no owned screens yet.
-    new:
-      title: New screen
     edit:
       title: Edit screen
     form:
@@ -57,8 +54,6 @@ en:
       station: Station
       location: Location
       orientation: Orientation
-    create:
-      created: Screen created.
     update:
       updated: Screen updated.
     destroy:
@@ -67,10 +62,7 @@ en:
   owned_broadcast_point_groups:
     index:
       title: My groups
-      new_group: New owner group
       empty: No owner groups yet.
-    new:
-      title: New owner group
     edit:
       title: Edit owner group
     form:
@@ -92,8 +84,6 @@ en:
       remove: Remove
       remove_confirm: Remove this screen from the group?
       quota_summary: "Commercial quota: %{percent}% per %{period}"
-    create:
-      created: Owner group created.
     update:
       updated: Owner group updated.
     add_screens:

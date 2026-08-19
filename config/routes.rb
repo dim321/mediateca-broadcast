@@ -51,9 +51,9 @@ Rails.application.routes.draw do
 
   resources :locations, only: %i[index edit update]
 
-  resources :owned_screens
+  resources :owned_screens, except: %i[new create]
 
-  resources :owned_broadcast_point_groups do
+  resources :owned_broadcast_point_groups, except: %i[new create] do
     member do
       post :add_screens
       delete :remove_member

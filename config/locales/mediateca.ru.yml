@@ -32,10 +32,7 @@ ru:
   owned_screens:
     index:
       title: Мои экраны
-      new_screen: Добавить экран
       empty: У вас пока нет своих экранов.
-    new:
-      title: Новый экран
     edit:
       title: Редактирование экрана
     form:
@@ -55,8 +52,6 @@ ru:
       station: Станция
       location: Локация
       orientation: Ориентация
-    create:
-      created: Экран создан.
     update:
       updated: Экран обновлён.
     destroy:
@@ -65,10 +60,7 @@ ru:
   owned_broadcast_point_groups:
     index:
       title: Мои группы
-      new_group: Новая группа владельца
       empty: Групп владельца пока нет.
-    new:
-      title: Новая группа владельца
     edit:
       title: Редактирование группы владельца
     form:
@@ -90,8 +82,6 @@ ru:
       remove: Удалить
       remove_confirm: Удалить этот экран из группы?
       quota_summary: "Коммерческая квота: %{percent}% за %{period}"
-    create:
-      created: Группа владельца создана.
     update:
       updated: Группа владельца обновлена.
     add_screens:

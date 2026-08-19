@@ -18,22 +18,6 @@ class OwnedBroadcastPointGroupsController < ApplicationController
     @available_screens = owned_screens_scope.where.not(id: @members.select(:id)).includes(:station).order(:name)
   end
 
-  def new
-    @broadcast_point_group = BroadcastPointGroup.new(organization: Current.user.organization)
-    authorize @broadcast_point_group, policy_class: OwnedBroadcastPointGroupPolicy
-  end
-
-  def create
-    @broadcast_point_group = BroadcastPointGroup.new(group_params)
-    @broadcast_point_group.organization = Current.user.organization
-    authorize @broadcast_point_group, policy_class: OwnedBroadcastPointGroupPolicy
-    if @broadcast_point_group.save
-      redirect_to owned_broadcast_point_group_path(@broadcast_point_group), notice: t('.created')
-    else
-      render :new, status: :unprocessable_content
-    end
-  end
-
   def edit
     authorize @broadcast_point_group, policy_class: OwnedBroadcastPointGroupPolicy
   end

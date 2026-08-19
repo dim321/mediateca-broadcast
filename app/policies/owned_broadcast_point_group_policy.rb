@@ -14,13 +14,6 @@ class OwnedBroadcastPointGroupPolicy < ApplicationPolicy
     record.organization_id == user.organization_id
   end
 
-  def create?
-    return false unless user
-    return false if operator?
-
-    client_mutator?
-  end
-
   def update? = show? && client_mutator?
 
   def add_screens? = update?

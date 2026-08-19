@@ -1,4 +1,4 @@
-= form_with model: broadcast_point_group, url: (broadcast_point_group.persisted? ? owned_broadcast_point_group_path(broadcast_point_group) : owned_broadcast_point_groups_path), class: 'space-y-4 max-w-xl' do |f|
+= form_with model: broadcast_point_group, url: owned_broadcast_point_group_path(broadcast_point_group), class: 'space-y-4 max-w-xl' do |f|
   - if broadcast_point_group.errors.any?
     ul.text-sm.text-error.list-disc.pl-5
       - broadcast_point_group.errors.full_messages.each do |message|
