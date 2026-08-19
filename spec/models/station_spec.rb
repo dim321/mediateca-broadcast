@@ -35,4 +35,22 @@ RSpec.describe Station, type: :model do
       expect(described_class.find_by_agent_token(token)).to eq(station)
     end
   end
+
+  describe '#next_screen_name' do
+    it 'uses location and station names with the next free number' do
+      location = create(:location, name: 'Локация 1')
+      station = create(:station, name: 'Станция A', location: location)
+
+      expect(station.next_screen_name).to eq('Локация 1-Станция A_screen_1')
+    end
+
+    it 'skips numbers already used on the station' do
+      location = create(:location, name: 'Локация 1')
+      station = create(:station, name: 'Станция A', location: location)
+      create(:screen, station: station, name: 'Локация 1-Станция A_screen_1')
+      create(:screen, station: station, name: 'Витрина')
+
+      expect(station.next_screen_name).to eq('Локация 1-Станция A_screen_2')
+    end
+  end
 end

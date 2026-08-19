@@ -488,6 +488,9 @@ ru:
   administrate:
     actions:
       cancel: Отмена
+    field_hints:
+      screen:
+        owner_organization: По умолчанию — организация-оператор (экран флота). Выберите клиента, если экран принадлежит ему.
   admin:
     media_plans:
       broadcast_point_group: Группа экранов
@@ -675,6 +678,9 @@ ru:
         play_logs: Журналы показов
         screen_tags: Теги экрана
         station: Станция
+        location_id: Локация
+        location_blank: Выберите локацию
+        station_blank: Выберите станцию
         tags: Теги
       screen_tag:
         created_at: Создано

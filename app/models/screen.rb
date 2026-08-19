@@ -38,14 +38,35 @@ class Screen < ApplicationRecord
     portrait: "portrait"
   }, default: :landscape
 
+  attribute :location_id, :integer
+
   validates :name, presence: true, uniqueness: { scope: :station_id }
   validate :owner_organization_must_be_client
 
   scope :operator_catalog, -> { all }
 
-  delegate :location, to: :station
+  delegate :location, to: :station, allow_nil: true
+
+  before_validation :assign_default_name, on: :create
+  before_validation :clear_operator_owner
+
+  def location_id
+    super.presence || station&.location_id
+  end
 
   private
+
+  def assign_default_name
+    return if name.present? || station.blank?
+
+    self.name = station.next_screen_name
+  end
+
+  def clear_operator_owner
+    return unless owner_organization&.operator?
+
+    self.owner_organization = nil
+  end
 
   def owner_organization_must_be_client
     return if owner_organization.blank?

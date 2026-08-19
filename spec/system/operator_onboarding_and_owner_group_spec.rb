@@ -141,9 +141,10 @@ RSpec.describe 'Operator onboarding and owner group', type: :system do
 
   def create_owned_screen_in_admin(name, station:, organization_name:)
     visit new_admin_screen_path
+    select station.location.name, from: 'screen_location_id'
+    find("#screen_station_id option[value='#{station.id}']").select_option
     fill_in 'screen_name', with: name
     select organization_name, from: 'screen_owner_organization_id'
-    find("#screen_station_id option[value='#{station.id}']").select_option
     submit_admin_form
     expect(page).to have_content(name)
   end

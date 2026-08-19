@@ -11,12 +11,13 @@ class ScreenDashboard < Administrate::BaseDashboard
     id: Field::Number,
     broadcast_point_group_memberships: Field::HasMany,
     broadcast_point_groups: Field::HasMany,
+    location_id: ScreenLocationField,
     name: Field::String,
     orientation: LocalizedSelectField.with_options(searchable: false),
-    owner_organization: Field::BelongsTo.with_options(class_name: "Organization"),
+    owner_organization: ScreenOwnerOrganizationField.with_options(class_name: "Organization"),
     play_logs: Field::HasMany,
     screen_tags: Field::HasMany,
-    station: Field::BelongsTo,
+    station: LocationScopedStationField,
     tags: Field::HasMany,
     created_at: Field::DateTime,
     updated_at: Field::DateTime
@@ -55,10 +56,11 @@ class ScreenDashboard < Administrate::BaseDashboard
   # an array of attributes that will be displayed
   # on the model's form (`new` and `edit`) pages.
   FORM_ATTRIBUTES = %i[
+    location_id
+    station
     name
     orientation
     owner_organization
-    station
     tags
   ].freeze
 

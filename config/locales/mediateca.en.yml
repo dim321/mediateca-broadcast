@@ -482,6 +482,9 @@ en:
   administrate:
     actions:
       cancel: Cancel
+    field_hints:
+      screen:
+        owner_organization: Defaults to the operator organization (fleet screen). Choose a client if the screen belongs to them.
   admin:
     media_plans:
       broadcast_point_group: Screen group
@@ -670,6 +673,9 @@ en:
         play_logs: Play logs
         screen_tags: Screen tags
         station: Station
+        location_id: Location
+        location_blank: Select location
+        station_blank: Select station
         tags: Tags
       screen_tag:
         id: ID

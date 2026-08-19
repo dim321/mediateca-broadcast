@@ -29,6 +29,10 @@ class Station < ApplicationRecord
   validates :name, presence: true, uniqueness: { scope: :location_id }
   validates :offline_cache_hours, numericality: { only_integer: true, greater_than: 0 }
 
+  def next_screen_name
+    screen_name_for(next_screen_number)
+  end
+
   def self.find_by_agent_token(token)
     return if token.blank?
 
@@ -44,5 +48,18 @@ class Station < ApplicationRecord
     agent_token_digest.present? && BCrypt::Password.new(agent_token_digest).is_password?(token)
   rescue BCrypt::Errors::InvalidHash
     false
+  end
+
+  private
+
+  def screen_name_for(number)
+    "#{location.name}-#{name}-screen-#{number}"
+  end
+
+  def next_screen_number
+    names = screens.map(&:name)
+    n = 1
+    n += 1 while names.include?(screen_name_for(n))
+    n
   end
 end

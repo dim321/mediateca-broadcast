@@ -1,0 +1,18 @@
+<%#
+# Location filter for the screen form. Not persisted — used to narrow stations.
+%>
+
+<div class="field-unit__label">
+  <%= f.label field.attribute %>
+</div>
+<div class="field-unit__field">
+  <%= f.select(
+    field.attribute,
+    options_for_select(field.selectable_options, field.data),
+    { include_blank: field.include_blank_option },
+    data: {
+      screen_location_select: true,
+      auto_fill_name: field.resource.new_record?
+    }
+  ) %>
+</div>
