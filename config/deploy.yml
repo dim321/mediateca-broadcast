@@ -41,12 +41,15 @@ registry:
     - KAMAL_REGISTRY_PASSWORD
 
 # Inject ENV variables into containers (secrets come from .kamal/secrets).
-# For S3/R2 blobs: list AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY under secret, set ACTIVE_STORAGE_SERVICE=amazon in clear.
+# rustfs (S3-compatible): keys under secret, endpoint/bucket under clear.
+# Контейнер должен маршрутизировать 192.168.1.14:9010 (тот же LAN/VPN, что и rustfs).
 env:
   secret:
     - RAILS_MASTER_KEY
     # Must match POSTGRES_PASSWORD on the db accessory (see .kamal/secrets)
     - MEDIATECA_BROADCAST_DATABASE_PASSWORD
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
   clear:
     # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
     # When you start using multiple servers, you should split out job processing to a dedicated machine.
@@ -61,6 +64,13 @@ env:
     # PostgreSQL accessory (same Docker network): hostname is <service>-<accessory name>
     DB_HOST: mediateca_broadcast-db
 
+    ACTIVE_STORAGE_SERVICE: rustfs
+    AWS_REGION: ru-central-1
+    AWS_S3_BUCKET: media
+    AWS_ENDPOINT_URL_S3: http://192.168.1.14:9010
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+
     # Log everything from Rails
     # RAILS_LOG_LEVEL: debug
 
@@ -72,8 +82,7 @@ aliases:
   logs: app logs -f
   dbc: app exec --interactive --reuse "bin/rails dbconsole --include-password"
 
-# Use a persistent storage volume for sqlite database files and local Active Storage files.
-# Recommended to change this to a mounted volume path that is backed up off server.
+# Disk fallback if ACTIVE_STORAGE_SERVICE=local. Production blobs go to rustfs.
 volumes:
   - "mediateca_broadcast_storage:/rails/storage"
 
