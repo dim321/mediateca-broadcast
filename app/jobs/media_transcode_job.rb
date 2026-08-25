@@ -22,6 +22,8 @@ class MediaTranscodeJob < ApplicationJob
 
     media_asset.update!(processing_status: :ready)
   rescue StandardError => e
+    raise if Media::StorageErrors.network?(e)
+
     handle_failure(media_asset_id, e)
   end
 

@@ -81,6 +81,31 @@ RSpec.describe "MediaAssets", type: :request do
       expect(response).to have_http_status(:unprocessable_content)
     end
 
+    it "enqueues processing when storage times out after the asset is persisted" do
+      png = Rails.root.join("spec/fixtures/files/1x1.png")
+      original_save = MediaAsset.instance_method(:save)
+      allow_any_instance_of(MediaAsset).to receive(:enqueue_metadata_processing)
+      allow_any_instance_of(MediaAsset).to receive(:save) do |record|
+        saved = original_save.bind_call(record)
+        raise Errno::ETIMEDOUT, "user specified timeout for 192.168.1.14:9010" if saved
+
+        saved
+      end
+
+      expect do
+        post media_assets_path, params: {
+          media_asset: {
+            file: fixture_file_upload(png, "image/png"),
+            content_type: "own",
+            visibility: "organization"
+          }
+        }
+      end.to change(MediaAsset, :count).by(1)
+
+      expect(response).to redirect_to(media_assets_path)
+      expect(ProcessMediaMetadataJob).to have_received(:perform_later).with(MediaAsset.last.id)
+    end
+
     it "creates an asset for a valid upload" do
       png = Rails.root.join("spec/fixtures/files/1x1.png")
       expect do

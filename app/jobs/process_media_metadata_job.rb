@@ -3,10 +3,16 @@
 class ProcessMediaMetadataJob < ApplicationJob
   queue_as :default
 
+  class MissingFile < StandardError; end
+
   def perform(media_asset_id)
     media_asset = MediaAsset.find_by(id: media_asset_id)
     return if media_asset.blank?
-    return unless media_asset.file.attached?
+
+    unless media_asset.file.attached?
+      handle_failure(media_asset_id, MissingFile.new("MediaAsset #{media_asset_id} has no attached file"))
+      return
+    end
 
     media_asset.update!(processing_status: :processing)
 
@@ -29,6 +35,8 @@ class ProcessMediaMetadataJob < ApplicationJob
       MediaTranscodeJob.perform_later(media_asset.id) if media_asset.video?
     end
   rescue StandardError => e
+    raise if Media::StorageErrors.network?(e)
+
     handle_failure(media_asset_id, e)
   end
 

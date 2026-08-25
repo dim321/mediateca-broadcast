@@ -4,6 +4,8 @@ require "fileutils"
 require "rails_helper"
 
 RSpec.describe MediaTranscodeJob, type: :job do
+  include ActiveJob::TestHelper
+
   let(:organization) { create(:organization) }
   let(:user) { create(:user, organization: organization) }
 
@@ -33,6 +35,18 @@ RSpec.describe MediaTranscodeJob, type: :job do
     expect(asset).to be_ready
     expect(asset.broadcast_file).not_to be_attached
     expect(Media::TsEncoder).not_to have_received(:call)
+  end
+
+  it "does not mark the asset failed on the first storage timeout" do
+    asset = create_video_asset
+    clear_enqueued_jobs
+    allow(MediaAsset).to receive(:find_by).with(id: asset.id).and_return(asset)
+    allow(asset.file.blob).to receive(:open).and_raise(
+      Errno::ETIMEDOUT, "user specified timeout for 192.168.1.14:9010"
+    )
+
+    expect { described_class.perform_now(asset.id) }.to have_enqueued_job(described_class)
+    expect(asset.reload).not_to be_failed
   end
 
   it "marks the asset failed with transcode error metadata when encoding fails" do

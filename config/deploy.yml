@@ -70,6 +70,9 @@ env:
     AWS_ENDPOINT_URL_S3: http://192.168.1.14:9010
     AWS_REQUEST_CHECKSUM_CALCULATION: when_required
     AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    # Large media uploads + rustfs proxying. Thruster default HTTP_READ_TIMEOUT is 30s.
+    HTTP_READ_TIMEOUT: 300
+    HTTP_WRITE_TIMEOUT: 300
 
     # Log everything from Rails
     # RAILS_LOG_LEVEL: debug
