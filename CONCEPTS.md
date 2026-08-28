@@ -32,6 +32,15 @@ An internal reservation record for a calendar window on a group. Kept as a non-U
 ### Media plan
 Binding of a rotation to a broadcast point group for a time window. In the slot model, creating an active media plan occupies the airtime slot; soft-cancel releases it.
 
+### Advertising order
+Commercial order document (counterparty, product, clip, per-placement day grid with shows and prices) that unfolds into media-plan slots via the standard occupy flow. Slots keep a nullable reference to their order line; manually created slots have none. The order is the commercial truth; the slot remains the airtime truth.
+
+### Broadcast portrait
+A station's airtime structure template (cyclic kind with block frequency per hour, ordered blocks: commercial from active slots, filler rotations with pick strategy, timed insertions, service headers). A portrait without a station is a template copied when a broadcast point is registered.
+
+### Playlist
+Materialized daily document per station: versioned positions with timing and origin (media plan / filler / insertion / service), generated from active slots plus the station's broadcast portrait. One current version per station and date; older versions and aged playlists are purged — airtime certificates are built from orders and play logs, not playlists.
+
 ### Soft-cancel
 Releasing an airtime slot by marking the media plan (and its internal booking) cancelled rather than hard-deleting. Cancelled occupancy must not block new placements or appear in on-air packages.
 
