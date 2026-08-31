@@ -1,7 +1,11 @@
-- time_zone = Current.user.organization.time_zone
-= form_with model: advertising_order, class: 'space-y-6', data: { controller: 'order-grid' } do |f|
+- time_zone = local_assigns.fetch(:time_zone) { Current.user.organization.time_zone }
+- cancel_url = local_assigns.fetch(:cancel_url, advertising_orders_path)
+- sphere_text = advertising_order.business_sphere.presence || local_assigns[:business_sphere_preview]
+= form_with model: advertising_order, url: local_assigns[:form_url], class: 'space-y-6', data: { controller: 'order-grid' } do |f|
   = hidden_field_tag :grid_from, @grid_dates.first
   = hidden_field_tag :grid_to, @grid_dates.last
+  - if local_assigns[:organization_id].present?
+    = hidden_field_tag 'advertising_order[organization_id]', organization_id
   - if advertising_order.errors.any?
     ul.text-sm.text-error.list-disc.pl-5
       - advertising_order.errors.full_messages.each do |message|
@@ -12,11 +16,11 @@
     - line.advertising_order_line_days.each do |day|
       - day.errors.full_messages.each do |message|
         p.text-sm.text-error = message
-  - if advertising_order.persisted? && advertising_order.business_sphere.present?
+  - if sphere_text.present?
     p.text-sm.text-base-content/60
       = AdvertisingOrder.human_attribute_name(:business_sphere)
       | :
-      =< advertising_order.business_sphere
+      =< sphere_text
   div.grid.gap-4.md:grid-cols-2
     div
       = f.label :product_name, class: 'block text-sm font-medium'
@@ -56,10 +60,10 @@
         button.btn.btn-sm type='button' data-action='order-grid#fillRange' = t('.fill_range')
       .space-y-4 data-order-grid-target='lines'
         - advertising_order.advertising_order_lines.each_with_index do |line, index|
-          = render 'line_fields', line: line, index: index
+          = render 'advertising_orders/line_fields', line: line, index: index
       button.btn.btn-sm.btn-ghost type='button' data-action='order-grid#addLine' = t('.add_line')
       template data-order-grid-target='lineTemplate'
-        = render 'line_fields', line: AdvertisingOrderLine.new, index: 'NEW_LINE'
+        = render 'advertising_orders/line_fields', line: AdvertisingOrderLine.new, index: 'NEW_LINE'
   .flex.gap-3
     = f.submit t('.submit'), class: 'btn btn-primary btn-sm'
-    = link_to t('.cancel'), advertising_orders_path, class: 'btn btn-ghost btn-sm'
+    = link_to t('.cancel'), cancel_url, class: 'btn btn-ghost btn-sm'

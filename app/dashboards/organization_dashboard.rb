@@ -13,8 +13,10 @@ class OrganizationDashboard < Administrate::BaseDashboard
     kind: LocalizedSelectField.with_options(searchable: false),
     media_assets: Field::HasMany,
     media_plans: Field::HasMany,
+    advertising_orders: Field::HasMany,
     name: Field::String,
     play_logs: Field::HasMany,
+    profile: Field::HasOne,
     rotations: Field::HasMany,
     time_zone: Field::String,
     users: Field::HasMany,
@@ -42,8 +44,10 @@ class OrganizationDashboard < Administrate::BaseDashboard
     kind
     media_assets
     media_plans
+    advertising_orders
     name
     play_logs
+    profile
     rotations
     time_zone
     users
@@ -59,6 +63,7 @@ class OrganizationDashboard < Administrate::BaseDashboard
     kind
     name
     time_zone
+    profile
     users
   ].freeze
 

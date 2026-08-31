@@ -412,10 +412,12 @@ en:
         business_sphere: Business sphere
         clip_title: Clip title
         coefficient_percent: Coefficient %
+        created_by: Author
         discount_cents: Discount
         document_version: Document version
         duration_seconds: Duration
         media_asset: Clip
+        organization: Organization
         placement_kind: Placement type
         product_name: Product
         rotation: Rotation
@@ -609,6 +611,17 @@ en:
       screen:
         owner_organization: Defaults to the operator organization (fleet screen). Choose a client if the screen belongs to them.
   admin:
+    advertising_orders:
+      activate: Activate
+      cancel: Cancel order
+      cancel_confirm: Cancel this order and free occupied airtime?
+      cancelled: Order cancelled.
+      edit: Edit grid
+      edit_title: Edit order
+      new_title: New order on behalf of a client
+      organization: Client organization
+    business_spheres:
+      destroy_restricted: Cannot delete a business sphere while it is used by an organization profile.
     media_plans:
       broadcast_point_group: Screen group
       cancel: Cancel media plan

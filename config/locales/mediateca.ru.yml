@@ -416,10 +416,12 @@ ru:
         business_sphere: Сфера деятельности
         clip_title: Название ролика
         coefficient_percent: Коэффициент, %
+        created_by: Автор
         discount_cents: Скидка
         document_version: Версия документа
         duration_seconds: Хронометраж
         media_asset: Ролик
+        organization: Организация
         placement_kind: Тип размещения
         product_name: Продукт
         rotation: Ротация
@@ -617,6 +619,17 @@ ru:
       screen:
         owner_organization: По умолчанию — организация-оператор (экран флота). Выберите клиента, если экран принадлежит ему.
   admin:
+    advertising_orders:
+      activate: Активировать
+      cancel: Отменить заказ
+      cancel_confirm: Отменить этот заказ и освободить занятый эфир?
+      cancelled: Заказ отменён.
+      edit: Изменить сетку
+      edit_title: Редактирование заказа
+      new_title: Новый заказ от имени клиента
+      organization: Организация-контрагент
+    business_spheres:
+      destroy_restricted: Нельзя удалить сферу деятельности, пока она указана в профиле организации.
     media_plans:
       broadcast_point_group: Группа экранов
       cancel: Отменить медиаплан

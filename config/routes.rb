@@ -2,6 +2,9 @@ Rails.application.routes.draw do
   namespace :admin do
       resources :broadcast_point_groups
       resources :broadcast_point_group_memberships
+      namespace :directory do
+        resources :business_spheres
+      end
       resources :locations
       resources :media_assets
       resources :media_plans do
@@ -11,8 +14,15 @@ Rails.application.routes.draw do
           patch :reschedule
         end
       end
+      resources :advertising_orders, except: %i[destroy] do
+        member do
+          post :activate
+          post :cancel
+        end
+      end
       resources :organizations
       resources :play_logs
+      resources :profiles, only: %i[show]
       resources :rotations
       resources :rotation_items
       resources :screens
