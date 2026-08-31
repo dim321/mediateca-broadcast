@@ -2,7 +2,7 @@
 
 class AdvertisingOrdersController < ApplicationController
   before_action :require_user
-  before_action :set_advertising_order, only: %i[show edit update destroy activate cancel print]
+  before_action :set_advertising_order, only: %i[show edit update destroy activate cancel print replace_clip]
   before_action :load_form_collections, only: %i[new create edit update]
 
   def index
@@ -107,6 +107,25 @@ class AdvertisingOrdersController < ApplicationController
     authorize @advertising_order
   end
 
+  def replace_clip
+    authorize @advertising_order
+    load_replacement_assets
+
+    return if request.get? || request.head?
+
+    asset = find_replacement_asset
+    unless asset
+      @advertising_order.errors.add(:media_asset, :blank)
+      return render :replace_clip, status: :unprocessable_content
+    end
+
+    Advertising::ReplaceClip.call(order: @advertising_order, media_asset: asset)
+    redirect_to advertising_order_path(@advertising_order), notice: t(".replaced")
+  rescue Advertising::Error => e
+    flash.now[:alert] = e.message
+    render :replace_clip, status: :unprocessable_content
+  end
+
   private
 
   def require_user
@@ -167,6 +186,16 @@ class AdvertisingOrdersController < ApplicationController
 
   def find_media_asset
     policy_scope(MediaAsset).find_by(id: order_params[:media_asset_id])
+  end
+
+  def find_replacement_asset
+    policy_scope(MediaAsset).find_by(id: params[:media_asset_id])
+  end
+
+  def load_replacement_assets
+    @media_assets = policy_scope(MediaAsset).ready.with_attached_file.order(created_at: :desc).select do |asset|
+      asset.id != @advertising_order.media_asset_id && asset.broadcast_ready?
+    end
   end
 
   def find_placement_group

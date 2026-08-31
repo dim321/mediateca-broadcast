@@ -18,4 +18,9 @@ module AdvertisingOrdersHelper
   def unoccupied_dates_for(coverage, line)
     coverage.unoccupied_days.select { |day| day.line.id == line.id }.map(&:date)
   end
+
+  def advertising_clip_option_label(asset)
+    name = asset.file.attached? ? asset.file.filename.to_s : asset.id.to_s
+    "#{name} (#{asset.duration_seconds}s)"
+  end
 end

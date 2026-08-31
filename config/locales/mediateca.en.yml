@@ -575,8 +575,11 @@ en:
       back: Back to orders
       unoccupied: Unoccupied days
       total_shows: "Shows: %{count}"
+      replace_clip: Replace clip
+      document_version: "Version %{version}"
     print:
       title: "Order — %{product}"
+      document_version: "Document version: %{version}"
     create:
       created: Order saved.
     update:
@@ -591,6 +594,14 @@ en:
         other: "%{count} windows were not occupied due to a conflict."
     cancel:
       cancelled: Order cancelled.
+    replace_clip:
+      title: Replace clip
+      current_clip: Current clip
+      duration_warning: If the new clip has a different duration, the rotation cycle and commercial quota numerator will change.
+      submit: Confirm replacement
+      confirm: Replace the clip on this active order? Airtime slots will not be recreated.
+      cancel: Cancel
+      replaced: Clip replaced, document version incremented.
   administrate:
     actions:
       cancel: Cancel
@@ -834,3 +845,4 @@ en:
     system_rotation_name: "Order #%{number}"
     errors:
       clip_not_ready: clip is not broadcast-ready
+      order_not_active: clip can be replaced only on an active order

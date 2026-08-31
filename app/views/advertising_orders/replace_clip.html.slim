@@ -1,0 +1,32 @@
+- content_for :title, t('.title')
+
+.flex.flex-col.gap-4.w-full.max-w-xl
+  = render 'shared/page_header', title: t('.title')
+  p.text-sm.text-base-content/70
+    = t('.current_clip')
+    | :
+    =< @advertising_order.clip_title
+    |  (
+    = @advertising_order.duration_seconds
+    | s)
+  - if @advertising_order.errors.any?
+    ul.text-sm.text-error.list-disc.pl-5
+      - @advertising_order.errors.full_messages.each do |message|
+        li = message
+  = form_with url: replace_clip_advertising_order_path(@advertising_order),
+      method: :patch,
+      class: 'space-y-4',
+      data: { controller: 'clip-duration', clip_duration_current_value: @advertising_order.duration_seconds } do
+    .alert.alert-warning role='alert' data-clip-duration-target='warning'
+      = t('.duration_warning')
+    div
+      label.block.text-sm.font-medium for='media_asset_id' = AdvertisingOrder.human_attribute_name(:media_asset)
+      = select_tag :media_asset_id,
+          options_for_select(@media_assets.map { |asset| [advertising_clip_option_label(asset), asset.id, { 'data-duration' => asset.duration_seconds }] }),
+          include_blank: true,
+          class: 'select select-bordered w-full mt-1',
+          id: 'media_asset_id',
+          data: { clip_duration_target: 'select', action: 'clip-duration#change' }
+    .flex.gap-3
+      = submit_tag t('.submit'), class: 'btn btn-primary btn-sm', data: { turbo_confirm: t('.confirm') }
+      = link_to t('.cancel'), advertising_order_path(@advertising_order), class: 'btn btn-ghost btn-sm'

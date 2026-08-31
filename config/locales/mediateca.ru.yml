@@ -581,8 +581,11 @@ ru:
       back: Назад к заказам
       unoccupied: Незанятые дни
       total_shows: "Выходов: %{count}"
+      replace_clip: Заменить ролик
+      document_version: "Версия %{version}"
     print:
       title: "Заказ — %{product}"
+      document_version: "Версия документа: %{version}"
     create:
       created: Заказ сохранён.
     update:
@@ -599,6 +602,14 @@ ru:
         other: "%{count} окон не заняты из-за конфликта."
     cancel:
       cancelled: Заказ отменён.
+    replace_clip:
+      title: Замена ролика
+      current_clip: Текущий ролик
+      duration_warning: Если хронометраж нового ролика отличается, изменятся цикл ротации и числитель коммерческой квоты.
+      submit: Подтвердить замену
+      confirm: Заменить ролик в активном заказе? Слоты эфира не пересоздаются.
+      cancel: Отмена
+      replaced: Ролик заменён, версия документа увеличена.
   administrate:
     actions:
       cancel: Отмена
@@ -837,3 +848,4 @@ ru:
     system_rotation_name: "Заказ №%{number}"
     errors:
       clip_not_ready: ролик не готов к эфиру
+      order_not_active: заменить ролик можно только в активном заказе

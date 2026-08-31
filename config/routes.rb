@@ -73,6 +73,8 @@ Rails.application.routes.draw do
       post :activate
       post :cancel
       get :print
+      get :replace_clip
+      patch :replace_clip
     end
   end
 

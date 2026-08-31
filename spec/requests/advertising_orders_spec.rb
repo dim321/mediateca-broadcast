@@ -28,6 +28,28 @@ RSpec.describe "AdvertisingOrders", type: :request do
     }
   end
 
+  def active_order
+    order = Advertising::CreateOrder.call(
+      organization: organization, created_by: user, media_asset: asset, product_name: "Triumph"
+    )
+    Advertising::UpdateGrid.call(
+      order: order,
+      lines: [ {
+        broadcast_point_group_id: group.id,
+        price_per_day_cents: 1_000,
+        days: [ { date: Date.new(2026, 6, 3), shows: 36 } ]
+      } ]
+    )
+    Advertising::ActivateOrder.call(order: order)
+    order.reload
+  end
+
+  def clip_named(filename, duration:)
+    create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: duration).tap do |record|
+      record.file.blob.update!(filename: filename)
+    end
+  end
+
   describe "GET /advertising_orders" do
     it "lists orders of the client organization" do
       sign_in_as(user)
@@ -288,6 +310,91 @@ RSpec.describe "AdvertisingOrders", type: :request do
       follow_redirect!
 
       expect(response.body.scan(I18n.t("advertising_orders.activate.quota_exceeded")).size).to eq(1)
+    end
+  end
+
+  describe "GET /advertising_orders/:id/replace_clip" do
+    it "shows the replacement form for a manager" do
+      sign_in_as(user)
+      order = active_order
+      clip_named("triumph-v2.png", duration: 15)
+
+      get replace_clip_advertising_order_path(order)
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include("triumph-v2.png")
+      expect(response.body).to include(I18n.t("advertising_orders.replace_clip.duration_warning"))
+    end
+
+    it "denies the accountant (AE10)" do
+      sign_in_as(accountant)
+      order = active_order
+
+      get replace_clip_advertising_order_path(order)
+
+      expect(response).to redirect_to(rails_health_check_path)
+    end
+  end
+
+  describe "PATCH /advertising_orders/:id/replace_clip" do
+    it "replaces the clip, increments document version, and keeps slot ids (AE7)" do
+      sign_in_as(user)
+      order = active_order
+      replacement = clip_named("triumph-v2.png", duration: 15)
+      plan_ids = order.media_plans.order(:id).pluck(:id)
+
+      patch replace_clip_advertising_order_path(order), params: { media_asset_id: replacement.id }
+
+      expect(response).to redirect_to(advertising_order_path(order))
+      follow_redirect!
+      expect(order.reload.document_version).to eq(2)
+      expect(order.media_asset).to eq(replacement)
+      expect(order.clip_title).to eq("triumph-v2.png")
+      expect(order.media_plans.order(:id).pluck(:id)).to eq(plan_ids)
+      expect(response.body).to include(I18n.t("advertising_orders.replace_clip.replaced"))
+      expect(response.body).to include(I18n.t("advertising_orders.show.document_version", version: 2))
+    end
+
+    it "shows the new version on the print page (AE7)" do
+      sign_in_as(user)
+      order = active_order
+      replacement = clip_named("triumph-v2.png", duration: 15)
+      Advertising::ReplaceClip.call(order: order, media_asset: replacement)
+
+      get print_advertising_order_path(order)
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include(I18n.t("advertising_orders.print.document_version", version: 2))
+      expect(response.body).to include("triumph-v2.png")
+    end
+
+    it "rejects a not-ready clip" do
+      sign_in_as(user)
+      order = active_order
+      pending_clip = create(
+        :media_asset,
+        :with_png_file,
+        organization: organization,
+        duration_seconds: 15,
+        processing_status: "processing"
+      )
+
+      patch replace_clip_advertising_order_path(order), params: { media_asset_id: pending_clip.id }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(order.reload.document_version).to eq(1)
+      expect(order.media_asset).to eq(asset)
+    end
+
+    it "denies the accountant (AE10)" do
+      sign_in_as(accountant)
+      order = active_order
+      replacement = clip_named("triumph-v2.png", duration: 15)
+
+      patch replace_clip_advertising_order_path(order), params: { media_asset_id: replacement.id }
+
+      expect(response).to redirect_to(rails_health_check_path)
+      expect(order.reload.document_version).to eq(1)
     end
   end
 

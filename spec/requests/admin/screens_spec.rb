@@ -123,7 +123,7 @@ RSpec.describe "Admin screens", type: :request do
         }
       }.to change(Screen, :count).by(1)
 
-      expect(Screen.last.name).to eq("Локация 1-Станция A_screen_1")
+      expect(Screen.last.name).to eq("Локация 1-Станция A-screen-1")
     end
   end
 end

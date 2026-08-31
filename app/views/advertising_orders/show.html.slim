@@ -9,6 +9,7 @@
     span = @advertising_order.clip_title
     span = money_display(@advertising_order.total_sum_cents)
     span = t('.total_shows', count: @advertising_order.total_shows)
+    span = t('.document_version', version: @advertising_order.document_version)
 
   .flex.gap-3.flex-wrap
     - if can_mutate.update?
@@ -17,6 +18,8 @@
       = button_to t('.activate'), activate_advertising_order_path(@advertising_order), method: :post, class: 'btn btn-primary btn-sm'
     - if can_mutate.activate? && @advertising_order.active? && coverage.unoccupied_days.any?
       = button_to t('.occupy_again'), activate_advertising_order_path(@advertising_order), method: :post, class: 'btn btn-primary btn-sm'
+    - if can_mutate.replace_clip?
+      = link_to t('.replace_clip'), replace_clip_advertising_order_path(@advertising_order), class: 'btn btn-ghost btn-sm'
     - if can_mutate.print?
       = link_to t('.print'), print_advertising_order_path(@advertising_order), class: 'btn btn-ghost btn-sm'
     - if can_mutate.cancel? && @advertising_order.active?

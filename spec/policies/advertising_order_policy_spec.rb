@@ -26,7 +26,7 @@ RSpec.describe AdvertisingOrderPolicy do
     end
   end
 
-  describe "create? / update? / activate? / cancel?" do
+  describe "create? / update? / activate? / cancel? / replace_clip?" do
     it "разрешает manager и administrator" do
       [ manager, administrator ].each do |user|
         policy = described_class.new(user, order)
@@ -34,6 +34,14 @@ RSpec.describe AdvertisingOrderPolicy do
         expect(policy.update?).to be true
         expect(policy.activate?).to be true
         expect(policy.cancel?).to be true
+      end
+    end
+
+    it "разрешает замену ролика на активном заказе менеджеру и администратору" do
+      order.update!(status: :active)
+
+      [ manager, administrator ].each do |user|
+        expect(described_class.new(user, order).replace_clip?).to be true
       end
     end
 
@@ -45,6 +53,13 @@ RSpec.describe AdvertisingOrderPolicy do
       expect(policy.activate?).to be false
       expect(policy.cancel?).to be false
       expect(policy.destroy?).to be false
+      expect(policy.replace_clip?).to be false
+    end
+  end
+
+  describe "replace_clip?" do
+    it "запрещает замену ролика в черновике" do
+      expect(described_class.new(manager, order).replace_clip?).to be false
     end
   end
 

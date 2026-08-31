@@ -3,6 +3,7 @@
 .flex.flex-col.gap-4.w-full.max-w-6xl
   h1.text-2xl.font-bold = @advertising_order.product_name
   p.text-sm = @advertising_order.clip_title
+  p.text-sm = t('.document_version', version: @advertising_order.document_version)
   p.text-sm = t("enums.advertising_order.status.#{@advertising_order.status}")
   p.text-sm = money_display(@advertising_order.total_sum_cents)
   table.table
