@@ -11,6 +11,7 @@ en:
       broadcast_point_groups: Screen groups
       locations: Locations
       media_plans: Media plans
+      advertising_orders: Placement orders
       airtime_bookings: Airtime bookings
       fleet_screens: On-air screens
       owned_screens: My screens
@@ -538,6 +539,58 @@ en:
     cancel:
       cancelled: Media plan cancelled.
     commercial_quota_exceeded: Commercial quota would be exceeded for one or more hours in this window. The plan was saved; adjust shows per hour or quota if needed.
+  advertising_orders:
+    index:
+      title: Placement orders
+      new_order: New order
+      empty: No orders yet.
+      filter_all: All
+    new:
+      title: New order
+    edit:
+      title: Edit order
+    form:
+      submit: Save
+      cancel: Cancel
+      discount_rubles: Discount, ₽
+      grid: Airtime grid
+      multiplicity_hint: Daily shows must be a multiple of the group's operating hours.
+      fill_from: From
+      fill_to: To
+      fill_shows: Shows
+      fill_range: Fill range
+      add_line: Add line
+      show_grid: Show grid
+    line_fields:
+      price_per_day_rubles: Price per day, ₽
+    show:
+      edit: Edit grid
+      activate: Activate
+      occupy_again: Occupy remaining days
+      print: Print
+      cancel_order: Cancel order
+      cancel_confirm: Cancel this order and free occupied airtime?
+      destroy: Delete draft
+      destroy_confirm: Delete this draft order?
+      back: Back to orders
+      unoccupied: Unoccupied days
+      total_shows: "Shows: %{count}"
+    print:
+      title: "Order — %{product}"
+    create:
+      created: Order saved.
+    update:
+      updated: Order updated.
+    destroy:
+      destroyed: Draft deleted.
+    activate:
+      activated: Order activated.
+      quota_exceeded: Commercial quota would be exceeded for one or more hours of this order.
+      conflicts:
+        one: "%{count} window was not occupied due to a conflict."
+        other: "%{count} windows were not occupied due to a conflict."
+    cancel:
+      cancelled: Order cancelled.
   administrate:
     actions:
       cancel: Cancel

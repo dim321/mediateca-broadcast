@@ -6,7 +6,7 @@ class RotationsController < ApplicationController
 
   def index
     authorize Rotation
-    @rotations = policy_scope(Rotation).order(:name)
+    @rotations = policy_scope(Rotation).unmanaged.order(:name)
   end
 
   def show

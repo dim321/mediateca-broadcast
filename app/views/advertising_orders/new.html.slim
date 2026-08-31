@@ -1,0 +1,13 @@
+- content_for :title, t('.title')
+
+.flex.flex-col.gap-4.w-full.max-w-6xl
+  h1.text-2xl.font-bold = t('.title')
+  = form_with url: new_advertising_order_path, method: :get, class: 'flex flex-wrap items-end gap-3' do
+    div
+      label.block.text-xs.font-medium = t('advertising_orders.form.fill_from')
+      = date_field_tag :grid_from, @grid_dates.first, class: 'input input-bordered input-sm'
+    div
+      label.block.text-xs.font-medium = t('advertising_orders.form.fill_to')
+      = date_field_tag :grid_to, @grid_dates.last, class: 'input input-bordered input-sm'
+    = submit_tag t('advertising_orders.form.show_grid'), class: 'btn btn-sm'
+  = render 'form', advertising_order: @advertising_order

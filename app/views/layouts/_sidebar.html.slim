@@ -9,6 +9,8 @@
     - if Current.user&.accountant?
       li
         = nav_link_to t("layouts.application.finance"), finance_path, controllers: %w[finance]
+      li
+        = nav_link_to t("layouts.application.advertising_orders"), advertising_orders_path, controllers: %w[advertising_orders]
     - else
       li
         = nav_link_to t("layouts.application.media_library"), root_path, controllers: %w[media_assets]
@@ -18,6 +20,8 @@
         = nav_link_to t("layouts.application.broadcast_point_groups"), broadcast_point_groups_path, controllers: %w[broadcast_point_groups]
       li
         = nav_link_to t("layouts.application.locations"), locations_path, controllers: %w[locations]
+      li
+        = nav_link_to t("layouts.application.advertising_orders"), advertising_orders_path, controllers: %w[advertising_orders]
       li
         = nav_link_to t("layouts.application.media_plans"), media_plans_path, controllers: %w[media_plans]
       li

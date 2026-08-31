@@ -1,0 +1,65 @@
+- time_zone = Current.user.organization.time_zone
+= form_with model: advertising_order, class: 'space-y-6', data: { controller: 'order-grid' } do |f|
+  = hidden_field_tag :grid_from, @grid_dates.first
+  = hidden_field_tag :grid_to, @grid_dates.last
+  - if advertising_order.errors.any?
+    ul.text-sm.text-error.list-disc.pl-5
+      - advertising_order.errors.full_messages.each do |message|
+        li = message
+  - advertising_order.advertising_order_lines.each do |line|
+    - line.errors.full_messages.each do |message|
+      p.text-sm.text-error = message
+    - line.advertising_order_line_days.each do |day|
+      - day.errors.full_messages.each do |message|
+        p.text-sm.text-error = message
+  - if advertising_order.persisted? && advertising_order.business_sphere.present?
+    p.text-sm.text-base-content/60
+      = AdvertisingOrder.human_attribute_name(:business_sphere)
+      | :
+      =< advertising_order.business_sphere
+  div.grid.gap-4.md:grid-cols-2
+    div
+      = f.label :product_name, class: 'block text-sm font-medium'
+      = f.text_field :product_name, class: 'input input-bordered w-full mt-1'
+    - if advertising_order.new_record?
+      div
+        = f.label :media_asset_id, class: 'block text-sm font-medium'
+        = f.select :media_asset_id,
+            options_for_select(@media_assets.map { |asset| [asset.file.attached? ? asset.file.filename.to_s : asset.id.to_s, asset.id] }, advertising_order.media_asset_id),
+            { include_blank: true },
+            class: 'select select-bordered w-full mt-1',
+            id: 'advertising_order_media_asset_id'
+    div
+      = f.label :placement_kind, class: 'block text-sm font-medium'
+      = f.select :placement_kind, AdvertisingOrder.placement_kinds.keys.map { |kind| [t("enums.advertising_order.placement_kind.#{kind}"), kind] }, {}, class: 'select select-bordered w-full mt-1'
+    div
+      = f.label :coefficient_percent, class: 'block text-sm font-medium'
+      = f.number_field :coefficient_percent, class: 'input input-bordered w-full mt-1'
+    div
+      = f.label :discount_cents, t('.discount_rubles'), class: 'block text-sm font-medium'
+      = number_field_tag 'advertising_order[discount_rubles]', advertising_order.discount_cents.to_i / 100, min: 0, class: 'input input-bordered w-full mt-1'
+  = render 'media_plans/occupied_slots', occupied_slots: @occupied_slots || [], time_zone: time_zone
+  .card.bg-base-100.border.border-base-300
+    .card-body.gap-3
+      h2.card-title.text-base = t('.grid')
+      p.text-sm.text-base-content/60 = t('.multiplicity_hint')
+      .flex.flex-wrap.items-end.gap-3
+        div
+          label.block.text-xs.font-medium = t('.fill_from')
+          input.input.input-bordered.input-sm type='date' data-order-grid-target='fillFrom' value=@grid_dates.first
+        div
+          label.block.text-xs.font-medium = t('.fill_to')
+          input.input.input-bordered.input-sm type='date' data-order-grid-target='fillTo' value=@grid_dates.last
+        div
+          label.block.text-xs.font-medium = t('.fill_shows')
+          input.input.input-bordered.input-sm type='number' min='0' data-order-grid-target='fillShows'
+        button.btn.btn-sm type='button' data-action='order-grid#fillRange' = t('.fill_range')
+      .space-y-4 data-order-grid-target='lines'
+        - advertising_order.advertising_order_lines.each_with_index do |line, index|
+          = render 'line_fields', line: line, index: index
+      button.btn.btn-sm.btn-ghost type='button' data-action='order-grid#addLine' = t('.add_line')
+      template data-order-grid-target='lineTemplate'
+        = render 'line_fields', line: AdvertisingOrderLine.new, index: 'NEW_LINE'
+  .flex.gap-3
+    = f.submit t('.submit'), class: 'btn btn-primary btn-sm'
+    = link_to t('.cancel'), advertising_orders_path, class: 'btn btn-ghost btn-sm'

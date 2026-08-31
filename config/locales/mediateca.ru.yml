@@ -11,6 +11,7 @@ ru:
       broadcast_point_groups: Группы экранов
       locations: Локации
       media_plans: Медиапланы
+      advertising_orders: Заказы на размещение
       airtime_bookings: Бронирования эфира
       fleet_screens: Экраны в эфире
       owned_screens: Мои экраны
@@ -544,6 +545,60 @@ ru:
     cancel:
       cancelled: Медиаплан отменён.
     commercial_quota_exceeded: Коммерческая квота была бы превышена в один или несколько часов этого окна. План сохранён; при необходимости уменьшите число показов или квоту.
+  advertising_orders:
+    index:
+      title: Заказы на размещение
+      new_order: Новый заказ
+      empty: Заказов пока нет.
+      filter_all: Все
+    new:
+      title: Новый заказ
+    edit:
+      title: Редактирование заказа
+    form:
+      submit: Сохранить
+      cancel: Отмена
+      discount_rubles: Скидка, ₽
+      grid: Сетка выходов
+      multiplicity_hint: Число выходов в день должно делиться на часы работы группы.
+      fill_from: С
+      fill_to: По
+      fill_shows: Выходов
+      fill_range: Заполнить диапазон
+      add_line: Добавить строку
+      show_grid: Показать сетку
+    line_fields:
+      price_per_day_rubles: Цена за день, ₽
+    show:
+      edit: Изменить сетку
+      activate: Активировать
+      occupy_again: Занять повторно
+      print: Печать
+      cancel_order: Отменить заказ
+      cancel_confirm: Отменить заказ и освободить занятый эфир?
+      destroy: Удалить черновик
+      destroy_confirm: Удалить черновик заказа?
+      back: Назад к заказам
+      unoccupied: Незанятые дни
+      total_shows: "Выходов: %{count}"
+    print:
+      title: "Заказ — %{product}"
+    create:
+      created: Заказ сохранён.
+    update:
+      updated: Заказ обновлён.
+    destroy:
+      destroyed: Черновик удалён.
+    activate:
+      activated: Заказ активирован.
+      quota_exceeded: Коммерческая квота была бы превышена в один или несколько часов этого заказа.
+      conflicts:
+        one: "%{count} окно не занято из-за конфликта."
+        few: "%{count} окна не заняты из-за конфликта."
+        many: "%{count} окон не заняты из-за конфликта."
+        other: "%{count} окон не заняты из-за конфликта."
+    cancel:
+      cancelled: Заказ отменён.
   administrate:
     actions:
       cancel: Отмена

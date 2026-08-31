@@ -68,6 +68,14 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :advertising_orders do
+    member do
+      post :activate
+      post :cancel
+      get :print
+    end
+  end
+
   get "finance", to: "finance#show", as: :finance
 
   namespace :fleet do

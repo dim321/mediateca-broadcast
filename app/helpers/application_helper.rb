@@ -7,6 +7,11 @@ module ApplicationHelper
     time.in_time_zone(time_zone).strftime("%Y-%m-%dT%H:%M")
   end
 
+  def money_display(cents)
+    amount = cents.to_i / 100
+    "#{number_with_delimiter(amount, delimiter: ' ')} ₽"
+  end
+
   def flash_alert_class(type)
     case type.to_s
     when "notice" then "alert-success"

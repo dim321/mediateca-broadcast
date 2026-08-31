@@ -119,7 +119,7 @@ class MediaPlansController < ApplicationController
   end
 
   def load_form_collections
-    @rotations = policy_scope(Rotation).order(:name)
+    @rotations = policy_scope(Rotation).unmanaged.order(:name)
     own_groups = policy_scope(BroadcastPointGroup).to_a
     owner_groups = BroadcastPointGroup.commercial_eligible_groups_for(Current.user.organization).to_a
     @broadcast_point_groups = (own_groups + owner_groups).uniq.sort_by(&:name)
