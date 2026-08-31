@@ -1,0 +1,35 @@
+.flex.flex-col.min-h-full.w-72.bg-base-100.text-base-content.border-r.border-base-300
+  .px-5.py-5.border-b.border-base-300
+    p.text-lg.font-semibold.tracking-tight = t("layouts.application.brand")
+    - if Current.organization
+      p.text-sm.text-base-content/60.mt-1.truncate title=Current.organization.name
+        = Current.organization.name
+
+  ul.menu.menu-md.px-3.py-4.gap-1.flex-1
+    - if Current.user&.accountant?
+      li
+        = nav_link_to t("layouts.application.finance"), finance_path, controllers: %w[finance]
+      li
+        = nav_link_to t("layouts.application.advertising_orders"), advertising_orders_path, controllers: %w[advertising_orders]
+    - else
+      li
+        = nav_link_to t("layouts.application.media_library"), root_path, controllers: %w[media_assets]
+      li
+        = nav_link_to t("layouts.application.rotations"), rotations_path, controllers: %w[rotations]
+      li
+        = nav_link_to t("layouts.application.broadcast_point_groups"), broadcast_point_groups_path, controllers: %w[broadcast_point_groups]
+      li
+        = nav_link_to t("layouts.application.locations"), locations_path, controllers: %w[locations]
+      li
+        = nav_link_to t("layouts.application.advertising_orders"), advertising_orders_path, controllers: %w[advertising_orders]
+      li
+        = nav_link_to t("layouts.application.media_plans"), media_plans_path, controllers: %w[media_plans]
+      li
+        = nav_link_to t("layouts.application.fleet_screens"), fleet_screens_path, controllers: %w[fleet/screens]
+      li
+        = nav_link_to t("layouts.application.owned_screens"), owned_screens_path, controllers: %w[owned_screens]
+      li
+        = nav_link_to t("layouts.application.owned_broadcast_point_groups"), owned_broadcast_point_groups_path, controllers: %w[owned_broadcast_point_groups]
+      - if Current.user&.administrator?
+        li
+          = nav_link_to t("layouts.application.finance"), finance_path, controllers: %w[finance]

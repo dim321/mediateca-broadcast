@@ -1,3 +1,6 @@
 @import "tailwindcss";
+@plugin "daisyui" {
+  themes: light --default;
+}
 
 /* App-wide Tailwind layers and custom utilities live here. */

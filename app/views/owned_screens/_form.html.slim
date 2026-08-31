@@ -1,0 +1,20 @@
+= form_with model: screen, url: owned_screen_path(screen), class: 'space-y-4 max-w-xl', data: { controller: 'location-station' } do |f|
+  - if screen.errors.any?
+    ul.text-sm.text-error.list-disc.pl-5
+      - screen.errors.full_messages.each do |message|
+        li = message
+  div
+    = label_tag :location_id, t('.location'), class: 'block text-sm font-medium'
+    = select_tag :location_id, options_from_collection_for_select(@locations, :id, :name, @selected_location_id), include_blank: t('.location_blank'), class: 'select select-bordered w-full mt-1', data: { location_station_target: 'locationSelect', action: 'change->location-station#locationChanged' }
+  div
+    = f.label :station_id, t('.station'), class: 'block text-sm font-medium'
+    = select_tag 'screen[station_id]', options_for_select([[t('.station_blank'), '']] + @stations.map { |s| ["#{s.name} (#{s.location.name})", s.id, { 'data-location-id' => s.location_id }] }, screen.station_id), class: 'select select-bordered w-full mt-1', id: 'screen_station_id', data: { location_station_target: 'stationSelect' }
+  div
+    = f.label :name, class: 'block text-sm font-medium'
+    = f.text_field :name, class: 'input input-bordered w-full mt-1'
+  div
+    = f.label :orientation, class: 'block text-sm font-medium'
+    = f.select :orientation, Screen.orientations.keys.map { |k| [t(".orientation.#{k}"), k] }, {}, class: 'select select-bordered w-full mt-1'
+  .flex.gap-3
+    = f.submit class: 'btn btn-primary btn-sm'
+    = link_to t('.cancel'), owned_screens_path, class: 'btn btn-ghost btn-sm'

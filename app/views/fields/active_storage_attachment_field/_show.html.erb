@@ -1,0 +1,12 @@
+<%#
+# ActiveStorage Attachment Show Partial
+%>
+
+<% if field.attached? %>
+  <div>
+    <strong><%= field.filename %></strong>
+    <span class="text-muted">(<%= field.content_type %>, <%= number_to_human_size(field.byte_size) %>)</span>
+  </div>
+<% else %>
+  —
+<% end %>

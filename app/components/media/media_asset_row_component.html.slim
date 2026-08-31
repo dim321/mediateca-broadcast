@@ -1,0 +1,18 @@
+tr id=dom_id(media_asset, :card)
+  td
+    - if media_asset.preview.attached?
+      = image_tag url_for(media_asset.preview), class: "w-12 h-12 object-cover rounded-box bg-base-200", alt: ""
+    - else
+      .w-12.h-12.bg-base-200.rounded-box.flex.items-center.justify-center.text-xs.text-base-content/50
+        | …
+  td = helpers.media_asset_source_link(media_asset)
+  td = helpers.media_asset_broadcast_cell(media_asset)
+  td
+    span.badge.badge-soft class=status_badge_class = media_asset.processing_status.to_s.humanize
+  td
+    - if media_asset.duration_seconds.present?
+      | #{media_asset.duration_seconds}s
+    - else
+      | —
+  td = t("media_assets.index.content_types.#{media_asset.content_type}")
+  td = t("media_assets.index.visibilities.#{media_asset.visibility}")

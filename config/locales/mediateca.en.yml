@@ -3,49 +3,174 @@
 en:
   layouts:
     application:
+      brand: Mediateca
       sign_in: Sign in
       sign_out: Sign out
-      playlists: Playlists
-      broadcast_points: Broadcast points
-      point_groups: Point groups
-      schedule_rules: Schedules
-  playlists:
+      media_library: Media library
+      rotations: Rotations
+      broadcast_point_groups: Screen groups
+      locations: Locations
+      media_plans: Media plans
+      advertising_orders: Placement orders
+      airtime_bookings: Airtime bookings
+      fleet_screens: On-air screens
+      owned_screens: My screens
+      owned_broadcast_point_groups: My groups
+      finance: Finance
+      open_menu: Open menu
+      close_menu: Close menu
+      locale: Language
+      locale_ru: RU
+      locale_en: EN
+  pundit:
+    not_authorized: You are not authorized to perform this action.
+  fleet:
+    screens:
+      index:
+        title: On-air screens
+        empty: No screens in the fleet yet.
+      show:
+        empty: No airtime from your organization on this screen.
+        back: Back to screens
+  owned_screens:
     index:
-      title: Playlists
-      new_playlist: New playlist
-      empty: No playlists yet.
+      title: My screens
+      empty: You have no owned screens yet.
+    edit:
+      title: Edit screen
+    form:
+      location: Location
+      location_blank: Select location
+      station: Station
+      station_blank: Select station
+      cancel: Cancel
+      orientation:
+        landscape: Landscape
+        portrait: Portrait
+    show:
+      edit: Edit
+      delete: Delete
+      delete_confirm: Delete this screen?
+      back: Back to my screens
+      station: Station
+      location: Location
+      orientation: Orientation
+    update:
+      updated: Screen updated.
+    destroy:
+      destroyed: Screen deleted.
+      destroy_restricted: Screen cannot be deleted while it is used in groups or play logs.
+  owned_broadcast_point_groups:
+    index:
+      title: My groups
+      empty: No owner groups yet.
+    edit:
+      title: Edit owner group
+    form:
+      cancel: Cancel
+      submit: Save group
+      commercial_quota_percent: Commercial quota %
+      commercial_quota_period: Quota period
+      quota_percent_placeholder: e.g. 60
+      quota_period_blank: No quota
+      quota_hint: Quota stays in effect until you change it. Requires a homogeneous owner group and location operating hours once screens are added.
+    show:
+      edit: Edit
+      back: Back to my groups
+      members_heading: Screens in this group
+      no_members: No screens in this group yet.
+      add_heading: Add owned screens
+      add_selected: Add selected screens
+      no_screens_to_add: No owned screens left to add, or you have none yet.
+      remove: Remove
+      remove_confirm: Remove this screen from the group?
+      quota_summary: "Commercial quota: %{percent}% per %{period}"
+    update:
+      updated: Owner group updated.
+    add_screens:
+      screens_added:
+        one: Added 1 screen to the group.
+        other: "Added %{count} screens to the group."
+      screens_not_added: Could not add screens to the group.
+      screens_not_owned: You can only add screens you own.
+    remove_member:
+      member_removed: Screen removed from the group.
+  finance:
+    show:
+      title: Finance
+      stub: Finance reports will be available in a later release.
+  airtime_bookings:
+    index:
+      title: Airtime bookings
+      new_booking: New booking
+      empty: No bookings yet.
+      seconds:
+        one: "%{count} second"
+        other: "%{count} seconds"
+      status:
+        confirmed: Confirmed
+        cancelled: Cancelled
+    show:
+      title: Booking
+      reschedule: Reschedule
+      cancel: Cancel booking
+      cancel_confirm: Cancel this booking and return seconds to the quota?
+      back: Back to bookings
+    new:
+      title: New booking
+      submit: Book
+    reschedule:
+      title: Reschedule booking
+      submit: Save new window
+      rescheduled: Booking rescheduled.
+    form:
+      quota: Quota
+      cancel: Cancel
+    occupied_slots:
+      heading: Occupied on these screens
+      occupied: Occupied
+    create:
+      created: Booking confirmed.
+      quota_not_found: Quota not found.
+    cancel:
+      cancelled: Booking cancelled.
+  rotations:
+    index:
+      title: Rotations
+      new_rotation: New rotation
+      empty: No rotations yet.
       media_library: Media library
     new:
-      title: New playlist
+      title: New rotation
     edit:
-      title: Edit playlist
+      title: Edit rotation
     form:
       name: Name
-      submit_create: Create playlist
+      submit_create: Create rotation
       submit_update: Save changes
     show:
       title: "%{name}"
-      items_heading: Playlist items
+      items_heading: Rotation items
       add_heading: Add media
       select_media: Select a file…
-      add_item: Add to playlist
+      add_item: Add to rotation
       remove_item: Remove
-      edit_playlist: Edit playlist
-      back: Back to playlists
+      edit_rotation: Edit rotation
+      back: Back to rotations
       media_library: Media library
       no_items: No items yet. Add ready media from the library.
       no_media_available: No ready media left to add. Upload files in the media library first.
     create:
-      created: Playlist created.
+      created: Rotation created.
     update:
-      updated: Playlist updated.
+      updated: Rotation updated.
     destroy:
-      destroyed: Playlist deleted.
-    playlist_items:
-      create:
-        created: Item added to playlist.
-      destroy:
-        destroyed: Item removed from playlist.
+      destroyed: Rotation deleted.
+  rotation_items:
+    create:
+      created: Item added to rotation.
+    destroy:
+      destroyed: Item removed from rotation.
   media_assets:
     authentication_required: Please sign in to continue.
     index:
@@ -54,9 +179,42 @@ en:
       choose_file_button: Choose file…
       no_file_selected: No file selected
       upload_submit: Upload
+      content_type_label: Content type
+      content_type_blank: Select content type…
+      visibility_label: Availability
+      visibility_blank: Select availability…
+      content_types:
+        own: Own
+        commercial: Commercial
+        neutral: Neutral
+        service: Service
+      visibilities:
+        organization: My organization only
+        network: Available to all organizations
+      columns:
+        preview: Preview
+        source: Source
+        broadcast: Broadcast (.ts)
+        status: Status
+        duration: Duration
+        media_kind: Media type
+        content_type: Content type
+        visibility: Availability
+      content_kinds:
+        video: Video
+        audio: Audio
+        image: Image
+        document: Document
+        presentation: Presentation
+      broadcast_processing: Processing…
+      broadcast_na: N/A
+      source_label: Source
+      broadcast_label: Broadcast
     create:
       created: File uploaded. Processing started.
       create_failed: Could not upload file.
+      ready: Processing complete. File is ready.
+      failed: Processing failed.
   sessions:
     new:
       title: Sign in
@@ -69,6 +227,67 @@ en:
     destroy:
       signed_out: Signed out.
   activerecord:
+    models:
+      airtime_booking:
+        one: Airtime booking
+        other: Airtime bookings
+      broadcast_point_group:
+        one: Screen group
+        other: Screen groups
+      broadcast_point_group_membership:
+        one: Screen in group
+        other: Screens in group
+      location:
+        one: Location
+        other: Locations
+      media_asset:
+        one: Media asset
+        other: Media assets
+      media_plan:
+        one: Media plan
+        other: Media plans
+      organization:
+        one: Organization
+        other: Organizations
+      play_log:
+        one: Play log
+        other: Play logs
+      rotation:
+        one: Rotation
+        other: Rotations
+      rotation_item:
+        one: Rotation item
+        other: Rotation items
+      screen:
+        one: Screen
+        other: Screens
+      screen_tag:
+        one: Screen tag
+        other: Screen tags
+      station:
+        one: Station
+        other: Stations
+      tag:
+        one: Tag
+        other: Tags
+      user:
+        one: User
+        other: Users
+      "directory/business_sphere":
+        one: Business sphere
+        other: Business spheres
+      profile:
+        one: Organization profile
+        other: Organization profiles
+      advertising_order:
+        one: Advertising order
+        other: Advertising orders
+      advertising_order_line:
+        one: Advertising order line
+        other: Advertising order lines
+      advertising_order_line_day:
+        one: Advertising order line day
+        other: Advertising order line days
     errors:
       models:
         media_asset:
@@ -76,122 +295,580 @@ en:
             file:
               unsupported_type: is not a supported format
               blank: must be selected
-        playlist_item:
+              too_large: must be 1 GiB or smaller
+        rotation_item:
           attributes:
             media_asset:
-              wrong_organization: must belong to the same organization as the playlist
-              not_ready: must be ready before adding to a playlist
-        broadcast_point_tag:
+              wrong_organization: must belong to your organization or be network-shared
+              not_ready: must be ready before adding to a rotation
+        screen_tag:
           attributes:
             base:
-              organization_mismatch: tag and point must belong to the same organization
-        point_group_membership:
+              invalid: is invalid
+        broadcast_point_group_membership:
+          attributes:
+            screen:
+              overlaps_existing_media_plan: overlaps an existing media plan for this screen
+              quota_requires_owner_match: must be owned by the group organization when commercial quota is set
+              quota_requires_operating_hours: location must have operating hours when commercial quota is set
+        media_plan:
           attributes:
             base:
-              organization_mismatch: point and group must belong to the same organization
-        schedule_rule:
-          attributes:
-            base:
-              must_have_targets: select at least one point group
-              overlaps_existing: this time window overlaps another schedule for one of the selected groups
+              overlaps_existing: overlaps an existing media plan
+              outside_booking_window: must fit inside the selected booking window
+              use_reschedule: use Reschedule to change the window or group
             ends_at:
               must_be_after_starts: must be after the start time
-            playlist:
-              blank: must be selected
+            airtime_booking:
+              must_be_confirmed: must be a confirmed booking
               wrong_organization: must belong to your organization
-        schedule_target:
+              wrong_group: must match the booking screen group
+            rotation:
+              wrong_organization: must belong to your organization
+              not_broadcast_ready: must contain only broadcast-ready media
+            broadcast_point_group:
+              wrong_organization: must belong to your organization
+              must_have_screens: must contain at least one screen
+            shows_per_hour:
+              blank: is required for commercial placement
+        broadcast_point_group:
           attributes:
-            point_group:
-              wrong_organization: must belong to the same organization as the schedule
-  broadcast_points:
+            base:
+              commercial_quota_incomplete: commercial quota percent and period must be set together
+              commercial_quota_requires_homogeneous_owner: commercial quota requires all screens to share one owner matching the group organization
+              commercial_quota_requires_operating_hours: commercial quota requires operating hours on every screen location
+        screen:
+          attributes:
+            owner_organization:
+              must_be_client: must be a client organization
+        location:
+          attributes:
+            operating_hours:
+              invalid: has an invalid weekly schedule shape
+        advertising_order:
+          attributes:
+            rotation:
+              wrong_organization: must belong to your organization
+              must_be_system_managed: must be a system-managed order rotation
+        advertising_order_line:
+          attributes:
+            broadcast_point_group:
+              wrong_organization: must belong to your organization
+              missing_operating_hours: must have operating hours on every location
+        advertising_order_line_day:
+          attributes:
+            date:
+              no_operating_hours: has no operating hours
+            shows:
+              not_divisible: "must divide by %{hours} operating hours; nearest values are %{lower} and %{upper}"
+    attributes:
+      airtime_booking:
+        status: Status
+      broadcast_point_group:
+        commercial_quota_percent: Commercial quota %
+        commercial_quota_period: Quota period
+        name: Name
+      location:
+        name: Name
+        operating_hours: Operating hours
+      media_asset:
+        content_kind: Content type
+        content_type: Placement type
+        file: File
+        processing_status: Processing status
+        visibility: Visibility
+      media_plan:
+        broadcast_point_group: Screen group
+        ends_at: Ends at
+        placement_kind: Placement type
+        rotation: Rotation
+        shows_per_hour: Shows per hour
+        starts_at: Starts at
+        status: Status
+      organization:
+        kind: Type
+        name: Name
+        time_zone: Time zone
+      rotation:
+        name: Name
+      screen:
+        name: Name
+        orientation: Orientation
+      station:
+        name: Name
+      tag:
+        name: Name
+      user:
+        email: Email
+        organization: Organization
+        role: Role
+      "directory/business_sphere":
+        name: Name
+      profile:
+        brand: Brand
+        business_sphere: Business sphere
+        holding: Holding
+      advertising_order:
+        business_sphere: Business sphere
+        clip_title: Clip title
+        coefficient_percent: Coefficient %
+        created_by: Author
+        discount_cents: Discount
+        document_version: Document version
+        duration_seconds: Duration
+        media_asset: Clip
+        organization: Organization
+        placement_kind: Placement type
+        product_name: Product
+        rotation: Rotation
+        status: Status
+        total_shows: Total shows
+        total_sum_cents: Total
+      advertising_order_line:
+        broadcast_point_group: Screen group
+        price_per_day_cents: Price per day
+        total_shows: Shows
+        total_sum_cents: Total
+      advertising_order_line_day:
+        date: Date
+        shows: Shows
+  broadcast_point_groups:
     index:
-      title: Broadcast points
-      new_point: New broadcast point
-      point_groups: Point groups
-      media_library: Media library
-      playlists: Playlists
-      filter_by_tags: Filter by tags (points must have all selected tags)
+      title: Screen groups
+      new_group: New screen group
+      empty: No screen groups yet.
+    new:
+      title: New screen group
+    edit:
+      title: Edit screen group
+    form:
+      cancel: Cancel
+      commercial_quota_percent: Commercial quota %
+      commercial_quota_period: Quota period
+      quota_percent_placeholder: e.g. 60
+      quota_period_blank: No quota
+      quota_hint: Quota applies indefinitely until changed. Requires a homogeneous owner group and location operating hours.
+    show:
+      edit_name: Edit name
+      back: Back to screen groups
+      members_heading: Screens in this group
+      no_members: No screens in this group yet.
+      add_heading: Add screens
+      filter_by_tags: Filter by tags (screens must have all selected tags)
       apply_filter: Apply filter
       clear_filter: Clear filter
-      empty: No broadcast points yet.
-      edit: Edit
-    new:
-      title: New broadcast point
-    edit:
-      title: Edit broadcast point
-    form:
-      existing_tags: Tags
-      no_tags_yet: No tags yet — add new tag names below.
-      new_tags_placeholder: e.g. retail, center-north
-      new_tags_hint: Comma-separated new tags to create and attach.
-      cancel: Cancel
-    create:
-      created: Broadcast point saved.
-    update:
-      updated: Broadcast point updated.
-  point_groups:
-    index:
-      title: Point groups
-      new_group: New group
-      broadcast_points: Broadcast points
-      empty: No groups yet.
-    new:
-      title: New point group
-      cancel: Cancel
-    edit:
-      title: Edit point group
-      cancel: Cancel
-    show:
-      title: "%{name}"
-      edit_name: Edit name
-      back: Back to groups
-      members_heading: Points in this group
-      no_members: No points in this group yet.
-      add_heading: Add points
-      add_selected: Add selected points
-      no_points_to_add: All broadcast points are already in this group.
+      add_selected: Add selected screens
+      no_screens_to_add: No screens match the current filter, or all screens are already in this group.
+      screen_station: "%{station}"
       remove: Remove
-      remove_confirm: Remove this point from the group?
+      remove_confirm: Remove this screen from the group?
     create:
-      created: Point group created.
+      created: Screen group created.
     update:
-      updated: Point group updated.
-    add_points:
-      points_added_count:
-        one: "1 point added to the group."
-        other: "%{count} points added to the group."
-      points_add_failed_count:
-        one: "1 point could not be added."
-        other: "%{count} points could not be added."
-      points_none_added: No new points were added. They may already be in this group, or nothing was selected.
+      updated: Screen group updated.
+    add_screens:
+      screens_added:
+        one: 1 screen added to the group.
+        other: "%{count} screens added to the group."
+      screens_not_added: Screens could not be added to the group.
+      screens_not_in_catalog: Only catalog screens can be added to the group.
     remove_member:
-      member_removed: Point removed from the group.
-  schedule_rules:
+      member_removed: Screen removed from the group.
+  locations:
     index:
-      title: Broadcast schedules
-      new_schedule: New schedule
-      playlists: Playlists
-      edit: Edit
-      delete: Delete
-      delete_confirm: Delete this schedule?
-      empty: No schedules yet.
-      groups: "Groups: %{names}"
-    new:
-      title: New schedule
-      back: Back to schedules
+      title: Locations
+      empty: No locations with your owned screens yet.
+      hours_status: Operating hours
+      hours_set: Set
+      hours_missing: Missing
+      edit: Edit hours
     edit:
-      title: Edit schedule
-      back: Back to schedules
-    show:
-      title: "%{name}"
-      edit: Edit schedule
-      back: Back to schedules
-    form:
-      point_groups_heading: Point groups
+      title: "Operating hours — %{name}"
+      hint: Weekly schedule used as the commercial quota denominator. Leave a day blank when closed.
+      start: Start
+      end: End
       cancel: Cancel
-    create:
-      created: Schedule created.
+      copy_monday_to_all: Copy Mon to all days
+      days:
+        mon: Monday
+        tue: Tuesday
+        wed: Wednesday
+        thu: Thursday
+        fri: Friday
+        sat: Saturday
+        sun: Sunday
     update:
-      updated: Schedule updated.
+      updated: Location hours updated.
+  media_plans:
+    index:
+      title: Media plans
+      new_media_plan: New media plan
+      edit: Edit rotation
+      reschedule: Reschedule
+      cancel_plan: Cancel
+      cancel_confirm: Cancel this media plan and free the airtime slot?
+      empty: No media plans yet.
+    new:
+      title: New media plan
+    edit:
+      title: Edit media plan
+      rotation_only_hint: To change the window or group, use Reschedule.
+    reschedule:
+      title: Reschedule media plan
+      submit: Save new window
+      rescheduled: Media plan rescheduled.
+    form:
+      group: Broadcast point group
+      cancel: Cancel
+      placement_kind: Placement kind
+      shows_per_hour: Shows per hour
+      shows_per_hour_hint: Required for commercial placement. Consumption = N × rotation cycle duration.
+      placement_kinds:
+        own_atmosphere: Own / atmosphere
+        commercial: Commercial
+    occupied_slots:
+      heading: Occupied on these screens
+      occupied: Occupied
+    show:
+      edit: Edit rotation
+      reschedule: Reschedule
+      cancel_plan: Cancel
+      back: Back to media plans
+    create:
+      created: Media plan created.
+    update:
+      updated: Media plan updated.
+    cancel:
+      cancelled: Media plan cancelled.
+    commercial_quota_exceeded: Commercial quota would be exceeded for one or more hours in this window. The plan was saved; adjust shows per hour or quota if needed.
+  advertising_orders:
+    index:
+      title: Placement orders
+      new_order: New order
+      empty: No orders yet.
+      filter_all: All
+    new:
+      title: New order
+    edit:
+      title: Edit order
+    form:
+      submit: Save
+      cancel: Cancel
+      discount_rubles: Discount, ₽
+      grid: Airtime grid
+      multiplicity_hint: Daily shows must be a multiple of the group's operating hours.
+      fill_from: From
+      fill_to: To
+      fill_shows: Shows
+      fill_range: Fill range
+      add_line: Add line
+      show_grid: Show grid
+    line_fields:
+      price_per_day_rubles: Price per day, ₽
+    show:
+      edit: Edit grid
+      activate: Activate
+      occupy_again: Occupy remaining days
+      print: Print
+      cancel_order: Cancel order
+      cancel_confirm: Cancel this order and free occupied airtime?
+      destroy: Delete draft
+      destroy_confirm: Delete this draft order?
+      back: Back to orders
+      unoccupied: Unoccupied days
+      total_shows: "Shows: %{count}"
+      replace_clip: Replace clip
+      document_version: "Version %{version}"
+    print:
+      title: "Order — %{product}"
+      document_version: "Document version: %{version}"
+    create:
+      created: Order saved.
+    update:
+      updated: Order updated.
     destroy:
-      destroyed: Schedule removed.
+      destroyed: Draft deleted.
+    activate:
+      activated: Order activated.
+      quota_exceeded: Commercial quota would be exceeded for one or more hours of this order.
+      conflicts:
+        one: "%{count} window was not occupied due to a conflict."
+        other: "%{count} windows were not occupied due to a conflict."
+    cancel:
+      cancelled: Order cancelled.
+    replace_clip:
+      title: Replace clip
+      current_clip: Current clip
+      duration_warning: If the new clip has a different duration, the rotation cycle and commercial quota numerator will change.
+      submit: Confirm replacement
+      confirm: Replace the clip on this active order? Airtime slots will not be recreated.
+      cancel: Cancel
+      replaced: Clip replaced, document version incremented.
+  administrate:
+    actions:
+      cancel: Cancel
+    field_hints:
+      screen:
+        owner_organization: Defaults to the operator organization (fleet screen). Choose a client if the screen belongs to them.
+  admin:
+    advertising_orders:
+      activate: Activate
+      cancel: Cancel order
+      cancel_confirm: Cancel this order and free occupied airtime?
+      cancelled: Order cancelled.
+      edit: Edit grid
+      edit_title: Edit order
+      new_title: New order on behalf of a client
+      organization: Client organization
+    business_spheres:
+      destroy_restricted: Cannot delete a business sphere while it is used by an organization profile.
+    media_plans:
+      broadcast_point_group: Screen group
+      cancel: Cancel media plan
+      cancel_confirm: Cancel this media plan and free the airtime slot?
+      cancelled: Media plan cancelled.
+      ends_at: "Ends at (%{time_zone})"
+      reschedule: Reschedule
+      reschedule_title: "Reschedule media plan #%{id}"
+      rescheduled: Media plan rescheduled.
+      save_window: Save new window
+      starts_at: "Starts at (%{time_zone})"
+    fields:
+      operating_hours:
+        copy_monday_to_all: Copy Monday to all days
+        day: Day
+        days:
+          mon: Monday
+          tue: Tuesday
+          wed: Wednesday
+          thu: Thursday
+          fri: Friday
+          sat: Saturday
+          sun: Sunday
+        end: End
+        hint: The weekly schedule is used to calculate the commercial quota. Leave a day blank when closed.
+        missing: Missing
+        set: Set
+        start: Start
+  enums:
+    airtime_booking:
+      status:
+        pending: Pending confirmation
+        confirmed: Confirmed
+        cancelled: Cancelled
+    broadcast_point_group:
+      commercial_quota_period:
+        hour: Hour
+        day: Day
+    media_asset:
+      content_kind:
+        video: Video
+        audio: Audio
+        image: Image
+        document: Document
+        presentation: Presentation
+      content_type:
+        own: Own content
+        commercial: Commercial
+        neutral: Neutral
+        service: Service
+      processing_status:
+        pending: Pending processing
+        processing: Processing
+        ready: Ready
+        failed: Failed
+      visibility:
+        organization: Organization
+        network: Network
+    media_plan:
+      placement_kind:
+        own_atmosphere: Own content / atmosphere
+        commercial: Commercial placement
+      status:
+        active: Active
+        invalidated: Invalidated
+        cancelled: Cancelled
+    advertising_order:
+      placement_kind:
+        own_atmosphere: Own content / atmosphere
+        commercial: Commercial placement
+      status:
+        draft: Draft
+        pending_moderation: Pending moderation
+        active: Active
+        completed: Completed
+        cancelled: Cancelled
+    organization:
+      kind:
+        operator: Operator
+        client: Client
+    play_log:
+      source:
+        agent: Agent
+    screen:
+      orientation:
+        landscape: Landscape
+        portrait: Portrait
+    user:
+      role:
+        manager: Manager
+        accountant: Accountant
+        administrator: Administrator
+  helpers:
+    label:
+      broadcast_point_group:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        broadcast_point_group_memberships: Screens in group
+        commercial_quota_percent: Commercial quota %
+        commercial_quota_period: Quota period
+        media_plans: Media plans
+        name: Name
+        organization: Organization
+        screens: Screens
+      broadcast_point_group_membership:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        broadcast_point_group: Broadcast point group
+        screen: Screen
+      location:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        name: Name
+        operating_hours: Operating hours
+        stations: Stations
+      media_asset:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        broadcast_file: Broadcast file
+        content_kind: Content type
+        content_type: Placement type
+        duration_seconds: Duration, seconds
+        file: File
+        metadata: Metadata
+        organization: Organization
+        preview: Preview
+        processing_status: Processing status
+        rotations: Rotations
+        visibility: Visibility
+      media_plan:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        airtime_booking_id: Airtime booking ID
+        broadcast_point_group: Broadcast point group
+        ends_at: Ends at
+        organization: Organization
+        placement_kind: Placement type
+        rotation: Rotation
+        shows_per_hour: Shows per hour
+        starts_at: Starts at
+        status: Status
+      organization:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        broadcast_point_groups: Broadcast point groups
+        kind: Type
+        media_assets: Media assets
+        media_plans: Media plans
+        name: Name
+        play_logs: Play logs
+        rotations: Rotations
+        time_zone: Time zone
+        users: Users
+      play_log:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        media_asset: Media asset
+        organization: Organization
+        screen: Screen
+        source: Source
+        started_at: Started at
+      rotation:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        media_assets: Media assets
+        media_plans: Media plans
+        name: Name
+        organization: Organization
+        rotation_items: Rotation items
+      rotation_item:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        display_duration_seconds: Display duration, seconds
+        media_asset: Media asset
+        position: Position
+        rotation: Rotation
+      screen:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        broadcast_point_group_memberships: Group memberships
+        broadcast_point_groups: Broadcast point groups
+        name: Name
+        orientation: Orientation
+        owner_organization: Owner organization
+        play_logs: Play logs
+        screen_tags: Screen tags
+        station: Station
+        location_id: Location
+        location_blank: Select location
+        station_blank: Select station
+        tags: Tags
+      screen_tag:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        screen: Screen
+        tag: Tag
+      station:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        agent_token_digest: Agent token
+        location: Location
+        name: Name
+        offline_cache_hours: Offline cache hours
+        screens: Screens
+      tag:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        name: Name
+        screen_tags: Screen tag links
+        screens: Screens
+      user:
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+        email: Email
+        organization: Organization
+        password: Password
+        password_confirmation: Password confirmation
+        role: Role
+  advertising:
+    system_rotation_name: "Order #%{number}"
+    print_sheet:
+      title: Placement order
+      document_version: "Document version: %{version}"
+      dash: "—"
+      duration_seconds:
+        one: "%{count} sec"
+        other: "%{count} sec"
+      line_totals: Line totals
+      subtotal: Subtotal
+      total_with_discount: Total with discount
+      manager_signature: Manager signature
+      client_signature: Client signature
+      print_button: Print
+    errors:
+      clip_not_ready: clip is not broadcast-ready
+      order_not_active: clip can be replaced only on an active order

@@ -1,0 +1,51 @@
+<% content_for :stylesheet do %>
+  <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+<% end %>
+<% content_for :javascript do %>
+  <%= javascript_importmap_tags %>
+<% end %>
+
+<% content_for(:title) { t("admin.advertising_orders.new_title") } %>
+
+<header class="main-content__header">
+  <h1 class="main-content__page-title">
+    <%= content_for(:title) %>
+  </h1>
+
+  <div>
+    <%= link_to t("administrate.actions.back"), admin_advertising_orders_path, class: "button" %>
+  </div>
+
+  <%= render "locale_switcher" %>
+</header>
+
+<section class="main-content__body">
+  <%= form_with url: new_admin_advertising_order_path, method: :get, html: { class: "flex flex-wrap items-end gap-3 mb-6" } do %>
+    <div>
+      <label class="block text-xs font-medium" for="organization_id"><%= t("admin.advertising_orders.organization") %></label>
+      <%= select_tag :organization_id,
+            options_from_collection_for_select(@organizations, :id, :name, @form_organization&.id),
+            class: "select select-bordered",
+            onchange: "this.form.submit()" %>
+    </div>
+    <div>
+      <label class="block text-xs font-medium"><%= t("advertising_orders.form.fill_from") %></label>
+      <%= date_field_tag :grid_from, @grid_dates.first, class: "input input-bordered input-sm" %>
+    </div>
+    <div>
+      <label class="block text-xs font-medium"><%= t("advertising_orders.form.fill_to") %></label>
+      <%= date_field_tag :grid_to, @grid_dates.last, class: "input input-bordered input-sm" %>
+    </div>
+    <%= submit_tag t("advertising_orders.form.show_grid"), class: "btn btn-sm" %>
+  <% end %>
+
+  <% if @form_organization %>
+    <%= render "advertising_orders/form",
+          advertising_order: @advertising_order,
+          form_url: admin_advertising_orders_path,
+          cancel_url: admin_advertising_orders_path,
+          time_zone: @form_organization.time_zone,
+          organization_id: @form_organization.id,
+          business_sphere_preview: @form_organization.profile&.business_sphere&.name %>
+  <% end %>
+</section>

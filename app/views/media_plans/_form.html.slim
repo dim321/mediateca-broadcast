@@ -1,0 +1,31 @@
+- time_zone = Current.user.organization.time_zone
+= form_with model: media_plan, class: 'space-y-4 max-w-xl' do |f|
+  - if media_plan.errors.any?
+    ul.text-sm.text-error.list-disc.pl-5
+      - media_plan.errors.full_messages.each do |message|
+        li = message
+  - if flash[:alert].present?
+    p.text-sm.text-error = flash[:alert]
+  = render 'occupied_slots', occupied_slots: @occupied_slots || [], time_zone: time_zone
+  div
+    = f.label :broadcast_point_group_id, t('.group'), class: 'block text-sm font-medium'
+    = f.collection_select :broadcast_point_group_id, @broadcast_point_groups, :id, :name, { include_blank: true }, class: 'select select-bordered w-full mt-1'
+  div
+    = f.label :placement_kind, t('.placement_kind'), class: 'block text-sm font-medium'
+    = f.select :placement_kind, MediaPlan.placement_kinds.keys.map { |k| [t(".placement_kinds.#{k}"), k] }, {}, class: 'select select-bordered w-full mt-1'
+  div
+    = f.label :shows_per_hour, t('.shows_per_hour'), class: 'block text-sm font-medium'
+    = f.number_field :shows_per_hour, min: 1, class: 'input input-bordered w-full mt-1'
+    p.text-sm.text-base-content/60.mt-1 = t('.shows_per_hour_hint')
+  div
+    = f.label :rotation_id, class: 'block text-sm font-medium'
+    = f.collection_select :rotation_id, @rotations, :id, :name, { include_blank: true }, class: 'select select-bordered w-full mt-1'
+  div
+    = f.label :starts_at, class: 'block text-sm font-medium'
+    = f.datetime_field :starts_at, value: schedule_datetime_field_value(media_plan.starts_at, time_zone), class: 'input input-bordered w-full mt-1'
+  div
+    = f.label :ends_at, class: 'block text-sm font-medium'
+    = f.datetime_field :ends_at, value: schedule_datetime_field_value(media_plan.ends_at, time_zone), class: 'input input-bordered w-full mt-1'
+  .flex.gap-3
+    = f.submit class: 'btn btn-primary btn-sm'
+    = link_to t('.cancel'), media_plans_path, class: 'btn btn-ghost btn-sm'

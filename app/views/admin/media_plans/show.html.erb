@@ -1,0 +1,46 @@
+<%#
+# Show — MediaPlan with cancel/reschedule actions for operators.
+%>
+
+<% content_for(:title) { t("administrate.actions.show_resource", name: page.page_title) } %>
+
+<header class="main-content__header">
+  <h1 class="main-content__page-title">
+    <%= content_for(:title) %>
+  </h1>
+
+  <div>
+    <%= link_to t("admin.media_plans.cancel"),
+          cancel_admin_media_plan_path(page.resource),
+          data: { turbo_method: :delete, turbo_confirm: t("admin.media_plans.cancel_confirm") },
+          class: "button" %>
+    <%= link_to t("admin.media_plans.reschedule"),
+          reschedule_admin_media_plan_path(page.resource),
+          class: "button" %>
+  </div>
+
+  <%= render "locale_switcher" %>
+</header>
+
+<section class="main-content__body">
+  <dl>
+    <% page.attributes.each do |title, attributes| %>
+      <fieldset class="<%= "field-unit--nested" if title.present? %>">
+        <% if title.present? %>
+          <legend><%= t "helpers.label.#{page.resource_name}.#{title}", default: title %></legend>
+        <% end %>
+
+        <% attributes.each do |attribute| %>
+          <dt class="attribute-label" id="<%= attribute.name %>">
+          <%= t(
+            "helpers.label.#{page.resource_name}.#{attribute.name}",
+            default: page.resource.class.human_attribute_name(attribute.name),
+          ) %>
+          </dt>
+
+          <dd class="attribute-data attribute-data--<%= attribute.html_class %>"><%= render_field attribute, page: page %></dd>
+        <% end %>
+      </fieldset>
+    <% end %>
+  </dl>
+</section>
