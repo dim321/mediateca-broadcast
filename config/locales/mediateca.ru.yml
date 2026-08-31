@@ -357,6 +357,13 @@ ru:
           attributes:
             broadcast_point_group:
               wrong_organization: должна принадлежать вашей организации
+              missing_operating_hours: должна иметь часы работы у всех локаций
+        advertising_order_line_day:
+          attributes:
+            date:
+              no_operating_hours: не имеет часов работы
+            shows:
+              not_divisible: "должно делиться на %{hours} (часы работы); ближайшие значения: %{lower} и %{upper}"
     attributes:
       airtime_booking:
         status: Статус
@@ -771,3 +778,7 @@ ru:
         password: Пароль
         password_confirmation: Подтверждение пароля
         role: Роль
+  advertising:
+    system_rotation_name: "Заказ №%{number}"
+    errors:
+      clip_not_ready: ролик не готов к эфиру

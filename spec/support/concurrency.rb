@@ -12,6 +12,11 @@ RSpec.configure do |config|
     tables = %w[
       media_plans
       airtime_bookings
+      advertising_order_line_days
+      advertising_order_lines
+      advertising_orders
+      profiles
+      directory_business_spheres
       broadcast_point_group_memberships
       broadcast_point_groups
       rotation_items

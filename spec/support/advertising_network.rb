@@ -5,6 +5,14 @@ module AdvertisingNetwork
     [ { 'start' => '09:00', 'end' => '21:00' } ]
   end.freeze
 
+  ELEVEN_HOURS = Location::OperatingHours::DAY_KEYS.index_with do
+    [ { 'start' => '09:00', 'end' => '20:00' } ]
+  end.freeze
+
+  WEEKDAY_HOURS = %w[mon tue wed thu fri].index_with do
+    [ { 'start' => '09:00', 'end' => '21:00' } ]
+  end.freeze
+
   def create_advertising_network!
     operator = create(:organization, :operator, name: 'Advertising company')
     create(
@@ -58,9 +66,17 @@ module AdvertisingNetwork
       create(:advertising_order_line_day, advertising_order_line: line, date: date, shows: shows)
     end
   end
+
+  def create_group_with_hours!(organization:, hours: WEEKLY_HOURS, **group_attrs)
+    location = create(:location, operating_hours: hours)
+    station = create(:station, location: location)
+    screen = create(:screen, station: station, owner_organization: organization)
+    group = create(:broadcast_point_group, { organization: organization }.merge(group_attrs))
+    create(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen)
+    group
+  end
 end
 
 RSpec.configure do |config|
-  config.include AdvertisingNetwork, type: :system
-  config.include AdvertisingNetwork, type: :model
+  config.include AdvertisingNetwork
 end

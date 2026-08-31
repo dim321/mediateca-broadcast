@@ -286,9 +286,9 @@ erDiagram
 
 ### U2. Доменный контур заказа
 
-- Сервисы по Technical Design; `Result = Data.define(...)` у ActivateOrder.
-- Тесты (test-first, конституция III): domain-specs `spec/domain/advertising/`, включая concurrency-спек на параллельную активацию пересекающихся окон (образец `spec/support/concurrency.rb`), DST-дни, високосность, разрывы цепочек (выходные с 0 часов), идемпотентность повторной активации, агрегация квота-warning'а.
-- DoD Unit: `spec/domain/advertising` зелёный; ручные слоты без order_line_id не тронуты существующими спеками.
+- [x] Сервисы по Technical Design; `Result = Data.define(...)` у ActivateOrder.
+- [x] Тесты (test-first, конституция III): domain-specs `spec/domain/advertising/`, включая concurrency-спек на параллельную активацию пересекающихся окон (образец `spec/support/concurrency.rb`), DST-дни, високосность, разрывы цепочек (выходные с 0 часов), идемпотентность повторной активации, агрегация квота-warning'а.
+- [x] DoD Unit: `spec/domain/advertising` зелёный; ручные слоты без order_line_id не тронуты существующими спеками.
 
 ### U3. ЛК UI заказа
 

@@ -353,6 +353,13 @@ en:
           attributes:
             broadcast_point_group:
               wrong_organization: must belong to your organization
+              missing_operating_hours: must have operating hours on every location
+        advertising_order_line_day:
+          attributes:
+            date:
+              no_operating_hours: has no operating hours
+            shows:
+              not_divisible: "must divide by %{hours} operating hours; nearest values are %{lower} and %{upper}"
     attributes:
       airtime_booking:
         status: Status
@@ -770,3 +777,7 @@ en:
         password: Password
         password_confirmation: Password confirmation
         role: Role
+  advertising:
+    system_rotation_name: "Order #%{number}"
+    errors:
+      clip_not_ready: clip is not broadcast-ready
