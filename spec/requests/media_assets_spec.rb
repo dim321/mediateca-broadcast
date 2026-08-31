@@ -166,8 +166,6 @@ RSpec.describe "MediaAssets", type: :request do
 
       row = stream.at_css("template tr##{card_id}")
       expect(row).to be_present
-      expect(row.name).to eq("tr")
-      expect(row["id"]).to eq(card_id)
       expect(row.text).to include("source.mp4")
       expect(row.text).to include("source.ts")
     end

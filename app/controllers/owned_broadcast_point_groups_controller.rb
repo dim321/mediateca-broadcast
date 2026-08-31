@@ -25,7 +25,7 @@ class OwnedBroadcastPointGroupsController < ApplicationController
   def update
     authorize @broadcast_point_group, policy_class: OwnedBroadcastPointGroupPolicy
     if @broadcast_point_group.update(group_params)
-      redirect_to owned_broadcast_point_group_path(@broadcast_point_group), notice: t('.updated')
+      redirect_to owned_broadcast_point_group_path(@broadcast_point_group), notice: t(".updated")
     else
       render :edit, status: :unprocessable_content
     end
@@ -37,7 +37,7 @@ class OwnedBroadcastPointGroupsController < ApplicationController
     screens = owned_screens_scope.where(id: screen_ids)
 
     if screens.size != screen_ids.size
-      redirect_to owned_broadcast_point_group_path(@broadcast_point_group), alert: t('.screens_not_owned')
+      redirect_to owned_broadcast_point_group_path(@broadcast_point_group), alert: t(".screens_not_owned")
       return
     end
 
@@ -46,16 +46,16 @@ class OwnedBroadcastPointGroupsController < ApplicationController
         @broadcast_point_group.broadcast_point_group_memberships.create!(screen:)
       end
     end
-    redirect_to owned_broadcast_point_group_path(@broadcast_point_group), notice: t('.screens_added', count: screens.size)
+    redirect_to owned_broadcast_point_group_path(@broadcast_point_group), notice: t(".screens_added", count: screens.size)
   rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
-    redirect_to owned_broadcast_point_group_path(@broadcast_point_group), alert: t('.screens_not_added')
+    redirect_to owned_broadcast_point_group_path(@broadcast_point_group), alert: t(".screens_not_added")
   end
 
   def remove_member
     authorize @broadcast_point_group, :remove_member?, policy_class: OwnedBroadcastPointGroupPolicy
     membership = @broadcast_point_group.broadcast_point_group_memberships.find_by!(screen_id: params[:screen_id])
     membership.destroy!
-    redirect_to owned_broadcast_point_group_path(@broadcast_point_group), notice: t('.member_removed')
+    redirect_to owned_broadcast_point_group_path(@broadcast_point_group), notice: t(".member_removed")
   end
 
   private
@@ -63,7 +63,7 @@ class OwnedBroadcastPointGroupsController < ApplicationController
   def require_user
     return if Current.user
 
-    redirect_to login_path, alert: t('media_assets.authentication_required')
+    redirect_to login_path, alert: t("media_assets.authentication_required")
   end
 
   def set_group

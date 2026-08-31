@@ -46,13 +46,13 @@ RSpec.describe 'OwnedBroadcastPointGroups', type: :request do
 
     it 'adds an owned screen' do
       sign_in_as(user)
-      post add_screens_owned_broadcast_point_group_path(group), params: { screen_ids: [owned_screen.id] }
+      post add_screens_owned_broadcast_point_group_path(group), params: { screen_ids: [ owned_screen.id ] }
       expect(group.reload.screens).to contain_exactly(owned_screen)
     end
 
     it 'rejects fleet screens not owned by the organization' do
       sign_in_as(user)
-      post add_screens_owned_broadcast_point_group_path(group), params: { screen_ids: [fleet_screen.id] }
+      post add_screens_owned_broadcast_point_group_path(group), params: { screen_ids: [ fleet_screen.id ] }
       expect(group.reload.screens).to be_empty
       expect(flash[:alert]).to be_present
     end

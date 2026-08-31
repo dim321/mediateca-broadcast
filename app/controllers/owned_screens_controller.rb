@@ -24,7 +24,7 @@ class OwnedScreensController < ApplicationController
     authorize @screen, policy_class: OwnedScreenPolicy
     @screen.assign_attributes(screen_params)
     if station_matches_location? && @screen.save
-      redirect_to owned_screen_path(@screen), notice: t('.updated')
+      redirect_to owned_screen_path(@screen), notice: t(".updated")
     else
       load_form_collections
       render :edit, status: :unprocessable_content
@@ -34,9 +34,9 @@ class OwnedScreensController < ApplicationController
   def destroy
     authorize @screen, policy_class: OwnedScreenPolicy
     @screen.destroy!
-    redirect_to owned_screens_path, notice: t('.destroyed')
+    redirect_to owned_screens_path, notice: t(".destroyed")
   rescue ActiveRecord::DeleteRestrictionError
-    redirect_to owned_screen_path(@screen), alert: t('.destroy_restricted')
+    redirect_to owned_screen_path(@screen), alert: t(".destroy_restricted")
   end
 
   private
@@ -44,7 +44,7 @@ class OwnedScreensController < ApplicationController
   def require_user
     return if Current.user
 
-    redirect_to login_path, alert: t('media_assets.authentication_required')
+    redirect_to login_path, alert: t("media_assets.authentication_required")
   end
 
   def set_screen
