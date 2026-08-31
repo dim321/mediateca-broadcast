@@ -843,6 +843,19 @@ en:
         role: Role
   advertising:
     system_rotation_name: "Order #%{number}"
+    print_sheet:
+      title: Placement order
+      document_version: "Document version: %{version}"
+      dash: "—"
+      duration_seconds:
+        one: "%{count} sec"
+        other: "%{count} sec"
+      line_totals: Line totals
+      subtotal: Subtotal
+      total_with_discount: Total with discount
+      manager_signature: Manager signature
+      client_signature: Client signature
+      print_button: Print
     errors:
       clip_not_ready: clip is not broadcast-ready
       order_not_active: clip can be replaced only on an active order

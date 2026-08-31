@@ -230,6 +230,51 @@ RSpec.describe "AdvertisingOrders", type: :request do
       get print_advertising_order_path(order)
 
       expect(response).to have_http_status(:success)
+      expect(response.body).to include(I18n.t("advertising.print_sheet.title"))
+      expect(response.body).to match(/print-.*\.css/)
+    end
+  end
+
+  describe "GET /advertising_orders/:id/print" do
+    def printable_order
+      order = Advertising::CreateOrder.call(
+        organization: organization,
+        created_by: user,
+        media_asset: asset,
+        product_name: "Triumph",
+        discount_cents: 1_000_00
+      )
+      Advertising::UpdateGrid.call(
+        order: order,
+        lines: [ {
+          broadcast_point_group_id: group.id,
+          price_per_day_cents: 34_020_00,
+          days: [ { date: Date.new(2026, 6, 3), shows: 36 } ]
+        } ]
+      )
+      order.reload
+    end
+
+    it "renders the print layout for a manager (A1)" do
+      sign_in_as(user)
+      order = printable_order
+
+      get print_advertising_order_path(order)
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include(I18n.t("advertising.print_sheet.total_with_discount"))
+      expect(response.body).to include(I18n.t("advertising.print_sheet.manager_signature"))
+      expect(response.body).not_to include("cabinet-drawer")
+    end
+
+    it "allows the accountant to print (AE10)" do
+      sign_in_as(accountant)
+      order = printable_order
+
+      get print_advertising_order_path(order)
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include("Triumph")
     end
   end
 
@@ -364,7 +409,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
       get print_advertising_order_path(order)
 
       expect(response).to have_http_status(:success)
-      expect(response.body).to include(I18n.t("advertising_orders.print.document_version", version: 2))
+      expect(response.body).to include(I18n.t("advertising.print_sheet.document_version", version: 2))
       expect(response.body).to include("triumph-v2.png")
     end
 

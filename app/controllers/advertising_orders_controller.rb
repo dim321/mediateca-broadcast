@@ -105,6 +105,7 @@ class AdvertisingOrdersController < ApplicationController
 
   def print
     authorize @advertising_order
+    render layout: "print"
   end
 
   def replace_clip

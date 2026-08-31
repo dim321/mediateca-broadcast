@@ -846,6 +846,21 @@ ru:
         role: Роль
   advertising:
     system_rotation_name: "Заказ №%{number}"
+    print_sheet:
+      title: Заказ на размещение
+      document_version: "Версия документа: %{version}"
+      dash: "—"
+      duration_seconds:
+        one: "%{count} сек"
+        few: "%{count} сек"
+        many: "%{count} сек"
+        other: "%{count} сек"
+      line_totals: Итого по строкам
+      subtotal: Сумма без скидки
+      total_with_discount: ИТОГО со скидкой
+      manager_signature: Подпись менеджера
+      client_signature: Подпись заказчика
+      print_button: Печать
     errors:
       clip_not_ready: ролик не готов к эфиру
       order_not_active: заменить ролик можно только в активном заказе
