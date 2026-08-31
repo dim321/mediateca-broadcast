@@ -4,21 +4,23 @@
 #
 # Table name: media_plans
 #
-#  id                       :bigint           not null, primary key
-#  ends_at                  :datetime         not null
-#  placement_kind           :string           default("own_atmosphere"), not null
-#  shows_per_hour           :integer
-#  starts_at                :datetime         not null
-#  status                   :string           default("active"), not null
-#  created_at               :datetime         not null
-#  updated_at               :datetime         not null
-#  airtime_booking_id       :bigint           not null
-#  broadcast_point_group_id :bigint           not null
-#  organization_id          :bigint           not null
-#  rotation_id              :bigint           not null
+#  id                        :bigint           not null, primary key
+#  ends_at                   :datetime         not null
+#  placement_kind            :string           default("own_atmosphere"), not null
+#  shows_per_hour            :integer
+#  starts_at                 :datetime         not null
+#  status                    :string           default("active"), not null
+#  created_at                :datetime         not null
+#  updated_at                :datetime         not null
+#  advertising_order_line_id :bigint
+#  airtime_booking_id        :bigint           not null
+#  broadcast_point_group_id  :bigint           not null
+#  organization_id           :bigint           not null
+#  rotation_id               :bigint           not null
 #
 # Indexes
 #
+#  index_media_plans_on_advertising_order_line_id                  (advertising_order_line_id)
 #  index_media_plans_on_airtime_booking_id                         (airtime_booking_id)
 #  index_media_plans_on_broadcast_point_group_id                   (broadcast_point_group_id)
 #  index_media_plans_on_organization_id                            (organization_id)
@@ -29,6 +31,7 @@
 #
 # Foreign Keys
 #
+#  fk_rails_...  (advertising_order_line_id => advertising_order_lines.id) ON DELETE => restrict
 #  fk_rails_...  (airtime_booking_id => airtime_bookings.id) ON DELETE => restrict
 #  fk_rails_...  (broadcast_point_group_id => broadcast_point_groups.id) ON DELETE => restrict
 #  fk_rails_...  (organization_id => organizations.id)
@@ -39,6 +42,7 @@ class MediaPlan < ApplicationRecord
   belongs_to :rotation
   belongs_to :broadcast_point_group
   belongs_to :airtime_booking
+  belongs_to :advertising_order_line, optional: true
 
   enum :status, {
     active: "active",

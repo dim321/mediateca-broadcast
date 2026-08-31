@@ -272,6 +272,21 @@ en:
       user:
         one: User
         other: Users
+      "directory/business_sphere":
+        one: Business sphere
+        other: Business spheres
+      profile:
+        one: Organization profile
+        other: Organization profiles
+      advertising_order:
+        one: Advertising order
+        other: Advertising orders
+      advertising_order_line:
+        one: Advertising order line
+        other: Advertising order lines
+      advertising_order_line_day:
+        one: Advertising order line day
+        other: Advertising order line days
     errors:
       models:
         media_asset:
@@ -329,6 +344,15 @@ en:
           attributes:
             operating_hours:
               invalid: has an invalid weekly schedule shape
+        advertising_order:
+          attributes:
+            rotation:
+              wrong_organization: must belong to your organization
+              must_be_system_managed: must be a system-managed order rotation
+        advertising_order_line:
+          attributes:
+            broadcast_point_group:
+              wrong_organization: must belong to your organization
     attributes:
       airtime_booking:
         status: Status
@@ -370,6 +394,34 @@ en:
         email: Email
         organization: Organization
         role: Role
+      "directory/business_sphere":
+        name: Name
+      profile:
+        brand: Brand
+        business_sphere: Business sphere
+        holding: Holding
+      advertising_order:
+        business_sphere: Business sphere
+        clip_title: Clip title
+        coefficient_percent: Coefficient %
+        discount_cents: Discount
+        document_version: Document version
+        duration_seconds: Duration
+        media_asset: Clip
+        placement_kind: Placement type
+        product_name: Product
+        rotation: Rotation
+        status: Status
+        total_shows: Total shows
+        total_sum_cents: Total
+      advertising_order_line:
+        broadcast_point_group: Screen group
+        price_per_day_cents: Price per day
+        total_shows: Shows
+        total_sum_cents: Total
+      advertising_order_line_day:
+        date: Date
+        shows: Shows
   broadcast_point_groups:
     index:
       title: Screen groups
@@ -551,6 +603,16 @@ en:
       status:
         active: Active
         invalidated: Invalidated
+        cancelled: Cancelled
+    advertising_order:
+      placement_kind:
+        own_atmosphere: Own content / atmosphere
+        commercial: Commercial placement
+      status:
+        draft: Draft
+        pending_moderation: Pending moderation
+        active: Active
+        completed: Completed
         cancelled: Cancelled
     organization:
       kind:

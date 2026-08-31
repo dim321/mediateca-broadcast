@@ -27,9 +27,13 @@ class Organization < ApplicationRecord
   has_many :broadcast_point_groups, dependent: :restrict_with_exception
   has_many :media_plans, dependent: :restrict_with_exception
   has_many :airtime_bookings, dependent: :restrict_with_exception
+  has_many :advertising_orders, dependent: :restrict_with_exception
   has_many :play_logs, dependent: :restrict_with_exception
   has_many :owned_screens, class_name: "Screen", foreign_key: :owner_organization_id,
     inverse_of: :owner_organization, dependent: :nullify
+  has_one :profile, dependent: :destroy, inverse_of: :organization
+
+  accepts_nested_attributes_for :profile, update_only: true
 
   validates :name, presence: true
   validates :time_zone, presence: true

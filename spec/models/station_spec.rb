@@ -41,16 +41,16 @@ RSpec.describe Station, type: :model do
       location = create(:location, name: 'Локация 1')
       station = create(:station, name: 'Станция A', location: location)
 
-      expect(station.next_screen_name).to eq('Локация 1-Станция A_screen_1')
+      expect(station.next_screen_name).to eq('Локация 1-Станция A-screen-1')
     end
 
     it 'skips numbers already used on the station' do
       location = create(:location, name: 'Локация 1')
       station = create(:station, name: 'Станция A', location: location)
-      create(:screen, station: station, name: 'Локация 1-Станция A_screen_1')
+      create(:screen, station: station, name: 'Локация 1-Станция A-screen-1')
       create(:screen, station: station, name: 'Витрина')
 
-      expect(station.next_screen_name).to eq('Локация 1-Станция A_screen_2')
+      expect(station.next_screen_name).to eq('Локация 1-Станция A-screen-2')
     end
   end
 end

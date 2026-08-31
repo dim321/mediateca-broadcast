@@ -276,6 +276,21 @@ ru:
       user:
         one: Пользователь
         other: Пользователи
+      "directory/business_sphere":
+        one: Сфера деятельности
+        other: Сферы деятельности
+      profile:
+        one: Профиль организации
+        other: Профили организаций
+      advertising_order:
+        one: Заказ на размещение
+        other: Заказы на размещение
+      advertising_order_line:
+        one: Строка заказа
+        other: Строки заказа
+      advertising_order_line_day:
+        one: День строки заказа
+        other: Дни строки заказа
     errors:
       models:
         media_asset:
@@ -333,6 +348,15 @@ ru:
           attributes:
             operating_hours:
               invalid: имеет некорректную форму недельного расписания
+        advertising_order:
+          attributes:
+            rotation:
+              wrong_organization: должна принадлежать вашей организации
+              must_be_system_managed: должна быть системной ротацией заказа
+        advertising_order_line:
+          attributes:
+            broadcast_point_group:
+              wrong_organization: должна принадлежать вашей организации
     attributes:
       airtime_booking:
         status: Статус
@@ -374,6 +398,34 @@ ru:
         email: Email
         organization: Организация
         role: Роль
+      "directory/business_sphere":
+        name: Название
+      profile:
+        brand: Бренд
+        business_sphere: Сфера деятельности
+        holding: Холдинг
+      advertising_order:
+        business_sphere: Сфера деятельности
+        clip_title: Название ролика
+        coefficient_percent: Коэффициент, %
+        discount_cents: Скидка
+        document_version: Версия документа
+        duration_seconds: Хронометраж
+        media_asset: Ролик
+        placement_kind: Тип размещения
+        product_name: Продукт
+        rotation: Ротация
+        status: Статус
+        total_shows: Всего выходов
+        total_sum_cents: Сумма
+      advertising_order_line:
+        broadcast_point_group: Группа экранов
+        price_per_day_cents: Цена за день
+        total_shows: Выходов
+        total_sum_cents: Сумма
+      advertising_order_line_day:
+        date: Дата
+        shows: Выходов
   broadcast_point_groups:
     index:
       title: Группы экранов
@@ -557,6 +609,16 @@ ru:
       status:
         active: Активен
         invalidated: Недействителен
+        cancelled: Отменён
+    advertising_order:
+      placement_kind:
+        own_atmosphere: Собственный контент / атмосфера
+        commercial: Коммерческое размещение
+      status:
+        draft: Черновик
+        pending_moderation: На модерации
+        active: Активен
+        completed: Завершён
         cancelled: Отменён
     organization:
       kind:

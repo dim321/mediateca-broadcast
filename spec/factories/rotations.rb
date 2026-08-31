@@ -6,6 +6,7 @@
 #
 #  id              :bigint           not null, primary key
 #  name            :string           not null
+#  system_managed  :boolean          default(FALSE), not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  organization_id :bigint           not null
@@ -23,5 +24,9 @@ FactoryBot.define do
   factory :rotation do
     organization
     sequence(:name) { |n| "Rotation #{n}" }
+
+    trait :system_managed do
+      system_managed { true }
+    end
   end
 end

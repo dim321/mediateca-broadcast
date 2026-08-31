@@ -6,6 +6,7 @@
 #
 #  id              :bigint           not null, primary key
 #  name            :string           not null
+#  system_managed  :boolean          default(FALSE), not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  organization_id :bigint           not null
@@ -24,9 +25,13 @@ class Rotation < ApplicationRecord
   has_many :rotation_items, dependent: :destroy
   has_many :media_assets, through: :rotation_items
   has_many :media_plans, dependent: :restrict_with_exception
+  has_one :advertising_order, dependent: :restrict_with_exception
 
   validates :name, presence: true
   validates :name, uniqueness: { scope: :organization_id, case_sensitive: true }
+
+  scope :managed, -> { where(system_managed: true) }
+  scope :unmanaged, -> { where(system_managed: false) }
 
   def ordered_items
     if rotation_items.loaded?

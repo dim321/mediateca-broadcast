@@ -2,6 +2,20 @@
 
 require "rails_helper"
 
+# == Schema Information
+#
+# Table name: locations
+#
+#  id              :bigint           not null, primary key
+#  name            :string           not null
+#  operating_hours :jsonb            not null
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#
+# Indexes
+#
+#  index_locations_on_name  (name) UNIQUE
+#
 RSpec.describe Location, type: :model do
   describe "operating hours" do
     it "round-trips weekly windows" do

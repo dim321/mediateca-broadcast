@@ -24,6 +24,24 @@ RSpec.describe Organization, type: :model do
       create(:user, organization: org)
       expect { org.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
     end
+
+    it 'has one profile destroyed with the organization' do
+      org = create(:organization, :with_profile)
+
+      expect(org.profile).to be_present
+      expect { org.destroy! }.to change(Profile, :count).by(-1)
+    end
+
+    it 'accepts nested profile attributes' do
+      org = create(:organization)
+      sphere = create(:directory_business_sphere, name: "Ритейл")
+
+      org.update!(profile_attributes: { brand: "Командор", holding: "Командор", business_sphere_id: sphere.id })
+
+      expect(org.profile.brand).to eq("Командор")
+      expect(org.profile.holding).to eq("Командор")
+      expect(org.profile.business_sphere).to eq(sphere)
+    end
   end
 
   describe 'validations' do

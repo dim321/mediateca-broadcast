@@ -27,5 +27,23 @@ FactoryBot.define do
     trait :client do
       kind { :client }
     end
+
+    trait :with_profile do
+      after(:create) do |organization, evaluator|
+        create(
+          :profile,
+          organization: organization,
+          business_sphere: evaluator.profile_business_sphere,
+          brand: evaluator.profile_brand,
+          holding: evaluator.profile_holding
+        )
+      end
+    end
+
+    transient do
+      profile_business_sphere { nil }
+      profile_brand { nil }
+      profile_holding { nil }
+    end
   end
 end

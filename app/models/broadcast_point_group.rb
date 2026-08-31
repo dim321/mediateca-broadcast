@@ -28,6 +28,7 @@ class BroadcastPointGroup < ApplicationRecord
   has_many :screens, through: :broadcast_point_group_memberships
   has_many :media_plans, dependent: :restrict_with_exception
   has_many :airtime_bookings, dependent: :restrict_with_exception
+  has_many :advertising_order_lines, dependent: :restrict_with_exception
 
   enum :commercial_quota_period, {
     hour: "hour",

@@ -8,6 +8,7 @@ require "rails_helper"
 #
 #  id              :bigint           not null, primary key
 #  name            :string           not null
+#  system_managed  :boolean          default(FALSE), not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  organization_id :bigint           not null
@@ -40,6 +41,20 @@ RSpec.describe Rotation, type: :model do
       a = create(:rotation, name: "Shared")
       b = build(:rotation, organization: create(:organization), name: "Shared")
       expect(b).to be_valid
+    end
+  end
+
+  describe "system-managed scope" do
+    it "defaults to unmanaged" do
+      expect(create(:rotation)).not_to be_system_managed
+    end
+
+    it "separates managed and unmanaged rotations" do
+      unmanaged = create(:rotation)
+      managed = create(:rotation, :system_managed, organization: unmanaged.organization)
+
+      expect(described_class.managed).to contain_exactly(managed)
+      expect(described_class.unmanaged).to contain_exactly(unmanaged)
     end
   end
 

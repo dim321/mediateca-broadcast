@@ -52,8 +52,15 @@ module AdvertisingNetwork
       screens: screens
     }
   end
+
+  def create_order_line_days!(line, dates:, shows:)
+    dates.map do |date|
+      create(:advertising_order_line_day, advertising_order_line: line, date: date, shows: shows)
+    end
+  end
 end
 
 RSpec.configure do |config|
   config.include AdvertisingNetwork, type: :system
+  config.include AdvertisingNetwork, type: :model
 end

@@ -25,6 +25,9 @@
 class User < ApplicationRecord
   belongs_to :organization, inverse_of: :users
 
+  has_many :created_advertising_orders, class_name: "AdvertisingOrder",
+    foreign_key: :created_by_user_id, inverse_of: :created_by, dependent: :restrict_with_exception
+
   has_secure_password
 
   enum :role, {

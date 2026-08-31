@@ -6,21 +6,23 @@ require 'rails_helper'
 #
 # Table name: media_plans
 #
-#  id                       :bigint           not null, primary key
-#  ends_at                  :datetime         not null
-#  placement_kind           :string           default("own_atmosphere"), not null
-#  shows_per_hour           :integer
-#  starts_at                :datetime         not null
-#  status                   :string           default("active"), not null
-#  created_at               :datetime         not null
-#  updated_at               :datetime         not null
-#  airtime_booking_id       :bigint           not null
-#  broadcast_point_group_id :bigint           not null
-#  organization_id          :bigint           not null
-#  rotation_id              :bigint           not null
+#  id                        :bigint           not null, primary key
+#  ends_at                   :datetime         not null
+#  placement_kind            :string           default("own_atmosphere"), not null
+#  shows_per_hour            :integer
+#  starts_at                 :datetime         not null
+#  status                    :string           default("active"), not null
+#  created_at                :datetime         not null
+#  updated_at                :datetime         not null
+#  advertising_order_line_id :bigint
+#  airtime_booking_id        :bigint           not null
+#  broadcast_point_group_id  :bigint           not null
+#  organization_id           :bigint           not null
+#  rotation_id               :bigint           not null
 #
 # Indexes
 #
+#  index_media_plans_on_advertising_order_line_id                  (advertising_order_line_id)
 #  index_media_plans_on_airtime_booking_id                         (airtime_booking_id)
 #  index_media_plans_on_broadcast_point_group_id                   (broadcast_point_group_id)
 #  index_media_plans_on_organization_id                            (organization_id)
@@ -31,6 +33,7 @@ require 'rails_helper'
 #
 # Foreign Keys
 #
+#  fk_rails_...  (advertising_order_line_id => advertising_order_lines.id) ON DELETE => restrict
 #  fk_rails_...  (airtime_booking_id => airtime_bookings.id) ON DELETE => restrict
 #  fk_rails_...  (broadcast_point_group_id => broadcast_point_groups.id) ON DELETE => restrict
 #  fk_rails_...  (organization_id => organizations.id)
@@ -292,6 +295,17 @@ RSpec.describe MediaPlan, type: :model do
 
       expect(plan.reload).to be_commercial
       expect(plan.shows_per_hour).to eq(3)
+    end
+
+    it 'allows a nullable advertising order line' do
+      plan = create(
+        :media_plan,
+        organization: organization,
+        rotation: rotation,
+        broadcast_point_group: broadcast_point_group
+      )
+
+      expect(plan.advertising_order_line).to be_nil
     end
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_10_122200) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_31_102000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,61 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_122200) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "advertising_order_line_days", force: :cascade do |t|
+    t.bigint "advertising_order_line_id", null: false
+    t.datetime "created_at", null: false
+    t.date "date", null: false
+    t.integer "shows", null: false
+    t.datetime "updated_at", null: false
+    t.index ["advertising_order_line_id", "date"], name: "index_advertising_order_line_days_on_line_and_date", unique: true
+    t.index ["advertising_order_line_id"], name: "index_advertising_order_line_days_on_advertising_order_line_id"
+    t.check_constraint "shows > 0", name: "advertising_order_line_days_shows_positive"
+  end
+
+  create_table "advertising_order_lines", force: :cascade do |t|
+    t.bigint "advertising_order_id", null: false
+    t.bigint "broadcast_point_group_id", null: false
+    t.datetime "created_at", null: false
+    t.integer "price_per_day_cents", null: false
+    t.integer "total_shows", default: 0, null: false
+    t.integer "total_sum_cents", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["advertising_order_id", "broadcast_point_group_id"], name: "index_advertising_order_lines_on_order_and_group", unique: true
+    t.index ["advertising_order_id"], name: "index_advertising_order_lines_on_advertising_order_id"
+    t.index ["broadcast_point_group_id"], name: "index_advertising_order_lines_on_broadcast_point_group_id"
+    t.check_constraint "price_per_day_cents >= 0", name: "advertising_order_lines_price_per_day_cents_non_negative"
+    t.check_constraint "total_shows >= 0", name: "advertising_order_lines_total_shows_non_negative"
+    t.check_constraint "total_sum_cents >= 0", name: "advertising_order_lines_total_sum_cents_non_negative"
+  end
+
+  create_table "advertising_orders", force: :cascade do |t|
+    t.string "business_sphere"
+    t.string "clip_title"
+    t.integer "coefficient_percent", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.bigint "created_by_user_id", null: false
+    t.integer "discount_cents", default: 0, null: false
+    t.integer "document_version", default: 1, null: false
+    t.integer "duration_seconds"
+    t.bigint "media_asset_id", null: false
+    t.bigint "organization_id", null: false
+    t.string "placement_kind", default: "own_atmosphere", null: false
+    t.string "product_name", null: false
+    t.bigint "rotation_id", null: false
+    t.string "status", default: "draft", null: false
+    t.integer "total_shows", default: 0, null: false
+    t.integer "total_sum_cents", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_user_id"], name: "index_advertising_orders_on_created_by_user_id"
+    t.index ["media_asset_id"], name: "index_advertising_orders_on_media_asset_id"
+    t.index ["organization_id"], name: "index_advertising_orders_on_organization_id"
+    t.index ["rotation_id"], name: "index_advertising_orders_on_rotation_id", unique: true
+    t.index ["status"], name: "index_advertising_orders_on_status"
+    t.check_constraint "discount_cents >= 0", name: "advertising_orders_discount_cents_non_negative"
+    t.check_constraint "total_shows >= 0", name: "advertising_orders_total_shows_non_negative"
+    t.check_constraint "total_sum_cents >= 0", name: "advertising_orders_total_sum_cents_non_negative"
   end
 
   create_table "airtime_bookings", force: :cascade do |t|
@@ -80,6 +135,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_122200) do
     t.index ["organization_id"], name: "index_broadcast_point_groups_on_organization_id"
   end
 
+  create_table "directory_business_spheres", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.index "lower((name)::text)", name: "index_directory_business_spheres_on_lower_name", unique: true
+  end
+
   create_table "locations", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -108,6 +170,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_122200) do
   end
 
   create_table "media_plans", force: :cascade do |t|
+    t.bigint "advertising_order_line_id"
     t.bigint "airtime_booking_id", null: false
     t.bigint "broadcast_point_group_id", null: false
     t.datetime "created_at", null: false
@@ -119,6 +182,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_122200) do
     t.datetime "starts_at", null: false
     t.string "status", default: "active", null: false
     t.datetime "updated_at", null: false
+    t.index ["advertising_order_line_id"], name: "index_media_plans_on_advertising_order_line_id"
     t.index ["airtime_booking_id"], name: "index_media_plans_on_airtime_booking_id"
     t.index ["broadcast_point_group_id"], name: "index_media_plans_on_broadcast_point_group_id"
     t.index ["organization_id", "starts_at", "ends_at"], name: "index_media_plans_on_organization_id_and_starts_at_and_ends_at"
@@ -152,6 +216,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_122200) do
     t.index ["screen_id"], name: "index_play_logs_on_screen_id"
   end
 
+  create_table "profiles", force: :cascade do |t|
+    t.string "brand"
+    t.bigint "business_sphere_id"
+    t.datetime "created_at", null: false
+    t.string "holding"
+    t.bigint "organization_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["business_sphere_id"], name: "index_profiles_on_business_sphere_id"
+    t.index ["organization_id"], name: "index_profiles_on_organization_id", unique: true
+  end
+
   create_table "rotation_items", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "display_duration_seconds"
@@ -168,6 +243,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_122200) do
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.bigint "organization_id", null: false
+    t.boolean "system_managed", default: false, null: false
     t.datetime "updated_at", null: false
     t.index ["organization_id", "name"], name: "index_rotations_on_organization_id_and_name", unique: true
     t.index ["organization_id"], name: "index_rotations_on_organization_id"
@@ -227,6 +303,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_122200) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "advertising_order_line_days", "advertising_order_lines", on_delete: :cascade
+  add_foreign_key "advertising_order_lines", "advertising_orders", on_delete: :cascade
+  add_foreign_key "advertising_order_lines", "broadcast_point_groups", on_delete: :restrict
+  add_foreign_key "advertising_orders", "media_assets", on_delete: :restrict
+  add_foreign_key "advertising_orders", "organizations", on_delete: :restrict
+  add_foreign_key "advertising_orders", "rotations", on_delete: :restrict
+  add_foreign_key "advertising_orders", "users", column: "created_by_user_id", on_delete: :restrict
   add_foreign_key "airtime_bookings", "broadcast_point_groups"
   add_foreign_key "airtime_bookings", "organizations"
   add_foreign_key "broadcast_point_group_memberships", "broadcast_point_groups", on_delete: :cascade
@@ -234,6 +317,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_122200) do
   add_foreign_key "broadcast_point_groups", "organizations"
   add_foreign_key "media_assets", "organizations"
   add_foreign_key "media_assets", "users", column: "uploaded_by_id", on_delete: :nullify
+  add_foreign_key "media_plans", "advertising_order_lines", on_delete: :restrict
   add_foreign_key "media_plans", "airtime_bookings", on_delete: :restrict
   add_foreign_key "media_plans", "broadcast_point_groups", on_delete: :restrict
   add_foreign_key "media_plans", "organizations"
@@ -241,6 +325,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_122200) do
   add_foreign_key "play_logs", "media_assets"
   add_foreign_key "play_logs", "organizations"
   add_foreign_key "play_logs", "screens"
+  add_foreign_key "profiles", "directory_business_spheres", column: "business_sphere_id", on_delete: :restrict
+  add_foreign_key "profiles", "organizations", on_delete: :cascade
   add_foreign_key "rotation_items", "media_assets", on_delete: :restrict
   add_foreign_key "rotation_items", "rotations"
   add_foreign_key "rotations", "organizations"
