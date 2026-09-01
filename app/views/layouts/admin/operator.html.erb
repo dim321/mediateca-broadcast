@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="<%= I18n.locale %>">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>
+      <%= content_for?(:title) ? yield(:title) : t("admin.chrome.title") %> — Mediateca
+    </title>
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "admin", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags "admin" %>
+  </head>
+  <body class="bg-gray-50" data-controller="sidebar" data-action="keydown.esc@window->sidebar#close turbo:visit@document->sidebar#close">
+    <%= render "admin/shared/navbar" %>
+    <%= render "admin/shared/sidebar" %>
+    <div
+      data-sidebar-target="overlay"
+      data-action="click->sidebar#close"
+      class="bg-gray-900/50 fixed inset-0 z-30 hidden md:hidden"></div>
+    <main class="p-4 md:ml-64 h-auto pt-20">
+      <%= render "admin/shared/flash" %>
+      <%= yield %>
+    </main>
+  </body>
+</html>

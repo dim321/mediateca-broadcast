@@ -398,6 +398,8 @@ en:
         name: Name
       tag:
         name: Name
+        created_at: Created at
+        updated_at: Updated at
       user:
         email: Email
         organization: Organization
@@ -611,6 +613,59 @@ en:
       screen:
         owner_organization: Defaults to the operator organization (fleet screen). Choose a client if the screen belongs to them.
   admin:
+    authentication_required: Operator sign-in required for admin.
+    chrome:
+      actions: Actions
+      back: Back to list
+      back_to_app: Back to app
+      brand: Admin
+      cancel: Cancel
+      destroy: Delete
+      edit: Edit
+      open_menu: Open menu
+      pagination: Page navigation
+      page_entries:
+        one: "%{count} entry"
+        other: "%{count} entries"
+      show: View
+      sidebar: Admin sections
+      title: Admin
+      user_menu: User menu
+    nav:
+      advertising_orders: Advertising orders
+      broadcast_point_group_memberships: Group memberships
+      broadcast_point_groups: Screen groups
+      business_spheres: Business spheres
+      locations: Locations
+      media_assets: Media assets
+      media_plans: Media plans
+      organizations: Organizations
+      play_logs: Play logs
+      rotation_items: Rotation items
+      rotations: Rotations
+      screen_tags: Screen tags
+      screens: Screens
+      stations: Stations
+      tags: Tags
+      users: Users
+    tags:
+      clear_search: Clear search
+      created: Tag created.
+      destroy_confirm: Delete this tag? Screen associations will be removed.
+      destroyed: Tag deleted.
+      edit: Edit tag
+      empty:
+        description: Create the first tag to label screens.
+        search_description: Try a different query or clear the filter.
+        search_title: No matching tags
+        title: No tags yet
+      index:
+        title: Tags
+      new: New tag
+      screens_count: Screens with this tag
+      search: Search by name
+      search_submit: Search
+      updated: Tag updated.
     advertising_orders:
       activate: Activate
       cancel: Cancel order

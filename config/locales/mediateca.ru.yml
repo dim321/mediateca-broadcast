@@ -402,6 +402,8 @@ ru:
         name: Название
       tag:
         name: Название
+        created_at: Создан
+        updated_at: Обновлён
       user:
         email: Email
         organization: Организация
@@ -619,6 +621,61 @@ ru:
       screen:
         owner_organization: По умолчанию — организация-оператор (экран флота). Выберите клиента, если экран принадлежит ему.
   admin:
+    authentication_required: Для входа в админку нужна учётная запись оператора.
+    chrome:
+      actions: Действия
+      back: Назад к списку
+      back_to_app: В кабинет
+      brand: Админка
+      cancel: Отмена
+      destroy: Удалить
+      edit: Изменить
+      open_menu: Открыть меню
+      pagination: Навигация по страницам
+      page_entries:
+        one: "%{count} запись"
+        few: "%{count} записи"
+        many: "%{count} записей"
+        other: "%{count} записей"
+      show: Открыть
+      sidebar: Разделы админки
+      title: Админка
+      user_menu: Меню пользователя
+    nav:
+      advertising_orders: Заказы на размещение
+      broadcast_point_group_memberships: Составы групп
+      broadcast_point_groups: Группы экранов
+      business_spheres: Сферы деятельности
+      locations: Локации
+      media_assets: Медиафайлы
+      media_plans: Медиапланы
+      organizations: Организации
+      play_logs: Журнал эфира
+      rotation_items: Элементы ротаций
+      rotations: Ротации
+      screen_tags: Теги экранов
+      screens: Экраны
+      stations: Станции
+      tags: Теги
+      users: Пользователи
+    tags:
+      clear_search: Сбросить поиск
+      created: Тег создан.
+      destroy_confirm: Удалить этот тег? Связи с экранами будут сняты.
+      destroyed: Тег удалён.
+      edit: Редактирование тега
+      empty:
+        description: Создайте первый тег, чтобы помечать экраны.
+        search_description: Попробуйте другой запрос или сбросьте фильтр.
+        search_title: Ничего не найдено
+        title: Тегов пока нет
+      index:
+        title: Теги
+      new: Новый тег
+      screens_count: Экранов с этим тегом
+      search: Поиск по названию
+      search_submit: Найти
+      updated: Тег обновлён.
     advertising_orders:
       activate: Активировать
       cancel: Отменить заказ

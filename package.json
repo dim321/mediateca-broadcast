@@ -2,6 +2,7 @@
   "name": "mediateca-broadcast",
   "private": true,
   "devDependencies": {
-    "daisyui": "^5.7.16"
+    "daisyui": "^5.7.16",
+    "flowbite": "^4.0.1"
   }
 }

@@ -3,4 +3,9 @@
   themes: light --default;
 }
 
+@source not "../../views/layouts/admin/operator.html.erb";
+@source not "../../views/admin/tags";
+@source not "../../views/admin/shared";
+@source not "../../views/kaminari/admin";
+
 /* App-wide Tailwind layers and custom utilities live here. */

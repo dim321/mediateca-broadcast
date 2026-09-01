@@ -1,0 +1,7 @@
+rails generate admin:scaffold NAME [field:type field:type]
+
+Generates an Admin::NAMEController with Ransack + Kaminari, Flowbite ERB
+views, a request spec, and ransackable_* methods on an existing model.
+
+Does not create a model, migration, or routes. Pass --force to overwrite
+an existing Administrate stub controller.
