@@ -21,6 +21,14 @@
 #  fk_rails_...  (organization_id => organizations.id)
 #
 class Rotation < ApplicationRecord
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[id name system_managed created_at updated_at organization_id]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    %w[organization]
+  end
+
   belongs_to :organization
   has_many :rotation_items, dependent: :destroy
   has_many :media_assets, through: :rotation_items

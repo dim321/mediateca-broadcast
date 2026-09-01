@@ -28,6 +28,14 @@
 #  fk_rails_...  (screen_id => screens.id)
 #
 class PlayLog < ApplicationRecord
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[id source started_at created_at updated_at media_asset_id organization_id screen_id]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    %w[organization screen media_asset]
+  end
+
   belongs_to :organization
   belongs_to :screen
   belongs_to :media_asset

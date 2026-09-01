@@ -1,46 +1,56 @@
+# frozen_string_literal: true
+
 module Admin
-  class BroadcastPointGroupMembershipsController < Admin::ApplicationController
-    # Overwrite any of the RESTful controller actions to implement custom behavior
-    # For example, you may want to send an email after a foo is updated.
-    #
-    # def update
-    #   super
-    #   send_foo_updated_email(requested_resource)
-    # end
+  class BroadcastPointGroupMembershipsController < Admin::BaseController
+    def index
+      @q = BroadcastPointGroupMembership.ransack(ransack_params)
+      @q.sorts = "id desc" if @q.sorts.empty?
+      @broadcast_point_group_memberships = @q.result.includes(:broadcast_point_group, :screen)
+        .page(params[:page]).per(25)
+    end
 
-    # Override this method to specify custom lookup behavior.
-    # This will be used to set the resource for the `show`, `edit`, and `update`
-    # actions.
-    #
-    # def find_resource(param)
-    #   Foo.find_by!(slug: param)
-    # end
+    def show
+      @broadcast_point_group_membership = BroadcastPointGroupMembership.find(params[:id])
+    end
 
-    # The result of this lookup will be available as `requested_resource`
+    def new
+      @broadcast_point_group_membership = BroadcastPointGroupMembership.new
+    end
 
-    # Override this if you have certain roles that require a subset
-    # this will be used to set the records shown on the `index` action.
-    #
-    # def scoped_resource
-    #   if current_user.super_admin?
-    #     resource_class
-    #   else
-    #     resource_class.with_less_stuff
-    #   end
-    # end
+    def create
+      @broadcast_point_group_membership = BroadcastPointGroupMembership.new(membership_params)
+      if @broadcast_point_group_membership.save
+        redirect_to admin_broadcast_point_group_membership_path(@broadcast_point_group_membership),
+          notice: t("admin.crud.created"), status: :see_other
+      else
+        render :new, status: :unprocessable_content
+      end
+    end
 
-    # Override `resource_params` if you want to transform the submitted
-    # data before it's persisted. For example, the following would turn all
-    # empty values into nil values. It uses other APIs such as `resource_class`
-    # and `dashboard`:
-    #
-    # def resource_params
-    #   params.require(resource_class.model_name.param_key).
-    #     permit(dashboard.permitted_attributes(action_name)).
-    #     transform_values { |value| value == "" ? nil : value }
-    # end
+    def edit
+      @broadcast_point_group_membership = BroadcastPointGroupMembership.find(params[:id])
+    end
 
-    # See https://administrate-demo.herokuapp.com/customizing_controller_actions
-    # for more information
+    def update
+      @broadcast_point_group_membership = BroadcastPointGroupMembership.find(params[:id])
+      if @broadcast_point_group_membership.update(membership_params)
+        redirect_to admin_broadcast_point_group_membership_path(@broadcast_point_group_membership),
+          notice: t("admin.crud.updated"), status: :see_other
+      else
+        render :edit, status: :unprocessable_content
+      end
+    end
+
+    def destroy
+      @broadcast_point_group_membership = BroadcastPointGroupMembership.find(params[:id])
+      @broadcast_point_group_membership.destroy!
+      redirect_to admin_broadcast_point_group_memberships_path, notice: t("admin.crud.destroyed"), status: :see_other
+    end
+
+    private
+
+    def membership_params
+      params.expect(broadcast_point_group_membership: [ :broadcast_point_group_id, :screen_id ])
+    end
   end
 end

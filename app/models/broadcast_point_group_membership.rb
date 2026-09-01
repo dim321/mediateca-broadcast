@@ -22,6 +22,14 @@
 #  fk_rails_...  (screen_id => screens.id)
 #
 class BroadcastPointGroupMembership < ApplicationRecord
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[id created_at updated_at broadcast_point_group_id screen_id]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    %w[broadcast_point_group screen]
+  end
+
   belongs_to :broadcast_point_group
   belongs_to :screen
 

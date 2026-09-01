@@ -22,6 +22,14 @@
 #  fk_rails_...  (location_id => locations.id)
 #
 class Station < ApplicationRecord
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[id agent_token_digest name offline_cache_hours created_at updated_at location_id]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    %w[location]
+  end
+
   belongs_to :location
 
   has_many :screens, dependent: :destroy

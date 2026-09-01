@@ -1,0 +1,52 @@
+<% content_for :title, admin_attachment_name(@media_asset.file) %>
+<div class="mb-4">
+  <h1 class="text-2xl font-semibold text-gray-900"><%= admin_attachment_name(@media_asset.file) %></h1>
+</div>
+<div class="bg-white border border-gray-200 rounded-lg p-6 max-w-xl">
+  <dl class="grid grid-cols-1 gap-4">
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Organization.model_name.human %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@media_asset.organization) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= MediaAsset.human_attribute_name(:file) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_attachment_name(@media_asset.file) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= MediaAsset.human_attribute_name(:preview) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_attachment_name(@media_asset.preview) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= MediaAsset.human_attribute_name(:broadcast_file) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_attachment_name(@media_asset.broadcast_file) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= MediaAsset.human_attribute_name(:content_kind) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@media_asset, :content_kind) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= MediaAsset.human_attribute_name(:content_type) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@media_asset, :content_type) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= MediaAsset.human_attribute_name(:visibility) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@media_asset, :visibility) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= MediaAsset.human_attribute_name(:processing_status) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@media_asset, :processing_status) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= MediaAsset.human_attribute_name(:duration_seconds) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @media_asset.duration_seconds || t("admin.crud.none") %></dd>
+    </div>
+  </dl>
+</div>
+<div class="mt-6 flex flex-wrap gap-3">
+  <%= link_to t("admin.chrome.edit"), edit_admin_media_asset_path(@media_asset), class: admin_primary_button_class %>
+  <%= link_to t("admin.chrome.back"), admin_media_assets_path, class: admin_secondary_button_class %>
+  <%= button_to t("admin.chrome.destroy"), admin_media_asset_path(@media_asset),
+        method: :delete,
+        data: { turbo_confirm: t("admin.crud.destroy_confirm") },
+        class: admin_danger_button_class %>
+</div>

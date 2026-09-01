@@ -39,6 +39,14 @@
 #  fk_rails_...  (rotation_id => rotations.id) ON DELETE => restrict
 #
 class AdvertisingOrder < ApplicationRecord
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[id business_sphere clip_title coefficient_percent discount_cents document_version duration_seconds placement_kind product_name status total_shows total_sum_cents created_at updated_at created_by_user_id media_asset_id organization_id rotation_id]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    %w[organization created_by]
+  end
+
   belongs_to :organization
   belongs_to :created_by, class_name: "User", foreign_key: :created_by_user_id,
     inverse_of: :created_advertising_orders

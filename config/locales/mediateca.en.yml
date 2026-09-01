@@ -606,14 +606,29 @@ en:
       confirm: Replace the clip on this active order? Airtime slots will not be recreated.
       cancel: Cancel
       replaced: Clip replaced, document version incremented.
-  administrate:
-    actions:
-      cancel: Cancel
-    field_hints:
-      screen:
-        owner_organization: Defaults to the operator organization (fleet screen). Choose a client if the screen belongs to them.
   admin:
     authentication_required: Operator sign-in required for admin.
+    crud:
+      clear_search: Clear search
+      created: Record created.
+      destroy_confirm: Delete this record?
+      destroy_restricted: Cannot delete this record because related records still exist.
+      destroyed: Record deleted.
+      edit: Edit
+      empty:
+        description: Create the first record.
+        search_description: Try a different query or clear the filter.
+        search_title: No matches
+        title: Nothing here yet
+      new: New
+      no: "No"
+      none: "—"
+      search: Search
+      search_submit: Search
+      token_blank: Not set
+      token_set: Set
+      updated: Record updated.
+      yes: "Yes"
     chrome:
       actions: Actions
       back: Back to list
@@ -689,6 +704,8 @@ en:
       save_window: Save new window
       starts_at: "Starts at (%{time_zone})"
     fields:
+      screen:
+        owner_organization: Defaults to the operator organization (fleet screen). Choose a client if the screen belongs to them.
       operating_hours:
         copy_monday_to_all: Copy Monday to all days
         day: Day

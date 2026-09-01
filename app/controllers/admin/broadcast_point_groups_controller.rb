@@ -1,46 +1,64 @@
+# frozen_string_literal: true
+
 module Admin
-  class BroadcastPointGroupsController < Admin::ApplicationController
-    # Overwrite any of the RESTful controller actions to implement custom behavior
-    # For example, you may want to send an email after a foo is updated.
-    #
-    # def update
-    #   super
-    #   send_foo_updated_email(requested_resource)
-    # end
+  class BroadcastPointGroupsController < Admin::BaseController
+    def index
+      @q = BroadcastPointGroup.ransack(ransack_params)
+      @q.sorts = "name asc" if @q.sorts.empty?
+      @broadcast_point_groups = @q.result.includes(:organization).page(params[:page]).per(25)
+    end
 
-    # Override this method to specify custom lookup behavior.
-    # This will be used to set the resource for the `show`, `edit`, and `update`
-    # actions.
-    #
-    # def find_resource(param)
-    #   Foo.find_by!(slug: param)
-    # end
+    def show
+      @broadcast_point_group = BroadcastPointGroup.includes(:screens).find(params[:id])
+    end
 
-    # The result of this lookup will be available as `requested_resource`
+    def new
+      @broadcast_point_group = BroadcastPointGroup.new
+    end
 
-    # Override this if you have certain roles that require a subset
-    # this will be used to set the records shown on the `index` action.
-    #
-    # def scoped_resource
-    #   if current_user.super_admin?
-    #     resource_class
-    #   else
-    #     resource_class.with_less_stuff
-    #   end
-    # end
+    def create
+      @broadcast_point_group = BroadcastPointGroup.new(broadcast_point_group_params)
+      if @broadcast_point_group.save
+        redirect_to admin_broadcast_point_group_path(@broadcast_point_group),
+          notice: t("admin.crud.created"), status: :see_other
+      else
+        render :new, status: :unprocessable_content
+      end
+    end
 
-    # Override `resource_params` if you want to transform the submitted
-    # data before it's persisted. For example, the following would turn all
-    # empty values into nil values. It uses other APIs such as `resource_class`
-    # and `dashboard`:
-    #
-    # def resource_params
-    #   params.require(resource_class.model_name.param_key).
-    #     permit(dashboard.permitted_attributes(action_name)).
-    #     transform_values { |value| value == "" ? nil : value }
-    # end
+    def edit
+      @broadcast_point_group = BroadcastPointGroup.find(params[:id])
+    end
 
-    # See https://administrate-demo.herokuapp.com/customizing_controller_actions
-    # for more information
+    def update
+      @broadcast_point_group = BroadcastPointGroup.find(params[:id])
+      if @broadcast_point_group.update(broadcast_point_group_params)
+        redirect_to admin_broadcast_point_group_path(@broadcast_point_group),
+          notice: t("admin.crud.updated"), status: :see_other
+      else
+        render :edit, status: :unprocessable_content
+      end
+    end
+
+    def destroy
+      @broadcast_point_group = BroadcastPointGroup.find(params[:id])
+      destroy_with_restriction(
+        @broadcast_point_group,
+        admin_broadcast_point_groups_path,
+        notice: t("admin.crud.destroyed")
+      )
+    end
+
+    private
+
+    def broadcast_point_group_params
+      params.require(:broadcast_point_group).permit(
+        :organization_id,
+        :name,
+        :commercial_quota_percent,
+        :commercial_quota_period,
+        screen_ids: []
+      )
+    end
   end
 end

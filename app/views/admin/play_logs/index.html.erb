@@ -1,0 +1,38 @@
+<% content_for :title, t("admin.nav.play_logs") %>
+<div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <h1 class="text-2xl font-semibold text-gray-900"><%= t("admin.nav.play_logs") %></h1>
+  <%= link_to t("admin.crud.new"), new_admin_play_log_path, class: admin_primary_button_class %>
+</div>
+<% if @play_logs.empty? %>
+  <%= render "admin/shared/empty_state", title: t("admin.crud.empty.title"), description: t("admin.crud.empty.description"), action_path: new_admin_play_log_path, action_label: t("admin.crud.new") %>
+<% else %>
+  <div class="relative overflow-x-auto shadow-md sm:rounded-lg bg-white">
+    <table class="w-full text-sm text-left text-gray-500">
+      <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+        <tr>
+          <th scope="col" class="px-6 py-3"><%= sort_link @q, :started_at %></th>
+          <th scope="col" class="px-6 py-3"><%= Organization.model_name.human %></th>
+          <th scope="col" class="px-6 py-3"><%= Screen.model_name.human %></th>
+          <th scope="col" class="px-6 py-3"><span class="sr-only"><%= t("admin.chrome.actions") %></span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @play_logs.each do |play_log| %>
+          <tr class="bg-white border-b hover:bg-gray-50">
+            <td class="px-6 py-4"><%= link_to l(play_log.started_at, format: :short), admin_play_log_path(play_log), class: "text-blue-700 hover:underline" %></td>
+            <td class="px-6 py-4"><%= admin_link_to_record(play_log.organization) %></td>
+            <td class="px-6 py-4"><%= admin_link_to_record(play_log.screen) %></td>
+            <td class="px-6 py-4 text-right whitespace-nowrap">
+              <%= link_to t("admin.chrome.show"), admin_play_log_path(play_log), class: "font-medium text-blue-700 hover:underline me-3" %>
+              <%= link_to t("admin.chrome.edit"), edit_admin_play_log_path(play_log), class: "font-medium text-blue-700 hover:underline" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4">
+      <span class="text-sm text-gray-500"><%= t("admin.chrome.page_entries", count: @play_logs.total_count) %></span>
+      <%= paginate @play_logs, theme: "admin" %>
+    </div>
+  </div>
+<% end %>

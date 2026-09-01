@@ -16,6 +16,14 @@
 #  index_organizations_one_operator  (kind) UNIQUE WHERE ((kind)::text = 'operator'::text)
 #
 class Organization < ApplicationRecord
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[id kind name time_zone created_at updated_at]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    %w[profile]
+  end
+
   enum :kind, {
     operator: "operator",
     client: "client"

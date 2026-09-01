@@ -14,6 +14,19 @@ module Admin
 
     stale_when_importmap_changes
 
+    private
+
+    def ransack_params
+      params[:q].is_a?(ActionController::Parameters) ? params[:q] : {}
+    end
+
+    def destroy_with_restriction(record, success_path, notice:, alert: nil)
+      record.destroy!
+      redirect_to success_path, notice: notice, status: :see_other
+    rescue ActiveRecord::DeleteRestrictionError, ActiveRecord::InvalidForeignKey
+      redirect_to success_path, alert: alert || t("admin.crud.destroy_restricted"), status: :see_other
+    end
+
     def authenticate_admin
       return if Current.user&.organization&.operator?
 

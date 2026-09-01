@@ -38,6 +38,14 @@
 #  fk_rails_...  (rotation_id => rotations.id) ON DELETE => restrict
 #
 class MediaPlan < ApplicationRecord
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[id ends_at placement_kind shows_per_hour starts_at status created_at updated_at advertising_order_line_id airtime_booking_id broadcast_point_group_id organization_id rotation_id]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    %w[organization broadcast_point_group rotation]
+  end
+
   belongs_to :organization
   belongs_to :rotation
   belongs_to :broadcast_point_group

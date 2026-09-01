@@ -10,6 +10,7 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= stylesheet_link_tag "admin", "data-turbo-track": "reload" %>
+    <%= yield :head if content_for?(:head) %>
     <%= javascript_importmap_tags "admin" %>
   </head>
   <body class="bg-gray-50" data-controller="sidebar" data-action="keydown.esc@window->sidebar#close turbo:visit@document->sidebar#close">

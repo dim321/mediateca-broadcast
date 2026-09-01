@@ -23,6 +23,14 @@
 #  fk_rails_...  (organization_id => organizations.id)
 #
 class User < ApplicationRecord
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[id email role created_at updated_at organization_id]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    %w[organization]
+  end
+
   belongs_to :organization, inverse_of: :users
 
   has_many :created_advertising_orders, class_name: "AdvertisingOrder",

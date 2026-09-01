@@ -49,9 +49,5 @@ module Admin
     def tag_params
       params.expect(tag: [ :name ])
     end
-
-    def ransack_params
-      params[:q].is_a?(ActionController::Parameters) ? params[:q] : {}
-    end
   end
 end

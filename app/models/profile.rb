@@ -23,6 +23,14 @@
 #  fk_rails_...  (organization_id => organizations.id) ON DELETE => cascade
 #
 class Profile < ApplicationRecord
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[id brand holding created_at updated_at business_sphere_id organization_id]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    %w[organization business_sphere]
+  end
+
   belongs_to :organization, inverse_of: :profile
   belongs_to :business_sphere, class_name: "Directory::BusinessSphere", optional: true,
     inverse_of: :profiles

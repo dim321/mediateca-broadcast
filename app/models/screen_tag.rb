@@ -22,6 +22,14 @@
 #  fk_rails_...  (tag_id => tags.id)
 #
 class ScreenTag < ApplicationRecord
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[id created_at updated_at screen_id tag_id]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    %w[screen tag]
+  end
+
   belongs_to :screen
   belongs_to :tag
 end

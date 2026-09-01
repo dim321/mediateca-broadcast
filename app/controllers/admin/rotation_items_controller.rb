@@ -1,46 +1,53 @@
+# frozen_string_literal: true
+
 module Admin
-  class RotationItemsController < Admin::ApplicationController
-    # Overwrite any of the RESTful controller actions to implement custom behavior
-    # For example, you may want to send an email after a foo is updated.
-    #
-    # def update
-    #   super
-    #   send_foo_updated_email(requested_resource)
-    # end
+  class RotationItemsController < Admin::BaseController
+    def index
+      @q = RotationItem.ransack(ransack_params)
+      @q.sorts = "id desc" if @q.sorts.empty?
+      @rotation_items = @q.result.includes(:rotation, :media_asset).page(params[:page]).per(25)
+    end
 
-    # Override this method to specify custom lookup behavior.
-    # This will be used to set the resource for the `show`, `edit`, and `update`
-    # actions.
-    #
-    # def find_resource(param)
-    #   Foo.find_by!(slug: param)
-    # end
+    def show
+      @rotation_item = RotationItem.find(params[:id])
+    end
 
-    # The result of this lookup will be available as `requested_resource`
+    def new
+      @rotation_item = RotationItem.new
+    end
 
-    # Override this if you have certain roles that require a subset
-    # this will be used to set the records shown on the `index` action.
-    #
-    # def scoped_resource
-    #   if current_user.super_admin?
-    #     resource_class
-    #   else
-    #     resource_class.with_less_stuff
-    #   end
-    # end
+    def create
+      @rotation_item = RotationItem.new(rotation_item_params)
+      if @rotation_item.save
+        redirect_to admin_rotation_item_path(@rotation_item), notice: t("admin.crud.created"), status: :see_other
+      else
+        render :new, status: :unprocessable_content
+      end
+    end
 
-    # Override `resource_params` if you want to transform the submitted
-    # data before it's persisted. For example, the following would turn all
-    # empty values into nil values. It uses other APIs such as `resource_class`
-    # and `dashboard`:
-    #
-    # def resource_params
-    #   params.require(resource_class.model_name.param_key).
-    #     permit(dashboard.permitted_attributes(action_name)).
-    #     transform_values { |value| value == "" ? nil : value }
-    # end
+    def edit
+      @rotation_item = RotationItem.find(params[:id])
+    end
 
-    # See https://administrate-demo.herokuapp.com/customizing_controller_actions
-    # for more information
+    def update
+      @rotation_item = RotationItem.find(params[:id])
+      if @rotation_item.update(rotation_item_params)
+        redirect_to admin_rotation_item_path(@rotation_item), notice: t("admin.crud.updated"), status: :see_other
+      else
+        render :edit, status: :unprocessable_content
+      end
+    end
+
+    def destroy
+      @rotation_item = RotationItem.find(params[:id])
+      @rotation_item.destroy!
+      redirect_to admin_rotation_items_path, notice: t("admin.crud.destroyed"), status: :see_other
+    end
+
+    private
+
+    def rotation_item_params
+      params.expect(rotation_item: [ :rotation_id, :media_asset_id, :position, :display_duration_seconds ])
+    end
   end
 end

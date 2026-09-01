@@ -13,7 +13,7 @@ RSpec.describe "Admin chrome isolation", type: :system do
     click_button I18n.t("sessions.new.submit")
   end
 
-  it "loads admin.css on tags and Administrate styles on screens" do
+  it "loads admin.css on tags and screens, cabinet tailwind in the app" do
     create(:tag, name: "Retail")
     sign_in_through_ui
 
@@ -23,8 +23,8 @@ RSpec.describe "Admin chrome isolation", type: :system do
     expect(page.html).not_to include("administrate")
 
     click_link I18n.t("admin.nav.screens")
-    expect(page).to have_css(".navigation")
-    expect(page.html).not_to match(%r{rel="stylesheet"[^>]+/assets/admin-})
+    expect(page.html).to include("/assets/admin-")
+    expect(page.html).not_to include("administrate")
 
     visit root_path
     expect(page.html).to include("tailwind")

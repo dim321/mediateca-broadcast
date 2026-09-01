@@ -95,11 +95,13 @@ RSpec.describe "Admin tags", type: :request do
       expect(response).to have_http_status(:not_found)
     end
 
-    it "keeps Administrate screens index working" do
+    it "renders the Flowbite screens index" do
       get admin_screens_path
 
       expect(response).to have_http_status(:success)
-      expect(response.body).to include("navigation")
+      expect(response.body).to include("/assets/admin-")
+      expect(response.body).not_to include("app-container")
+      expect(response.body).not_to include("navigation__link")
     end
 
     it "destroys a tag and its screen_tags" do

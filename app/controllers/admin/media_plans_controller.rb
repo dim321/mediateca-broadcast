@@ -1,21 +1,30 @@
 # frozen_string_literal: true
 
 module Admin
-  class MediaPlansController < Admin::ApplicationController
+  class MediaPlansController < Admin::BaseController
+    def index
+      @q = MediaPlan.ransack(ransack_params)
+      @q.sorts = "starts_at desc" if @q.sorts.empty?
+      @media_plans = @q.result.includes(:organization, :broadcast_point_group).page(params[:page]).per(25)
+    end
+
+    def show
+      @media_plan = MediaPlan.find(params[:id])
+    end
+
     def cancel
-      plan = requested_resource
+      plan = MediaPlan.find(params[:id])
       Airtime::Cancel.call(plan: plan)
-      redirect_to admin_media_plans_path, notice: t("admin.media_plans.cancelled")
+      redirect_to admin_media_plans_path, notice: t("admin.media_plans.cancelled"), status: :see_other
     rescue ArgumentError => e
       redirect_to admin_media_plan_path(plan), alert: e.message
     end
 
     def reschedule
-      @media_plan = requested_resource
+      @media_plan = MediaPlan.find(params[:id])
 
       if request.get? || request.head?
         load_broadcast_point_groups
-        render :reschedule
         return
       end
 
@@ -32,7 +41,7 @@ module Admin
         starts_at: starts_at,
         ends_at: ends_at
       )
-      redirect_to admin_media_plan_path(@media_plan), notice: t("admin.media_plans.rescheduled")
+      redirect_to admin_media_plan_path(@media_plan), notice: t("admin.media_plans.rescheduled"), status: :see_other
     rescue Airtime::ConflictError, Airtime::InvalidWindowError, ArgumentError => e
       load_broadcast_point_groups
       flash.now[:alert] = e.message

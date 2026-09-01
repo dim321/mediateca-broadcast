@@ -31,6 +31,14 @@
 #  fk_rails_...  (uploaded_by_id => users.id) ON DELETE => nullify
 #
 class MediaAsset < ApplicationRecord
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[id content_kind content_type duration_seconds processing_status visibility created_at updated_at organization_id uploaded_by_id]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    %w[organization]
+  end
+
   MAX_FILE_SIZE = 1.gigabyte
 
   belongs_to :organization

@@ -1,0 +1,40 @@
+<%= form_with model: [ :admin, organization ], class: "max-w-xl bg-white border border-gray-200 rounded-lg p-6" do |f| %>
+  <%= render "admin/shared/form_errors", record: organization %>
+  <% if organization.profile&.errors&.any? %>
+    <%= render "admin/shared/form_errors", record: organization.profile %>
+  <% end %>
+
+  <div class="mb-5">
+    <%= f.label :name, class: admin_label_class %>
+    <%= f.text_field :name, class: admin_input_class, required: true %>
+  </div>
+  <div class="mb-5">
+    <%= f.label :kind, class: admin_label_class %>
+    <%= f.select :kind, admin_enum_options(Organization, :kind), {}, class: admin_select_class %>
+  </div>
+  <div class="mb-5">
+    <%= f.label :time_zone, class: admin_label_class %>
+    <%= f.time_zone_select :time_zone, nil, {}, class: admin_select_class %>
+  </div>
+
+  <%= f.fields_for :profile do |pf| %>
+    <div class="mb-5">
+      <%= pf.label :brand, class: admin_label_class %>
+      <%= pf.text_field :brand, class: admin_input_class %>
+    </div>
+    <div class="mb-5">
+      <%= pf.label :holding, class: admin_label_class %>
+      <%= pf.text_field :holding, class: admin_input_class %>
+    </div>
+    <div class="mb-5">
+      <%= pf.label :business_sphere_id, class: admin_label_class %>
+      <%= pf.collection_select :business_sphere_id, Directory::BusinessSphere.order(:name), :id, :name,
+            { include_blank: true }, class: admin_select_class %>
+    </div>
+  <% end %>
+
+  <div class="flex flex-wrap gap-3">
+    <%= f.submit class: admin_primary_button_class %>
+    <%= link_to t("admin.chrome.cancel"), admin_organizations_path, class: admin_secondary_button_class %>
+  </div>
+<% end %>

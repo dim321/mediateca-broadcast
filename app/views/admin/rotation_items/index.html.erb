@@ -1,0 +1,38 @@
+<% content_for :title, t("admin.nav.rotation_items") %>
+<div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <h1 class="text-2xl font-semibold text-gray-900"><%= t("admin.nav.rotation_items") %></h1>
+  <%= link_to t("admin.crud.new"), new_admin_rotation_item_path, class: admin_primary_button_class %>
+</div>
+<% if @rotation_items.empty? %>
+  <%= render "admin/shared/empty_state", title: t("admin.crud.empty.title"), description: t("admin.crud.empty.description"), action_path: new_admin_rotation_item_path, action_label: t("admin.crud.new") %>
+<% else %>
+  <div class="relative overflow-x-auto shadow-md sm:rounded-lg bg-white">
+    <table class="w-full text-sm text-left text-gray-500">
+      <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+        <tr>
+          <th scope="col" class="px-6 py-3"><%= Rotation.model_name.human %></th>
+          <th scope="col" class="px-6 py-3"><%= MediaAsset.model_name.human %></th>
+          <th scope="col" class="px-6 py-3"><%= sort_link @q, :position %></th>
+          <th scope="col" class="px-6 py-3"><span class="sr-only"><%= t("admin.chrome.actions") %></span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @rotation_items.each do |item| %>
+          <tr class="bg-white border-b hover:bg-gray-50">
+            <td class="px-6 py-4"><%= admin_link_to_record(item.rotation) %></td>
+            <td class="px-6 py-4"><%= admin_link_to_record(item.media_asset) %></td>
+            <td class="px-6 py-4"><%= item.position %></td>
+            <td class="px-6 py-4 text-right whitespace-nowrap">
+              <%= link_to t("admin.chrome.show"), admin_rotation_item_path(item), class: "font-medium text-blue-700 hover:underline me-3" %>
+              <%= link_to t("admin.chrome.edit"), edit_admin_rotation_item_path(item), class: "font-medium text-blue-700 hover:underline" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4">
+      <span class="text-sm text-gray-500"><%= t("admin.chrome.page_entries", count: @rotation_items.total_count) %></span>
+      <%= paginate @rotation_items, theme: "admin" %>
+    </div>
+  </div>
+<% end %>

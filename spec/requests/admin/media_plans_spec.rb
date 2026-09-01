@@ -46,7 +46,7 @@ RSpec.describe 'Admin media plans', type: :request do
       expect(response).to have_http_status(:success)
       expect(response.body).not_to include('Airtime quotas')
       expect(response.body).not_to include('Airtime Quotas')
-      expect(response.body).to include(I18n.t("activerecord.models.media_plan", count: 2))
+      expect(response.body).to include(I18n.t("admin.nav.media_plans"))
     end
 
     it 'lets an operator cancel a client plan and free the slot' do

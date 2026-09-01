@@ -1,46 +1,49 @@
+# frozen_string_literal: true
+
 module Admin
-  class MediaAssetsController < Admin::ApplicationController
-    # Overwrite any of the RESTful controller actions to implement custom behavior
-    # For example, you may want to send an email after a foo is updated.
-    #
-    # def update
-    #   super
-    #   send_foo_updated_email(requested_resource)
-    # end
+  class MediaAssetsController < Admin::BaseController
+    def index
+      @q = MediaAsset.ransack(ransack_params)
+      @q.sorts = "created_at desc" if @q.sorts.empty?
+      @media_assets = @q.result.includes(:organization).with_attached_file.page(params[:page]).per(25)
+    end
 
-    # Override this method to specify custom lookup behavior.
-    # This will be used to set the resource for the `show`, `edit`, and `update`
-    # actions.
-    #
-    # def find_resource(param)
-    #   Foo.find_by!(slug: param)
-    # end
+    def show
+      @media_asset = MediaAsset.with_attached_file.with_attached_preview.with_attached_broadcast_file.find(params[:id])
+    end
 
-    # The result of this lookup will be available as `requested_resource`
+    def edit
+      @media_asset = MediaAsset.find(params[:id])
+    end
 
-    # Override this if you have certain roles that require a subset
-    # this will be used to set the records shown on the `index` action.
-    #
-    # def scoped_resource
-    #   if current_user.super_admin?
-    #     resource_class
-    #   else
-    #     resource_class.with_less_stuff
-    #   end
-    # end
+    def update
+      @media_asset = MediaAsset.find(params[:id])
+      if @media_asset.update(media_asset_params)
+        redirect_to admin_media_asset_path(@media_asset), notice: t("admin.crud.updated"), status: :see_other
+      else
+        render :edit, status: :unprocessable_content
+      end
+    end
 
-    # Override `resource_params` if you want to transform the submitted
-    # data before it's persisted. For example, the following would turn all
-    # empty values into nil values. It uses other APIs such as `resource_class`
-    # and `dashboard`:
-    #
-    # def resource_params
-    #   params.require(resource_class.model_name.param_key).
-    #     permit(dashboard.permitted_attributes(action_name)).
-    #     transform_values { |value| value == "" ? nil : value }
-    # end
+    def destroy
+      @media_asset = MediaAsset.find(params[:id])
+      destroy_with_restriction(@media_asset, admin_media_assets_path, notice: t("admin.crud.destroyed"))
+    end
 
-    # See https://administrate-demo.herokuapp.com/customizing_controller_actions
-    # for more information
+    private
+
+    def media_asset_params
+      params.expect(
+        media_asset: [
+          :organization_id,
+          :uploaded_by_id,
+          :content_kind,
+          :content_type,
+          :visibility,
+          :processing_status,
+          :duration_seconds
+        ]
+      )
+    end
   end
 end

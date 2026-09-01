@@ -24,6 +24,14 @@
 #  fk_rails_...  (station_id => stations.id)
 #
 class Screen < ApplicationRecord
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[id name orientation created_at updated_at owner_organization_id station_id]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    %w[station owner_organization]
+  end
+
   belongs_to :station
   belongs_to :owner_organization, class_name: "Organization", optional: true
 

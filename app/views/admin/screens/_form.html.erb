@@ -1,0 +1,94 @@
+<%
+  operator_org = Organization.find_by(kind: :operator)
+  selected_owner_id = screen.owner_organization_id || operator_org&.id
+  stations = Station.includes(:location).order("locations.name, stations.name")
+  organizations = Organization.order(Arel.sql("CASE WHEN kind = 'operator' THEN 0 ELSE 1 END"), :name)
+%>
+<%= form_with model: [ :admin, screen ],
+      class: "max-w-xl bg-white border border-gray-200 rounded-lg p-6",
+      data: {
+        controller: "screen-form",
+        screen_form_auto_fill_name_value: screen.new_record?
+      } do |f| %>
+  <%= render "admin/shared/form_errors", record: screen %>
+
+  <div class="mb-5">
+    <%= f.label :location_id, class: admin_label_class %>
+    <%= f.collection_select :location_id, Location.order(:name), :id, :name,
+          { include_blank: t("helpers.label.screen.location_blank") },
+          {
+            id: "screen_location_id",
+            class: admin_select_class,
+            data: {
+              screen_location_select: true,
+              auto_fill_name: screen.new_record?,
+              screen_form_target: "location",
+              action: "screen-form#locationChanged"
+            }
+          } %>
+  </div>
+
+  <div class="mb-5">
+    <%= f.label :station_id, class: admin_label_class %>
+    <%= f.select :station_id,
+          options_for_select(
+            stations.map { |station|
+              [
+                "#{station.location.name} · #{station.name}",
+                station.id,
+                {
+                  "data-location-id": station.location_id,
+                  "data-suggested-name": station.next_screen_name
+                }
+              ]
+            },
+            screen.station_id
+          ),
+          { include_blank: t("helpers.label.screen.station_blank") },
+          {
+            id: "screen_station_id",
+            class: admin_select_class,
+            data: {
+              screen_station_select: true,
+              screen_form_target: "station",
+              action: "screen-form#stationChanged"
+            }
+          } %>
+  </div>
+
+  <div class="mb-5">
+    <%= f.label :name, class: admin_label_class %>
+    <%= f.text_field :name, id: "screen_name", class: admin_input_class, data: { screen_form_target: "name" } %>
+  </div>
+
+  <div class="mb-5">
+    <%= f.label :orientation, class: admin_label_class %>
+    <%= f.select :orientation, admin_enum_options(Screen, :orientation), {}, class: admin_select_class %>
+  </div>
+
+  <div class="mb-5">
+    <%= f.label :owner_organization_id, class: admin_label_class %>
+    <%= f.select :owner_organization_id,
+          options_from_collection_for_select(organizations, :id, :name, selected_owner_id),
+          {},
+          class: admin_select_class %>
+    <p class="mt-1 text-sm text-gray-500"><%= t("admin.fields.screen.owner_organization") %></p>
+  </div>
+
+  <div class="mb-5">
+    <%= f.label :tag_ids, Tag.model_name.human(count: 2), class: admin_label_class %>
+    <div class="space-y-2">
+      <%= f.collection_check_boxes :tag_ids, Tag.order(:name), :id, :name do |b| %>
+        <label class="flex items-center gap-2 text-sm text-gray-900">
+          <%= b.check_box class: admin_checkbox_class %>
+          <%= b.text %>
+        </label>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap gap-3">
+    <%= f.submit class: admin_primary_button_class %>
+    <%= link_to t("admin.chrome.cancel"), admin_screens_path, class: admin_secondary_button_class %>
+  </div>
+<% end %>

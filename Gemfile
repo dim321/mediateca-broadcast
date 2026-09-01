@@ -82,6 +82,5 @@ gem "capybara", "~> 3.40", group: :test
 
 gem "cuprite", "~> 0.17", group: :test
 
-gem "administrate", "~> 1.0"
 gem "ransack", "~> 4.4"
 gem "kaminari", "~> 1.2"

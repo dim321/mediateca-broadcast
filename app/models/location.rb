@@ -15,6 +15,14 @@
 #  index_locations_on_name  (name) UNIQUE
 #
 class Location < ApplicationRecord
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[id name operating_hours created_at updated_at]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    %w[]
+  end
+
   include Location::OperatingHours
 
   has_many :stations, dependent: :destroy

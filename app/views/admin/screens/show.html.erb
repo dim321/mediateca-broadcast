@@ -1,0 +1,36 @@
+<% content_for :title, @screen.name %>
+<div class="mb-4">
+  <h1 class="text-2xl font-semibold text-gray-900"><%= @screen.name %></h1>
+</div>
+<div class="bg-white border border-gray-200 rounded-lg p-6 max-w-xl">
+  <dl class="grid grid-cols-1 gap-4">
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Screen.human_attribute_name(:name) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @screen.name %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Screen.human_attribute_name(:station) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@screen.station) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Screen.human_attribute_name(:orientation) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@screen, :orientation) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Screen.human_attribute_name(:owner_organization) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@screen.owner_organization) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Tag.model_name.human(count: 2) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @screen.tags.map(&:name).presence&.join(", ") || t("admin.crud.none") %></dd>
+    </div>
+  </dl>
+</div>
+<div class="mt-6 flex flex-wrap gap-3">
+  <%= link_to t("admin.chrome.edit"), edit_admin_screen_path(@screen), class: admin_primary_button_class %>
+  <%= link_to t("admin.chrome.back"), admin_screens_path, class: admin_secondary_button_class %>
+  <%= button_to t("admin.chrome.destroy"), admin_screen_path(@screen),
+        method: :delete,
+        data: { turbo_confirm: t("admin.crud.destroy_confirm") },
+        class: admin_danger_button_class %>
+</div>

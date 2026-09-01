@@ -160,6 +160,6 @@ RSpec.describe 'Operator onboarding and owner group', type: :system do
   end
 
   def submit_admin_form
-    within('section.main-content__body form') { find('input[type=submit]').click }
+    within("main") { find("form input[type=submit]").click }
   end
 end

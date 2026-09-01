@@ -35,12 +35,12 @@ RSpec.describe "Locale switching", type: :request do
 
     before { sign_in_as(operator) }
 
-    it "renders the locale switcher in the page header, not the sidebar" do
+    it "renders the locale switcher in the navbar, not the sidebar" do
       get admin_media_plans_path
 
       page = Nokogiri::HTML(response.body)
-      expect(page.at_css("header.main-content__header .main-content__locale")).to be_present
-      expect(page.at_css("nav.navigation .main-content__locale")).to be_nil
+      expect(page.at_css("nav form[action*='locale']")).to be_present
+      expect(page.at_css("aside form[action*='locale']")).to be_nil
     end
 
     it "switches locale and returns to the admin page" do

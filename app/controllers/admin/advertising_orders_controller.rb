@@ -1,8 +1,18 @@
 # frozen_string_literal: true
 
 module Admin
-  class AdvertisingOrdersController < Admin::ApplicationController
+  class AdvertisingOrdersController < Admin::BaseController
     helper AdvertisingOrdersHelper
+
+    def index
+      @q = AdvertisingOrder.ransack(ransack_params)
+      @q.sorts = "created_at desc" if @q.sorts.empty?
+      @advertising_orders = @q.result.includes(:organization, :created_by).page(params[:page]).per(25)
+    end
+
+    def show
+      @advertising_order = find_order
+    end
 
     def new
       @form_organization = selected_organization
@@ -44,13 +54,13 @@ module Admin
     end
 
     def edit
-      @advertising_order = requested_resource
+      @advertising_order = find_order
       @form_organization = @advertising_order.organization
       prepare_form
     end
 
     def update
-      @advertising_order = requested_resource
+      @advertising_order = find_order
       @form_organization = @advertising_order.organization
       @advertising_order.update!(header_update_attrs)
       persist_grid!(@advertising_order)
@@ -64,24 +74,30 @@ module Admin
     end
 
     def activate
-      result = Advertising::ActivateOrder.call(order: requested_resource)
+      order = find_order
+      result = Advertising::ActivateOrder.call(order: order)
       flash[:notice] = t("advertising_orders.activate.activated")
       flash[:warning] = t("advertising_orders.activate.quota_exceeded") if result.quota_exceeded
       if result.conflicted_windows.any?
         flash[:alert] = t("advertising_orders.activate.conflicts", count: result.conflicted_windows.size)
       end
-      redirect_to admin_advertising_order_path(requested_resource)
+      redirect_to admin_advertising_order_path(order)
     rescue Advertising::Error => e
-      redirect_to admin_advertising_order_path(requested_resource), alert: e.message
+      redirect_to admin_advertising_order_path(find_order), alert: e.message
     end
 
     def cancel
-      Advertising::CancelOrder.call(order: requested_resource)
-      redirect_to admin_advertising_order_path(requested_resource),
+      order = find_order
+      Advertising::CancelOrder.call(order: order)
+      redirect_to admin_advertising_order_path(order),
         notice: t("admin.advertising_orders.cancelled")
     end
 
     private
+
+    def find_order
+      AdvertisingOrder.find(params[:id])
+    end
 
     def selected_organization
       Organization.find_by(id: requested_organization_id) || Organization.order(:name).first

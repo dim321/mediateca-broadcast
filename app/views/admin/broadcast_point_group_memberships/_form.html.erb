@@ -1,0 +1,9 @@
+<%= form_with model: [:admin, broadcast_point_group_membership], class: "max-w-xl bg-white border border-gray-200 rounded-lg p-6" do |f| %>
+  <%= render "admin/shared/form_errors", record: broadcast_point_group_membership %>
+  <div class="mb-5"><%= f.label :broadcast_point_group_id, class: admin_label_class %><%= f.collection_select :broadcast_point_group_id, BroadcastPointGroup.order(:name), :id, :name, { include_blank: true }, class: admin_select_class %></div>
+  <div class="mb-5"><%= f.label :screen_id, class: admin_label_class %><%= f.collection_select :screen_id, Screen.order(:name), :id, :name, { include_blank: true }, class: admin_select_class %></div>
+  <div class="flex flex-wrap gap-3">
+    <%= f.submit class: admin_primary_button_class %>
+    <%= link_to t("admin.chrome.cancel"), admin_broadcast_point_group_memberships_path, class: admin_secondary_button_class %>
+  </div>
+<% end %>

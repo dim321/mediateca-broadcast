@@ -9,7 +9,7 @@ module AdminHelper
     { key: :locations, path: :admin_locations_path, controllers: %w[admin/locations] },
     { key: :stations, path: :admin_stations_path, controllers: %w[admin/stations] },
     { key: :screens, path: :admin_screens_path, controllers: %w[admin/screens] },
-    { key: :tags, path: :admin_tags_path, controllers: %w[admin/tags], turbo: true },
+    { key: :tags, path: :admin_tags_path, controllers: %w[admin/tags] },
     { key: :screen_tags, path: :admin_screen_tags_path, controllers: %w[admin/screen_tags] },
     { key: :media_assets, path: :admin_media_assets_path, controllers: %w[admin/media_assets] },
     { key: :rotations, path: :admin_rotations_path, controllers: %w[admin/rotations] },
@@ -29,9 +29,7 @@ module AdminHelper
   end
 
   def admin_nav_link_options(item)
-    options = { class: admin_nav_link_class(item) }
-    options[:data] = { turbo: false } unless item[:turbo]
-    options
+    { class: admin_nav_link_class(item) }
   end
 
   def admin_nav_link_class(item)
@@ -72,5 +70,62 @@ module AdminHelper
 
   def admin_label_class
     "block mb-2 text-sm font-medium text-gray-900"
+  end
+
+  def admin_select_class
+    admin_input_class
+  end
+
+  def admin_checkbox_class
+    "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+  end
+
+  def admin_enum_label(record, attribute)
+    value = record.public_send(attribute)
+    return t("admin.crud.none") if value.blank?
+
+    t("enums.#{record.model_name.i18n_key}.#{attribute}.#{value}")
+  end
+
+  def admin_enum_options(model, attribute)
+    model.public_send(attribute.to_s.pluralize).keys.map do |key|
+      [ t("enums.#{model.model_name.i18n_key}.#{attribute}.#{key}"), key ]
+    end
+  end
+
+  def admin_record_label(record)
+    return t("admin.crud.none") if record.nil?
+
+    record.try(:name).presence ||
+      record.try(:email).presence ||
+      record.try(:product_name).presence ||
+      "#{record.model_name.human} ##{record.id}"
+  end
+
+  def admin_link_to_record(record)
+    return t("admin.crud.none") if record.nil?
+
+    link_to admin_record_label(record), admin_record_path(record), class: "text-blue-700 hover:underline"
+  end
+
+  def admin_record_path(record)
+    case record
+    when ::Directory::BusinessSphere then [ :admin, :directory, record ]
+    else [ :admin, record ]
+    end
+  end
+
+  def admin_boolean(value)
+    value ? t("admin.crud.yes") : t("admin.crud.no")
+  end
+
+  def admin_attachment_name(attachment)
+    return t("admin.crud.none") unless attachment&.attached?
+
+    attachment.filename.to_s
+  end
+
+  def admin_flash_for(resource, action)
+    t("admin.#{resource}.#{action}", default: t("admin.crud.#{action}"))
   end
 end

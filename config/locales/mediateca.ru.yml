@@ -614,14 +614,29 @@ ru:
       confirm: Заменить ролик в активном заказе? Слоты эфира не пересоздаются.
       cancel: Отмена
       replaced: Ролик заменён, версия документа увеличена.
-  administrate:
-    actions:
-      cancel: Отмена
-    field_hints:
-      screen:
-        owner_organization: По умолчанию — организация-оператор (экран флота). Выберите клиента, если экран принадлежит ему.
   admin:
     authentication_required: Для входа в админку нужна учётная запись оператора.
+    crud:
+      clear_search: Сбросить поиск
+      created: Запись создана.
+      destroy_confirm: Удалить эту запись?
+      destroy_restricted: Нельзя удалить запись, пока на неё ссылаются другие данные.
+      destroyed: Запись удалена.
+      edit: Изменить
+      empty:
+        description: Создайте первую запись.
+        search_description: Попробуйте другой запрос или сбросьте фильтр.
+        search_title: Ничего не найдено
+        title: Пока пусто
+      new: Создать
+      no: "Нет"
+      none: "—"
+      search: Поиск
+      search_submit: Найти
+      token_blank: Не задан
+      token_set: Задан
+      updated: Запись обновлена.
+      yes: "Да"
     chrome:
       actions: Действия
       back: Назад к списку
@@ -699,6 +714,8 @@ ru:
       save_window: Сохранить новое окно
       starts_at: "Начало (%{time_zone})"
     fields:
+      screen:
+        owner_organization: По умолчанию — организация-оператор (экран флота). Выберите клиента, если экран принадлежит ему.
       operating_hours:
         copy_monday_to_all: Скопировать понедельник на все дни
         day: День

@@ -1,0 +1,15 @@
+<% content_for :title, "#{RotationItem.model_name.human} ##{@rotation_item.id}" %>
+<div class="mb-4"><h1 class="text-2xl font-semibold text-gray-900"><%= RotationItem.model_name.human %> #<%= @rotation_item.id %></h1></div>
+<div class="bg-white border border-gray-200 rounded-lg p-6 max-w-xl">
+  <dl class="grid grid-cols-1 gap-4">
+    <div><dt class="text-sm font-medium text-gray-500"><%= Rotation.model_name.human %></dt><dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@rotation_item.rotation) %></dd></div>
+    <div><dt class="text-sm font-medium text-gray-500"><%= MediaAsset.model_name.human %></dt><dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@rotation_item.media_asset) %></dd></div>
+    <div><dt class="text-sm font-medium text-gray-500"><%= RotationItem.human_attribute_name(:position) %></dt><dd class="mt-1 text-sm text-gray-900"><%= @rotation_item.position %></dd></div>
+    <div><dt class="text-sm font-medium text-gray-500"><%= RotationItem.human_attribute_name(:display_duration_seconds) %></dt><dd class="mt-1 text-sm text-gray-900"><%= @rotation_item.display_duration_seconds || t("admin.crud.none") %></dd></div>
+  </dl>
+</div>
+<div class="mt-6 flex flex-wrap gap-3">
+  <%= link_to t("admin.chrome.edit"), edit_admin_rotation_item_path(@rotation_item), class: admin_primary_button_class %>
+  <%= link_to t("admin.chrome.back"), admin_rotation_items_path, class: admin_secondary_button_class %>
+  <%= button_to t("admin.chrome.destroy"), admin_rotation_item_path(@rotation_item), method: :delete, data: { turbo_confirm: t("admin.crud.destroy_confirm") }, class: admin_danger_button_class %>
+</div>

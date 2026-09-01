@@ -22,6 +22,14 @@
 #  fk_rails_...  (organization_id => organizations.id)
 #
 class BroadcastPointGroup < ApplicationRecord
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[id commercial_quota_percent commercial_quota_period name created_at updated_at organization_id]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    %w[organization]
+  end
+
   belongs_to :organization
 
   has_many :broadcast_point_group_memberships, dependent: :destroy

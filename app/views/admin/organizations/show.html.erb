@@ -1,0 +1,42 @@
+<% content_for :title, @organization.name %>
+<div class="mb-4">
+  <h1 class="text-2xl font-semibold text-gray-900"><%= @organization.name %></h1>
+</div>
+<div class="bg-white border border-gray-200 rounded-lg p-6 max-w-xl">
+  <dl class="grid grid-cols-1 gap-4">
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Organization.human_attribute_name(:name) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @organization.name %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Organization.human_attribute_name(:kind) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@organization, :kind) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Organization.human_attribute_name(:time_zone) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @organization.time_zone %></dd>
+    </div>
+    <% if @organization.profile %>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= Profile.human_attribute_name(:brand) %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= @organization.profile.brand.presence || t("admin.crud.none") %></dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= Profile.human_attribute_name(:holding) %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= @organization.profile.holding.presence || t("admin.crud.none") %></dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= Profile.human_attribute_name(:business_sphere) %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= @organization.profile.business_sphere&.name || t("admin.crud.none") %></dd>
+      </div>
+    <% end %>
+  </dl>
+</div>
+<div class="mt-6 flex flex-wrap gap-3">
+  <%= link_to t("admin.chrome.edit"), edit_admin_organization_path(@organization), class: admin_primary_button_class %>
+  <%= link_to t("admin.chrome.back"), admin_organizations_path, class: admin_secondary_button_class %>
+  <%= button_to t("admin.chrome.destroy"), admin_organization_path(@organization),
+        method: :delete,
+        data: { turbo_confirm: t("admin.crud.destroy_confirm") },
+        class: admin_danger_button_class %>
+</div>
