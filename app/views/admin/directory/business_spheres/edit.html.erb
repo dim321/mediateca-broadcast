@@ -1,0 +1,7 @@
+<% content_for :title, t("admin.crud.edit") %>
+
+<div class="mb-4">
+  <h1 class="text-2xl font-semibold text-gray-900"><%= t("admin.crud.edit") %> · <%= t("admin.nav.business_spheres") %></h1>
+</div>
+
+<%= render "form", business_sphere: @business_sphere %>

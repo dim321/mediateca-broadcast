@@ -3,10 +3,13 @@
 **Feature**: `001-media-playlist-broadcast`  
 **Date**: 2026-03-31
 
+> **Примечание (2026-08-05):** gem **Avo** удалён из кодовой базы. Упоминания Avo ниже — исторические; операторская админка будет заменена на **Administrate** (политики Pundit сохраняются).
+
 ## 1. Авторизация: Pundit vs CanCanCan
 
 **Decision**: **Pundit** как единый механизм политик для приложения и **Avo**
 (`authorize @record` / `avo_authorize`).
+*(Исторически Avo; целевая админка — **Administrate**, с теми же Pundit-политиками.)*
 
 **Rationale**: Политики на класс + запись хорошо ложатся на мультитенантные
 проверки (`record.organization_id == Current.organization_id`), проще

@@ -1,0 +1,27 @@
+- content_for :title, t('.title')
+- actions = capture do
+  - if policy(AdvertisingOrder).create?
+    = link_to t('.new_order'), new_advertising_order_path, class: 'btn btn-primary btn-sm'
+
+.mx-auto.w-full.max-w-6xl
+  = render 'shared/page_header', title: t('.title'), actions: actions
+
+  .flex.flex-wrap.gap-2.mb-4
+    = link_to t('.filter_all'), advertising_orders_path, class: "btn btn-sm #{'btn-active' if params[:status].blank?}"
+    - AdvertisingOrder.statuses.keys.excluding('pending_moderation').each do |status|
+      = link_to t("enums.advertising_order.status.#{status}"), advertising_orders_path(status: status), class: "btn btn-sm #{'btn-active' if params[:status] == status}"
+
+  - if @advertising_orders.any?
+    .grid.gap-3
+      - @advertising_orders.each do |order|
+        .card.bg-base-100.border.border-base-300.shadow-sm
+          .card-body.gap-2
+            = link_to order.product_name, order, class: 'link link-hover font-medium'
+            p.text-sm.text-base-content/60
+              = t("enums.advertising_order.status.#{order.status}")
+              |  ·
+              = money_display(order.total_sum_cents)
+  - else
+    .card.bg-base-100.border.border-base-300.shadow-sm
+      .card-body
+        p.text-base-content/60 = t('.empty')

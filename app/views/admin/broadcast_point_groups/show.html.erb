@@ -1,0 +1,16 @@
+<% content_for :title, @broadcast_point_group.name %>
+<div class="mb-4"><h1 class="text-2xl font-semibold text-gray-900"><%= @broadcast_point_group.name %></h1></div>
+<div class="bg-white border border-gray-200 rounded-lg p-6 max-w-xl">
+  <dl class="grid grid-cols-1 gap-4">
+    <div><dt class="text-sm font-medium text-gray-500"><%= BroadcastPointGroup.human_attribute_name(:name) %></dt><dd class="mt-1 text-sm text-gray-900"><%= @broadcast_point_group.name %></dd></div>
+    <div><dt class="text-sm font-medium text-gray-500"><%= Organization.model_name.human %></dt><dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@broadcast_point_group.organization) %></dd></div>
+    <div><dt class="text-sm font-medium text-gray-500"><%= BroadcastPointGroup.human_attribute_name(:commercial_quota_percent) %></dt><dd class="mt-1 text-sm text-gray-900"><%= @broadcast_point_group.commercial_quota_percent || t("admin.crud.none") %></dd></div>
+    <div><dt class="text-sm font-medium text-gray-500"><%= BroadcastPointGroup.human_attribute_name(:commercial_quota_period) %></dt><dd class="mt-1 text-sm text-gray-900"><%= @broadcast_point_group.commercial_quota_period.present? ? admin_enum_label(@broadcast_point_group, :commercial_quota_period) : t("admin.crud.none") %></dd></div>
+    <div><dt class="text-sm font-medium text-gray-500"><%= t("admin.nav.screens") %></dt><dd class="mt-1 text-sm text-gray-900"><%= @broadcast_point_group.screens.map(&:name).presence&.join(", ") || t("admin.crud.none") %></dd></div>
+  </dl>
+</div>
+<div class="mt-6 flex flex-wrap gap-3">
+  <%= link_to t("admin.chrome.edit"), edit_admin_broadcast_point_group_path(@broadcast_point_group), class: admin_primary_button_class %>
+  <%= link_to t("admin.chrome.back"), admin_broadcast_point_groups_path, class: admin_secondary_button_class %>
+  <%= button_to t("admin.chrome.destroy"), admin_broadcast_point_group_path(@broadcast_point_group), method: :delete, data: { turbo_confirm: t("admin.crud.destroy_confirm") }, class: admin_danger_button_class %>
+</div>

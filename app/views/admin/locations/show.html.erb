@@ -1,0 +1,43 @@
+<% content_for :title, @location.name %>
+<div class="mb-4">
+  <h1 class="text-2xl font-semibold text-gray-900"><%= @location.name %></h1>
+</div>
+<div class="bg-white border border-gray-200 rounded-lg p-6 max-w-xl">
+  <dl class="grid grid-cols-1 gap-4">
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Location.human_attribute_name(:name) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @location.name %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Location.human_attribute_name(:operating_hours) %></dt>
+      <dd class="mt-1 text-sm text-gray-900">
+        <% if @location.operating_hours_configured? %>
+          <ul class="space-y-1">
+            <% Location::OperatingHours::DAY_KEYS.each do |day| %>
+              <% windows = Array(@location.operating_hours[day]) %>
+              <% next if windows.blank? %>
+              <li>
+                <%= t("locations.edit.days.#{day}") %>:
+                <%= windows.map { |window| "#{window['start']}–#{window['end']}" }.join(", ") %>
+              </li>
+            <% end %>
+          </ul>
+        <% else %>
+          <%= t("admin.fields.operating_hours.missing") %>
+        <% end %>
+      </dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= t("admin.nav.stations") %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @location.stations.count %></dd>
+    </div>
+  </dl>
+</div>
+<div class="mt-6 flex flex-wrap gap-3">
+  <%= link_to t("admin.chrome.edit"), edit_admin_location_path(@location), class: admin_primary_button_class %>
+  <%= link_to t("admin.chrome.back"), admin_locations_path, class: admin_secondary_button_class %>
+  <%= button_to t("admin.chrome.destroy"), admin_location_path(@location),
+        method: :delete,
+        data: { turbo_confirm: t("admin.crud.destroy_confirm") },
+        class: admin_danger_button_class %>
+</div>

@@ -1,0 +1,5 @@
+rails generate admin:install
+
+Copies the Flowbite operator admin chrome: BaseController, layout, Stimulus
+controllers, admin.css, and Kaminari theme. Does not generate a model.
+Existing files are skipped unless you pass --force.

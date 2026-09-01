@@ -1,0 +1,27 @@
+<% content_for :head do %>
+  <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+<% end %>
+<% content_for :title, t("admin.advertising_orders.edit_title") %>
+
+<div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <h1 class="text-2xl font-semibold text-gray-900"><%= t("admin.advertising_orders.edit_title") %></h1>
+  <%= link_to @advertising_order.product_name, admin_advertising_order_path(@advertising_order), class: admin_secondary_button_class %>
+</div>
+
+<%= form_with url: edit_admin_advertising_order_path(@advertising_order), method: :get, html: { class: "flex flex-wrap items-end gap-3 mb-6" } do %>
+  <div>
+    <label class="<%= admin_label_class %>"><%= t("advertising_orders.form.fill_from") %></label>
+    <%= date_field_tag :grid_from, @grid_dates.first, class: admin_input_class %>
+  </div>
+  <div>
+    <label class="<%= admin_label_class %>"><%= t("advertising_orders.form.fill_to") %></label>
+    <%= date_field_tag :grid_to, @grid_dates.last, class: admin_input_class %>
+  </div>
+  <%= submit_tag t("advertising_orders.form.show_grid"), class: admin_primary_button_class %>
+<% end %>
+
+<%= render "advertising_orders/form",
+      advertising_order: @advertising_order,
+      form_url: admin_advertising_order_path(@advertising_order),
+      cancel_url: admin_advertising_order_path(@advertising_order),
+      time_zone: @form_organization.time_zone %>

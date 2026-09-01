@@ -1,0 +1,23 @@
+<%%= form_with model: [ :admin, <%= singular_table_name %> ], class: "max-w-xl bg-white border border-gray-200 rounded-lg p-6" do |f| %>
+  <%% if <%= singular_table_name %>.errors.any? %>
+    <div role="alert" class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">
+      <ul class="list-disc ms-4">
+        <%% <%= singular_table_name %>.errors.full_messages.each do |message| %>
+          <li><%%= message %></li>
+        <%% end %>
+      </ul>
+    </div>
+  <%% end %>
+
+<% form_attributes.each do |attribute| -%>
+  <div class="mb-5">
+    <%%= f.label :<%= attribute.name %>, class: admin_label_class %>
+    <%%= f.<%= attribute.field_type %> :<%= attribute.name %>, class: "#{admin_input_class} #{'border-red-500' if <%= singular_table_name %>.errors[:<%= attribute.name %>].any?}" %>
+  </div>
+<% end -%>
+
+  <div class="flex flex-wrap gap-3">
+    <%%= f.submit class: admin_primary_button_class %>
+    <%%= link_to t("admin.chrome.cancel"), <%= index_route_helper %>_path, class: admin_secondary_button_class %>
+  </div>
+<%% end %>

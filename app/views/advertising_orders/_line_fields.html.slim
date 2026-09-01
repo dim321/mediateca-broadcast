@@ -1,0 +1,30 @@
+.border.border-base-300.rounded-box.p-4.space-y-3
+  .grid.gap-3.md:grid-cols-2
+    div
+      label.block.text-sm.font-medium = AdvertisingOrderLine.human_attribute_name(:broadcast_point_group)
+      = select_tag "advertising_order[lines][#{index}][broadcast_point_group_id]",
+          options_from_collection_for_select(@broadcast_point_groups, :id, :name, line.broadcast_point_group_id),
+          include_blank: true,
+          id: "advertising_order_lines_#{index}_broadcast_point_group_id",
+          class: 'select select-bordered w-full mt-1'
+    div
+      label.block.text-sm.font-medium = t('.price_per_day_rubles')
+      = number_field_tag "advertising_order[lines][#{index}][price_per_day_rubles]",
+          advertising_order_price_rubles(line),
+          min: 0,
+          id: "advertising_order_lines_#{index}_price_per_day_rubles",
+          class: 'input input-bordered w-full mt-1'
+  - advertising_grid_months(@grid_dates).each do |month, dates|
+    h3.font-medium.text-sm = l(month, format: '%B %Y')
+    .overflow-x-auto
+      .flex.gap-1.min-w-max
+        - dates.each do |date|
+          - day = advertising_order_day_for(line, date)
+          .flex.flex-col.items-center.w-12
+            span.text-xs.text-base-content/60 = date.day
+            = hidden_field_tag "advertising_order[lines][#{index}][days][][date]", date.iso8601
+            = number_field_tag "advertising_order[lines][#{index}][days][][shows]",
+                day&.shows,
+                min: 0,
+                class: 'input input-bordered input-xs w-12 text-center',
+                data: { order_grid_target: 'cell', date: date.iso8601 }

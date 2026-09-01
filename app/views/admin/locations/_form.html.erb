@@ -1,0 +1,12 @@
+<%= form_with model: [ :admin, location ], class: "max-w-3xl bg-white border border-gray-200 rounded-lg p-6" do |f| %>
+  <%= render "admin/shared/form_errors", record: location %>
+  <div class="mb-5">
+    <%= f.label :name, class: admin_label_class %>
+    <%= f.text_field :name, class: admin_input_class, required: true %>
+  </div>
+  <%= render "admin/shared/operating_hours_fields", location: location %>
+  <div class="flex flex-wrap gap-3">
+    <%= f.submit class: admin_primary_button_class %>
+    <%= link_to t("admin.chrome.cancel"), admin_locations_path, class: admin_secondary_button_class %>
+  </div>
+<% end %>

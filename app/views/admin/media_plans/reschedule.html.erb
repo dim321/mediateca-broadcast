@@ -1,0 +1,30 @@
+<% content_for :title, t("admin.media_plans.reschedule_title", id: @media_plan.id) %>
+<div class="mb-4">
+  <h1 class="text-2xl font-semibold text-gray-900"><%= t("admin.media_plans.reschedule_title", id: @media_plan.id) %></h1>
+</div>
+<%= form_with url: reschedule_admin_media_plan_path(@media_plan), method: :patch, class: "max-w-xl bg-white border border-gray-200 rounded-lg p-6" do %>
+  <div class="mb-5">
+    <%= label_tag :broadcast_point_group_id, t("admin.media_plans.broadcast_point_group"), class: admin_label_class %>
+    <%= select_tag :broadcast_point_group_id,
+          options_from_collection_for_select(
+            @broadcast_point_groups,
+            :id,
+            :name,
+            @media_plan.broadcast_point_group_id
+          ),
+          include_blank: true,
+          class: admin_select_class %>
+  </div>
+  <div class="mb-5">
+    <%= label_tag :starts_at, t("admin.media_plans.starts_at", time_zone: @time_zone), class: admin_label_class %>
+    <%= datetime_field_tag :starts_at, schedule_datetime_field_value(@media_plan.starts_at, @time_zone), class: admin_input_class %>
+  </div>
+  <div class="mb-5">
+    <%= label_tag :ends_at, t("admin.media_plans.ends_at", time_zone: @time_zone), class: admin_label_class %>
+    <%= datetime_field_tag :ends_at, schedule_datetime_field_value(@media_plan.ends_at, @time_zone), class: admin_input_class %>
+  </div>
+  <div class="flex flex-wrap gap-3">
+    <%= submit_tag t("admin.media_plans.save_window"), class: admin_primary_button_class %>
+    <%= link_to t("admin.chrome.cancel"), admin_media_plan_path(@media_plan), class: admin_secondary_button_class %>
+  </div>
+<% end %>

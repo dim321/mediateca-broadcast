@@ -1,0 +1,14 @@
+= form_with model: media_asset, url: media_assets_path, multipart: true, id: "media_asset_upload_form", class: "flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end" do |f|
+  .flex.min-w-0.flex-1.items-center.gap-3 data-controller="file-picker"
+    = f.file_field :file, accept: "video/mp4,video/webm,image/*,audio/*,.pdf,.ppt,.pptx", id: "media_asset_file_input", class: "sr-only", data: { file_picker_target: "input", action: "change->file-picker#sync" }
+    label.btn.btn-outline.shrink-0.cursor-pointer for="media_asset_file_input"
+      = t("media_assets.index.choose_file_button")
+    span.min-w-0.flex-1.truncate.text-sm.text-base-content/60 data-file-picker-target="name" title=""
+      = t("media_assets.index.no_file_selected")
+  label.floating-label.w-full.lg:w-48
+    = f.select :content_type, MediaAsset.content_types.keys.map { |k| [t("media_assets.index.content_types.#{k}"), k] }, { include_blank: t("media_assets.index.content_type_blank") }, class: "select select-bordered w-full", required: true
+    span = t("media_assets.index.content_type_label")
+  label.floating-label.w-full.lg:w-56
+    = f.select :visibility, MediaAsset.visibilities.keys.map { |k| [t("media_assets.index.visibilities.#{k}"), k] }, { include_blank: t("media_assets.index.visibility_blank") }, class: "select select-bordered w-full", required: true
+    span = t("media_assets.index.visibility_label")
+  = f.submit t("media_assets.index.upload_submit"), class: "btn btn-primary shrink-0"

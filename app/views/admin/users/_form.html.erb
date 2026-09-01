@@ -1,0 +1,27 @@
+<%= form_with model: [:admin, user], class: "max-w-xl bg-white border border-gray-200 rounded-lg p-6" do |f| %>
+  <%= render "admin/shared/form_errors", record: user %>
+  <div class="mb-5">
+    <%= f.label :email, class: admin_label_class %>
+    <%= f.email_field :email, class: admin_input_class, required: true %>
+  </div>
+  <div class="mb-5">
+    <%= f.label :organization_id, class: admin_label_class %>
+    <%= f.collection_select :organization_id, Organization.order(:name), :id, :name, { include_blank: true }, class: admin_select_class %>
+  </div>
+  <div class="mb-5">
+    <%= f.label :role, class: admin_label_class %>
+    <%= f.select :role, admin_enum_options(User, :role), {}, class: admin_select_class %>
+  </div>
+  <div class="mb-5">
+    <%= f.label :password, class: admin_label_class %>
+    <%= f.password_field :password, class: admin_input_class, autocomplete: "new-password" %>
+  </div>
+  <div class="mb-5">
+    <%= f.label :password_confirmation, class: admin_label_class %>
+    <%= f.password_field :password_confirmation, class: admin_input_class, autocomplete: "new-password" %>
+  </div>
+  <div class="flex flex-wrap gap-3">
+    <%= f.submit class: admin_primary_button_class %>
+    <%= link_to t("admin.chrome.cancel"), admin_users_path, class: admin_secondary_button_class %>
+  </div>
+<% end %>

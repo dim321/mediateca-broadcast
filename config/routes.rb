@@ -1,5 +1,38 @@
 Rails.application.routes.draw do
-  mount_avo
+  namespace :admin do
+      resources :broadcast_point_groups
+      resources :broadcast_point_group_memberships
+      namespace :directory do
+        resources :business_spheres
+      end
+      resources :locations
+      resources :media_assets
+      resources :media_plans do
+        member do
+          delete :cancel
+          get :reschedule
+          patch :reschedule
+        end
+      end
+      resources :advertising_orders, except: %i[destroy] do
+        member do
+          post :activate
+          post :cancel
+        end
+      end
+      resources :organizations
+      resources :play_logs
+      resources :profiles, only: %i[show]
+      resources :rotations
+      resources :rotation_items
+      resources :screens
+      resources :screen_tags
+      resources :stations
+      resources :tags
+      resources :users
+
+      root to: "media_plans#index"
+    end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
   # Cabinet (HTML), internal JSON, and Api::V1 device routes are added in later phases (see tasks.md).
 
@@ -15,38 +48,69 @@ Rails.application.routes.draw do
 
   resources :media_assets, only: %i[index create update]
 
-  resources :playlists do
-    resources :playlist_items, only: %i[create destroy], path: "items"
+  resources :rotations do
+    resources :rotation_items, only: %i[create destroy], path: "items"
   end
 
-  resources :broadcast_points, except: :destroy
-
-  resources :point_groups do
+  resources :broadcast_point_groups do
     member do
-      post :add_points
+      post :add_screens
       delete :remove_member
     end
   end
 
-  resources :schedule_rules
+  resources :locations, only: %i[index edit update]
+
+  resources :owned_screens, except: %i[new create]
+
+  resources :owned_broadcast_point_groups, except: %i[new create] do
+    member do
+      post :add_screens
+      delete :remove_member
+    end
+  end
+
+  resources :media_plans, except: %i[destroy] do
+    member do
+      delete :cancel
+      get :reschedule
+      patch :reschedule
+    end
+  end
+
+  resources :advertising_orders do
+    member do
+      post :activate
+      post :cancel
+      get :print
+      get :replace_clip
+      patch :replace_clip
+    end
+  end
+
+  get "finance", to: "finance#show", as: :finance
+
+  namespace :fleet do
+    resources :screens, only: %i[index show]
+  end
 
   namespace :internal do
-    patch "playlists/:playlist_id/reorder", to: "playlists/reorders#update", as: :playlist_reorder
+    patch "rotations/:rotation_id/reorder", to: "rotations/reorders#update", as: :rotation_reorder
   end
 
   namespace :api do
-    namespace :v1 do
-      resources :device_sessions, only: :create do
-        collection do
-          get :current
-        end
+    namespace :agent do
+      namespace :v1 do
+        get :package, to: "packages#show"
+        get :config, to: "configs#show"
+        post :play_events, to: "play_events#create"
       end
-
-      get "playback_assignments/current", to: "playback_assignments#current"
     end
   end
 
   get "login", to: "sessions#new", as: :login
   post "login", to: "sessions#create"
   delete "logout", to: "sessions#destroy", as: :logout
+
+  resource :locale, only: :update
 end

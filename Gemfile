@@ -38,6 +38,8 @@ gem "thruster", require: false
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 gem "image_processing", "~> 1.2"
+# S3-compatible object storage (rustfs in production)
+gem "aws-sdk-s3", require: false
 
 group :development, :test do
   # Load ENV from .env (see https://github.com/bkeepers/dotenv)
@@ -59,6 +61,7 @@ group :development, :test do
   gem "rspec-rails"
   gem "factory_bot_rails"
   gem "simplecov", require: false
+  gem "annotaterb", require: false
 end
 
 group :development do
@@ -67,8 +70,8 @@ group :development do
 end
 
 gem "pundit", "~> 2.5", groups: []
-gem "avo", "~> 4.0", groups: []
 gem "bcrypt", "~> 3.1", groups: []
+gem "rails-i18n", "~> 8.0"
 
 gem "lograge", "~> 0.15.0", group: :production
 
@@ -78,3 +81,6 @@ gem "view_component", "~> 4.6"
 gem "capybara", "~> 3.40", group: :test
 
 gem "cuprite", "~> 0.17", group: :test
+
+gem "ransack", "~> 4.4"
+gem "kaminari", "~> 1.2"

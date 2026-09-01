@@ -1,0 +1,76 @@
+.print-sheet
+  header.print-sheet__header
+    h1.print-sheet__title = t("advertising.print_sheet.title")
+    p.print-sheet__meta = t("advertising.print_sheet.document_version", version: order.document_version)
+    dl.print-sheet__facts
+      div
+        dt = Organization.model_name.human
+        dd = order.organization.name
+      div
+        dt = AdvertisingOrder.human_attribute_name(:business_sphere)
+        dd = order.business_sphere.presence || dash
+      div
+        dt = AdvertisingOrder.human_attribute_name(:product_name)
+        dd = order.product_name
+      div
+        dt = AdvertisingOrder.human_attribute_name(:clip_title)
+        dd = order.clip_title.presence || dash
+      div
+        dt = AdvertisingOrder.human_attribute_name(:duration_seconds)
+        dd = duration_label
+      div
+        dt = AdvertisingOrder.human_attribute_name(:coefficient_percent)
+        dd = coefficient_label
+
+  - month_blocks.each do |block|
+    section.print-sheet__block
+      h2.print-sheet__block-title = block.label
+      table.print-sheet__grid
+        thead
+          tr
+            th.print-sheet__group = AdvertisingOrderLine.human_attribute_name(:broadcast_point_group)
+            - block.dates.each do |date|
+              th.print-sheet__day = date.day
+        tbody
+          - lines.each do |line|
+            tr
+              td.print-sheet__group = line.broadcast_point_group.name
+              - block.dates.each do |date|
+                td.print-sheet__cell = cell_value(line, date)
+          tr.print-sheet__totals-row
+            td.print-sheet__group = t("advertising.print_sheet.line_totals")
+            td.print-sheet__line-total colspan=block.dates.size
+              span = "#{AdvertisingOrderLine.human_attribute_name(:total_shows)}: "
+              - lines.each_with_index do |line, index|
+                - if index.positive?
+                  | ;
+                = "#{line.broadcast_point_group.name} — #{line.total_shows}"
+              br
+              span = "#{AdvertisingOrderLine.human_attribute_name(:price_per_day_cents)} / #{AdvertisingOrderLine.human_attribute_name(:total_sum_cents)}: "
+              - lines.each_with_index do |line, index|
+                - if index.positive?
+                  | ;
+                = "#{line.broadcast_point_group.name} — #{money_display(line.price_per_day_cents)} / #{money_display(line.total_sum_cents)}"
+
+  footer.print-sheet__footer
+    dl.print-sheet__summary
+      div
+        dt = AdvertisingOrder.human_attribute_name(:total_shows)
+        dd = order.total_shows
+      div
+        dt = t("advertising.print_sheet.subtotal")
+        dd = money_display(gross_sum_cents)
+      div
+        dt = AdvertisingOrder.human_attribute_name(:discount_cents)
+        dd = money_display(order.discount_cents)
+      div.print-sheet__grand-total
+        dt = t("advertising.print_sheet.total_with_discount")
+        dd = money_display(order.total_sum_cents)
+
+    .print-sheet__signatures
+      .print-sheet__signature
+        p = t("advertising.print_sheet.manager_signature")
+        .print-sheet__signature-line
+      .print-sheet__signature
+        p = t("advertising.print_sheet.client_signature")
+        .print-sheet__signature-line

@@ -1,0 +1,11 @@
+<%= form_with model: [:admin, rotation_item], class: "max-w-xl bg-white border border-gray-200 rounded-lg p-6" do |f| %>
+  <%= render "admin/shared/form_errors", record: rotation_item %>
+  <div class="mb-5"><%= f.label :rotation_id, class: admin_label_class %><%= f.collection_select :rotation_id, Rotation.order(:name), :id, :name, { include_blank: true }, class: admin_select_class %></div>
+  <div class="mb-5"><%= f.label :media_asset_id, class: admin_label_class %><%= f.collection_select :media_asset_id, MediaAsset.order(created_at: :desc), :id, :id, { include_blank: true }, class: admin_select_class %></div>
+  <div class="mb-5"><%= f.label :position, class: admin_label_class %><%= f.number_field :position, class: admin_input_class %></div>
+  <div class="mb-5"><%= f.label :display_duration_seconds, class: admin_label_class %><%= f.number_field :display_duration_seconds, class: admin_input_class %></div>
+  <div class="flex flex-wrap gap-3">
+    <%= f.submit class: admin_primary_button_class %>
+    <%= link_to t("admin.chrome.cancel"), admin_rotation_items_path, class: admin_secondary_button_class %>
+  </div>
+<% end %>

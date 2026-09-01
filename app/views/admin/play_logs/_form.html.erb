@@ -1,0 +1,12 @@
+<%= form_with model: [:admin, play_log], class: "max-w-xl bg-white border border-gray-200 rounded-lg p-6" do |f| %>
+  <%= render "admin/shared/form_errors", record: play_log %>
+  <div class="mb-5"><%= f.label :organization_id, class: admin_label_class %><%= f.collection_select :organization_id, Organization.order(:name), :id, :name, { include_blank: true }, class: admin_select_class %></div>
+  <div class="mb-5"><%= f.label :screen_id, class: admin_label_class %><%= f.collection_select :screen_id, Screen.order(:name), :id, :name, { include_blank: true }, class: admin_select_class %></div>
+  <div class="mb-5"><%= f.label :media_asset_id, class: admin_label_class %><%= f.collection_select :media_asset_id, MediaAsset.order(created_at: :desc), :id, :id, { include_blank: true }, class: admin_select_class %></div>
+  <div class="mb-5"><%= f.label :source, class: admin_label_class %><%= f.select :source, admin_enum_options(PlayLog, :source), {}, class: admin_select_class %></div>
+  <div class="mb-5"><%= f.label :started_at, class: admin_label_class %><%= f.datetime_field :started_at, class: admin_input_class %></div>
+  <div class="flex flex-wrap gap-3">
+    <%= f.submit class: admin_primary_button_class %>
+    <%= link_to t("admin.chrome.cancel"), admin_play_logs_path, class: admin_secondary_button_class %>
+  </div>
+<% end %>

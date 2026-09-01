@@ -6,24 +6,21 @@ local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
 
-# Production blob store (S3-compatible: AWS, Cloudflare R2, MinIO). Select via ACTIVE_STORAGE_SERVICE=amazon.
-amazon:
+# rustfs (S3-compatible). Selected in production via ACTIVE_STORAGE_SERVICE=rustfs.
+# Endpoint is private (LAN); the app proxies bytes — browsers never talk to rustfs.
+rustfs:
   service: S3
   access_key_id: <%= ENV["AWS_ACCESS_KEY_ID"] %>
   secret_access_key: <%= ENV["AWS_SECRET_ACCESS_KEY"] %>
-  region: <%= ENV.fetch("AWS_REGION", "us-east-1") %>
-  bucket: <%= ENV.fetch("AWS_S3_BUCKET", "") %>
-# Optional: public: true
-# Optional: force_path_style: true  # MinIO / some S3-compatible APIs
-
-# Remember not to checkin your GCS keyfile to a repository
-# google:
-#   service: GCS
-#   project: your_project
-#   credentials: <%= Rails.root.join("path/to/gcs.keyfile") %>
-#   bucket: your_own_bucket-<%= Rails.env %>
-
-# mirror:
-#   service: Mirror
-#   primary: local
-#   mirrors: [ amazon, google, microsoft ]
+  region: <%= ENV.fetch("AWS_REGION", "ru-central-1") %>
+  bucket: <%= ENV.fetch("AWS_S3_BUCKET", "media") %>
+  endpoint: <%= ENV.fetch("AWS_ENDPOINT_URL_S3", "http://192.168.1.14:9010") %>
+  force_path_style: true
+  public: false
+  # aws-sdk-s3 default CRC32 checksums break many S3-compatible servers.
+  request_checksum_calculation: when_required
+  response_checksum_validation: when_required
+  http_open_timeout: 15
+  http_read_timeout: 300
+  upload:
+    server_side_encryption: AES256

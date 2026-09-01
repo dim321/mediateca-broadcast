@@ -1,0 +1,73 @@
+# frozen_string_literal: true
+
+# == Schema Information
+#
+# Table name: stations
+#
+#  id                  :bigint           not null, primary key
+#  agent_token_digest  :string
+#  name                :string           not null
+#  offline_cache_hours :integer          default(24), not null
+#  created_at          :datetime         not null
+#  updated_at          :datetime         not null
+#  location_id         :bigint           not null
+#
+# Indexes
+#
+#  index_stations_on_location_id           (location_id)
+#  index_stations_on_location_id_and_name  (location_id,name) UNIQUE
+#
+# Foreign Keys
+#
+#  fk_rails_...  (location_id => locations.id)
+#
+class Station < ApplicationRecord
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[id agent_token_digest name offline_cache_hours created_at updated_at location_id]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    %w[location]
+  end
+
+  belongs_to :location
+
+  has_many :screens, dependent: :destroy
+
+  validates :name, presence: true, uniqueness: { scope: :location_id }
+  validates :offline_cache_hours, numericality: { only_integer: true, greater_than: 0 }
+
+  def next_screen_name
+    screen_name_for(next_screen_number)
+  end
+
+  def self.find_by_agent_token(token)
+    return if token.blank?
+
+    find_each.find { it.authenticated_with_agent_token?(token) }
+  end
+
+  def assign_agent_token!(token = SecureRandom.hex(32))
+    update!(agent_token_digest: BCrypt::Password.create(token))
+    token
+  end
+
+  def authenticated_with_agent_token?(token)
+    agent_token_digest.present? && BCrypt::Password.new(agent_token_digest).is_password?(token)
+  rescue BCrypt::Errors::InvalidHash
+    false
+  end
+
+  private
+
+  def screen_name_for(number)
+    "#{location.name}-#{name}-screen-#{number}"
+  end
+
+  def next_screen_number
+    names = screens.map(&:name)
+    n = 1
+    n += 1 while names.include?(screen_name_for(n))
+    n
+  end
+end

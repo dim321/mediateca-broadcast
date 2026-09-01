@@ -1,0 +1,32 @@
+- content_for :title, t('.title')
+
+.flex.flex-col.gap-4.w-full.max-w-6xl
+  h1.text-2xl.font-bold = t('.title')
+  - time_zone = Current.user.organization.time_zone
+  = render 'occupied_slots', occupied_slots: @occupied_slots || [], time_zone: time_zone
+  = form_with url: reschedule_media_plan_path(@media_plan), method: :patch, class: 'space-y-4 max-w-xl' do
+    - if @media_plan.errors.any?
+      ul.text-sm.text-error.list-disc.pl-5
+        - @media_plan.errors.full_messages.each do |message|
+          li = message
+    - if flash[:alert].present?
+      p.text-sm.text-error = flash[:alert]
+    div
+      label.block.text-sm.font-medium = t('media_plans.form.group')
+      = select_tag 'media_plan[broadcast_point_group_id]',
+        options_from_collection_for_select(@broadcast_point_groups, :id, :name, @media_plan.broadcast_point_group_id),
+        include_blank: true,
+        class: 'select select-bordered w-full mt-1'
+    div
+      label.block.text-sm.font-medium = MediaPlan.human_attribute_name(:starts_at)
+      = datetime_field_tag 'media_plan[starts_at]',
+        schedule_datetime_field_value(@media_plan.starts_at, time_zone),
+        class: 'input input-bordered w-full mt-1'
+    div
+      label.block.text-sm.font-medium = MediaPlan.human_attribute_name(:ends_at)
+      = datetime_field_tag 'media_plan[ends_at]',
+        schedule_datetime_field_value(@media_plan.ends_at, time_zone),
+        class: 'input input-bordered w-full mt-1'
+    .flex.gap-3
+      = submit_tag t('.submit'), class: 'btn btn-primary btn-sm'
+      = link_to t('media_plans.form.cancel'), media_plans_path, class: 'btn btn-ghost btn-sm'

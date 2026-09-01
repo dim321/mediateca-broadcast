@@ -1,0 +1,27 @@
+<% content_for :title, admin_record_label(@profile.organization) %>
+<div class="mb-4">
+  <h1 class="text-2xl font-semibold text-gray-900"><%= admin_record_label(@profile.organization) %></h1>
+</div>
+<div class="bg-white border border-gray-200 rounded-lg p-6 max-w-xl">
+  <dl class="grid grid-cols-1 gap-4">
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Organization.model_name.human %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@profile.organization) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Profile.human_attribute_name(:brand) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @profile.brand.presence || t("admin.crud.none") %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Profile.human_attribute_name(:holding) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @profile.holding.presence || t("admin.crud.none") %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Profile.human_attribute_name(:business_sphere) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @profile.business_sphere&.name || t("admin.crud.none") %></dd>
+    </div>
+  </dl>
+</div>
+<div class="mt-6">
+  <%= link_to t("admin.chrome.back"), admin_organization_path(@profile.organization), class: admin_secondary_button_class %>
+</div>

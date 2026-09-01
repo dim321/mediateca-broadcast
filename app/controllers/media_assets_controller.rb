@@ -6,12 +6,16 @@ class MediaAssetsController < ApplicationController
 
   def index
     authorize MediaAsset
-    @media_assets = policy_scope(MediaAsset).with_attached_file.with_attached_preview.order(created_at: :desc)
+    @media_assets = policy_scope(MediaAsset)
+      .with_attached_file
+      .with_attached_preview
+      .with_attached_broadcast_file
+      .order(created_at: :desc)
     @media_asset = MediaAsset.new
   end
 
   def create
-    @media_asset = MediaAsset.new
+    @media_asset = MediaAsset.new(media_asset_create_params)
     @media_asset.organization = Current.user.organization
     @media_asset.uploaded_by = Current.user
     @media_asset.file.attach(media_asset_params[:file]) if media_asset_params[:file].present?
@@ -19,12 +23,15 @@ class MediaAssetsController < ApplicationController
     authorize @media_asset
 
     if @media_asset.save
-      redirect_to media_assets_path, notice: t(".created")
+      respond_created
     else
-      @media_assets = policy_scope(MediaAsset).with_attached_file.with_attached_preview.order(created_at: :desc)
-      flash.now[:alert] = t(".create_failed")
-      render :index, status: :unprocessable_entity
+      respond_create_failed
     end
+  rescue StandardError => e
+    raise unless @media_asset&.persisted? && Media::StorageErrors.network?(e)
+
+    ProcessMediaMetadataJob.perform_later(@media_asset.id)
+    respond_created
   end
 
   def update
@@ -48,6 +55,27 @@ class MediaAssetsController < ApplicationController
   end
 
   def media_asset_params
-    params.fetch(:media_asset, {}).permit(:file)
+    params.fetch(:media_asset, {}).permit(:file, :content_type, :visibility)
+  end
+
+  def media_asset_create_params
+    media_asset_params.slice(:content_type, :visibility)
+  end
+
+  def respond_created
+    respond_to do |format|
+      format.turbo_stream
+      format.html { redirect_to media_assets_path, notice: t(".created") }
+    end
+  end
+
+  def respond_create_failed
+    @media_assets = policy_scope(MediaAsset)
+      .with_attached_file
+      .with_attached_preview
+      .with_attached_broadcast_file
+      .order(created_at: :desc)
+    flash.now[:alert] = t(".create_failed")
+    render :index, status: :unprocessable_entity
   end
 end

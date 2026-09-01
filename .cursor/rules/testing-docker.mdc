@@ -1,0 +1,25 @@
+---
+description: Run Rails tests inside Docker
+alwaysApply: true
+---
+
+# Testing
+
+The project runs locally with Docker Compose.
+
+Always run the test suite inside the web container:
+
+```bash
+docker compose exec -e RAILS_ENV=test web bundle exec rspec
+```
+
+Do not run `bundle exec rspec` directly on the host.
+
+Do not search for or start a host PostgreSQL server. PostgreSQL runs in the
+Docker Compose `postgres` service.
+
+For focused tests:
+
+```bash
+docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/path/to/spec.rb
+```

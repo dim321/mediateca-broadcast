@@ -26,7 +26,7 @@ module MediatecaBroadcast
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
-    config.autoload_lib(ignore: %w[assets tasks])
+    config.autoload_lib(ignore: %w[assets tasks generators])
 
     # Configuration for the application, engines, and railties goes here.
     #
@@ -38,5 +38,9 @@ module MediatecaBroadcast
 
     # Don't generate system test files.
     config.generators.system_tests = nil
+
+    config.i18n.available_locales = %i[ru en]
+    config.i18n.default_locale = :ru
+    config.i18n.fallbacks = true
   end
 end

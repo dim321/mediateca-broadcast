@@ -1,0 +1,47 @@
+- content_for :title, @advertising_order.product_name
+- coverage = @coverage
+- can_mutate = policy(@advertising_order)
+
+.flex.flex-col.gap-4.w-full.max-w-6xl
+  = render 'shared/page_header', title: @advertising_order.product_name
+  .flex.flex-wrap.gap-2.text-sm.text-base-content/70
+    span = t("enums.advertising_order.status.#{@advertising_order.status}")
+    span = @advertising_order.clip_title
+    span = money_display(@advertising_order.total_sum_cents)
+    span = t('.total_shows', count: @advertising_order.total_shows)
+    span = t('.document_version', version: @advertising_order.document_version)
+
+  .flex.gap-3.flex-wrap
+    - if can_mutate.update?
+      = link_to t('.edit'), edit_advertising_order_path(@advertising_order), class: 'btn btn-ghost btn-sm'
+    - if can_mutate.activate? && @advertising_order.draft?
+      = button_to t('.activate'), activate_advertising_order_path(@advertising_order), method: :post, class: 'btn btn-primary btn-sm'
+    - if can_mutate.activate? && @advertising_order.active? && coverage.unoccupied_days.any?
+      = button_to t('.occupy_again'), activate_advertising_order_path(@advertising_order), method: :post, class: 'btn btn-primary btn-sm'
+    - if can_mutate.replace_clip?
+      = link_to t('.replace_clip'), replace_clip_advertising_order_path(@advertising_order), class: 'btn btn-ghost btn-sm'
+    - if can_mutate.print?
+      = link_to t('.print'), print_advertising_order_path(@advertising_order), class: 'btn btn-ghost btn-sm'
+    - if can_mutate.cancel? && @advertising_order.active?
+      = button_to t('.cancel_order'), cancel_advertising_order_path(@advertising_order), method: :post, class: 'btn btn-ghost btn-sm text-error', form: { data: { turbo_confirm: t('.cancel_confirm') } }
+    - if can_mutate.destroy?
+      = button_to t('.destroy'), advertising_order_path(@advertising_order), method: :delete, class: 'btn btn-ghost btn-sm text-error', form: { data: { turbo_confirm: t('.destroy_confirm') } }
+    = link_to t('.back'), advertising_orders_path, class: 'btn btn-ghost btn-sm'
+
+  - @advertising_order.advertising_order_lines.each do |line|
+    .card.bg-base-100.border.border-base-300.shadow-sm
+      .card-body.gap-2
+        h2.card-title.text-base = line.broadcast_point_group.name
+        p.text-sm = money_display(line.price_per_day_cents)
+        - unoccupied = unoccupied_dates_for(coverage, line)
+        - if unoccupied.any?
+          p.text-sm.text-warning
+            = t('.unoccupied')
+            | :
+            =< unoccupied.map { |date| l(date) }.join(', ')
+        ul.text-sm.space-y-1
+          - line.advertising_order_line_days.sort_by(&:date).each do |day|
+            li class=("text-warning" if unoccupied.include?(day.date))
+              = l(day.date)
+              |  ·
+              = day.shows

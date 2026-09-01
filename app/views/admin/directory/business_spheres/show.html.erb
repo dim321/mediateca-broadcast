@@ -1,0 +1,21 @@
+<% content_for :title, @business_sphere.name %>
+<div class="mb-4">
+  <h1 class="text-2xl font-semibold text-gray-900"><%= @business_sphere.name %></h1>
+</div>
+<div class="bg-white border border-gray-200 rounded-lg p-6 max-w-xl">
+  <dl class="grid grid-cols-1 gap-4">
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= ::Directory::BusinessSphere.human_attribute_name(:name) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @business_sphere.name %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= ::Directory::BusinessSphere.human_attribute_name(:created_at) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= l(@business_sphere.created_at, format: :long) %></dd>
+    </div>
+  </dl>
+</div>
+<div class="mt-6 flex flex-wrap gap-3">
+  <%= link_to t("admin.chrome.edit"), edit_admin_directory_business_sphere_path(@business_sphere), class: admin_primary_button_class %>
+  <%= link_to t("admin.chrome.back"), admin_directory_business_spheres_path, class: admin_secondary_button_class %>
+  <%= button_to t("admin.chrome.destroy"), admin_directory_business_sphere_path(@business_sphere), method: :delete, data: { turbo_confirm: t("admin.crud.destroy_confirm") }, class: admin_danger_button_class %>
+</div>

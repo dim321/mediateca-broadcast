@@ -1,0 +1,56 @@
+<% content_for :title, @advertising_order.product_name %>
+<div class="mb-4">
+  <h1 class="text-2xl font-semibold text-gray-900"><%= @advertising_order.product_name %></h1>
+</div>
+<div class="mb-4 flex flex-wrap gap-3">
+  <% if @advertising_order.draft? %>
+    <%= link_to t("admin.advertising_orders.edit"),
+          edit_admin_advertising_order_path(@advertising_order),
+          class: admin_primary_button_class %>
+    <%= button_to t("admin.advertising_orders.activate"),
+          activate_admin_advertising_order_path(@advertising_order),
+          method: :post,
+          class: admin_primary_button_class %>
+  <% end %>
+  <% unless @advertising_order.cancelled? || @advertising_order.completed? %>
+    <%= link_to t("admin.advertising_orders.cancel"),
+          cancel_admin_advertising_order_path(@advertising_order),
+          data: { turbo_method: :post, turbo_confirm: t("admin.advertising_orders.cancel_confirm") },
+          class: admin_danger_button_class %>
+  <% end %>
+</div>
+<div class="bg-white border border-gray-200 rounded-lg p-6 max-w-xl">
+  <dl class="grid grid-cols-1 gap-4">
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Organization.model_name.human %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@advertising_order.organization) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= AdvertisingOrder.human_attribute_name(:product_name) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @advertising_order.product_name %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= AdvertisingOrder.human_attribute_name(:status) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@advertising_order, :status) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= AdvertisingOrder.human_attribute_name(:placement_kind) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@advertising_order, :placement_kind) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= AdvertisingOrder.human_attribute_name(:business_sphere) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @advertising_order.business_sphere.presence || t("admin.crud.none") %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= AdvertisingOrder.human_attribute_name(:created_by) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@advertising_order.created_by) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= MediaAsset.model_name.human %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@advertising_order.media_asset) %></dd>
+    </div>
+  </dl>
+</div>
+<div class="mt-6">
+  <%= link_to t("admin.chrome.back"), admin_advertising_orders_path, class: admin_secondary_button_class %>
+</div>
