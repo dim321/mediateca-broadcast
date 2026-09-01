@@ -641,7 +641,7 @@ ru:
       actions: Действия
       back: Назад к списку
       back_to_app: В кабинет
-      brand: Админка
+      brand: Административная панель оператора
       cancel: Отмена
       destroy: Удалить
       edit: Изменить
@@ -654,7 +654,7 @@ ru:
         other: "%{count} записей"
       show: Открыть
       sidebar: Разделы админки
-      title: Админка
+      title: Административная панель оператора
       user_menu: Меню пользователя
     nav:
       advertising_orders: Заказы на размещение

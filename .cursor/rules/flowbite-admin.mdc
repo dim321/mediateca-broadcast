@@ -1,0 +1,123 @@
+---
+description: Flowbite operator admin (/admin) — chrome, CSS isolation from cabinet daisyUI, scaffold generator, CRUD conventions. Use when editing admin controllers, views, helpers, Stimulus, generators, or adding admin resources.
+globs:
+  - app/controllers/admin/**/*
+  - app/views/admin/**/*
+  - app/views/layouts/admin/**/*
+  - app/helpers/admin_helper.rb
+  - app/javascript/admin.js
+  - app/javascript/admin/**/*
+  - app/assets/tailwind/admin.css
+  - lib/generators/admin/**/*
+  - spec/requests/admin/**/*
+  - spec/system/admin/**/*
+  - spec/generators/admin/**/*
+alwaysApply: false
+---
+
+# Operator admin (Flowbite)
+
+`/admin` is a **separate app shell** from the cabinet. Visual language: [Flowbite Admin Dashboard](https://github.com/themesberg/flowbite-admin-dashboard) utility classes. Administrate is gone.
+
+## Two CSS worlds — never mix
+
+| Surface | Entry | Classes |
+|--------|--------|---------|
+| Cabinet (`/`) | `tailwind` + daisyUI | `btn`, `alert`, `modal`, daisyUI colors |
+| Admin (`/admin`) | `admin.css` + Flowbite plugin | Tailwind utilities + Flowbite plugin. **No** `btn` / `alert` / `modal` / daisyUI |
+
+- Do not `import "flowbite"` / pin `flowbite.js`. Drawers, dropdowns, tabs = Stimulus.
+- Light-only. No `dark:`, no theme toggle, no `class="dark"` on `<html>`.
+- `data-turbo-track="reload"` on both CSS/JS. Links to cabinet (`root_path`, logout) keep `data-turbo="false"`.
+- Admin views: `app/views/admin/**/*.html.erb`. Cabinet stays Slim + daisyUI.
+
+Exception: advertising order **new/edit** load cabinet CSS via `content_for :head` and render shared Slim `_form` (order-grid). Index/show of orders stay Flowbite.
+
+## Stack
+
+- Controllers: `Admin::*Controller < Admin::BaseController` (`ActionController::Base`).
+- Layout: `admin/operator` (`app/views/layouts/admin/operator.html.erb`). Extra CSS: `yield :head`.
+- Auth: `Current.user.organization.operator?` — **no Pundit** in `/admin`.
+- Importmap entry: `javascript_importmap_tags "admin"` → `app/javascript/admin.js`.
+- Stimulus: `eagerLoadControllersFrom("admin/controllers", application)` under `app/javascript/admin/controllers/`. Cabinet controllers are not auto-loaded; `order-grid` is registered manually in `admin.js`.
+- CSS: `app/assets/tailwind/admin.css` (`@plugin "flowbite/plugin"`, `source(none)` + explicit `@source` of admin views/JS). Build: `Procfile.dev` `admin_css` watch, or `bin/rails tailwindcss:build` (enhances `admin:css:build` → `app/assets/builds/admin.css`).
+- Pagination: Kaminari `theme: "admin"` → `app/views/kaminari/admin/`.
+- Search/sort: Ransack. Always `ransack_params` (hash-only; scalar `q` must not 500). Allowlist `ransackable_attributes` / `ransackable_associations` on the model.
+
+## Chrome and helpers
+
+Sidebar items live in `AdminHelper::NAV_ITEMS` (`app/helpers/admin_helper.rb`), not in routes introspection. Adding a resource: **routes + NAV_ITEMS + `admin.nav.*` i18n**.
+
+Use helper classes, do not invent new button/input palettes:
+
+- `admin_primary_button_class` / `admin_secondary_button_class` / `admin_danger_button_class`
+- `admin_input_class` / `admin_select_class` / `admin_checkbox_class` / `admin_label_class`
+- `admin_enum_label` / `admin_enum_options` (i18n `enums.<model>.<attr>.<key>`)
+- `admin_link_to_record` / `admin_record_path` / `admin_attachment_name` / `admin_boolean`
+- Flashes: `admin_flash_for(resource, action)` falls back to `admin.crud.*`
+
+Shared partials: `app/views/admin/shared/` (`_sidebar`, `_navbar`, `_flash`, `_empty_state`, `_form_errors`, `_operating_hours_fields`).
+
+i18n: `config/locales/mediateca.{ru,en}.yml` keys `admin.chrome.*`, `admin.crud.*`, `admin.nav.*`. Resource-specific keys optional; prefer `admin.crud` unless the copy is unique (tags, media plans, orders).
+
+Confirm destroy: `data-turbo-confirm`. Redirects after mutate: `status: :see_other`. FK/restrict destroy: `destroy_with_restriction`.
+
+## Nested constants
+
+Inside `Admin::Directory::*`, always `::Directory::BusinessSphere`. Form: `form_with model: [:admin, record]` — **not** `[:admin, :directory, record]` (double-nests the path). Links: `admin_directory_business_sphere_path`.
+
+## Generators
+
+Does **not** create a model, migration, or routes. Existing files skipped unless `--force`.
+
+```bash
+bin/rails g admin:install
+bin/rails g admin:scaffold Widget name:string
+```
+
+`admin:install` copies chrome (BaseController, layout, Stimulus, `admin.css`, Kaminari theme).
+
+`admin:scaffold NAME [field:type …]`:
+
+- `app/controllers/admin/<plural>_controller.rb` — Ransack + Kaminari, `params.expect`
+- views `index show new edit _form` under `app/views/admin/<plural>/`
+- `spec/requests/admin/<plural>_spec.rb`
+- injects `ransackable_*` on an **existing** model
+
+After scaffold, always:
+
+1. `resources :…` inside `namespace :admin` in `config/routes.rb`
+2. Sidebar entry in `AdminHelper::NAV_ITEMS`
+3. i18n `admin.nav.<key>` (and crud copy if not using `admin.crud`)
+4. Align the generated controller with live `BaseController` (`ransack_params` / `destroy_with_restriction` already inherited — drop duplicates)
+5. Prefer `render "admin/shared/form_errors"` over inlined error HTML
+
+If you change chrome (helper classes, layout, navbar, BaseController), sync `lib/generators/admin/install/templates/`.
+
+## Resource exceptions (do not “complete” CRUD)
+
+| Resource | Admin surface |
+|----------|----------------|
+| Media assets | index / show / edit / destroy — **no upload** |
+| Media plans | index / show + member `cancel` (DELETE) / `reschedule` — **no new/edit/destroy** |
+| Advertising orders | index / show / new / create / edit / update + `activate` / `cancel` — **no destroy**; grid = cabinet form |
+| Profiles | show only |
+| Stations | agent token **display** (set/blank), not editable on the form |
+| Screens | virtual `location_id`; operator org as owner is stored as `nil`; tags via `tag_ids` |
+| Locations | `operating_hours` jsonb + Stimulus `operating-hours` |
+
+HasMany on forms is opt-in (screen tags, group `screen_ids`, nested organization profile). Do not dump every association onto the form.
+
+## Stimulus already in admin
+
+- `sidebar`, `dropdown`, `modal`, `tabs` (chrome)
+- `operating-hours` — copy Monday on location form
+- `screen-form` — filter stations by location, optional name autofill (`data-auto-fill-name`)
+
+New interactivity: a small controller in `app/javascript/admin/controllers/`, not Flowbite JS.
+
+## Tests
+
+Docker only: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/requests/admin spec/system/admin spec/generators`.
+
+Chrome check: HTML includes `/assets/admin-`, does **not** include `app-container` / `navigation__link` / `administrate`. Submit admin forms with `within("main")` so navbar locale `button_to` is not clicked.
