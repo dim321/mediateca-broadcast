@@ -27,7 +27,12 @@ Rails.application.routes.draw do
       resources :rotation_items
       resources :screens
       resources :screen_tags
-      resources :stations
+      resources :broadcast_portraits
+      resources :stations do
+        member do
+          post :regenerate_playlists
+        end
+      end
       resources :tags
       resources :users
 

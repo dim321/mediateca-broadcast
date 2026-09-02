@@ -9,7 +9,15 @@ module Admin
     end
 
     def show
+      @station = Station.includes(:location, :broadcast_portrait).find(params[:id])
+      @playlist_date = playlist_date_for(@station)
+      @playlist = @station.playlists.current.includes(items: [ :media_asset, :screens ]).find_by(for_date: @playlist_date)
+    end
+
+    def regenerate_playlists
       @station = Station.find(params[:id])
+      Playlists::EnqueueRegen.from_station(@station)
+      redirect_to admin_station_path(@station), notice: t("admin.stations.regen_enqueued"), status: :see_other
     end
 
     def new
@@ -48,6 +56,12 @@ module Admin
 
     def station_params
       params.expect(station: [ :location_id, :name, :offline_cache_hours ])
+    end
+
+    def playlist_date_for(station)
+      Date.iso8601(params[:date].to_s)
+    rescue Date::Error, ArgumentError
+      Time.current.in_time_zone(station.location.time_zone).to_date
     end
   end
 end

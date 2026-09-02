@@ -46,6 +46,7 @@ RSpec.describe "Admin sidebar", type: :request do
       [
         admin_locations_path,
         admin_stations_path,
+        admin_broadcast_portraits_path,
         admin_screens_path,
         admin_broadcast_point_groups_path,
         admin_screen_tags_path,

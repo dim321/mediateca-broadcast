@@ -9,6 +9,10 @@
       <dd class="mt-1 text-sm text-gray-900"><%= @location.name %></dd>
     </div>
     <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Location.human_attribute_name(:time_zone) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @location.time_zone %></dd>
+    </div>
+    <div>
       <dt class="text-sm font-medium text-gray-500"><%= Location.human_attribute_name(:operating_hours) %></dt>
       <dd class="mt-1 text-sm text-gray-900">
         <% if @location.operating_hours_configured? %>

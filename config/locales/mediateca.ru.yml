@@ -712,6 +712,7 @@ ru:
       advertising_orders: Заказы на размещение
       broadcast_point_group_memberships: Составы групп
       broadcast_point_groups: Группы экранов
+      broadcast_portraits: Портреты эфира
       business_spheres: Сферы деятельности
       groups:
         clients: Клиенты
@@ -731,6 +732,34 @@ ru:
       stations: Станции
       tags: Теги
       users: Пользователи
+    broadcast_portraits:
+      add_block: Добавить блок
+      blocks: Блоки
+      clear_search: Сбросить поиск
+      edit: Редактирование портрета
+      empty:
+        description: Создайте циклический шаблон по умолчанию, затем скопируйте его на станции.
+        search_description: Попробуйте другой запрос или сбросьте фильтр.
+        search_title: Ничего не найдено
+        title: Портретов пока нет
+      index:
+        title: Портреты эфира
+      move_down: Вниз
+      move_up: Вверх
+      new: Новый шаблон
+      remove_block: Удалить
+      search: Поиск по названию
+      search_submit: Найти
+      template: Шаблон
+    stations:
+      closed_day: Закрытый день — в текущем плейлисте нет позиций.
+      current_playlist: Текущий плейлист
+      edit_portrait: Изменить портрет эфира
+      missing_portrait: У станции нет портрета эфира. Создайте шаблон по умолчанию и станцию заново или добавьте портрет.
+      playlist_date: Дата плейлиста
+      regen_confirm: Пересобрать плейлисты этой станции на горизонт кэша?
+      regen_enqueued: Пересборка плейлиста поставлена в очередь.
+      regenerate_playlists: Пересобрать плейлисты
     tags:
       clear_search: Сбросить поиск
       created: Тег создан.

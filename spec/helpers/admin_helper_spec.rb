@@ -26,7 +26,7 @@ RSpec.describe AdminHelper, type: :helper do
 
     it "groups fleet resources under the screen fleet" do
       expect(section_item_keys(:screen_fleet)).to eq(
-        %i[locations stations screens broadcast_point_groups screen_tags broadcast_point_group_memberships]
+        %i[locations stations broadcast_portraits screens broadcast_point_groups screen_tags broadcast_point_group_memberships]
       )
     end
 

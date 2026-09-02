@@ -702,6 +702,7 @@ en:
       advertising_orders: Advertising orders
       broadcast_point_group_memberships: Group memberships
       broadcast_point_groups: Screen groups
+      broadcast_portraits: Broadcast portraits
       business_spheres: Business spheres
       groups:
         clients: Clients
@@ -721,6 +722,34 @@ en:
       stations: Stations
       tags: Tags
       users: Users
+    broadcast_portraits:
+      add_block: Add block
+      blocks: Blocks
+      clear_search: Clear search
+      edit: Edit portrait
+      empty:
+        description: Create a default cyclic template, then copy it onto stations.
+        search_description: Try a different query or clear the filter.
+        search_title: No matching portraits
+        title: No portraits yet
+      index:
+        title: Broadcast portraits
+      move_down: Down
+      move_up: Up
+      new: New template
+      remove_block: Remove
+      search: Search by name
+      search_submit: Search
+      template: Template
+    stations:
+      closed_day: Closed day — the current playlist has no items.
+      current_playlist: Current playlist
+      edit_portrait: Edit broadcast portrait
+      missing_portrait: This station has no broadcast portrait. Create a default template and recreate the station, or add a portrait.
+      playlist_date: Playlist date
+      regen_confirm: Regenerate playlists for this station over the cache horizon?
+      regen_enqueued: Playlist regeneration queued.
+      regenerate_playlists: Regenerate playlists
     tags:
       clear_search: Clear search
       created: Tag created.

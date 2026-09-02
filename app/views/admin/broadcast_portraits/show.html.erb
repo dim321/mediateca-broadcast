@@ -1,0 +1,85 @@
+<% content_for :title, @portrait.name %>
+
+<div class="mb-4">
+  <h1 class="text-2xl font-semibold text-gray-900"><%= @portrait.name %></h1>
+</div>
+
+<div class="bg-white border border-gray-200 rounded-lg p-6 max-w-xl">
+  <dl class="grid grid-cols-1 gap-4">
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= BroadcastPortrait.human_attribute_name(:name) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @portrait.name %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= BroadcastPortrait.human_attribute_name(:kind) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@portrait, :kind) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= BroadcastPortrait.human_attribute_name(:station) %></dt>
+      <dd class="mt-1 text-sm text-gray-900">
+        <% if @portrait.station %>
+          <%= admin_link_to_record(@portrait.station) %>
+        <% else %>
+          <%= t("admin.broadcast_portraits.template") %>
+        <% end %>
+      </dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= BroadcastPortrait.human_attribute_name(:block_frequency_per_hour) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @portrait.block_frequency_per_hour %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= BroadcastPortrait.human_attribute_name(:max_commercial_in_row) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @portrait.max_commercial_in_row %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= BroadcastPortrait.human_attribute_name(:neutral_min_seconds) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @portrait.neutral_min_seconds %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= BroadcastPortrait.human_attribute_name(:is_default) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_boolean(@portrait.is_default) %></dd>
+    </div>
+  </dl>
+</div>
+
+<div class="mt-6 bg-white border border-gray-200 rounded-lg p-6">
+  <h2 class="mb-4 text-lg font-medium text-gray-900"><%= t("admin.broadcast_portraits.blocks") %></h2>
+  <% if @portrait.blocks.any? %>
+    <div class="relative overflow-x-auto">
+      <table class="w-full text-sm text-left text-gray-500">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+          <tr>
+            <th scope="col" class="px-4 py-3"><%= BroadcastPortraitBlock.human_attribute_name(:position) %></th>
+            <th scope="col" class="px-4 py-3"><%= BroadcastPortraitBlock.human_attribute_name(:kind) %></th>
+            <th scope="col" class="px-4 py-3"><%= BroadcastPortraitBlock.human_attribute_name(:rotation) %></th>
+            <th scope="col" class="px-4 py-3"><%= BroadcastPortraitBlock.human_attribute_name(:pick_strategy) %></th>
+            <th scope="col" class="px-4 py-3"><%= BroadcastPortraitBlock.human_attribute_name(:time_of_day) %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @portrait.blocks.sort_by(&:position).each do |block| %>
+            <tr class="bg-white border-b">
+              <td class="px-4 py-3"><%= block.position %></td>
+              <td class="px-4 py-3"><%= admin_enum_label(block, :kind) %></td>
+              <td class="px-4 py-3"><%= admin_link_to_record(block.rotation) %></td>
+              <td class="px-4 py-3"><%= block.pick_strategy.present? ? admin_enum_label(block, :pick_strategy) : t("admin.crud.none") %></td>
+              <td class="px-4 py-3"><%= block.time_of_day&.strftime("%H:%M") || t("admin.crud.none") %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-sm text-gray-500"><%= t("admin.crud.empty.title") %></p>
+  <% end %>
+</div>
+
+<div class="mt-6 flex flex-wrap gap-3">
+  <%= link_to t("admin.chrome.edit"), edit_admin_broadcast_portrait_path(@portrait), class: admin_primary_button_class %>
+  <%= link_to t("admin.chrome.back"), admin_broadcast_portraits_path, class: admin_secondary_button_class %>
+  <%= button_to t("admin.chrome.destroy"), admin_broadcast_portrait_path(@portrait),
+        method: :delete,
+        data: { turbo_confirm: t("admin.crud.destroy_confirm") },
+        class: admin_danger_button_class %>
+</div>

@@ -62,5 +62,6 @@ RSpec.describe "Admin locations", type: :request do
     expect(response.body).to include(I18n.t("locations.edit.copy_monday_to_all"))
     expect(response.body).to include("data-operating-hours-copy-mon")
     expect(response.body).to include('data-controller="operating-hours"')
+    expect(response.body).to include('name="location[time_zone]"')
   end
 end

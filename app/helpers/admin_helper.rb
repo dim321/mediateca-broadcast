@@ -21,6 +21,7 @@ module AdminHelper
       items: [
         { key: :locations, path: :admin_locations_path, controllers: %w[admin/locations] },
         { key: :stations, path: :admin_stations_path, controllers: %w[admin/stations] },
+        { key: :broadcast_portraits, path: :admin_broadcast_portraits_path, controllers: %w[admin/broadcast_portraits] },
         { key: :screens, path: :admin_screens_path, controllers: %w[admin/screens] },
         { key: :broadcast_point_groups, path: :admin_broadcast_point_groups_path, controllers: %w[admin/broadcast_point_groups] },
         { key: :screen_tags, path: :admin_screen_tags_path, controllers: %w[admin/screen_tags] },

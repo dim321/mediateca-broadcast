@@ -8,6 +8,88 @@
     <div><dt class="text-sm font-medium text-gray-500"><%= Station.human_attribute_name(:agent_token_digest) %></dt><dd class="mt-1 text-sm text-gray-900"><%= @station.agent_token_digest.present? ? t("admin.crud.token_set") : t("admin.crud.token_blank") %></dd></div>
   </dl>
 </div>
+
+<div class="mt-6">
+  <% if @station.broadcast_portrait %>
+    <%= link_to t("admin.stations.edit_portrait"), edit_admin_broadcast_portrait_path(@station.broadcast_portrait), class: admin_secondary_button_class %>
+  <% else %>
+    <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50"><%= t("admin.stations.missing_portrait") %></div>
+  <% end %>
+</div>
+
+<div class="mt-6 bg-white border border-gray-200 rounded-lg p-6">
+  <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <h2 class="text-lg font-medium text-gray-900"><%= t("admin.stations.current_playlist") %></h2>
+    <%= button_to t("admin.stations.regenerate_playlists"),
+          regenerate_playlists_admin_station_path(@station),
+          method: :post,
+          data: { turbo_confirm: t("admin.stations.regen_confirm") },
+          class: admin_secondary_button_class %>
+  </div>
+
+  <%= form_with url: admin_station_path(@station), method: :get, class: "mb-4 flex flex-wrap items-end gap-2" do %>
+    <div>
+      <label for="playlist_date" class="<%= admin_label_class %>"><%= t("admin.stations.playlist_date") %></label>
+      <%= date_field_tag :date, @playlist_date.iso8601, id: "playlist_date", class: admin_input_class %>
+    </div>
+    <%= submit_tag t("admin.crud.search_submit"), class: admin_primary_button_class, name: nil %>
+  <% end %>
+
+  <% if @playlist %>
+    <dl class="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-3 text-sm text-gray-900">
+      <div>
+        <dt class="text-gray-500"><%= Playlist.human_attribute_name(:version) %></dt>
+        <dd><%= @playlist.version %></dd>
+      </div>
+      <div>
+        <dt class="text-gray-500"><%= Playlist.human_attribute_name(:status) %></dt>
+        <dd><%= admin_enum_label(@playlist, :status) %></dd>
+      </div>
+      <div>
+        <dt class="text-gray-500"><%= Playlist.human_attribute_name(:for_date) %></dt>
+        <dd><%= @playlist.for_date.iso8601 %></dd>
+      </div>
+    </dl>
+  <% end %>
+
+  <% items = @playlist&.items&.sort_by(&:position) || [] %>
+  <% if items.any? %>
+    <div class="relative overflow-x-auto">
+      <table class="w-full text-sm text-left text-gray-500">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+          <tr>
+            <th scope="col" class="px-4 py-3"><%= PlaylistItem.human_attribute_name(:position) %></th>
+            <th scope="col" class="px-4 py-3"><%= PlaylistItem.human_attribute_name(:offset_seconds) %></th>
+            <th scope="col" class="px-4 py-3"><%= PlaylistItem.human_attribute_name(:duration_seconds) %></th>
+            <th scope="col" class="px-4 py-3"><%= PlaylistItem.human_attribute_name(:source_kind) %></th>
+            <th scope="col" class="px-4 py-3"><%= PlaylistItem.human_attribute_name(:media_asset) %></th>
+            <th scope="col" class="px-4 py-3"><%= PlaylistItem.human_attribute_name(:media_plan) %></th>
+            <th scope="col" class="px-4 py-3"><%= PlaylistItem.human_attribute_name(:screens) %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% items.each do |item| %>
+            <tr class="bg-white border-b">
+              <td class="px-4 py-3"><%= item.position %></td>
+              <td class="px-4 py-3"><%= item.offset_seconds %></td>
+              <td class="px-4 py-3"><%= item.duration_seconds %></td>
+              <td class="px-4 py-3"><%= admin_enum_label(item, :source_kind) %></td>
+              <td class="px-4 py-3">
+                <%= item.media_asset_id %>
+                <%= admin_attachment_name(item.media_asset.file) %>
+              </td>
+              <td class="px-4 py-3"><%= item.media_plan_id.presence || t("admin.crud.none") %></td>
+              <td class="px-4 py-3"><%= item.screens.map(&:id).sort.join(", ") %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-sm text-gray-500"><%= t("admin.stations.closed_day") %></p>
+  <% end %>
+</div>
+
 <div class="mt-6 flex flex-wrap gap-3">
   <%= link_to t("admin.chrome.edit"), edit_admin_station_path(@station), class: admin_primary_button_class %>
   <%= link_to t("admin.chrome.back"), admin_stations_path, class: admin_secondary_button_class %>

@@ -1,0 +1,43 @@
+<div class="grid gap-3 rounded-lg border border-gray-200 p-4 md:grid-cols-6" data-portrait-blocks-target="row">
+  <input type="hidden" name="broadcast_portrait[blocks][][position]" value="<%= block.position %>" data-portrait-blocks-position>
+
+  <div class="md:col-span-2">
+    <label class="<%= admin_label_class %>"><%= BroadcastPortraitBlock.human_attribute_name(:kind) %></label>
+    <select name="broadcast_portrait[blocks][][kind]" class="<%= admin_select_class %>" data-action="change->portrait-blocks#kindChanged" data-portrait-blocks-kind>
+      <% admin_enum_options(BroadcastPortraitBlock, :kind).each do |label, value| %>
+        <option value="<%= value %>" <%= "selected" if block.kind == value %>><%= label %></option>
+      <% end %>
+    </select>
+  </div>
+
+  <div data-portrait-blocks-field="rotation">
+    <label class="<%= admin_label_class %>"><%= BroadcastPortraitBlock.human_attribute_name(:rotation) %></label>
+    <select name="broadcast_portrait[blocks][][rotation_id]" class="<%= admin_select_class %>" data-portrait-blocks-rotation>
+      <option value=""></option>
+      <% rotations.each do |rotation| %>
+        <option value="<%= rotation.id %>" <%= "selected" if block.rotation_id == rotation.id %>><%= rotation.name %></option>
+      <% end %>
+    </select>
+  </div>
+
+  <div data-portrait-blocks-field="pick">
+    <label class="<%= admin_label_class %>"><%= BroadcastPortraitBlock.human_attribute_name(:pick_strategy) %></label>
+    <select name="broadcast_portrait[blocks][][pick_strategy]" class="<%= admin_select_class %>" data-portrait-blocks-pick>
+      <option value=""></option>
+      <% admin_enum_options(BroadcastPortraitBlock, :pick_strategy).each do |label, value| %>
+        <option value="<%= value %>" <%= "selected" if block.pick_strategy == value %>><%= label %></option>
+      <% end %>
+    </select>
+  </div>
+
+  <div data-portrait-blocks-field="time">
+    <label class="<%= admin_label_class %>"><%= BroadcastPortraitBlock.human_attribute_name(:time_of_day) %></label>
+    <input type="time" name="broadcast_portrait[blocks][][time_of_day]" value="<%= block.time_of_day&.strftime("%H:%M") %>" class="<%= admin_input_class %>" data-portrait-blocks-time>
+  </div>
+
+  <div class="flex flex-wrap items-end gap-2 md:col-span-6">
+    <button type="button" class="<%= admin_secondary_button_class %>" data-action="portrait-blocks#moveUp"><%= t("admin.broadcast_portraits.move_up") %></button>
+    <button type="button" class="<%= admin_secondary_button_class %>" data-action="portrait-blocks#moveDown"><%= t("admin.broadcast_portraits.move_down") %></button>
+    <button type="button" class="<%= admin_danger_button_class %>" data-action="portrait-blocks#remove"><%= t("admin.broadcast_portraits.remove_block") %></button>
+  </div>
+</div>
