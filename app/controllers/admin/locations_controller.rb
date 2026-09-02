@@ -32,6 +32,9 @@ module Admin
     def update
       @location = Location.find(params[:id])
       if @location.update(location_params)
+        if @location.saved_change_to_operating_hours? || @location.saved_change_to_time_zone?
+          Playlists::EnqueueRegen.from_location(@location)
+        end
         redirect_to admin_location_path(@location), notice: t("admin.crud.updated"), status: :see_other
       else
         render :edit, status: :unprocessable_content
@@ -47,7 +50,7 @@ module Admin
 
     def location_params
       hours = Location::OperatingHours::DAY_KEYS.index_with { [ :start, :end ] }
-      params.require(:location).permit(:name, operating_hours: hours)
+      params.require(:location).permit(:name, :time_zone, operating_hours: hours)
     end
   end
 end

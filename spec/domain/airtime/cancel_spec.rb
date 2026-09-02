@@ -3,6 +3,9 @@
 require 'rails_helper'
 
 RSpec.describe Airtime::Cancel do
+  include ActiveJob::TestHelper
+  include ActiveSupport::Testing::TimeHelpers
+
   let(:organization) { create(:organization, :client) }
   let(:group) { create(:broadcast_point_group, organization: organization) }
   let(:screen) { create(:screen) }
@@ -20,6 +23,22 @@ RSpec.describe Airtime::Cancel do
   end
 
   before { create(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen) }
+
+  it "enqueues GenerateForDateJob after cancel even though update_columns skips callbacks (R12)" do
+    travel_to Time.utc(2026, 9, 2, 12, 0, 0) do
+      future_plan = Airtime::OccupyWithPlan.call(
+        organization: organization,
+        broadcast_point_group: group,
+        rotation: rotation,
+        starts_at: Time.utc(2026, 9, 3, 10, 0, 0),
+        ends_at: Time.utc(2026, 9, 3, 11, 0, 0)
+      )
+
+      expect {
+        described_class.call(plan: future_plan)
+      }.to have_enqueued_job(Playlists::GenerateForDateJob).with(screen.station_id, "2026-09-03")
+    end
+  end
 
   it 'soft-cancels plan and booking together (AE5)' do
     described_class.call(plan: plan)

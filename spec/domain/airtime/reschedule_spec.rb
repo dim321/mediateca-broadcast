@@ -3,6 +3,9 @@
 require 'rails_helper'
 
 RSpec.describe Airtime::Reschedule do
+  include ActiveJob::TestHelper
+  include ActiveSupport::Testing::TimeHelpers
+
   let(:organization) { create(:organization, :client) }
   let(:group) { create(:broadcast_point_group, organization: organization) }
   let(:screen) { create(:screen) }
@@ -18,6 +21,27 @@ RSpec.describe Airtime::Reschedule do
   end
 
   before { create(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen) }
+
+  it "enqueues GenerateForDateJob for both the old and new windows" do
+    travel_to Time.utc(2026, 9, 2, 12, 0, 0) do
+      future_plan = Airtime::OccupyWithPlan.call(
+        organization: organization,
+        broadcast_point_group: group,
+        rotation: rotation,
+        starts_at: Time.utc(2026, 9, 3, 10, 0, 0),
+        ends_at: Time.utc(2026, 9, 3, 10, 10, 0)
+      )
+
+      expect {
+        described_class.call(
+          plan: future_plan,
+          broadcast_point_group: group,
+          starts_at: Time.utc(2026, 9, 3, 14, 0, 0),
+          ends_at: Time.utc(2026, 9, 3, 14, 10, 0)
+        )
+      }.to have_enqueued_job(Playlists::GenerateForDateJob).with(screen.station_id, "2026-09-03").at_least(:once)
+    end
+  end
 
   it 'moves booking and plan windows together' do
     described_class.call(

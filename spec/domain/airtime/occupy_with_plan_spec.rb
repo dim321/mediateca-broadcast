@@ -3,6 +3,9 @@
 require 'rails_helper'
 
 RSpec.describe Airtime::OccupyWithPlan do
+  include ActiveJob::TestHelper
+  include ActiveSupport::Testing::TimeHelpers
+
   let(:organization) { create(:organization, :client) }
   let(:group) { create(:broadcast_point_group, organization: organization) }
   let(:screen) { create(:screen) }
@@ -20,6 +23,20 @@ RSpec.describe Airtime::OccupyWithPlan do
       starts_at: starts_at,
       ends_at: ends_at
     )
+  end
+
+  it "enqueues GenerateForDateJob for tomorrow after occupy (AE7)" do
+    travel_to Time.utc(2026, 9, 2, 12, 0, 0) do
+      expect {
+        described_class.call(
+          organization: organization,
+          broadcast_point_group: group,
+          rotation: rotation,
+          starts_at: Time.utc(2026, 9, 3, 10, 0, 0),
+          ends_at: Time.utc(2026, 9, 3, 11, 0, 0)
+        )
+      }.to have_enqueued_job(Playlists::GenerateForDateJob).with(screen.station_id, "2026-09-03")
+    end
   end
 
   it 'creates a confirmed booking and active media plan together' do

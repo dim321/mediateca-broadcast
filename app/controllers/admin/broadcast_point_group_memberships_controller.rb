@@ -20,6 +20,7 @@ module Admin
     def create
       @broadcast_point_group_membership = BroadcastPointGroupMembership.new(membership_params)
       if @broadcast_point_group_membership.save
+        Playlists::EnqueueRegen.from_screen(@broadcast_point_group_membership.screen)
         redirect_to admin_broadcast_point_group_membership_path(@broadcast_point_group_membership),
           notice: t("admin.crud.created"), status: :see_other
       else
@@ -33,7 +34,12 @@ module Admin
 
     def update
       @broadcast_point_group_membership = BroadcastPointGroupMembership.find(params[:id])
+      previous_screen = @broadcast_point_group_membership.screen
       if @broadcast_point_group_membership.update(membership_params)
+        Playlists::EnqueueRegen.from_screen(@broadcast_point_group_membership.screen)
+        if previous_screen && previous_screen.id != @broadcast_point_group_membership.screen_id
+          Playlists::EnqueueRegen.from_screen(previous_screen)
+        end
         redirect_to admin_broadcast_point_group_membership_path(@broadcast_point_group_membership),
           notice: t("admin.crud.updated"), status: :see_other
       else
@@ -43,7 +49,9 @@ module Admin
 
     def destroy
       @broadcast_point_group_membership = BroadcastPointGroupMembership.find(params[:id])
+      screen = @broadcast_point_group_membership.screen
       @broadcast_point_group_membership.destroy!
+      Playlists::EnqueueRegen.from_screen(screen)
       redirect_to admin_broadcast_point_group_memberships_path, notice: t("admin.crud.destroyed"), status: :see_other
     end
 

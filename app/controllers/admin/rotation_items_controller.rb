@@ -19,6 +19,7 @@ module Admin
     def create
       @rotation_item = RotationItem.new(rotation_item_params)
       if @rotation_item.save
+        Playlists::EnqueueRegen.from_rotation(@rotation_item.rotation)
         redirect_to admin_rotation_item_path(@rotation_item), notice: t("admin.crud.created"), status: :see_other
       else
         render :new, status: :unprocessable_content
@@ -31,7 +32,12 @@ module Admin
 
     def update
       @rotation_item = RotationItem.find(params[:id])
+      previous_rotation = @rotation_item.rotation
       if @rotation_item.update(rotation_item_params)
+        Playlists::EnqueueRegen.from_rotation(@rotation_item.rotation)
+        if previous_rotation && previous_rotation.id != @rotation_item.rotation_id
+          Playlists::EnqueueRegen.from_rotation(previous_rotation)
+        end
         redirect_to admin_rotation_item_path(@rotation_item), notice: t("admin.crud.updated"), status: :see_other
       else
         render :edit, status: :unprocessable_content
@@ -40,7 +46,9 @@ module Admin
 
     def destroy
       @rotation_item = RotationItem.find(params[:id])
+      rotation = @rotation_item.rotation
       @rotation_item.destroy!
+      Playlists::EnqueueRegen.from_rotation(rotation)
       redirect_to admin_rotation_items_path, notice: t("admin.crud.destroyed"), status: :see_other
     end
 

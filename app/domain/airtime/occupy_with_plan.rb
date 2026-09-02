@@ -25,7 +25,7 @@ module Airtime
       validate_inputs!
       seconds = booking_seconds
 
-      MediaPlan.transaction do
+      plan = MediaPlan.transaction do
         ScreenLock.call(screen_ids: screen_ids)
 
         if ScreenOverlapGuard.call(starts_at: starts_at, ends_at: ends_at, screen_ids: screen_ids).exists?
@@ -53,6 +53,8 @@ module Airtime
           shows_per_hour: shows_per_hour
         )
       end
+      Playlists::EnqueueRegen.from_plan(plan)
+      plan
     end
 
     private

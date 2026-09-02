@@ -3,6 +3,9 @@
 require "rails_helper"
 
 RSpec.describe Advertising::ReplaceClip do
+  include ActiveJob::TestHelper
+  include ActiveSupport::Testing::TimeHelpers
+
   let(:organization) { create(:organization, :client) }
   let(:user) { create(:user, :manager, organization: organization) }
   let(:original) { create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 10) }
@@ -34,6 +37,26 @@ RSpec.describe Advertising::ReplaceClip do
     )
     Advertising::ActivateOrder.call(order: order)
     order.reload
+  end
+
+  it "enqueues GenerateForDateJob for active media plans of the order rotation (AE7)" do
+    travel_to Time.utc(2026, 9, 2, 12, 0, 0) do
+      Advertising::UpdateGrid.call(
+        order: order,
+        lines: [ {
+          broadcast_point_group_id: group.id,
+          price_per_day_cents: 1_000,
+          days: [ { date: Date.new(2026, 9, 3), shows: 36 } ]
+        } ]
+      )
+      Advertising::ActivateOrder.call(order: order)
+      order.reload
+      station_id = group.screens.first.station_id
+
+      expect {
+        described_class.call(order: order, media_asset: replacement)
+      }.to have_enqueued_job(Playlists::GenerateForDateJob).with(station_id, "2026-09-03")
+    end
   end
 
   it "swaps the system rotation item, snapshots the clip, and keeps slot ids (AE7)" do

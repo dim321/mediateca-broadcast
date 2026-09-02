@@ -17,3 +17,11 @@ production:
     class: Advertising::CompleteExpiredOrdersJob
     queue: default
     schedule: at 3am every day
+  dispatch_playlist_horizons:
+    class: Playlists::DispatchHorizonJob
+    queue: default
+    schedule: every 15 minutes
+  purge_expired_playlists:
+    class: Playlists::PurgeExpiredJob
+    queue: default
+    schedule: at 4am every day

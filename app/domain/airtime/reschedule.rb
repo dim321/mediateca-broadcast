@@ -13,8 +13,11 @@ module Airtime
     def call
       validate_inputs!
       new_seconds = booking_seconds
+      old_group = plan.broadcast_point_group
+      old_starts_at = plan.starts_at
+      old_ends_at = plan.ends_at
 
-      MediaPlan.transaction do
+      updated = MediaPlan.transaction do
         locked_plan = MediaPlan.lock.find(plan.id)
         raise ArgumentError, "cannot reschedule cancelled plan" if locked_plan.cancelled?
         raise ArgumentError, "cannot reschedule invalidated plan" if locked_plan.invalidated?
@@ -22,7 +25,6 @@ module Airtime
         locked_booking = AirtimeBooking.lock.find(locked_plan.airtime_booking_id)
         raise ArgumentError, "cannot reschedule cancelled booking" if locked_booking.cancelled?
 
-        old_group = locked_booking.broadcast_point_group
         new_group = broadcast_point_group
         PlacementChannel.assert!(
           organization: locked_plan.organization,
@@ -64,6 +66,9 @@ module Airtime
 
         locked_plan
       end
+      Playlists::EnqueueRegen.from_plan(updated)
+      Playlists::EnqueueRegen.from_group_window(group: old_group, starts_at: old_starts_at, ends_at: old_ends_at)
+      updated
     end
 
     private

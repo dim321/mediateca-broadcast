@@ -8,13 +8,15 @@ module Portraits
     end
 
     def call
-      BroadcastPortraitBlock.transaction do
+      result = BroadcastPortraitBlock.transaction do
         portrait.blocks.delete_all
         blocks.each do |attrs|
           portrait.blocks.create!(block_attributes(attrs))
         end
         portrait.blocks.reload
       end
+      Playlists::EnqueueRegen.from_station(portrait.station) if portrait.station
+      result
     end
 
     private

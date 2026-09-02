@@ -8,7 +8,7 @@ module Airtime
     end
 
     def call
-      MediaPlan.transaction do
+      cancelled = MediaPlan.transaction do
         locked_plan = MediaPlan.lock.find(plan.id)
         raise ArgumentError, "plan already cancelled" if locked_plan.cancelled?
 
@@ -30,6 +30,8 @@ module Airtime
 
         locked_plan
       end
+      Playlists::EnqueueRegen.from_plan(cancelled)
+      cancelled
     end
 
     private

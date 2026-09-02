@@ -19,6 +19,7 @@ module Rotations
           by_id[id].update!(position: index + 1)
         end
       end
+      Playlists::EnqueueRegen.from_rotation(@rotation)
     end
 
     private

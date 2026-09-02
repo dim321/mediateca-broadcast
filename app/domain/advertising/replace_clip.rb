@@ -24,6 +24,7 @@ module Advertising
           document_version: order.document_version + 1
         )
       end
+      order.rotation.media_plans.active.find_each { |plan| Playlists::EnqueueRegen.from_plan(plan) }
       order
     end
 
