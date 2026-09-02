@@ -105,6 +105,9 @@ Rails.application.routes.draw do
         get :config, to: "configs#show"
         post :play_events, to: "play_events#create"
       end
+      namespace :v2 do
+        get :package, to: "packages#show"
+      end
     end
   end
 

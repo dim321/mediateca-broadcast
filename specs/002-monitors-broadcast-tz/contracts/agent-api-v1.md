@@ -1,5 +1,11 @@
 # Agent API v1
 
+**Frozen.** The JSON of `GET /api/agent/v1/package` does not change. New agents
+use [`agent-api-v2.md`](agent-api-v2.md) (`GET /api/agent/v2/package`, timed
+playlist `entries`). `POST /api/agent/v1/play_events` remains the single play-event
+URL; when a current playlist exists in the station horizon it is the eligibility
+source (see v2).
+
 `Broadcast Hub` is the source of truth for a station package. `Station Agent` pulls
 the endpoints below over HTTPS. This contract does not select a transport protocol
 between the station and Android TV.

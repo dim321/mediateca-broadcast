@@ -50,6 +50,49 @@ RSpec.describe 'Api::Agent::V1::PlayEvents', type: :request do
       expect(response).to have_http_status(:not_found)
     end
 
+    it 'records filler from a current playlist against the operator organization (AE12)' do
+      operator = create(:organization, :operator)
+      station = create(:station)
+      token = station.assign_agent_token!
+      screen = create(:screen, station:)
+      media_asset = create(:media_asset, :ready, :with_png_file, organization: operator)
+      playlist = create(:playlist, station:, for_date: Date.current, generated_at: Time.current)
+      create(:playlist_item, playlist:, media_asset:, source_kind: 'filler', position: 1).tap do |item|
+        item.screens = [ screen ]
+        item.save!
+      end
+      started_at = Time.utc(2026, 9, 2, 9, 0, 0)
+
+      expect do
+        post_play_event(screen:, media_asset:, started_at:, token:)
+      end.to change(PlayLog, :count).by(1)
+
+      expect(response).to have_http_status(:created)
+      expect(PlayLog.last).to have_attributes(
+        organization: operator, screen:, media_asset:, started_at:, source: 'agent'
+      )
+    end
+
+    it 'rejects an asset that is not on the current playlist for that screen (AE12)' do
+      create(:organization, :operator)
+      station = create(:station)
+      token = station.assign_agent_token!
+      screen = create(:screen, station:)
+      listed = create(:media_asset, :ready, :with_png_file)
+      other = create(:media_asset, :ready, :with_png_file)
+      playlist = create(:playlist, station:, for_date: Date.current, generated_at: Time.current)
+      create(:playlist_item, playlist:, media_asset: listed, source_kind: 'filler', position: 1).tap do |item|
+        item.screens = [ screen ]
+        item.save!
+      end
+
+      expect do
+        post_play_event(screen:, media_asset: other, started_at: Time.current, token:)
+      end.not_to change(PlayLog, :count)
+
+      expect(response).to have_http_status(:not_found)
+    end
+
     it 'returns 401 without an agent token' do
       post '/api/agent/v1/play_events', params: { events: [] }, as: :json
 
