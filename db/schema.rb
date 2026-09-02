@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_31_102000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_02_090200) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -135,6 +135,38 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_31_102000) do
     t.index ["organization_id"], name: "index_broadcast_point_groups_on_organization_id"
   end
 
+  create_table "broadcast_portrait_blocks", force: :cascade do |t|
+    t.bigint "broadcast_portrait_id", null: false
+    t.datetime "created_at", null: false
+    t.string "kind", null: false
+    t.string "pick_strategy"
+    t.integer "position", null: false
+    t.bigint "rotation_id"
+    t.time "time_of_day"
+    t.datetime "updated_at", null: false
+    t.index ["broadcast_portrait_id", "position"], name: "index_broadcast_portrait_blocks_on_portrait_and_position", unique: true
+    t.index ["broadcast_portrait_id"], name: "index_broadcast_portrait_blocks_on_broadcast_portrait_id"
+    t.index ["rotation_id"], name: "index_broadcast_portrait_blocks_on_rotation_id"
+    t.check_constraint "\"position\" > 0", name: "broadcast_portrait_blocks_position_positive"
+  end
+
+  create_table "broadcast_portraits", force: :cascade do |t|
+    t.integer "block_frequency_per_hour", null: false
+    t.datetime "created_at", null: false
+    t.boolean "is_default", default: false, null: false
+    t.string "kind", default: "cyclic", null: false
+    t.integer "max_commercial_in_row", default: 3, null: false
+    t.string "name", null: false
+    t.integer "neutral_min_seconds", default: 10, null: false
+    t.bigint "station_id"
+    t.datetime "updated_at", null: false
+    t.index ["is_default"], name: "index_broadcast_portraits_one_default_template", unique: true, where: "((station_id IS NULL) AND is_default)"
+    t.index ["station_id"], name: "index_broadcast_portraits_on_station_id_unique", unique: true, where: "(station_id IS NOT NULL)"
+    t.check_constraint "block_frequency_per_hour >= 1 AND block_frequency_per_hour <= 60", name: "broadcast_portraits_block_frequency_per_hour_range"
+    t.check_constraint "max_commercial_in_row > 0", name: "broadcast_portraits_max_commercial_in_row_positive"
+    t.check_constraint "neutral_min_seconds = ANY (ARRAY[5, 10])", name: "broadcast_portraits_neutral_min_seconds_allowed"
+  end
+
   create_table "directory_business_spheres", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -146,6 +178,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_31_102000) do
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.jsonb "operating_hours", default: {}, null: false
+    t.string "time_zone", default: "UTC", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_locations_on_name", unique: true
   end
@@ -214,6 +247,51 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_31_102000) do
     t.index ["organization_id"], name: "index_play_logs_on_organization_id"
     t.index ["screen_id", "started_at"], name: "index_play_logs_on_screen_id_and_started_at"
     t.index ["screen_id"], name: "index_play_logs_on_screen_id"
+  end
+
+  create_table "playlist_item_screens", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "playlist_item_id", null: false
+    t.bigint "screen_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["playlist_item_id", "screen_id"], name: "index_playlist_item_screens_on_item_and_screen", unique: true
+    t.index ["playlist_item_id"], name: "index_playlist_item_screens_on_playlist_item_id"
+    t.index ["screen_id"], name: "index_playlist_item_screens_on_screen_id"
+  end
+
+  create_table "playlist_items", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "duration_seconds", null: false
+    t.bigint "media_asset_id", null: false
+    t.bigint "media_plan_id"
+    t.integer "offset_seconds", null: false
+    t.bigint "playlist_id", null: false
+    t.integer "position", null: false
+    t.string "source_kind", null: false
+    t.datetime "updated_at", null: false
+    t.index ["media_asset_id"], name: "index_playlist_items_on_media_asset_id"
+    t.index ["media_plan_id"], name: "index_playlist_items_on_media_plan_id"
+    t.index ["playlist_id", "position"], name: "index_playlist_items_on_playlist_and_position", unique: true
+    t.index ["playlist_id"], name: "index_playlist_items_on_playlist_id"
+    t.check_constraint "\"position\" > 0", name: "playlist_items_position_positive"
+    t.check_constraint "duration_seconds > 0", name: "playlist_items_duration_seconds_positive"
+    t.check_constraint "offset_seconds >= 0", name: "playlist_items_offset_seconds_non_negative"
+  end
+
+  create_table "playlists", force: :cascade do |t|
+    t.datetime "broadcast_day_starts_at"
+    t.datetime "created_at", null: false
+    t.string "etag"
+    t.string "fingerprint"
+    t.date "for_date", null: false
+    t.datetime "generated_at"
+    t.bigint "station_id", null: false
+    t.string "status", default: "current", null: false
+    t.datetime "updated_at", null: false
+    t.integer "version", default: 1, null: false
+    t.index ["station_id", "for_date"], name: "index_playlists_on_station_id_and_for_date"
+    t.index ["station_id", "for_date"], name: "index_playlists_unique_current_per_station_date", unique: true, where: "((status)::text = 'current'::text)"
+    t.index ["station_id"], name: "index_playlists_on_station_id"
   end
 
   create_table "profiles", force: :cascade do |t|
@@ -315,6 +393,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_31_102000) do
   add_foreign_key "broadcast_point_group_memberships", "broadcast_point_groups", on_delete: :cascade
   add_foreign_key "broadcast_point_group_memberships", "screens"
   add_foreign_key "broadcast_point_groups", "organizations"
+  add_foreign_key "broadcast_portrait_blocks", "broadcast_portraits", on_delete: :cascade
+  add_foreign_key "broadcast_portrait_blocks", "rotations", on_delete: :restrict
+  add_foreign_key "broadcast_portraits", "stations", on_delete: :cascade
   add_foreign_key "media_assets", "organizations"
   add_foreign_key "media_assets", "users", column: "uploaded_by_id", on_delete: :nullify
   add_foreign_key "media_plans", "advertising_order_lines", on_delete: :restrict
@@ -325,6 +406,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_31_102000) do
   add_foreign_key "play_logs", "media_assets"
   add_foreign_key "play_logs", "organizations"
   add_foreign_key "play_logs", "screens"
+  add_foreign_key "playlist_item_screens", "playlist_items", on_delete: :cascade
+  add_foreign_key "playlist_item_screens", "screens", on_delete: :cascade
+  add_foreign_key "playlist_items", "media_assets", on_delete: :restrict
+  add_foreign_key "playlist_items", "media_plans", on_delete: :nullify
+  add_foreign_key "playlist_items", "playlists", on_delete: :cascade
+  add_foreign_key "playlists", "stations", on_delete: :restrict
   add_foreign_key "profiles", "directory_business_spheres", column: "business_sphere_id", on_delete: :restrict
   add_foreign_key "profiles", "organizations", on_delete: :cascade
   add_foreign_key "rotation_items", "media_assets", on_delete: :restrict

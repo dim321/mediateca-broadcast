@@ -33,6 +33,7 @@ class Rotation < ApplicationRecord
   has_many :rotation_items, dependent: :destroy
   has_many :media_assets, through: :rotation_items
   has_many :media_plans, dependent: :restrict_with_exception
+  has_many :broadcast_portrait_blocks, dependent: :restrict_with_exception
   has_one :advertising_order, dependent: :restrict_with_exception
 
   validates :name, presence: true

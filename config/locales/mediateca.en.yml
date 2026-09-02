@@ -288,6 +288,21 @@ en:
       advertising_order_line_day:
         one: Advertising order line day
         other: Advertising order line days
+      broadcast_portrait:
+        one: Broadcast portrait
+        other: Broadcast portraits
+      broadcast_portrait_block:
+        one: Broadcast portrait block
+        other: Broadcast portrait blocks
+      playlist:
+        one: Playlist
+        other: Playlists
+      playlist_item:
+        one: Playlist item
+        other: Playlist items
+      playlist_item_screen:
+        one: Playlist item screen
+        other: Playlist item screens
     errors:
       models:
         media_asset:
@@ -361,6 +376,10 @@ en:
               no_operating_hours: has no operating hours
             shows:
               not_divisible: "must divide by %{hours} operating hours; nearest values are %{lower} and %{upper}"
+        broadcast_portrait:
+          attributes:
+            is_default:
+              must_be_template: can only be set on a template without a station
     attributes:
       airtime_booking:
         status: Status
@@ -371,6 +390,7 @@ en:
       location:
         name: Name
         operating_hours: Operating hours
+        time_zone: Time zone
       media_asset:
         content_kind: Content type
         content_type: Placement type
@@ -434,6 +454,38 @@ en:
       advertising_order_line_day:
         date: Date
         shows: Shows
+      broadcast_portrait:
+        block_frequency_per_hour: Blocks per hour
+        is_default: Default template
+        kind: Kind
+        max_commercial_in_row: Max commercials in a row
+        name: Name
+        neutral_min_seconds: Neutral minimum seconds
+        station: Station
+      broadcast_portrait_block:
+        kind: Kind
+        pick_strategy: Pick strategy
+        position: Position
+        rotation: Rotation
+        time_of_day: Time of day
+      playlist:
+        broadcast_day_starts_at: Broadcast day starts at
+        etag: ETag
+        fingerprint: Fingerprint
+        for_date: Date
+        generated_at: Generated at
+        status: Status
+        version: Version
+      playlist_item:
+        duration_seconds: Duration
+        media_asset: Media asset
+        media_plan: Media plan
+        offset_seconds: Offset
+        position: Position
+        screens: Screens
+        source_kind: Source
+      playlist_item_screen:
+        screen: Screen
   broadcast_point_groups:
     index:
       title: Screen groups
@@ -776,6 +828,31 @@ en:
         active: Active
         completed: Completed
         cancelled: Cancelled
+    broadcast_portrait:
+      kind:
+        cyclic: Cyclic
+        timed: Timed
+    broadcast_portrait_block:
+      kind:
+        commercial: Commercial
+        filler: Filler
+        insertion: Insertion
+        service_header_start: Service header start
+        service_header_end: Service header end
+      pick_strategy:
+        sequential: Sequential
+        random: Random
+        ordered: Ordered
+    playlist:
+      status:
+        current: Current
+        superseded: Superseded
+    playlist_item:
+      source_kind:
+        media_plan: Media plan
+        filler: Filler
+        insertion: Insertion
+        service: Service
     organization:
       kind:
         operator: Operator

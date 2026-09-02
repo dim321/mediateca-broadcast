@@ -9,6 +9,7 @@ require "rails_helper"
 #  id              :bigint           not null, primary key
 #  name            :string           not null
 #  operating_hours :jsonb            not null
+#  time_zone       :string           default("UTC"), not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #
@@ -17,6 +18,16 @@ require "rails_helper"
 #  index_locations_on_name  (name) UNIQUE
 #
 RSpec.describe Location, type: :model do
+  describe "time_zone" do
+    it "requires time_zone" do
+      expect(build(:location, time_zone: "")).not_to be_valid
+    end
+
+    it "defaults to UTC" do
+      expect(described_class.new.time_zone).to eq("UTC")
+    end
+  end
+
   describe "operating hours" do
     it "round-trips weekly windows" do
       location = create(

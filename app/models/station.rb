@@ -32,7 +32,9 @@ class Station < ApplicationRecord
 
   belongs_to :location
 
+  has_one :broadcast_portrait, dependent: :destroy, inverse_of: :station
   has_many :screens, dependent: :destroy
+  has_many :playlists, dependent: :restrict_with_exception, inverse_of: :station
 
   validates :name, presence: true, uniqueness: { scope: :location_id }
   validates :offline_cache_hours, numericality: { only_integer: true, greater_than: 0 }

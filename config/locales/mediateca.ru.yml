@@ -292,6 +292,21 @@ ru:
       advertising_order_line_day:
         one: День строки заказа
         other: Дни строки заказа
+      broadcast_portrait:
+        one: Портрет эфира
+        other: Портреты эфира
+      broadcast_portrait_block:
+        one: Блок портрета эфира
+        other: Блоки портрета эфира
+      playlist:
+        one: Плейлист
+        other: Плейлисты
+      playlist_item:
+        one: Позиция плейлиста
+        other: Позиции плейлиста
+      playlist_item_screen:
+        one: Экран позиции плейлиста
+        other: Экраны позиции плейлиста
     errors:
       models:
         media_asset:
@@ -365,6 +380,10 @@ ru:
               no_operating_hours: не имеет часов работы
             shows:
               not_divisible: "должно делиться на %{hours} (часы работы); ближайшие значения: %{lower} и %{upper}"
+        broadcast_portrait:
+          attributes:
+            is_default:
+              must_be_template: можно задать только у шаблона без станции
     attributes:
       airtime_booking:
         status: Статус
@@ -375,6 +394,7 @@ ru:
       location:
         name: Название
         operating_hours: Часы работы
+        time_zone: Часовой пояс
       media_asset:
         content_kind: Тип содержимого
         content_type: Тип размещения
@@ -438,6 +458,38 @@ ru:
       advertising_order_line_day:
         date: Дата
         shows: Выходов
+      broadcast_portrait:
+        block_frequency_per_hour: Блоков в час
+        is_default: Шаблон по умолчанию
+        kind: Тип
+        max_commercial_in_row: Максимум рекламы подряд
+        name: Название
+        neutral_min_seconds: Минимум нейтралки, сек
+        station: Станция
+      broadcast_portrait_block:
+        kind: Тип
+        pick_strategy: Стратегия выбора
+        position: Позиция
+        rotation: Ротация
+        time_of_day: Время суток
+      playlist:
+        broadcast_day_starts_at: Начало эфирных суток
+        etag: ETag
+        fingerprint: Отпечаток
+        for_date: Дата
+        generated_at: Сгенерирован
+        status: Статус
+        version: Версия
+      playlist_item:
+        duration_seconds: Длительность
+        media_asset: Медиафайл
+        media_plan: Медиаплан
+        offset_seconds: Смещение
+        position: Позиция
+        screens: Экраны
+        source_kind: Источник
+      playlist_item_screen:
+        screen: Экран
   broadcast_point_groups:
     index:
       title: Группы экранов
@@ -786,6 +838,31 @@ ru:
         active: Активен
         completed: Завершён
         cancelled: Отменён
+    broadcast_portrait:
+      kind:
+        cyclic: Циклический
+        timed: По расписанию
+    broadcast_portrait_block:
+      kind:
+        commercial: Реклама
+        filler: Нейтралка
+        insertion: Вставка
+        service_header_start: Сервисная шапка (начало)
+        service_header_end: Сервисная шапка (конец)
+      pick_strategy:
+        sequential: Последовательно
+        random: Случайно
+        ordered: По порядку
+    playlist:
+      status:
+        current: Текущий
+        superseded: Заменён
+    playlist_item:
+      source_kind:
+        media_plan: Медиаплан
+        filler: Нейтралка
+        insertion: Вставка
+        service: Сервис
     organization:
       kind:
         operator: Оператор
