@@ -87,20 +87,18 @@ RSpec.describe BroadcastPortraitBlock, type: :model do
       expect(build(:broadcast_portrait_block, :insertion, pick_strategy: :sequential)).to be_valid
     end
 
-    it "rejects service header blocks with rotation, pick, or time" do
+    it "allows an optional rotation on service header blocks and still rejects pick or time" do
       rotation = create(:rotation)
-      start_block = build(
-        :broadcast_portrait_block,
-        :service_header_start,
-        rotation: rotation,
-        pick_strategy: :sequential,
-        time_of_day: "09:00"
-      )
+      valid = build(:broadcast_portrait_block, :service_header_start, rotation: rotation)
+      with_time = build(:broadcast_portrait_block, :service_header_start, time_of_day: "09:00")
+      with_pick = build(:broadcast_portrait_block, :service_header_start, pick_strategy: :sequential)
 
-      expect(start_block).not_to be_valid
-      expect(start_block.errors[:rotation_id]).to be_present
-      expect(start_block.errors[:pick_strategy]).to be_present
-      expect(start_block.errors[:time_of_day]).to be_present
+      expect(valid).to be_valid
+      expect(build(:broadcast_portrait_block, :service_header_start)).to be_valid
+      expect(with_time).not_to be_valid
+      expect(with_time.errors[:time_of_day]).to be_present
+      expect(with_pick).not_to be_valid
+      expect(with_pick.errors[:pick_strategy]).to be_present
     end
   end
 end

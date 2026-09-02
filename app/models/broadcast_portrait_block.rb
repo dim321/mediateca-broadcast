@@ -60,8 +60,11 @@ class BroadcastPortraitBlock < ApplicationRecord
 
   def fields_match_kind
     case kind
-    when "commercial", "service_header_start", "service_header_end"
+    when "commercial"
       errors.add(:rotation_id, :present) if rotation_id.present? || rotation.present?
+      errors.add(:pick_strategy, :present) if pick_strategy.present?
+      errors.add(:time_of_day, :present) if time_of_day.present?
+    when "service_header_start", "service_header_end"
       errors.add(:pick_strategy, :present) if pick_strategy.present?
       errors.add(:time_of_day, :present) if time_of_day.present?
     when "filler"
