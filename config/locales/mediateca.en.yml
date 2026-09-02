@@ -651,6 +651,12 @@ en:
       broadcast_point_group_memberships: Group memberships
       broadcast_point_groups: Screen groups
       business_spheres: Business spheres
+      groups:
+        clients: Clients
+        directories: Directories
+        media_library: Media library
+        orders: Orders
+        screen_fleet: Screen fleet
       locations: Locations
       media_assets: Media assets
       media_plans: Media plans

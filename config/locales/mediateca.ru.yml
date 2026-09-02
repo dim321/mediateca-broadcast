@@ -661,6 +661,12 @@ ru:
       broadcast_point_group_memberships: Составы групп
       broadcast_point_groups: Группы экранов
       business_spheres: Сферы деятельности
+      groups:
+        clients: Клиенты
+        directories: Справочники
+        media_library: Медиатека
+        orders: Заказы
+        screen_fleet: Флот экранов
       locations: Локации
       media_assets: Медиафайлы
       media_plans: Медиапланы

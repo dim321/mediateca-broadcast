@@ -1,24 +1,59 @@
 # frozen_string_literal: true
 
 module AdminHelper
-  NAV_ITEMS = [
-    { key: :media_plans, path: :admin_media_plans_path, controllers: %w[admin/media_plans] },
-    { key: :advertising_orders, path: :admin_advertising_orders_path, controllers: %w[admin/advertising_orders] },
-    { key: :organizations, path: :admin_organizations_path, controllers: %w[admin/organizations] },
-    { key: :users, path: :admin_users_path, controllers: %w[admin/users] },
-    { key: :locations, path: :admin_locations_path, controllers: %w[admin/locations] },
-    { key: :stations, path: :admin_stations_path, controllers: %w[admin/stations] },
-    { key: :screens, path: :admin_screens_path, controllers: %w[admin/screens] },
-    { key: :tags, path: :admin_tags_path, controllers: %w[admin/tags] },
-    { key: :screen_tags, path: :admin_screen_tags_path, controllers: %w[admin/screen_tags] },
-    { key: :media_assets, path: :admin_media_assets_path, controllers: %w[admin/media_assets] },
-    { key: :rotations, path: :admin_rotations_path, controllers: %w[admin/rotations] },
-    { key: :rotation_items, path: :admin_rotation_items_path, controllers: %w[admin/rotation_items] },
-    { key: :broadcast_point_groups, path: :admin_broadcast_point_groups_path, controllers: %w[admin/broadcast_point_groups] },
-    { key: :broadcast_point_group_memberships, path: :admin_broadcast_point_group_memberships_path, controllers: %w[admin/broadcast_point_group_memberships] },
-    { key: :play_logs, path: :admin_play_logs_path, controllers: %w[admin/play_logs] },
-    { key: :business_spheres, path: :admin_directory_business_spheres_path, controllers: %w[admin/directory/business_spheres] }
+  NAV_SECTIONS = [
+    {
+      key: :orders,
+      items: [
+        { key: :advertising_orders, path: :admin_advertising_orders_path, controllers: %w[admin/advertising_orders] },
+        { key: :media_plans, path: :admin_media_plans_path, controllers: %w[admin/media_plans] }
+      ]
+    },
+    {
+      key: :clients,
+      items: [
+        { key: :organizations, path: :admin_organizations_path, controllers: %w[admin/organizations] },
+        { key: :users, path: :admin_users_path, controllers: %w[admin/users] }
+      ]
+    },
+    {
+      key: :screen_fleet,
+      items: [
+        { key: :locations, path: :admin_locations_path, controllers: %w[admin/locations] },
+        { key: :stations, path: :admin_stations_path, controllers: %w[admin/stations] },
+        { key: :screens, path: :admin_screens_path, controllers: %w[admin/screens] },
+        { key: :broadcast_point_groups, path: :admin_broadcast_point_groups_path, controllers: %w[admin/broadcast_point_groups] },
+        { key: :screen_tags, path: :admin_screen_tags_path, controllers: %w[admin/screen_tags] },
+        { key: :broadcast_point_group_memberships, path: :admin_broadcast_point_group_memberships_path, controllers: %w[admin/broadcast_point_group_memberships] }
+      ]
+    },
+    {
+      key: :media_library,
+      items: [
+        { key: :media_assets, path: :admin_media_assets_path, controllers: %w[admin/media_assets] },
+        { key: :rotations, path: :admin_rotations_path, controllers: %w[admin/rotations] },
+        { key: :rotation_items, path: :admin_rotation_items_path, controllers: %w[admin/rotation_items] }
+      ]
+    },
+    {
+      items: [
+        { key: :play_logs, path: :admin_play_logs_path, controllers: %w[admin/play_logs] }
+      ]
+    },
+    {
+      key: :directories,
+      items: [
+        { key: :business_spheres, path: :admin_directory_business_spheres_path, controllers: %w[admin/directory/business_spheres] },
+        { key: :tags, path: :admin_tags_path, controllers: %w[admin/tags] }
+      ]
+    }
   ].freeze
+
+  NAV_ITEMS = NAV_SECTIONS.flat_map { |section| section.fetch(:items) }.freeze
+
+  def admin_nav_sections
+    NAV_SECTIONS
+  end
 
   def admin_nav_items
     NAV_ITEMS
@@ -26,6 +61,10 @@ module AdminHelper
 
   def admin_nav_active?(item)
     item[:controllers].include?(controller_path)
+  end
+
+  def admin_nav_section_active?(section)
+    section.fetch(:items).any? { |item| admin_nav_active?(item) }
   end
 
   def admin_nav_link_options(item)

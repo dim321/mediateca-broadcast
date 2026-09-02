@@ -22,6 +22,7 @@ RSpec.describe "Admin chrome isolation", type: :system do
     expect(page.html).to include("/assets/admin-")
     expect(page.html).not_to include("administrate")
 
+    find("[data-nav-group='screen_fleet'] summary").click
     click_link I18n.t("admin.nav.screens")
     expect(page.html).to include("/assets/admin-")
     expect(page.html).not_to include("administrate")
