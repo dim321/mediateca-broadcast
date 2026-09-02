@@ -17,7 +17,10 @@ A lasting percent cap on commercial placement airtime for an owner-homogeneous b
 Optional client organization that owns a Screen. Ownership is per screen. Quotas attach only to broadcast point groups whose screens all share one owner.
 
 ### Location operating hours
-Required schedule on a Location used as the denominator for commercial-quota percent. Without operating hours, a commercial quota cannot be set.
+Required schedule on a Location used as the denominator for commercial-quota percent. Without operating hours, a commercial quota cannot be set. Windows are wall-clock in the location time zone.
+
+### Location time zone
+IANA TZDB zone on Location (default `"UTC"`). It is the clock of the **broadcast day**: portrait insertions (`time_of_day`), playlist `for_date` / day anchor, and operating-hours windows. Distinct from the client organization's time zone, which advertising orders still use for their grids.
 
 ### Commercial placement
 A media-plan placement kind counted toward commercial quota. Own/atmosphere placements do not increase the commercial numerator. Foreign commercial on owned screens is allowed only via the owner’s broadcast point group.
@@ -42,10 +45,10 @@ A 1:1 companion of an Organization holding descriptive attributes filled by the 
 Namespace (`Directory::`) for operator-managed reference lists, e.g. `Directory::BusinessSphere`. Values are maintained in the admin panel before use; entities reference directory entries by FK, while issued documents snapshot entry names so renames or deletions never rewrite history.
 
 ### Broadcast portrait
-A station's airtime structure template (cyclic kind with block frequency per hour, ordered blocks: commercial from active slots, filler rotations with pick strategy, timed insertions, service headers). A portrait without a station is a template copied when a broadcast point is registered.
+A station's airtime structure template (cyclic kind with block frequency per hour, ordered blocks: commercial from active slots, filler rotations with pick strategy, timed insertions, service headers). A portrait without a station is a template copied when a broadcast point is registered. Neutral filler clips must be at least 10 seconds unless the operator narrows the portrait to 5.
 
 ### Playlist
-Materialized daily document per station: versioned positions with timing and origin (media plan / filler / insertion / service), generated from active slots plus the station's broadcast portrait. One current version per station and date; older versions and aged playlists are purged — airtime certificates are built from orders and play logs, not playlists.
+Materialized daily **projection** per station: versioned positions with timing, screens, and origin (media plan / filler / insertion / service), generated from active slots plus the station's broadcast portrait. One current version per station and date; older versions and aged playlists are purged. Airtime truth remains MediaPlan + confirmed booking; certificates are built from orders and play logs, not playlists. New station agents read `GET /api/agent/v2/package`; `GET /api/agent/v1/package` stays the overlapping-plan shape.
 
 ### Soft-cancel
 Releasing an airtime slot by marking the media plan (and its internal booking) cancelled rather than hard-deleting. Cancelled occupancy must not block new placements or appear in on-air packages.
