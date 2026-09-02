@@ -1,0 +1,29 @@
+# frozen_string_literal: true
+
+module Portraits
+  class UpsertBlocks < BaseService
+    def initialize(portrait:, blocks:)
+      @portrait = portrait
+      @blocks = Array(blocks)
+    end
+
+    def call
+      BroadcastPortraitBlock.transaction do
+        portrait.blocks.delete_all
+        blocks.each do |attrs|
+          portrait.blocks.create!(block_attributes(attrs))
+        end
+        portrait.blocks.reload
+      end
+    end
+
+    private
+
+    attr_reader :portrait, :blocks
+
+    def block_attributes(attrs)
+      attrs = attrs.to_h.with_indifferent_access
+      attrs.slice(:position, :kind, :rotation_id, :pick_strategy, :time_of_day)
+    end
+  end
+end

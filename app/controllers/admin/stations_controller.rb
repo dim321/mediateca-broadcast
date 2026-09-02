@@ -19,6 +19,7 @@ module Admin
     def create
       @station = Station.new(station_params)
       if @station.save
+        Portraits::CopyTemplate.call(station: @station)
         redirect_to admin_station_path(@station), notice: t("admin.crud.created"), status: :see_other
       else
         render :new, status: :unprocessable_content
