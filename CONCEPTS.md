@@ -48,7 +48,13 @@ Namespace (`Directory::`) for operator-managed reference lists, e.g. `Directory:
 A station's airtime structure template (cyclic kind with block frequency per hour, ordered blocks: commercial from active slots, filler rotations with pick strategy, timed insertions, service headers). A portrait without a station is a template copied when a broadcast point is registered. Neutral filler clips must be at least 10 seconds unless the operator narrows the portrait to 5.
 
 ### Playlist
-Materialized daily **projection** per station: versioned positions with timing, screens, and origin (media plan / filler / insertion / service), generated from active slots plus the station's broadcast portrait. One current version per station and date; older versions and aged playlists are purged. Airtime truth remains MediaPlan + confirmed booking; certificates are built from orders and play logs, not playlists. New station agents read `GET /api/agent/v2/package`; `GET /api/agent/v1/package` stays the overlapping-plan shape.
+Materialized daily **projection** per station: versioned positions with timing, screens, and origin (media plan / filler / insertion / service), generated from active slots plus the station's broadcast portrait. One current version per station and date. Aged playlists (dates past the purge cutoff, any status) are purged; superseded versions of in-window dates remain until that date ages out. Airtime truth remains MediaPlan + confirmed booking; certificates, when added, must come from orders and play logs, not playlists. New station agents read `GET /api/agent/v2/package`; `GET /api/agent/v1/package` stays the overlapping-plan shape.
+
+Regen runs after occupy, cancel, and reschedule succeed; cancel does not fire ActiveRecord callbacks, so regen must be explicit. When a current playlist exists in the station cache horizon, play events attribute from that playlist; otherwise they fall back to overlapping-plan matching.
+
+### Rotation
+An ordered catalog of clips belonging to an organization. A media plan binds one rotation to a group's screens for a window; portrait filler and insertion blocks also point at rotations.
+*Avoid:* Playlist (MVP1 name for this catalog)
 
 ### Soft-cancel
 Releasing an airtime slot by marking the media plan (and its internal booking) cancelled rather than hard-deleting. Cancelled occupancy must not block new placements or appear in on-air packages.
@@ -77,7 +83,9 @@ The calendar view of busy intervals on a group’s screens for placement UI. Sho
 - Cross-org exclusivity on shared screens is owned by the screen overlap guard on confirmed bookings; same-org plan overlap is owned by media plan conflict detection.
 - Soft-cancel of a media plan must free the corresponding booking so FWW can admit a later occupy.
 - Occupy and reschedule take a screen lock before the screen overlap guard; the guard, not same-org media plan conflict detection, is authoritative for FWW.
+- A playlist is a daily projection of occupied slots plus the station portrait; it does not occupy airtime. A rotation is a clip catalog bound by a media plan or portrait block.
 
 ## Flagged ambiguities
 
 - “‘Квота’ / ‘бронь’ in older TZ language meant both capacity budget and calendar hold — product now: no capacity seconds quota for placement; booking is internal; user-facing calendar unit is the media plan. Separately, **commercial quota** is a soft percent cap on commercial placements for owner-homogeneous groups — not a return of AirtimeQuota seconds budgets.”
+- “‘Playlist’ in MVP1 named today’s Rotation (clip catalog); Playlist is now the station daily projection.”
