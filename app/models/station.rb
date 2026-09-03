@@ -36,8 +36,11 @@ class Station < ApplicationRecord
   has_many :screens, dependent: :destroy
   has_many :playlists, dependent: :restrict_with_exception, inverse_of: :station
 
+  attribute :template_id, :integer
+
   validates :name, presence: true, uniqueness: { scope: :location_id }
   validates :offline_cache_hours, numericality: { only_integer: true, greater_than: 0 }
+  validate :template_must_be_a_template
 
   def next_screen_name
     screen_name_for(next_screen_number)
@@ -60,7 +63,20 @@ class Station < ApplicationRecord
     false
   end
 
+  def assigned_template
+    return if template_id.blank?
+
+    BroadcastPortrait.templates.find_by(id: template_id)
+  end
+
   private
+
+  def template_must_be_a_template
+    return if template_id.blank?
+    return if BroadcastPortrait.templates.exists?(id: template_id)
+
+    errors.add(:template_id, :must_be_template)
+  end
 
   def screen_name_for(number)
     "#{location.name}-#{name}-screen-#{number}"

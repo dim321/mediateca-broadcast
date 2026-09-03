@@ -5,6 +5,10 @@
     <div><dt class="text-sm font-medium text-gray-500"><%= Station.human_attribute_name(:name) %></dt><dd class="mt-1 text-sm text-gray-900"><%= @station.name %></dd></div>
     <div><dt class="text-sm font-medium text-gray-500"><%= Station.human_attribute_name(:location) %></dt><dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@station.location) %></dd></div>
     <div><dt class="text-sm font-medium text-gray-500"><%= Station.human_attribute_name(:offline_cache_hours) %></dt><dd class="mt-1 text-sm text-gray-900"><%= @station.offline_cache_hours %></dd></div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= BroadcastPortrait.model_name.human %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@station.broadcast_portrait) %></dd>
+    </div>
     <div><dt class="text-sm font-medium text-gray-500"><%= Station.human_attribute_name(:agent_token_digest) %></dt><dd class="mt-1 text-sm text-gray-900"><%= @station.agent_token_digest.present? ? t("admin.crud.token_set") : t("admin.crud.token_blank") %></dd></div>
   </dl>
 </div>

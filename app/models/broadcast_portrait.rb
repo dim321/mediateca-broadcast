@@ -37,6 +37,8 @@ class BroadcastPortrait < ApplicationRecord
 
   has_many :blocks, class_name: "BroadcastPortraitBlock", dependent: :destroy, inverse_of: :broadcast_portrait
 
+  scope :templates, -> { where(station_id: nil) }
+
   enum :kind, {
     cyclic: "cyclic",
     timed: "timed"

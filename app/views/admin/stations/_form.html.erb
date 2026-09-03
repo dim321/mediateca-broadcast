@@ -12,6 +12,13 @@
     <%= f.label :offline_cache_hours, class: admin_label_class %>
     <%= f.number_field :offline_cache_hours, class: admin_input_class %>
   </div>
+  <div class="mb-5">
+    <%= f.label :template_id, BroadcastPortrait.model_name.human, class: admin_label_class %>
+    <%= f.collection_select :template_id,
+          BroadcastPortrait.templates.order(:name), :id, :name,
+          { include_blank: station.persisted? ? t("admin.stations.template_keep") : t("admin.stations.template_blank") },
+          class: admin_select_class %>
+  </div>
   <div class="flex flex-wrap gap-3">
     <%= f.submit class: admin_primary_button_class %>
     <%= link_to t("admin.chrome.cancel"), admin_stations_path, class: admin_secondary_button_class %>

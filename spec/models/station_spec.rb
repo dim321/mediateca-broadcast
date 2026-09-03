@@ -36,6 +36,23 @@ RSpec.describe Station, type: :model do
     end
   end
 
+  describe 'template_id' do
+    it 'rejects a portrait that already belongs to a station' do
+      station_portrait = create(:broadcast_portrait, :for_station)
+      station = build(:station, template_id: station_portrait.id)
+
+      expect(station).not_to be_valid
+      expect(station.errors[:template_id]).to be_present
+    end
+
+    it 'accepts a template portrait' do
+      template = create(:broadcast_portrait, :template)
+      station = build(:station, template_id: template.id)
+
+      expect(station).to be_valid
+    end
+  end
+
   describe '#next_screen_name' do
     it 'uses location and station names with the next free number' do
       location = create(:location, name: 'Локация 1')

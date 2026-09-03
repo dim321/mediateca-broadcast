@@ -384,6 +384,10 @@ ru:
           attributes:
             is_default:
               must_be_template: можно задать только у шаблона без станции
+        station:
+          attributes:
+            template_id:
+              must_be_template: должен быть шаблоном портрета эфира
     attributes:
       airtime_booking:
         status: Статус
@@ -420,6 +424,7 @@ ru:
         orientation: Ориентация
       station:
         name: Название
+        template_id: Портрет эфира
       tag:
         name: Название
         created_at: Создан
@@ -760,6 +765,8 @@ ru:
       regen_confirm: Пересобрать плейлисты этой станции на горизонт кэша?
       regen_enqueued: Пересборка плейлиста поставлена в очередь.
       regenerate_playlists: Пересобрать плейлисты
+      template_blank: Шаблон по умолчанию
+      template_keep: Не менять текущий
     tags:
       clear_search: Сбросить поиск
       created: Тег создан.
@@ -1029,6 +1036,7 @@ ru:
         name: Название
         offline_cache_hours: Часы офлайн-кэша
         screens: Экраны
+        template_id: Портрет эфира
       tag:
         created_at: Создано
         updated_at: Обновлено

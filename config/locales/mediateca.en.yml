@@ -380,6 +380,10 @@ en:
           attributes:
             is_default:
               must_be_template: can only be set on a template without a station
+        station:
+          attributes:
+            template_id:
+              must_be_template: must be a broadcast portrait template
     attributes:
       airtime_booking:
         status: Status
@@ -416,6 +420,7 @@ en:
         orientation: Orientation
       station:
         name: Name
+        template_id: Broadcast portrait
       tag:
         name: Name
         created_at: Created at
@@ -750,6 +755,8 @@ en:
       regen_confirm: Regenerate playlists for this station over the cache horizon?
       regen_enqueued: Playlist regeneration queued.
       regenerate_playlists: Regenerate playlists
+      template_blank: Default template
+      template_keep: Keep current
     tags:
       clear_search: Clear search
       created: Tag created.
@@ -1022,6 +1029,7 @@ en:
         name: Name
         offline_cache_hours: Offline cache hours
         screens: Screens
+        template_id: Broadcast portrait
       tag:
         id: ID
         created_at: Created at

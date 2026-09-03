@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe Portraits::CopyTemplate do
+  include ActiveJob::TestHelper
+
   let(:station) { create(:station) }
 
   it "returns nil and does not create a portrait when there is no default template" do
@@ -44,6 +46,34 @@ RSpec.describe Portraits::CopyTemplate do
     existing = create(:broadcast_portrait, :for_station, station: station)
 
     expect(described_class.call(station: station)).to eq(existing)
+    expect(BroadcastPortrait.where(station: station).count).to eq(1)
+  end
+
+  it "copies a specific template even when another is the default" do
+    create(:broadcast_portrait, :default, name: "Default grid")
+    chosen = create(:broadcast_portrait, :template, name: "Lobby grid", block_frequency_per_hour: 8)
+    create(:broadcast_portrait_block, :commercial, broadcast_portrait: chosen, position: 1)
+
+    portrait = described_class.call(station: station, template: chosen)
+
+    expect(portrait.name).to eq("Lobby grid")
+    expect(portrait.block_frequency_per_hour).to eq(8)
+    expect(portrait.blocks.map(&:kind)).to eq(%w[commercial])
+  end
+
+  it "replaces an existing station portrait and enqueues regen" do
+    create(:broadcast_portrait, :default, name: "Old grid")
+    described_class.call(station: station)
+    replacement = create(:broadcast_portrait, :template, name: "Night grid")
+    create(:broadcast_portrait_block, :filler, broadcast_portrait: replacement, position: 1)
+
+    expect {
+      described_class.call(station: station, template: replacement, replace: true)
+    }.to have_enqueued_job(Playlists::GenerateForDateJob).at_least(:once)
+
+    portrait = station.reload.broadcast_portrait
+    expect(portrait.name).to eq("Night grid")
+    expect(portrait.blocks.map(&:kind)).to eq(%w[filler])
     expect(BroadcastPortrait.where(station: station).count).to eq(1)
   end
 end
