@@ -1,24 +1,33 @@
-# README
+# Mediateca Broadcast
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+## Справочник сфер деятельности
 
-Things you may want to cover:
+Канонический список сфер хранится в `lib/data/business_spheres.csv`. Загрузка в БД — rake-задача `directory:business_spheres:import` (идемпотентна: создаёт только отсутствующие записи, сравнение без учёта регистра).
 
-* Ruby version
+**Development:**
 
-* System dependencies
+```bash
+docker compose exec web bundle exec rake directory:business_spheres:import
+```
 
-* Configuration
+**Test:**
 
-* Database creation
+```bash
+docker compose exec -e RAILS_ENV=test web bundle exec rake directory:business_spheres:import
+```
 
-* Database initialization
+Перед полной перезагрузкой справочника таблицу нужно очистить вручную (FK `profiles.business_sphere_id` с `ON DELETE RESTRICT`):
 
-* How to run the test suite
+```bash
+docker compose exec web bin/rails runner 'Directory::BusinessSphere.delete_all'
+docker compose exec -e RAILS_ENV=test web bin/rails runner 'Directory::BusinessSphere.delete_all'
+```
 
-* Services (job queues, cache servers, search engines, etc.)
+Если у профилей уже выбрана сфера, сначала обнулите ссылку:
 
-* Deployment instructions
+```bash
+docker compose exec web bin/rails runner 'Profile.update_all(business_sphere_id: nil)'
+```
 
-* ...
+После правок CSV повторно запустите `directory:business_spheres:import`.
+
