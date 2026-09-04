@@ -738,6 +738,7 @@ ru:
         media_library: Медиатека
         orders: Заказы
         screen_fleet: Флот экранов
+        service_library: Служебная медиатека
       locations: Локации
       media_assets: Медиафайлы
       media_plans: Медиапланы
@@ -747,6 +748,7 @@ ru:
       rotations: Ротации
       screen_tags: Теги экранов
       screens: Экраны
+      service_themes: Тематики
       stations: Станции
       tags: Теги
       users: Пользователи
@@ -784,6 +786,28 @@ ru:
       regenerate_playlists: Пересобрать плейлисты
       template_blank: Шаблон по умолчанию
       template_keep: Не менять текущий
+    service_themes:
+      clear_search: Сбросить поиск
+      clips_count: Роликов
+      created: Тематика создана.
+      destroy_confirm: Удалить эту тематику и её служебные ротации?
+      destroy_restricted: Нельзя удалить тематику, пока она назначена портрету эфира.
+      destroyed: Тематика удалена.
+      edit: Редактирование тематики
+      empty:
+        description: Создайте первую тематику — к ней появятся четыре служебные папки.
+        search_description: Попробуйте другой запрос или сбросьте фильтр.
+        search_title: Ничего не найдено
+        title: Тематик пока нет
+      folder_role: Тип ролика
+      folders: Папки
+      index:
+        title: Тематики
+      new: Новая тематика
+      portraits_count: Портретов с этой темой
+      search: Поиск по названию
+      search_submit: Найти
+      updated: Тематика обновлена.
     tags:
       clear_search: Сбросить поиск
       created: Тег создан.

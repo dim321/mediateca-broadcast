@@ -728,6 +728,7 @@ en:
         media_library: Media library
         orders: Orders
         screen_fleet: Screen fleet
+        service_library: Service library
       locations: Locations
       media_assets: Media assets
       media_plans: Media plans
@@ -737,6 +738,7 @@ en:
       rotations: Rotations
       screen_tags: Screen tags
       screens: Screens
+      service_themes: Service themes
       stations: Stations
       tags: Tags
       users: Users
@@ -774,6 +776,28 @@ en:
       regenerate_playlists: Regenerate playlists
       template_blank: Default template
       template_keep: Keep current
+    service_themes:
+      clear_search: Clear search
+      clips_count: Clips
+      created: Service theme created.
+      destroy_confirm: Delete this theme and its service rotations?
+      destroy_restricted: Cannot delete a theme while a broadcast portrait uses it.
+      destroyed: Service theme deleted.
+      edit: Edit service theme
+      empty:
+        description: Create the first theme — it will get four service folders.
+        search_description: Try a different query or clear the filter.
+        search_title: No matching themes
+        title: No service themes yet
+      folder_role: Clip type
+      folders: Folders
+      index:
+        title: Service themes
+      new: New service theme
+      portraits_count: Portraits using this theme
+      search: Search by name
+      search_submit: Search
+      updated: Service theme updated.
     tags:
       clear_search: Clear search
       created: Tag created.

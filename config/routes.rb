@@ -25,6 +25,7 @@ Rails.application.routes.draw do
       resources :profiles, only: %i[show]
       resources :rotations
       resources :rotation_items
+      resources :service_themes
       resources :screens
       resources :screen_tags
       resources :broadcast_portraits

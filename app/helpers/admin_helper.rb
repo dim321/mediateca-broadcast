@@ -37,6 +37,12 @@ module AdminHelper
       ]
     },
     {
+      key: :service_library,
+      items: [
+        { key: :service_themes, path: :admin_service_themes_path, controllers: %w[admin/service_themes] }
+      ]
+    },
+    {
       items: [
         { key: :play_logs, path: :admin_play_logs_path, controllers: %w[admin/play_logs] }
       ]
