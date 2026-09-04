@@ -74,6 +74,19 @@ RSpec.describe "Admin service themes", type: :request do
       expect(response.body).to include(I18n.t("enums.broadcast_portrait_block.kind.service_close"))
     end
 
+    it "uploads a service clip into a theme folder (AE2)" do
+      theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
+      png = fixture_file_upload("spec/fixtures/files/1x1.png", "image/png")
+
+      expect {
+        post admin_service_theme_clips_path(theme), params: { role: "welcome", clip: { file: png } }
+      }.to change(MediaAsset, :count).by(1)
+        .and change { theme.welcome_rotation.rotation_items.count }.by(1)
+
+      expect(response).to redirect_to(admin_service_theme_path(theme))
+      expect(MediaAsset.last).to have_attributes(content_type: "service", organization: operator_org)
+    end
+
     it "updates a theme name" do
       theme = create(:service_theme, organization: operator_org, name: "Салон")
 

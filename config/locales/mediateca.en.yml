@@ -779,6 +779,8 @@ en:
     service_themes:
       clear_search: Clear search
       clips_count: Clips
+      clip_file: File
+      clip_uploaded: Clip added to the folder.
       created: Service theme created.
       destroy_confirm: Delete this theme and its service rotations?
       destroy_restricted: Cannot delete a theme while a broadcast portrait uses it.
@@ -790,6 +792,7 @@ en:
         search_title: No matching themes
         title: No service themes yet
       folder_role: Clip type
+      folder_empty: This folder has no clips yet.
       folders: Folders
       index:
         title: Service themes
@@ -797,7 +800,10 @@ en:
       portraits_count: Portraits using this theme
       search: Search by name
       search_submit: Search
+      unknown_role: Unknown service clip type.
       updated: Service theme updated.
+      upload: File
+      upload_submit: Upload
     tags:
       clear_search: Clear search
       created: Tag created.

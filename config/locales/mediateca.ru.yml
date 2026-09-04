@@ -789,6 +789,8 @@ ru:
     service_themes:
       clear_search: Сбросить поиск
       clips_count: Роликов
+      clip_file: Файл
+      clip_uploaded: Ролик добавлен в папку.
       created: Тематика создана.
       destroy_confirm: Удалить эту тематику и её служебные ротации?
       destroy_restricted: Нельзя удалить тематику, пока она назначена портрету эфира.
@@ -800,6 +802,7 @@ ru:
         search_title: Ничего не найдено
         title: Тематик пока нет
       folder_role: Тип ролика
+      folder_empty: В этой папке пока нет роликов.
       folders: Папки
       index:
         title: Тематики
@@ -807,7 +810,10 @@ ru:
       portraits_count: Портретов с этой темой
       search: Поиск по названию
       search_submit: Найти
+      unknown_role: Неизвестный тип служебного ролика.
       updated: Тематика обновлена.
+      upload: Файл
+      upload_submit: Загрузить
     tags:
       clear_search: Сбросить поиск
       created: Тег создан.

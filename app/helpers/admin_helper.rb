@@ -39,7 +39,7 @@ module AdminHelper
     {
       key: :service_library,
       items: [
-        { key: :service_themes, path: :admin_service_themes_path, controllers: %w[admin/service_themes] }
+        { key: :service_themes, path: :admin_service_themes_path, controllers: %w[admin/service_themes admin/service_theme_clips] }
       ]
     },
     {

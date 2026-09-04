@@ -43,6 +43,15 @@ RSpec.describe RotationItem, type: :model do
       expect(item.errors[:media_asset]).to be_present
     end
 
+    it "allows a pending service clip so admin folders can receive uploads" do
+      rotation = create(:rotation, :system_managed)
+      asset = create(:media_asset, :with_png_file, content_type: "service", processing_status: "pending",
+        organization: rotation.organization)
+      item = build(:rotation_item, rotation: rotation, media_asset: asset, position: 1)
+
+      expect(item).to be_valid
+    end
+
     it "rejects a private media asset from another organization" do
       rotation = create(:rotation)
       other_asset = create(:media_asset, :ready, :with_png_file, visibility: :organization)

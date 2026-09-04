@@ -62,6 +62,7 @@ class RotationItem < ApplicationRecord
 
   def media_asset_must_be_ready
     return if media_asset.blank?
+    return if media_asset.content_type_service?
 
     errors.add(:media_asset, :not_ready) unless media_asset.ready?
   end

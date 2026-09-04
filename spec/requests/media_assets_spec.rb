@@ -121,6 +121,20 @@ RSpec.describe "MediaAssets", type: :request do
       expect(MediaAsset.last).to have_attributes(content_type: "own", visibility: "organization")
     end
 
+    it "rejects service uploads from the client cabinet" do
+      png = Rails.root.join("spec/fixtures/files/1x1.png")
+      expect do
+        post media_assets_path, params: {
+          media_asset: {
+            file: fixture_file_upload(png, "image/png"),
+            content_type: "service",
+            visibility: "organization"
+          }
+        }
+      end.not_to change(MediaAsset, :count)
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
     it "prepends the asset via turbo_stream without a full redirect" do
       png = Rails.root.join("spec/fixtures/files/1x1.png")
       expect do

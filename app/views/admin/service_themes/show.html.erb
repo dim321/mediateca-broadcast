@@ -21,33 +21,60 @@
   </dl>
 </div>
 
-<div class="mt-8 max-w-3xl">
-  <h2 class="mb-4 text-lg font-semibold text-gray-900"><%= t("admin.service_themes.folders") %></h2>
-  <div class="relative overflow-x-auto shadow-md sm:rounded-lg bg-white">
-    <table class="w-full text-sm text-left text-gray-500">
-      <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-        <tr>
-          <th scope="col" class="px-6 py-3"><%= t("admin.service_themes.folder_role") %></th>
-          <th scope="col" class="px-6 py-3"><%= Rotation.model_name.human %></th>
-          <th scope="col" class="px-6 py-3"><%= t("admin.service_themes.clips_count") %></th>
-        </tr>
-      </thead>
-      <tbody>
-        <% ServiceTheme::ROTATION_ROLES.each do |role, kind| %>
-          <% rotation = @service_theme.rotation_for(role) %>
-          <tr class="bg-white border-b hover:bg-gray-50">
-            <th scope="row" class="px-6 py-4 font-medium text-gray-900">
-              <%= t("enums.broadcast_portrait_block.kind.#{kind}") %>
-            </th>
-            <td class="px-6 py-4">
-              <%= link_to rotation.name, admin_rotation_path(rotation), class: "text-blue-700 hover:underline" %>
-            </td>
-            <td class="px-6 py-4"><%= rotation.rotation_items.size %></td>
-          </tr>
+<div class="mt-8 max-w-5xl space-y-8">
+  <h2 class="text-lg font-semibold text-gray-900"><%= t("admin.service_themes.folders") %></h2>
+  <% ServiceTheme::ROTATION_ROLES.each do |role, kind| %>
+    <% rotation = @service_theme.rotation_for(role) %>
+    <section class="bg-white border border-gray-200 rounded-lg p-6">
+      <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 class="text-base font-semibold text-gray-900"><%= t("enums.broadcast_portrait_block.kind.#{kind}") %></h3>
+          <p class="text-sm text-gray-500"><%= rotation.name %></p>
+        </div>
+        <%= form_with url: admin_service_theme_clips_path(@service_theme),
+              multipart: true,
+              class: "flex flex-col gap-2 sm:flex-row sm:items-end" do %>
+          <%= hidden_field_tag :role, role %>
+          <div>
+            <label for="clip_file_<%= role %>" class="<%= admin_label_class %>"><%= t("admin.service_themes.upload") %></label>
+            <%= file_field_tag "clip[file]",
+                  id: "clip_file_#{role}",
+                  required: true,
+                  class: "block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none" %>
+          </div>
+          <%= submit_tag t("admin.service_themes.upload_submit"), class: admin_primary_button_class %>
         <% end %>
-      </tbody>
-    </table>
-  </div>
+      </div>
+
+      <% items = rotation.ordered_items %>
+      <% if items.empty? %>
+        <p class="text-sm text-gray-500"><%= t("admin.service_themes.folder_empty") %></p>
+      <% else %>
+        <div class="relative overflow-x-auto">
+          <table class="w-full text-sm text-left text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+              <tr>
+                <th scope="col" class="px-4 py-3"><%= t("admin.service_themes.clip_file") %></th>
+                <th scope="col" class="px-4 py-3"><%= MediaAsset.human_attribute_name(:processing_status) %></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% items.each do |item| %>
+                <tr class="bg-white border-b">
+                  <td class="px-4 py-3">
+                    <%= link_to admin_attachment_name(item.media_asset.file),
+                          admin_media_asset_path(item.media_asset),
+                          class: "text-blue-700 hover:underline" %>
+                  </td>
+                  <td class="px-4 py-3"><%= admin_enum_label(item.media_asset, :processing_status) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+    </section>
+  <% end %>
 </div>
 
 <div class="mt-6 flex flex-wrap gap-3">

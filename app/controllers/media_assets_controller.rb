@@ -59,7 +59,9 @@ class MediaAssetsController < ApplicationController
   end
 
   def media_asset_create_params
-    media_asset_params.slice(:content_type, :visibility)
+    permitted = media_asset_params.slice(:content_type, :visibility)
+    permitted.delete(:content_type) unless MediaAsset.cabinet_content_types.include?(permitted[:content_type])
+    permitted
   end
 
   def respond_created

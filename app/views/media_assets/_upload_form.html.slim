@@ -6,7 +6,7 @@
     span.min-w-0.flex-1.truncate.text-sm.text-base-content/60 data-file-picker-target="name" title=""
       = t("media_assets.index.no_file_selected")
   label.floating-label.w-full.lg:w-48
-    = f.select :content_type, MediaAsset.content_types.keys.map { |k| [t("media_assets.index.content_types.#{k}"), k] }, { include_blank: t("media_assets.index.content_type_blank") }, class: "select select-bordered w-full", required: true
+    = f.select :content_type, MediaAsset.cabinet_content_types.map { |k| [t("media_assets.index.content_types.#{k}"), k] }, { include_blank: t("media_assets.index.content_type_blank") }, class: "select select-bordered w-full", required: true
     span = t("media_assets.index.content_type_label")
   label.floating-label.w-full.lg:w-56
     = f.select :visibility, MediaAsset.visibilities.keys.map { |k| [t("media_assets.index.visibilities.#{k}"), k] }, { include_blank: t("media_assets.index.visibility_blank") }, class: "select select-bordered w-full", required: true

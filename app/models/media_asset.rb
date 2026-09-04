@@ -88,7 +88,6 @@ class MediaAsset < ApplicationRecord
     presentation: "presentation"
   }
 
-  # Commercial content class (R11) — distinct from MIME content_kind.
   # No Ruby default: LK upload must choose explicitly (DB default only backfills legacy rows).
   enum :content_type, {
     own: "own",
@@ -96,6 +95,10 @@ class MediaAsset < ApplicationRecord
     neutral: "neutral",
     service: "service"
   }, prefix: true
+
+  def self.cabinet_content_types
+    content_types.keys - %w[service]
+  end
 
   # Catalog sharing (R12/KTD9). prefix avoids clashing with belongs_to :organization.
   enum :visibility, {
@@ -115,6 +118,7 @@ class MediaAsset < ApplicationRecord
   after_create_commit :enqueue_metadata_processing
 
   after_update_commit :broadcast_card_refresh, if: :should_broadcast_card_refresh?
+  after_update_commit :enqueue_service_rotation_regen, if: :became_ready_service_clip?
 
   def display_duration
     return nil if duration_seconds.blank?
@@ -164,6 +168,14 @@ class MediaAsset < ApplicationRecord
 
   def enqueue_metadata_processing
     ProcessMediaMetadataJob.perform_later(id)
+  end
+
+  def became_ready_service_clip?
+    content_type_service? && saved_change_to_processing_status? && ready?
+  end
+
+  def enqueue_service_rotation_regen
+    rotations.distinct.find_each { |rotation| Playlists::EnqueueRegen.from_rotation(rotation) }
   end
 
   def should_broadcast_card_refresh?
