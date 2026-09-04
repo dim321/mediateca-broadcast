@@ -59,7 +59,7 @@ Materialized daily **projection** per station: versioned positions with timing, 
 Regen runs after occupy, cancel, and reschedule succeed; cancel does not fire ActiveRecord callbacks, so regen must be explicit. When a current playlist exists in the station cache horizon, play events attribute from that playlist; otherwise they fall back to overlapping-plan matching.
 
 ### Rotation
-An ordered catalog of clips belonging to an organization. A media plan binds one rotation to a group's screens for a window; portrait filler and insertion blocks also point at rotations.
+An ordered catalog of clips belonging to an organization. A media plan binds one rotation to a group's screens for a window; portrait filler and insertion blocks also point at rotations. `system_managed` rotations (advertising-order singletons and service-theme folders) are not listed in ordinary rotation CRUD; theme clips are uploaded through the operator service library.
 *Avoid:* Playlist (MVP1 name for this catalog)
 
 ### Soft-cancel

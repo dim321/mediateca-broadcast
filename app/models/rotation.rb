@@ -42,6 +42,13 @@ class Rotation < ApplicationRecord
   scope :managed, -> { where(system_managed: true) }
   scope :unmanaged, -> { where(system_managed: false) }
 
+  def self.assignable(*ids)
+    extra = ids.flatten.compact
+    return unmanaged if extra.empty?
+
+    unmanaged.or(where(id: extra))
+  end
+
   def ordered_items
     if rotation_items.loaded?
       rotation_items.sort_by(&:position)

@@ -231,6 +231,24 @@ RSpec.describe Playlists::GenerateForDate do
     expect(result.warnings).not_to be_empty
   end
 
+  it "warns when a welcome block has no eligible clips" do
+    station = create_playlist_station!
+    create(:screen, station: station)
+    org = create(:organization, :client)
+    empty = create(:rotation, organization: org)
+    create_cyclic_portrait!(
+      station,
+      filler_rotation: create_clip_rotation!(organization: org),
+      welcome_rotation: empty,
+      close_rotation: create_clip_rotation!(organization: org)
+    )
+
+    result = generate!(station)
+
+    expect(result.playlist).to be_current
+    expect(result.warnings).to include("service welcome has no eligible clips")
+  end
+
   it "does not wrap own_atmosphere commercials with service headers" do
     station = create_playlist_station!
     screen = create(:screen, station: station)

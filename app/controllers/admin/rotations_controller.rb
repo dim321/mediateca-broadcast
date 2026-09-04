@@ -3,7 +3,7 @@
 module Admin
   class RotationsController < Admin::BaseController
     def index
-      @q = Rotation.ransack(ransack_params)
+      @q = Rotation.unmanaged.ransack(ransack_params)
       @q.sorts = "name asc" if @q.sorts.empty?
       @rotations = @q.result.includes(:organization).page(params[:page]).per(25)
     end

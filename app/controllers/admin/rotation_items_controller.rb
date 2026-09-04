@@ -2,6 +2,9 @@
 
 module Admin
   class RotationItemsController < Admin::BaseController
+    before_action :set_rotation_item, only: %i[show edit update destroy]
+    before_action :set_assignable_rotations, only: %i[new create edit update]
+
     def index
       @q = RotationItem.ransack(ransack_params)
       @q.sorts = "id desc" if @q.sorts.empty?
@@ -9,7 +12,6 @@ module Admin
     end
 
     def show
-      @rotation_item = RotationItem.find(params[:id])
     end
 
     def new
@@ -22,16 +24,15 @@ module Admin
         Playlists::EnqueueRegen.from_rotation(@rotation_item.rotation)
         redirect_to admin_rotation_item_path(@rotation_item), notice: t("admin.crud.created"), status: :see_other
       else
+        set_assignable_rotations
         render :new, status: :unprocessable_content
       end
     end
 
     def edit
-      @rotation_item = RotationItem.find(params[:id])
     end
 
     def update
-      @rotation_item = RotationItem.find(params[:id])
       previous_rotation = @rotation_item.rotation
       if @rotation_item.update(rotation_item_params)
         Playlists::EnqueueRegen.from_rotation(@rotation_item.rotation)
@@ -40,12 +41,12 @@ module Admin
         end
         redirect_to admin_rotation_item_path(@rotation_item), notice: t("admin.crud.updated"), status: :see_other
       else
+        set_assignable_rotations
         render :edit, status: :unprocessable_content
       end
     end
 
     def destroy
-      @rotation_item = RotationItem.find(params[:id])
       rotation = @rotation_item.rotation
       @rotation_item.destroy!
       Playlists::EnqueueRegen.from_rotation(rotation)
@@ -53,6 +54,15 @@ module Admin
     end
 
     private
+
+    def set_rotation_item
+      @rotation_item = RotationItem.find(params[:id])
+    end
+
+    def set_assignable_rotations
+      extra = @rotation_item&.rotation_id || params.dig(:rotation_item, :rotation_id)
+      @rotations = Rotation.assignable(extra).order(:name)
+    end
 
     def rotation_item_params
       params.expect(rotation_item: [ :rotation_id, :media_asset_id, :position, :display_duration_seconds ])

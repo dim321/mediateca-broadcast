@@ -1,7 +1,7 @@
 ---
 title: Playlist as Airtime Projection
 date: 2026-09-02
-last_updated: 2026-09-02
+last_updated: 2026-09-04
 category: architecture-patterns
 module: playlists
 problem_type: architecture_pattern
@@ -41,7 +41,7 @@ The late-August 2026 brainstorm started from that slot writer and an on-the-fly 
 
 The shipped split is five parts (portrait, playlist, generator, regen, agent with two URLs):
 
-1. **Portrait** — operator template of the cyclic hour (`BroadcastPortrait` plus blocks). `station_id` is optional: a row with `station_id` nil is a fleet template (`app/models/broadcast_portrait.rb:36`, `scope :templates` at `app/models/broadcast_portrait.rb:40`). Creating a station copies an assigned template via `Portraits::CopyTemplate` (`app/controllers/admin/stations_controller.rb:30`). Updating a station with a `template_id` copies with `replace: true` (`app/controllers/admin/stations_controller.rb:44-45`).
+1. **Portrait** — operator template of the cyclic hour (`BroadcastPortrait` plus blocks). A row with `screen_id` nil is a fleet template (`app/models/broadcast_portrait.rb`, `scope :templates`). Creating a screen copies an assigned template via `Portraits::CopyTemplate` (`app/controllers/admin/screens_controller.rb`). Updating a screen with a `template_id` copies with `replace: true`. Screen operating hours default to the location (`inherit_operating_hours_from_location`); a screen may override. Do not put a portrait on the station.
 
 2. **Playlist** — materialized projection for `(station, date)`. Exactly one `current` row per station and date (unique index `app/models/playlist.rb:23`, validation `app/models/playlist.rb:49`). Items carry `offset_seconds` from the location-TZ day anchor (`app/domain/playlists/generate_for_date.rb:358-360`) and screens via `playlist_item_screens`.
 
@@ -145,7 +145,7 @@ Apply this guidance when:
 - Adding a new airtime mutation that should refresh tomorrow’s playlist — hook `Playlists::EnqueueRegen` **after** the FWW transaction, and on reschedule enqueue both windows.
 - Changing agent package shape, adding `schema_version`, or touching ETag / 304 behavior.
 - Designing PlayLog attribution or future certificates for filler vs commercial — go through `ResolvePlayEvent`, not raw playlist rows as occupancy.
-- Moving portrait storage, attaching portraits to groups/screens instead of stations, or copying templates on station create/update.
+- Moving portrait storage — portraits attach to **screens** (templates have `screen_id` nil). Copy templates on screen create/update, not station create.
 - Choosing a time zone for `for_date`, insertions, operating hours, or regen horizon — use `locations.time_zone`.
 - Introducing another advisory lock — pick a new namespace, do not reuse `874_201` or `874_202`.
 - Editing filler pick strategy, `neutral_min_seconds`, or any code that calls `Kernel.srand` near playlist generation.
@@ -181,7 +181,8 @@ Apply this guidance when:
 - MVP1 rename Playlist → Rotation: `docs/plans/2026-08-01-001-feat-broadcast-hub-mvp1-plan.md`
 - Brainstorm: `docs/brainstorms/2026-08-27-media-plan-playlist-storage-brainstorm.md`
 - Contracts: `specs/002-monitors-broadcast-tz/contracts/agent-api-v1.md` (frozen), `specs/002-monitors-broadcast-tz/contracts/agent-api-v2.md`
-- Vocabulary: `CONCEPTS.md` (Broadcast portrait, Playlist, Rotation, Location time zone)
+- Vocabulary: `CONCEPTS.md` (Broadcast portrait, Playlist, Rotation, Location time zone, Service theme, Screen operating hours)
+- Service themes: `docs/solutions/architecture-patterns/operator-service-theme-on-screen.md`
 - Occupy / cancel / reschedule: `app/domain/airtime/occupy_with_plan.rb`, `app/domain/airtime/cancel.rb`, `app/domain/airtime/reschedule.rb`
 - Locks: `app/domain/playlists/station_date_lock.rb` (`874_202`), `app/domain/airtime/screen_lock.rb` (`874_201`)
 - Generator / regen / picker: `app/domain/playlists/generate_for_date.rb`, `app/domain/playlists/enqueue_regen.rb`, `app/domain/playlists/neutral_picker.rb`

@@ -71,7 +71,8 @@ module Admin
     end
 
     def set_rotations
-      @rotations = Rotation.order(:name)
+      bound_ids = Array(@portrait&.blocks).filter_map(&:rotation_id)
+      @rotations = Rotation.assignable(bound_ids).order(:name)
     end
 
     def timed_kind_requested?

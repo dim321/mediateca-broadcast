@@ -48,6 +48,33 @@ RSpec.describe "Admin broadcast portraits", type: :request do
       expect(response.body).not_to include("administrate")
     end
 
+    it "omits unbound theme rotations from the portrait block picker" do
+      ordinary = rotation
+      theme = create(:service_theme, organization: operator_org)
+      hidden = theme.welcome_rotation
+      hidden.update!(name: "Salon · welcome")
+
+      get new_admin_broadcast_portrait_path
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include(ordinary.name)
+      expect(response.body).not_to include(hidden.name)
+    end
+
+    it "keeps a bound theme rotation in the picker when editing a screen portrait" do
+      theme = create(:service_theme, organization: operator_org)
+      bound = theme.welcome_rotation
+      bound.update!(name: "Salon · welcome")
+      screen = create(:screen)
+      portrait = create(:broadcast_portrait, :for_screen, screen: screen)
+      create(:broadcast_portrait_block, :service_welcome, broadcast_portrait: portrait, rotation: bound)
+
+      get edit_admin_broadcast_portrait_path(portrait)
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include(bound.name)
+    end
+
     it "creates a default cyclic template with commercial and sequential filler blocks" do
       expect {
         post admin_broadcast_portraits_path, params: { broadcast_portrait: portrait_attrs }

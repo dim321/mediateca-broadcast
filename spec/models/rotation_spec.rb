@@ -56,6 +56,14 @@ RSpec.describe Rotation, type: :model do
       expect(described_class.managed).to contain_exactly(managed)
       expect(described_class.unmanaged).to contain_exactly(unmanaged)
     end
+
+    it "keeps bound system-managed rotations in assignable lists" do
+      unmanaged = create(:rotation, name: "Client catalog")
+      managed = create(:rotation, :system_managed, name: "Theme welcome")
+
+      expect(described_class.assignable).to contain_exactly(unmanaged)
+      expect(described_class.assignable(managed.id)).to contain_exactly(unmanaged, managed)
+    end
   end
 
   describe "#ordered_items" do

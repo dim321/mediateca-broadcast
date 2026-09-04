@@ -46,7 +46,7 @@ Exception: advertising order **new/edit** load cabinet CSS via `content_for :hea
 
 ## Chrome and helpers
 
-Sidebar items live in `AdminHelper::NAV_ITEMS` (`app/helpers/admin_helper.rb`), not in routes introspection. Adding a resource: **routes + NAV_ITEMS + `admin.nav.*` i18n**.
+Sidebar items live in `AdminHelper::NAV_SECTIONS` (`app/helpers/admin_helper.rb`; `NAV_ITEMS` is the flattened list), not in routes introspection. Adding a resource: **routes + NAV_SECTIONS + `admin.nav.*` i18n**.
 
 Use helper classes, do not invent new button/input palettes:
 
@@ -87,7 +87,7 @@ bin/rails g admin:scaffold Widget name:string
 After scaffold, always:
 
 1. `resources :…` inside `namespace :admin` in `config/routes.rb`
-2. Sidebar entry in `AdminHelper::NAV_ITEMS`
+2. Sidebar entry in `AdminHelper::NAV_SECTIONS`
 3. i18n `admin.nav.<key>` (and crud copy if not using `admin.crud`)
 4. Align the generated controller with live `BaseController` (`ransack_params` / `destroy_with_restriction` already inherited — drop duplicates)
 5. Prefer `render "admin/shared/form_errors"` over inlined error HTML
@@ -103,7 +103,8 @@ If you change chrome (helper classes, layout, navbar, BaseController), sync `lib
 | Advertising orders | index / show / new / create / edit / update + `activate` / `cancel` — **no destroy**; grid = cabinet form |
 | Profiles | show only |
 | Stations | agent token **display** (set/blank), not editable on the form |
-| Screens | virtual `location_id`; operator org as owner is stored as `nil`; tags via `tag_ids`; `template_id` copies a portrait onto the screen; inherit hours toggle + `_operating_hours_fields` when not inheriting |
+| Screens | virtual `location_id`; operator org as owner is stored as `nil`; tags via `tag_ids`; `template_id` copies a portrait onto the screen; inherit hours toggle + `_operating_hours_fields` when not inheriting; `service_theme_id` and pick-strategy virtual attrs (`header_start_pick_strategy`, `header_end_pick_strategy`, `welcome_pick_strategy`, `close_pick_strategy`) call `Portraits::ApplyServiceTheme` |
+| Service themes | full CRUD + nested clip upload; four `system_managed` rotations stay off the ordinary Rotations index |
 | Locations | `operating_hours` jsonb + Stimulus `operating-hours` |
 
 HasMany on forms is opt-in (screen tags, group `screen_ids`, nested organization profile). Do not dump every association onto the form.
@@ -112,7 +113,8 @@ HasMany on forms is opt-in (screen tags, group `screen_ids`, nested organization
 
 - `sidebar`, `dropdown`, `modal`, `tabs` (chrome)
 - `operating-hours` — copy Monday on location form
-- `screen-form` — filter stations by location, optional name autofill (`data-auto-fill-name`)
+- `screen-form` — filter stations by location, inherit-hours toggle, optional name autofill (`data-auto-fill-name`)
+- `portrait-blocks` — add/reorder portrait blocks; pick strategy visible for filler, insertion, headers, welcome, close
 
 New interactivity: a small controller in `app/javascript/admin/controllers/`, not Flowbite JS.
 
