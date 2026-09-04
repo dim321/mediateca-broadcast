@@ -42,7 +42,9 @@ class BroadcastPortraitBlock < ApplicationRecord
     filler: "filler",
     insertion: "insertion",
     service_header_start: "service_header_start",
-    service_header_end: "service_header_end"
+    service_header_end: "service_header_end",
+    service_welcome: "service_welcome",
+    service_close: "service_close"
   }
 
   enum :pick_strategy, {
@@ -66,6 +68,10 @@ class BroadcastPortraitBlock < ApplicationRecord
       errors.add(:time_of_day, :present) if time_of_day.present?
     when "service_header_start", "service_header_end"
       errors.add(:pick_strategy, :present) if pick_strategy.present?
+      errors.add(:time_of_day, :present) if time_of_day.present?
+    when "service_welcome", "service_close"
+      errors.add(:rotation_id, :blank) if rotation.blank?
+      errors.add(:pick_strategy, :blank) if pick_strategy.blank?
       errors.add(:time_of_day, :present) if time_of_day.present?
     when "filler"
       errors.add(:rotation_id, :blank) if rotation.blank?

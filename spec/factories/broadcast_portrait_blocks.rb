@@ -65,5 +65,19 @@ FactoryBot.define do
       pick_strategy { nil }
       time_of_day { nil }
     end
+
+    trait :service_welcome do
+      kind { "service_welcome" }
+      rotation
+      pick_strategy { "sequential" }
+      time_of_day { nil }
+    end
+
+    trait :service_close do
+      kind { "service_close" }
+      rotation
+      pick_strategy { "sequential" }
+      time_of_day { nil }
+    end
   end
 end

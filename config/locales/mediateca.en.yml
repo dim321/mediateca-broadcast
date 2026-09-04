@@ -264,6 +264,9 @@ en:
       screen_tag:
         one: Screen tag
         other: Screen tags
+      service_theme:
+        one: Service theme
+        other: Service themes
       station:
         one: Station
         other: Stations
@@ -356,6 +359,10 @@ en:
           attributes:
             owner_organization:
               must_be_client: must be a client organization
+        service_theme:
+          attributes:
+            organization:
+              must_be_operator: must be an operator organization
         location:
           attributes:
             operating_hours:
@@ -468,13 +475,17 @@ en:
         max_commercial_in_row: Max commercials in a row
         name: Name
         neutral_min_seconds: Neutral minimum seconds
-        station: Station
+        screen: Screen
+        service_theme: Service theme
       broadcast_portrait_block:
         kind: Kind
         pick_strategy: Pick strategy
         position: Position
         rotation: Rotation
         time_of_day: Time of day
+      service_theme:
+        name: Name
+        organization: Organization
       playlist:
         broadcast_day_starts_at: Broadcast day starts at
         etag: ETag
@@ -881,6 +892,8 @@ en:
         insertion: Insertion
         service_header_start: Service header start
         service_header_end: Service header end
+        service_welcome: Welcome
+        service_close: Close of day
       pick_strategy:
         sequential: Sequential
         random: Random

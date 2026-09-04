@@ -16,16 +16,19 @@ require "rails_helper"
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
 #  screen_id                :bigint
+#  service_theme_id         :bigint
 #
 # Indexes
 #
 #  index_broadcast_portraits_on_screen_id          (screen_id)
 #  index_broadcast_portraits_on_screen_id_unique   (screen_id) UNIQUE WHERE (screen_id IS NOT NULL)
+#  index_broadcast_portraits_on_service_theme_id   (service_theme_id)
 #  index_broadcast_portraits_one_default_template  (is_default) UNIQUE WHERE ((screen_id IS NULL) AND is_default)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (screen_id => screens.id) ON DELETE => cascade
+#  fk_rails_...  (service_theme_id => service_themes.id) ON DELETE => restrict
 #
 RSpec.describe BroadcastPortrait, type: :model do
   describe "validations" do

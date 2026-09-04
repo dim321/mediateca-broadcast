@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_04_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_04_121000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -159,10 +159,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_04_120000) do
     t.string "name", null: false
     t.integer "neutral_min_seconds", default: 10, null: false
     t.bigint "screen_id"
+    t.bigint "service_theme_id"
     t.datetime "updated_at", null: false
     t.index ["is_default"], name: "index_broadcast_portraits_one_default_template", unique: true, where: "((screen_id IS NULL) AND is_default)"
     t.index ["screen_id"], name: "index_broadcast_portraits_on_screen_id"
     t.index ["screen_id"], name: "index_broadcast_portraits_on_screen_id_unique", unique: true, where: "(screen_id IS NOT NULL)"
+    t.index ["service_theme_id"], name: "index_broadcast_portraits_on_service_theme_id"
     t.check_constraint "block_frequency_per_hour >= 1 AND block_frequency_per_hour <= 60", name: "broadcast_portraits_block_frequency_per_hour_range"
     t.check_constraint "max_commercial_in_row > 0", name: "broadcast_portraits_max_commercial_in_row_positive"
     t.check_constraint "neutral_min_seconds = ANY (ARRAY[5, 10])", name: "broadcast_portraits_neutral_min_seconds_allowed"
@@ -352,6 +354,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_04_120000) do
     t.index ["station_id"], name: "index_screens_on_station_id"
   end
 
+  create_table "service_themes", force: :cascade do |t|
+    t.bigint "close_rotation_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "header_end_rotation_id", null: false
+    t.bigint "header_start_rotation_id", null: false
+    t.string "name", null: false
+    t.bigint "organization_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "welcome_rotation_id", null: false
+    t.index ["close_rotation_id"], name: "index_service_themes_on_close_rotation_id"
+    t.index ["header_end_rotation_id"], name: "index_service_themes_on_header_end_rotation_id"
+    t.index ["header_start_rotation_id"], name: "index_service_themes_on_header_start_rotation_id"
+    t.index ["organization_id", "name"], name: "index_service_themes_on_organization_id_and_name", unique: true
+    t.index ["organization_id"], name: "index_service_themes_on_organization_id"
+    t.index ["welcome_rotation_id"], name: "index_service_themes_on_welcome_rotation_id"
+  end
+
   create_table "stations", force: :cascade do |t|
     t.string "agent_token_digest"
     t.datetime "created_at", null: false
@@ -399,6 +418,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_04_120000) do
   add_foreign_key "broadcast_portrait_blocks", "broadcast_portraits", on_delete: :cascade
   add_foreign_key "broadcast_portrait_blocks", "rotations", on_delete: :restrict
   add_foreign_key "broadcast_portraits", "screens", on_delete: :cascade
+  add_foreign_key "broadcast_portraits", "service_themes", on_delete: :restrict
   add_foreign_key "media_assets", "organizations"
   add_foreign_key "media_assets", "users", column: "uploaded_by_id", on_delete: :nullify
   add_foreign_key "media_plans", "advertising_order_lines", on_delete: :restrict
@@ -424,6 +444,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_04_120000) do
   add_foreign_key "screen_tags", "tags"
   add_foreign_key "screens", "organizations", column: "owner_organization_id"
   add_foreign_key "screens", "stations"
+  add_foreign_key "service_themes", "organizations", on_delete: :restrict
+  add_foreign_key "service_themes", "rotations", column: "close_rotation_id", on_delete: :restrict
+  add_foreign_key "service_themes", "rotations", column: "header_end_rotation_id", on_delete: :restrict
+  add_foreign_key "service_themes", "rotations", column: "header_start_rotation_id", on_delete: :restrict
+  add_foreign_key "service_themes", "rotations", column: "welcome_rotation_id", on_delete: :restrict
   add_foreign_key "stations", "locations"
   add_foreign_key "users", "organizations"
 end

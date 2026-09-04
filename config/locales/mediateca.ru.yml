@@ -268,6 +268,9 @@ ru:
       screen_tag:
         one: Тег экрана
         other: Теги экранов
+      service_theme:
+        one: Тематика
+        other: Тематики
       station:
         one: Станция
         other: Станции
@@ -360,6 +363,10 @@ ru:
           attributes:
             owner_organization:
               must_be_client: должна быть клиентской организацией
+        service_theme:
+          attributes:
+            organization:
+              must_be_operator: должна быть организацией-оператором
         location:
           attributes:
             operating_hours:
@@ -472,13 +479,17 @@ ru:
         max_commercial_in_row: Максимум рекламы подряд
         name: Название
         neutral_min_seconds: Минимум нейтралки, сек
-        station: Станция
+        screen: Экран
+        service_theme: Тематика
       broadcast_portrait_block:
         kind: Тип
         pick_strategy: Стратегия выбора
         position: Позиция
         rotation: Ротация
         time_of_day: Время суток
+      service_theme:
+        name: Название
+        organization: Организация
       playlist:
         broadcast_day_starts_at: Начало эфирных суток
         etag: ETag
@@ -891,6 +902,8 @@ ru:
         insertion: Вставка
         service_header_start: Сервисная шапка (начало)
         service_header_end: Сервисная шапка (конец)
+        service_welcome: Приветствие
+        service_close: Завершение дня
       pick_strategy:
         sequential: Последовательно
         random: Случайно

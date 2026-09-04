@@ -32,6 +32,7 @@ class Organization < ApplicationRecord
   has_many :users, inverse_of: :organization, dependent: :restrict_with_exception
   has_many :media_assets, dependent: :restrict_with_exception
   has_many :rotations, dependent: :restrict_with_exception
+  has_many :service_themes, dependent: :restrict_with_exception
   has_many :broadcast_point_groups, dependent: :restrict_with_exception
   has_many :media_plans, dependent: :restrict_with_exception
   has_many :airtime_bookings, dependent: :restrict_with_exception

@@ -100,5 +100,22 @@ RSpec.describe BroadcastPortraitBlock, type: :model do
       expect(with_pick).not_to be_valid
       expect(with_pick.errors[:pick_strategy]).to be_present
     end
+
+    it "requires rotation and pick strategy on welcome and close blocks" do
+      missing = build(:broadcast_portrait_block, :service_welcome, rotation: nil, pick_strategy: nil)
+      valid = build(:broadcast_portrait_block, :service_close)
+
+      expect(missing).not_to be_valid
+      expect(missing.errors[:rotation_id]).to be_present
+      expect(missing.errors[:pick_strategy]).to be_present
+      expect(valid).to be_valid
+    end
+
+    it "rejects time_of_day on welcome and close blocks" do
+      block = build(:broadcast_portrait_block, :service_welcome, time_of_day: "09:00")
+
+      expect(block).not_to be_valid
+      expect(block.errors[:time_of_day]).to be_present
+    end
   end
 end

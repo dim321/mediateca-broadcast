@@ -14,27 +14,31 @@
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
 #  screen_id                :bigint
+#  service_theme_id         :bigint
 #
 # Indexes
 #
 #  index_broadcast_portraits_on_screen_id          (screen_id)
 #  index_broadcast_portraits_on_screen_id_unique   (screen_id) UNIQUE WHERE (screen_id IS NOT NULL)
+#  index_broadcast_portraits_on_service_theme_id   (service_theme_id)
 #  index_broadcast_portraits_one_default_template  (is_default) UNIQUE WHERE ((screen_id IS NULL) AND is_default)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (screen_id => screens.id) ON DELETE => cascade
+#  fk_rails_...  (service_theme_id => service_themes.id) ON DELETE => restrict
 #
 class BroadcastPortrait < ApplicationRecord
   def self.ransackable_attributes(_auth_object = nil)
-    %w[id name kind block_frequency_per_hour max_commercial_in_row neutral_min_seconds is_default created_at updated_at screen_id]
+    %w[id name kind block_frequency_per_hour max_commercial_in_row neutral_min_seconds is_default created_at updated_at screen_id service_theme_id]
   end
 
   def self.ransackable_associations(_auth_object = nil)
-    %w[screen blocks]
+    %w[screen blocks service_theme]
   end
 
   belongs_to :screen, optional: true
+  belongs_to :service_theme, optional: true
 
   has_many :blocks, class_name: "BroadcastPortraitBlock", dependent: :destroy, inverse_of: :broadcast_portrait
 
