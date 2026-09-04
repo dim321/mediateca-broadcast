@@ -20,7 +20,8 @@ module PlaylistGeneration
   end
 
   def create_cyclic_portrait!(station, filler_rotation:, frequency: 4, max_commercial_in_row: 3,
-    insertion_time: nil, insertion_rotation: nil, header_start_rotation: nil, header_end_rotation: nil)
+    insertion_time: nil, insertion_rotation: nil, header_start_rotation: nil, header_end_rotation: nil,
+    welcome_rotation: nil, close_rotation: nil)
     screens = station.screens.sort_by(&:id)
     screens = [ create(:screen, station: station) ] if screens.empty?
     portraits = screens.map do |screen|
@@ -32,14 +33,17 @@ module PlaylistGeneration
         insertion_time: insertion_time,
         insertion_rotation: insertion_rotation,
         header_start_rotation: header_start_rotation,
-        header_end_rotation: header_end_rotation
+        header_end_rotation: header_end_rotation,
+        welcome_rotation: welcome_rotation,
+        close_rotation: close_rotation
       )
     end
     portraits.first
   end
 
   def build_cyclic_portrait_for_screen!(screen, filler_rotation:, frequency:, max_commercial_in_row:,
-    insertion_time:, insertion_rotation:, header_start_rotation:, header_end_rotation:)
+    insertion_time:, insertion_rotation:, header_start_rotation:, header_end_rotation:,
+    welcome_rotation: nil, close_rotation: nil)
     portrait = create(
       :broadcast_portrait,
       :for_screen,
@@ -74,6 +78,16 @@ module PlaylistGeneration
       position += 1
       create(:broadcast_portrait_block, :service_header_end, broadcast_portrait: portrait,
         position: position, rotation: header_end_rotation, pick_strategy: "sequential")
+    end
+    if welcome_rotation
+      position += 1
+      create(:broadcast_portrait_block, :service_welcome, broadcast_portrait: portrait,
+        position: position, rotation: welcome_rotation, pick_strategy: "sequential")
+    end
+    if close_rotation
+      position += 1
+      create(:broadcast_portrait_block, :service_close, broadcast_portrait: portrait,
+        position: position, rotation: close_rotation, pick_strategy: "sequential")
     end
     portrait
   end

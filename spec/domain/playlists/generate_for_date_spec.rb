@@ -281,4 +281,149 @@ RSpec.describe Playlists::GenerateForDate do
     expect(before.media_asset_id).to eq(start_rot.ordered_items.first.media_asset_id)
     expect(after.media_asset_id).to eq(end_rot.ordered_items.first.media_asset_id)
   end
+
+  it "places welcome and close on each screen's effective hours (AE4)" do
+    station = create_playlist_station!
+    screen_a = create(:screen, station: station)
+    screen_b = create(
+      :screen,
+      station: station,
+      inherit_operating_hours_from_location: false,
+      operating_hours: { "wed" => [ { "start" => "10:00", "end" => "20:00" } ] }
+    )
+    org = create(:organization, :client)
+    filler = create_clip_rotation!(organization: org)
+    welcome = create_clip_rotation!(organization: org)
+    close = create_clip_rotation!(organization: org)
+    create_cyclic_portrait!(station, filler_rotation: filler, welcome_rotation: welcome, close_rotation: close)
+
+    playlist = generate!(station).playlist
+    welcome_id = welcome.ordered_items.first.media_asset_id
+    close_id = close.ordered_items.first.media_asset_id
+    welcome_a = playlist.items.find { |item| item.service? && item.media_asset_id == welcome_id && item_screen_ids(item).include?(screen_a.id) }
+    welcome_b = playlist.items.find { |item| item.service? && item.media_asset_id == welcome_id && item_screen_ids(item).include?(screen_b.id) }
+    close_a = playlist.items.find { |item| item.service? && item.media_asset_id == close_id && item_screen_ids(item).include?(screen_a.id) }
+    close_b = playlist.items.find { |item| item.service? && item.media_asset_id == close_id && item_screen_ids(item).include?(screen_b.id) }
+
+    expect(welcome_a.offset_seconds).to eq(0)
+    expect(item_screen_ids(welcome_a)).to eq([ screen_a.id ])
+    expect(welcome_b.offset_seconds).to eq(1.hour.to_i)
+    expect(item_screen_ids(welcome_b)).to eq([ screen_b.id ])
+    expect(close_a.offset_seconds).to eq(12.hours.to_i)
+    expect(item_screen_ids(close_a)).to eq([ screen_a.id ])
+    expect(close_b.offset_seconds).to eq(11.hours.to_i)
+    expect(item_screen_ids(close_b)).to eq([ screen_b.id ])
+  end
+
+  it "skips welcome and close on a closed weekday and still succeeds (AE5)" do
+    station = create_playlist_station!(hours: { "mon" => [ { "start" => "09:00", "end" => "21:00" } ] })
+    create(:screen, station: station)
+    org = create(:organization, :client)
+    create_cyclic_portrait!(
+      station,
+      filler_rotation: create_clip_rotation!(organization: org),
+      welcome_rotation: create_clip_rotation!(organization: org),
+      close_rotation: create_clip_rotation!(organization: org)
+    )
+
+    result = generate!(station)
+
+    expect(result.skipped).to be_nil
+    expect(result.playlist).to be_current
+    expect(result.playlist.items.select(&:service?)).to be_empty
+  end
+
+  it "opens welcome on the first window and close on the last split-shift window (AE6)" do
+    station = create_playlist_station!(
+      hours: {
+        "wed" => [
+          { "start" => "09:00", "end" => "12:00" },
+          { "start" => "14:00", "end" => "18:00" }
+        ]
+      }
+    )
+    create(:screen, station: station)
+    org = create(:organization, :client)
+    welcome = create_clip_rotation!(organization: org)
+    close = create_clip_rotation!(organization: org)
+    create_cyclic_portrait!(
+      station,
+      filler_rotation: create_clip_rotation!(organization: org),
+      welcome_rotation: welcome,
+      close_rotation: close
+    )
+
+    playlist = generate!(station).playlist
+    welcome_item = playlist.items.find { |item| item.service? && item.media_asset_id == welcome.ordered_items.first.media_asset_id }
+    close_item = playlist.items.find { |item| item.service? && item.media_asset_id == close.ordered_items.first.media_asset_id }
+
+    expect(welcome_item.offset_seconds).to eq(0)
+    expect(close_item.offset_seconds).to eq(9.hours.to_i)
+  end
+
+  it "picks random service headers through NeutralPicker (AE7)" do
+    station = create_playlist_station!
+    owner = create(:organization, :client)
+    placer = create(:organization, :client)
+    screen = create(:screen, station: station, owner_organization: owner)
+    start_rot = create_clip_rotation!(organization: owner, count: 3)
+    end_rot = create_clip_rotation!(organization: owner)
+    create_cyclic_portrait!(
+      station,
+      filler_rotation: create_clip_rotation!(organization: owner),
+      header_start_rotation: start_rot,
+      header_end_rotation: end_rot
+    )
+    station.screens.each do |member|
+      member.broadcast_portrait.blocks.find_by!(kind: "service_header_start").update!(pick_strategy: "random")
+    end
+    occupy_with_clips!(
+      screen: screen,
+      organization: placer,
+      rotation: create_clip_rotation!(organization: placer),
+      starts_at: local_slot(9),
+      ends_at: local_slot(21),
+      placement_kind: :commercial,
+      shows_per_hour: 2,
+      group_organization: owner
+    )
+    expected = Playlists::NeutralPicker.new(
+      rotation: start_rot,
+      strategy: "random",
+      station: station,
+      for_date: PlaylistGeneration::WEDNESDAY,
+      min_seconds: nil
+    ).take(1).first
+
+    playlist = generate!(station).playlist
+    first_clip = playlist.items.select(&:media_plan?).min_by(&:offset_seconds)
+    header = playlist.items.find { |item| item.service? && item.offset_seconds < first_clip.offset_seconds }
+
+    expect(header.media_asset_id).to eq(expected[:media_asset].id)
+  end
+
+  it "places welcome at a screen's custom open (AE12)" do
+    station = create_playlist_station!
+    screen = create(
+      :screen,
+      station: station,
+      inherit_operating_hours_from_location: false,
+      operating_hours: { "wed" => [ { "start" => "08:00", "end" => "22:00" } ] }
+    )
+    org = create(:organization, :client)
+    welcome = create_clip_rotation!(organization: org)
+    create_cyclic_portrait!(
+      station,
+      filler_rotation: create_clip_rotation!(organization: org),
+      welcome_rotation: welcome,
+      close_rotation: create_clip_rotation!(organization: org)
+    )
+
+    playlist = generate!(station).playlist
+    welcome_item = playlist.items.find { |item| item.service? && item.media_asset_id == welcome.ordered_items.first.media_asset_id }
+
+    expect(playlist.broadcast_day_starts_at).to eq(local_slot(8).utc)
+    expect(welcome_item.offset_seconds).to eq(0)
+    expect(item_screen_ids(welcome_item)).to eq([ screen.id ])
+  end
 end

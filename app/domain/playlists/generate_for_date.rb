@@ -114,7 +114,7 @@ module Playlists
       cycle = cycle_blocks(portrait)
       insertions = insertion_events(portrait)
       slots = build_slots(windows, portrait)
-      slots.flat_map do |slot_start, slot_end|
+      day_bound_emissions(screen, portrait, windows, pickers) + slots.flat_map do |slot_start, slot_end|
         matching = insertions.select { |event| slot_start <= event[:at] && event[:at] < slot_end }.map { |event| event[:block] }
         if matching.any?
           cycle_index += 1 if cycle.any?
@@ -144,7 +144,7 @@ module Playlists
       when "filler"
         emit_filler(block, screen, portrait, slot_start, pickers)
       when "service_header_start", "service_header_end"
-        emit_service_cycle(block, screen, slot_start)
+        emit_service_cycle(block, screen, slot_start, pickers)
       else
         []
       end
@@ -161,7 +161,7 @@ module Playlists
       items = []
       if plan.commercial?
         header_blocks(portrait, "service_header_start").each do |block|
-          pick = header_pick(block)
+          pick = take_from_block(block, screen, pickers, min_seconds: nil)
           if pick
             items << emission(pick, screen, offset, "service")
             offset += pick[:duration_seconds]
@@ -176,7 +176,7 @@ module Playlists
       end
       if plan.commercial?
         header_blocks(portrait, "service_header_end").each do |block|
-          pick = header_pick(block)
+          pick = take_from_block(block, screen, pickers, min_seconds: nil)
           if pick
             items << emission(pick, screen, offset, "service")
             offset += pick[:duration_seconds]
@@ -206,8 +206,8 @@ module Playlists
       []
     end
 
-    def emit_service_cycle(block, screen, slot_start)
-      pick = header_pick(block)
+    def emit_service_cycle(block, screen, slot_start, pickers)
+      pick = take_from_block(block, screen, pickers, min_seconds: nil)
       return [ emission(pick, screen, slot_start, "service") ] if pick
 
       warn_once("service header block has no eligible clips")
@@ -248,20 +248,6 @@ module Playlists
         for_date: for_date,
         min_seconds: min_seconds
       )
-    end
-
-    def header_pick(block)
-      return if block.rotation.nil?
-
-      block.rotation.ordered_items.each do |item|
-        next unless item.media_asset.broadcast_delivery_attachment
-
-        duration = item.display_duration_seconds.presence || item.media_asset.duration_seconds
-        next if duration.blank? || duration.to_i <= 0
-
-        return { media_asset: item.media_asset, duration_seconds: duration.to_i }
-      end
-      nil
     end
 
     def emission(pick, screen, time_or_offset, source_kind, media_plan_id: nil)
@@ -310,7 +296,32 @@ module Playlists
     end
 
     def cycle_blocks(portrait)
-      portrait.blocks.sort_by(&:position).reject(&:insertion?)
+      portrait.blocks.sort_by(&:position).reject do |block|
+        block.insertion? || block.service_welcome? || block.service_close?
+      end
+    end
+
+    def day_bound_emissions(screen, portrait, windows, pickers)
+      open_at = windows.first[:start]
+      close_at = windows.last[:end]
+      emissions = []
+      header_blocks(portrait, "service_welcome").each do |block|
+        pick = take_from_block(block, screen, pickers, min_seconds: nil)
+        if pick
+          emissions << emission(pick, screen, open_at, "service")
+        else
+          warn_once("service welcome has no eligible clips")
+        end
+      end
+      header_blocks(portrait, "service_close").each do |block|
+        pick = take_from_block(block, screen, pickers, min_seconds: nil)
+        if pick
+          emissions << emission(pick, screen, close_at, "service")
+        else
+          warn_once("service close has no eligible clips")
+        end
+      end
+      emissions
     end
 
     def header_blocks(portrait, kind)

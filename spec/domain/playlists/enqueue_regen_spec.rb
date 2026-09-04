@@ -116,7 +116,7 @@ RSpec.describe Playlists::EnqueueRegen do
       .to have_enqueued_job(Playlists::GenerateForDateJob).with(station.id, "2026-09-02")
   end
 
-  it "enqueues only stations with inheriting screens from location hours" do
+  it "enqueues only stations with inheriting screens from location hours (AE13)" do
     location = create(:location, time_zone: "UTC")
     inheriting = create(:station, location: location, offline_cache_hours: 24)
     custom = create(:station, location: location, offline_cache_hours: 24)
