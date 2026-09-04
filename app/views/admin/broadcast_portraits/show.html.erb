@@ -40,6 +40,10 @@
       <dt class="text-sm font-medium text-gray-500"><%= BroadcastPortrait.human_attribute_name(:is_default) %></dt>
       <dd class="mt-1 text-sm text-gray-900"><%= admin_boolean(@portrait.is_default) %></dd>
     </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= BroadcastPortrait.human_attribute_name(:service_theme) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@portrait.service_theme) %></dd>
+    </div>
   </dl>
 </div>
 

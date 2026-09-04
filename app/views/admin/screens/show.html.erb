@@ -29,6 +29,10 @@
       <dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@screen.broadcast_portrait) %></dd>
     </div>
     <div>
+      <dt class="text-sm font-medium text-gray-500"><%= ServiceTheme.model_name.human %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@screen.broadcast_portrait&.service_theme) %></dd>
+    </div>
+    <div>
       <dt class="text-sm font-medium text-gray-500"><%= Screen.human_attribute_name(:inherit_operating_hours_from_location) %></dt>
       <dd class="mt-1 text-sm text-gray-900"><%= admin_boolean(@screen.inherit_operating_hours_from_location) %></dd>
     </div>

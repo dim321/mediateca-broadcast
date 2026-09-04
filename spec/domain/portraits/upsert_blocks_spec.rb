@@ -56,4 +56,17 @@ RSpec.describe Portraits::UpsertBlocks do
 
     expect(portrait.blocks.reload.map(&:kind)).to eq(%w[commercial])
   end
+
+  it "clears service_theme_id when blocks are edited manually (AE9)" do
+    theme = create(:service_theme)
+    screen = create(:screen)
+    screen_portrait = create(:broadcast_portrait, :for_screen, screen: screen, service_theme: theme)
+
+    described_class.call(
+      portrait: screen_portrait,
+      blocks: [ { position: 1, kind: "commercial" } ]
+    )
+
+    expect(screen_portrait.reload.service_theme).to be_nil
+  end
 end

@@ -74,6 +74,24 @@
           { id: "screen_template_id", class: admin_select_class } %>
   </div>
 
+  <div class="mb-5">
+    <%= f.label :service_theme_id, ServiceTheme.model_name.human, class: admin_label_class %>
+    <%= f.collection_select :service_theme_id,
+          ServiceTheme.order(:name), :id, :name,
+          { include_blank: t("admin.screens.service_theme_blank") },
+          { id: "screen_service_theme_id", class: admin_select_class } %>
+  </div>
+
+  <div class="mb-5 grid gap-3 sm:grid-cols-2">
+    <% ServiceTheme::ROTATION_ROLES.each do |role, kind| %>
+      <div>
+        <%= f.label :"#{role}_pick_strategy", t("enums.broadcast_portrait_block.kind.#{kind}"), class: admin_label_class %>
+        <%= f.select :"#{role}_pick_strategy", admin_enum_options(BroadcastPortraitBlock, :pick_strategy),
+              {}, class: admin_select_class %>
+      </div>
+    <% end %>
+  </div>
+
   <div class="mb-5 flex items-center gap-2">
     <%= f.check_box :inherit_operating_hours_from_location,
           class: admin_checkbox_class,

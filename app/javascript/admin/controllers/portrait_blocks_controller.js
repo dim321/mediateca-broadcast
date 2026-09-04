@@ -4,8 +4,10 @@ const FIELD_VISIBILITY = {
   commercial: { rotation: false, pick: false, time: false },
   filler: { rotation: true, pick: true, time: false },
   insertion: { rotation: true, pick: true, time: true },
-  service_header_start: { rotation: true, pick: false, time: false },
-  service_header_end: { rotation: true, pick: false, time: false }
+  service_header_start: { rotation: true, pick: true, time: false },
+  service_header_end: { rotation: true, pick: true, time: false },
+  service_welcome: { rotation: true, pick: true, time: false },
+  service_close: { rotation: true, pick: true, time: false }
 }
 
 export default class extends Controller {

@@ -395,6 +395,8 @@ ru:
           attributes:
             template_id:
               must_be_template: должен быть шаблоном портрета эфира
+            service_theme_id:
+              must_be_theme: должна быть существующей тематикой
     attributes:
       airtime_booking:
         status: Статус
@@ -775,6 +777,7 @@ ru:
       edit_portrait: Изменить портрет эфира
       template_blank: Шаблон по умолчанию
       template_keep: Не менять текущий
+      service_theme_blank: Без тематики
     stations:
       closed_day: Закрытый день — в текущем плейлисте нет позиций.
       current_playlist: Текущий плейлист

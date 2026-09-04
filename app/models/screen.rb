@@ -55,10 +55,16 @@ class Screen < ApplicationRecord
 
   attribute :location_id, :integer
   attribute :template_id, :integer
+  attribute :service_theme_id, :integer
+  attribute :header_start_pick_strategy, :string, default: "sequential"
+  attribute :header_end_pick_strategy, :string, default: "sequential"
+  attribute :welcome_pick_strategy, :string, default: "sequential"
+  attribute :close_pick_strategy, :string, default: "sequential"
 
   validates :name, presence: true, uniqueness: { scope: :station_id }
   validate :owner_organization_must_be_client
   validate :template_must_be_a_template
+  validate :service_theme_must_exist
   validate :operating_hours_shape
 
   scope :operator_catalog, -> { all }
@@ -91,6 +97,21 @@ class Screen < ApplicationRecord
     BroadcastPortrait.templates.find_by(id: template_id)
   end
 
+  def assigned_service_theme
+    return if service_theme_id.blank?
+
+    ServiceTheme.find_by(id: service_theme_id)
+  end
+
+  def service_pick_strategies
+    {
+      header_start: header_start_pick_strategy,
+      header_end: header_end_pick_strategy,
+      welcome: welcome_pick_strategy,
+      close: close_pick_strategy
+    }
+  end
+
   private
 
   def assign_default_name
@@ -117,5 +138,12 @@ class Screen < ApplicationRecord
     return if BroadcastPortrait.templates.exists?(id: template_id)
 
     errors.add(:template_id, :must_be_template)
+  end
+
+  def service_theme_must_exist
+    return if service_theme_id.blank?
+    return if ServiceTheme.exists?(id: service_theme_id)
+
+    errors.add(:service_theme_id, :must_be_theme)
   end
 end

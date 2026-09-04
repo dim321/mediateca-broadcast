@@ -230,6 +230,32 @@ RSpec.describe "Admin screens", type: :request do
       expect(screen.broadcast_portrait.blocks.map(&:kind)).to eq(%w[filler])
     end
 
+    it "applies a service theme and pick strategies to the screen portrait (AE3)" do
+      create(:broadcast_portrait, :default, name: "Grid")
+      theme = create(:service_theme, organization: operator_org, name: "Салон")
+      screen = create(:screen, station: station, name: "Витрина 1")
+      create(:broadcast_portrait, :for_screen, screen: screen, name: "Old grid")
+
+      patch admin_screen_path(screen), params: {
+        screen: {
+          location_id: location.id,
+          station_id: station.id,
+          name: screen.name,
+          orientation: "landscape",
+          service_theme_id: theme.id,
+          header_start_pick_strategy: "random",
+          welcome_pick_strategy: "ordered"
+        }
+      }
+
+      portrait = screen.reload.broadcast_portrait
+      expect(response).to redirect_to(admin_screen_path(screen))
+      expect(portrait.service_theme).to eq(theme)
+      expect(portrait.blocks.find_by!(kind: "service_header_start").pick_strategy).to eq("random")
+      expect(portrait.blocks.find_by!(kind: "service_welcome").pick_strategy).to eq("ordered")
+      expect(portrait.blocks.find_by!(kind: "service_welcome").rotation).to eq(theme.welcome_rotation)
+    end
+
     it "enqueues regen when custom hours are saved (AE12)" do
       screen = create(:screen, station: station, name: "Витрина 1")
 
@@ -263,6 +289,7 @@ RSpec.describe "Admin screens", type: :request do
       expect(response.body).to include("Grid")
       expect(response.body).to include("Night")
       expect(response.body).to include(%(selected="selected" value="#{default.id}"))
+      expect(response.body).to include("screen_service_theme_id")
     end
   end
 end

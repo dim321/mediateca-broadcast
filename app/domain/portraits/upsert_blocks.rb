@@ -13,6 +13,7 @@ module Portraits
         blocks.each do |attrs|
           portrait.blocks.create!(block_attributes(attrs))
         end
+        portrait.update!(service_theme: nil) if portrait.service_theme_id.present?
         portrait.blocks.reload
       end
       Playlists::EnqueueRegen.from_screen(portrait.screen) if portrait.screen

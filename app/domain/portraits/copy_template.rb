@@ -30,14 +30,15 @@ module Portraits
     attr_reader :screen, :template, :replace
 
     def copy_from(source)
-      portrait = screen.create_broadcast_portrait!(
-        name: source.name,
-        kind: source.kind,
-        block_frequency_per_hour: source.block_frequency_per_hour,
-        max_commercial_in_row: source.max_commercial_in_row,
-        neutral_min_seconds: source.neutral_min_seconds,
-        is_default: false
-      )
+        portrait = screen.create_broadcast_portrait!(
+          name: source.name,
+          kind: source.kind,
+          block_frequency_per_hour: source.block_frequency_per_hour,
+          max_commercial_in_row: source.max_commercial_in_row,
+          neutral_min_seconds: source.neutral_min_seconds,
+          is_default: false,
+          service_theme_id: source.service_theme_id
+        )
       source.blocks.order(:position).each do |block|
         portrait.blocks.create!(
           position: block.position,

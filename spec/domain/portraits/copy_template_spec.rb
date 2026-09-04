@@ -76,4 +76,13 @@ RSpec.describe Portraits::CopyTemplate do
     expect(portrait.blocks.map(&:kind)).to eq(%w[filler])
     expect(BroadcastPortrait.where(screen: screen).count).to eq(1)
   end
+
+  it "copies service_theme_id from the template" do
+    theme = create(:service_theme)
+    template = create(:broadcast_portrait, :default, name: "Grid", service_theme: theme)
+
+    portrait = described_class.call(screen: screen, template: template)
+
+    expect(portrait.service_theme).to eq(theme)
+  end
 end

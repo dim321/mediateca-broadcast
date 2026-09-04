@@ -110,6 +110,24 @@ RSpec.describe "Admin broadcast portraits", type: :request do
       expect(portrait.blocks.order(:position).map(&:kind)).to eq(%w[filler commercial])
     end
 
+    it "clears service_theme_id when screen portrait blocks are edited (AE9)" do
+      theme = create(:service_theme, organization: operator_org)
+      screen = create(:screen)
+      portrait = create(:broadcast_portrait, :for_screen, screen: screen, service_theme: theme)
+
+      patch admin_broadcast_portrait_path(portrait), params: {
+        broadcast_portrait: {
+          name: portrait.name,
+          block_frequency_per_hour: portrait.block_frequency_per_hour,
+          max_commercial_in_row: portrait.max_commercial_in_row,
+          neutral_min_seconds: portrait.neutral_min_seconds,
+          blocks: [ { position: 1, kind: "commercial" } ]
+        }
+      }
+
+      expect(portrait.reload.service_theme).to be_nil
+    end
+
     it "enqueues regen when a screen portrait header is saved without blocks" do
       screen = create(:screen)
       portrait = create(:broadcast_portrait, :for_screen, screen: screen, name: "Screen grid")

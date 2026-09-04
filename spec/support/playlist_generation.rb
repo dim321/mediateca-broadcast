@@ -68,12 +68,12 @@ module PlaylistGeneration
     if header_start_rotation
       position += 1
       create(:broadcast_portrait_block, :service_header_start, broadcast_portrait: portrait,
-        position: position, rotation: header_start_rotation)
+        position: position, rotation: header_start_rotation, pick_strategy: "sequential")
     end
     if header_end_rotation
       position += 1
       create(:broadcast_portrait_block, :service_header_end, broadcast_portrait: portrait,
-        position: position, rotation: header_end_rotation)
+        position: position, rotation: header_end_rotation, pick_strategy: "sequential")
     end
     portrait
   end

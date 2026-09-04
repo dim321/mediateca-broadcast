@@ -391,6 +391,8 @@ en:
           attributes:
             template_id:
               must_be_template: must be a broadcast portrait template
+            service_theme_id:
+              must_be_theme: must be an existing service theme
     attributes:
       airtime_booking:
         status: Status
@@ -765,6 +767,7 @@ en:
       edit_portrait: Edit broadcast portrait
       template_blank: Default template
       template_keep: Keep current
+      service_theme_blank: No service theme
     stations:
       closed_day: Closed day — the current playlist has no items.
       current_playlist: Current playlist

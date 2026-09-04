@@ -67,8 +67,12 @@ class BroadcastPortraitBlock < ApplicationRecord
       errors.add(:pick_strategy, :present) if pick_strategy.present?
       errors.add(:time_of_day, :present) if time_of_day.present?
     when "service_header_start", "service_header_end"
-      errors.add(:pick_strategy, :present) if pick_strategy.present?
       errors.add(:time_of_day, :present) if time_of_day.present?
+      if rotation.present?
+        errors.add(:pick_strategy, :blank) if pick_strategy.blank?
+      elsif pick_strategy.present?
+        errors.add(:pick_strategy, :present)
+      end
     when "service_welcome", "service_close"
       errors.add(:rotation_id, :blank) if rotation.blank?
       errors.add(:pick_strategy, :blank) if pick_strategy.blank?
