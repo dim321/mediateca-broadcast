@@ -17,10 +17,13 @@ A lasting percent cap on commercial placement airtime for an owner-homogeneous b
 Optional client organization that owns a Screen. Ownership is per screen. Quotas attach only to broadcast point groups whose screens all share one owner.
 
 ### Location operating hours
-Required schedule on a Location used as the denominator for commercial-quota percent. Without operating hours, a commercial quota cannot be set. Windows are wall-clock in the location time zone.
+Required schedule on a Location used as the denominator for commercial-quota percent. Without operating hours, a commercial quota cannot be set. Windows are wall-clock in the location time zone. Also the default schedule for screens that inherit operating hours from their location.
+
+### Screen operating hours
+Optional schedule on a Screen. By default a screen **inherits** operating hours from its station's Location (`inherit_operating_hours_from_location`). When inheritance is off, the screen's own jsonb schedule applies. **Effective operating hours** for playlist generation and service welcome/close clips are inherited or custom accordingly. Commercial quota still uses Location hours on the group.
 
 ### Location time zone
-IANA TZDB zone on Location (default `"UTC"`). It is the clock of the **broadcast day**: portrait insertions (`time_of_day`), playlist `for_date` / day anchor, and operating-hours windows. Distinct from the client organization's time zone, which advertising orders still use for their grids.
+IANA TZDB zone on Location (default `"UTC"`). It is the clock of the **broadcast day**: playlist `for_date` / day anchor, and operating-hours windows (location and per-screen effective hours). Distinct from the client organization's time zone, which advertising orders still use for their grids.
 
 ### Commercial placement
 A media-plan placement kind counted toward commercial quota. Own/atmosphere placements do not increase the commercial numerator. Foreign commercial on owned screens is allowed only via the owner’s broadcast point group.
@@ -45,10 +48,13 @@ A 1:1 companion of an Organization holding descriptive attributes filled by the 
 Namespace (`Directory::`) for operator-managed reference lists, e.g. `Directory::BusinessSphere`. Values are maintained in the admin panel before use; entities reference directory entries by FK, while issued documents snapshot entry names so renames or deletions never rewrite history.
 
 ### Broadcast portrait
-A station's airtime structure template (cyclic kind with block frequency per hour, ordered blocks: commercial from active slots, filler rotations with pick strategy, timed insertions, service headers). A portrait without a station is a template copied when a broadcast point is registered. Neutral filler clips must be at least 10 seconds unless the operator narrows the portrait to 5.
+A screen's airtime structure (cyclic kind with block frequency per hour, ordered blocks: commercial from active slots, filler rotations with pick strategy, timed insertions, service headers, service welcome/close). A portrait without a screen (`screen_id` nil) is an operator **template** copied to a screen when the screen is created or when the operator replaces the template on edit. Neutral filler clips must be at least 10 seconds unless the operator narrows the portrait to 5. Screens on one station may each have a different portrait (e.g. different service theme).
+
+### Service theme
+Operator-managed thematic bundle for service clips: one named theme owns four `system_managed` rotations (ad header start/end, welcome, close). The operator uploads service `MediaAsset`s into the theme's rotations in admin and may bind a theme to a screen's broadcast portrait via `service_theme_id`, which materializes the four corresponding portrait blocks.
 
 ### Playlist
-Materialized daily **projection** per station: versioned positions with timing, screens, and origin (media plan / filler / insertion / service), generated from active slots plus the station's broadcast portrait. One current version per station and date. Aged playlists (dates past the purge cutoff, any status) are purged; superseded versions of in-window dates remain until that date ages out. Airtime truth remains MediaPlan + confirmed booking; certificates, when added, must come from orders and play logs, not playlists. New station agents read `GET /api/agent/v2/package`; `GET /api/agent/v1/package` stays the overlapping-plan shape.
+Materialized daily **projection** per station: versioned positions with timing, screens, and origin (media plan / filler / insertion / service), generated from active slots plus **each screen's** broadcast portrait and effective operating hours, then merged into one station document. One current version per station and date. Aged playlists (dates past the purge cutoff, any status) are purged; superseded versions of in-window dates remain until that date ages out. Airtime truth remains MediaPlan + confirmed booking; certificates, when added, must come from orders and play logs, not playlists. New station agents read `GET /api/agent/v2/package`; `GET /api/agent/v1/package` stays the overlapping-plan shape.
 
 Regen runs after occupy, cancel, and reschedule succeed; cancel does not fire ActiveRecord callbacks, so regen must be explicit. When a current playlist exists in the station cache horizon, play events attribute from that playlist; otherwise they fall back to overlapping-plan matching.
 
@@ -83,9 +89,10 @@ The calendar view of busy intervals on a group’s screens for placement UI. Sho
 - Cross-org exclusivity on shared screens is owned by the screen overlap guard on confirmed bookings; same-org plan overlap is owned by media plan conflict detection.
 - Soft-cancel of a media plan must free the corresponding booking so FWW can admit a later occupy.
 - Occupy and reschedule take a screen lock before the screen overlap guard; the guard, not same-org media plan conflict detection, is authoritative for FWW.
-- A playlist is a daily projection of occupied slots plus the station portrait; it does not occupy airtime. A rotation is a clip catalog bound by a media plan or portrait block.
+- A playlist is a daily projection of occupied slots plus per-screen portraits (merged per station); it does not occupy airtime. A rotation is a clip catalog bound by a media plan or portrait block. A service theme groups four rotations for operator service clips on a screen portrait.
 
 ## Flagged ambiguities
 
 - “‘Квота’ / ‘бронь’ in older TZ language meant both capacity budget and calendar hold — product now: no capacity seconds quota for placement; booking is internal; user-facing calendar unit is the media plan. Separately, **commercial quota** is a soft percent cap on commercial placements for owner-homogeneous groups — not a return of AirtimeQuota seconds budgets.”
 - “‘Playlist’ in MVP1 named today’s Rotation (clip catalog); Playlist is now the station daily projection.”
+- “Broadcast portrait was initially per station; product direction (2026-09) is per screen, with templates copied on screen create. Operating hours follow the same pattern: location default, optional per-screen override with inherit flag.”
