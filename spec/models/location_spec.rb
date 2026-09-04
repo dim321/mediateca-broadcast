@@ -71,5 +71,22 @@ RSpec.describe Location, type: :model do
         "mon" => [ { "start" => "09:00", "end" => "18:00" } ]
       )
     end
+
+    it "returns open and close bounds for a date" do
+      hours = {
+        "wed" => [
+          { "start" => "09:00", "end" => "13:00" },
+          { "start" => "15:00", "end" => "21:00" }
+        ]
+      }
+      bounds = described_class::OperatingHours.day_bounds(hours, Date.new(2026, 9, 2), "Asia/Krasnoyarsk")
+
+      expect(bounds[:open]).to eq(Time.find_zone!("Asia/Krasnoyarsk").local(2026, 9, 2, 9, 0, 0))
+      expect(bounds[:close]).to eq(Time.find_zone!("Asia/Krasnoyarsk").local(2026, 9, 2, 21, 0, 0))
+    end
+
+    it "returns nil day_bounds when the day is closed" do
+      expect(described_class::OperatingHours.day_bounds({}, Date.new(2026, 9, 2), "UTC")).to be_nil
+    end
   end
 end

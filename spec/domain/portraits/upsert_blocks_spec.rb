@@ -8,13 +8,13 @@ RSpec.describe Portraits::UpsertBlocks do
   let(:portrait) { create(:broadcast_portrait) }
   let(:rotation) { create(:rotation) }
 
-  it "enqueues regen for a station portrait after success" do
-    station = create(:station)
-    station_portrait = create(:broadcast_portrait, :for_station, station: station)
+  it "enqueues regen for a screen portrait after success" do
+    screen = create(:screen)
+    screen_portrait = create(:broadcast_portrait, :for_screen, screen: screen)
 
     expect {
       described_class.call(
-        portrait: station_portrait,
+        portrait: screen_portrait,
         blocks: [ { position: 1, kind: "commercial" } ]
       )
     }.to have_enqueued_job(Playlists::GenerateForDateJob).at_least(:once)

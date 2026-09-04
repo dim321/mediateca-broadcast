@@ -8,11 +8,11 @@ RSpec.describe Playlists::Fingerprint do
     filler = create_clip_rotation!(organization: create(:organization, :client))
     portrait = create_cyclic_portrait!(station, filler_rotation: filler)
 
-    first = described_class.call(station: station, for_date: PlaylistGeneration::WEDNESDAY, portrait: portrait)
-    second = described_class.call(station: station.reload, for_date: PlaylistGeneration::WEDNESDAY, portrait: portrait.reload)
+    first = described_class.call(station: station, for_date: PlaylistGeneration::WEDNESDAY)
+    second = described_class.call(station: station.reload, for_date: PlaylistGeneration::WEDNESDAY)
 
     portrait.update!(name: "Night grid")
-    changed = described_class.call(station: station.reload, for_date: PlaylistGeneration::WEDNESDAY, portrait: portrait.reload)
+    changed = described_class.call(station: station.reload, for_date: PlaylistGeneration::WEDNESDAY)
 
     expect(first).to eq(second)
     expect(first).to match(/\A[0-9a-f]{64}\z/)

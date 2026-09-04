@@ -13,16 +13,17 @@
 #  neutral_min_seconds      :integer          default(10), not null
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
-#  station_id               :bigint
+#  screen_id                :bigint
 #
 # Indexes
 #
-#  index_broadcast_portraits_on_station_id_unique  (station_id) UNIQUE WHERE (station_id IS NOT NULL)
-#  index_broadcast_portraits_one_default_template  (is_default) UNIQUE WHERE ((station_id IS NULL) AND is_default)
+#  index_broadcast_portraits_on_screen_id          (screen_id)
+#  index_broadcast_portraits_on_screen_id_unique   (screen_id) UNIQUE WHERE (screen_id IS NOT NULL)
+#  index_broadcast_portraits_one_default_template  (is_default) UNIQUE WHERE ((screen_id IS NULL) AND is_default)
 #
 # Foreign Keys
 #
-#  fk_rails_...  (station_id => stations.id) ON DELETE => cascade
+#  fk_rails_...  (screen_id => screens.id) ON DELETE => cascade
 #
 FactoryBot.define do
   factory :broadcast_portrait do
@@ -32,10 +33,10 @@ FactoryBot.define do
     max_commercial_in_row { 3 }
     neutral_min_seconds { 10 }
     is_default { false }
-    station { nil }
+    screen { nil }
 
     trait :template do
-      station { nil }
+      screen { nil }
       is_default { false }
     end
 
@@ -44,8 +45,8 @@ FactoryBot.define do
       is_default { true }
     end
 
-    trait :for_station do
-      station
+    trait :for_screen do
+      screen
       is_default { false }
     end
   end

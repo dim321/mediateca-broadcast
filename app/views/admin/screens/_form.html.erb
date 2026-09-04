@@ -67,6 +67,29 @@
   </div>
 
   <div class="mb-5">
+    <%= f.label :template_id, BroadcastPortrait.model_name.human, class: admin_label_class %>
+    <%= f.collection_select :template_id,
+          BroadcastPortrait.templates.order(:name), :id, :name,
+          { include_blank: screen.persisted? ? t("admin.screens.template_keep") : t("admin.screens.template_blank") },
+          { id: "screen_template_id", class: admin_select_class } %>
+  </div>
+
+  <div class="mb-5 flex items-center gap-2">
+    <%= f.check_box :inherit_operating_hours_from_location,
+          class: admin_checkbox_class,
+          id: "screen_inherit_operating_hours_from_location",
+          data: {
+            screen_form_target: "inherit",
+            action: "screen-form#inheritChanged"
+          } %>
+    <%= f.label :inherit_operating_hours_from_location, class: "text-sm text-gray-900" %>
+  </div>
+
+  <div class="mb-5<%= " hidden" if screen.inherit_operating_hours_from_location? %>" data-screen-form-target="hours">
+    <%= render "admin/shared/operating_hours_fields", record: screen %>
+  </div>
+
+  <div class="mb-5">
     <%= f.label :owner_organization_id, class: admin_label_class %>
     <%= f.select :owner_organization_id,
           options_from_collection_for_select(organizations, :id, :name, selected_owner_id),

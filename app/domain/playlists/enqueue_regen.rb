@@ -50,6 +50,17 @@ module Playlists
       location.stations.includes(:location).find_each { from_station(it) }
     end
 
+    def self.from_location_hours(location)
+      return if location.blank?
+
+      Station.where(id: location.stations.select(:id))
+        .joins(:screens)
+        .merge(Screen.inheriting_operating_hours)
+        .distinct
+        .includes(:location)
+        .find_each { from_station(it) }
+    end
+
     def self.from_screen(screen)
       from_station(screen&.station)
     end
@@ -58,10 +69,9 @@ module Playlists
       return if rotation.blank?
 
       portrait_station_ids = BroadcastPortraitBlock.where(rotation_id: rotation.id)
-        .joins(:broadcast_portrait)
-        .where.not(broadcast_portraits: { station_id: nil })
+        .joins(broadcast_portrait: :screen)
         .distinct
-        .pluck("broadcast_portraits.station_id")
+        .pluck("screens.station_id")
       Station.where(id: portrait_station_ids).includes(:location).find_each { from_station(it) }
 
       rotation.media_plans.active.includes(broadcast_point_group: { screens: { station: :location } }).find_each do |plan|

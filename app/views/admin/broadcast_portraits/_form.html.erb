@@ -21,15 +21,15 @@
     <%= f.select :neutral_min_seconds, [ 5, 10 ], {}, class: admin_select_class %>
   </div>
 
-  <% if portrait.station_id.nil? %>
+  <% if portrait.template? %>
     <div class="mb-5 flex items-center gap-2">
       <%= f.check_box :is_default, class: admin_checkbox_class %>
       <%= f.label :is_default, class: "text-sm text-gray-900" %>
     </div>
   <% else %>
     <div class="mb-5">
-      <p class="<%= admin_label_class %>"><%= Station.model_name.human %></p>
-      <p class="text-sm text-gray-900"><%= admin_link_to_record(portrait.station) %></p>
+      <p class="<%= admin_label_class %>"><%= Screen.model_name.human %></p>
+      <p class="text-sm text-gray-900"><%= admin_link_to_record(portrait.screen) %></p>
     </div>
   <% end %>
 

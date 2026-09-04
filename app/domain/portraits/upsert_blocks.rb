@@ -15,7 +15,7 @@ module Portraits
         end
         portrait.blocks.reload
       end
-      Playlists::EnqueueRegen.from_station(portrait.station) if portrait.station
+      Playlists::EnqueueRegen.from_screen(portrait.screen) if portrait.screen
       result
     end
 

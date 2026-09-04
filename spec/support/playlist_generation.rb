@@ -21,10 +21,29 @@ module PlaylistGeneration
 
   def create_cyclic_portrait!(station, filler_rotation:, frequency: 4, max_commercial_in_row: 3,
     insertion_time: nil, insertion_rotation: nil, header_start_rotation: nil, header_end_rotation: nil)
+    screens = station.screens.sort_by(&:id)
+    screens = [ create(:screen, station: station) ] if screens.empty?
+    portraits = screens.map do |screen|
+      build_cyclic_portrait_for_screen!(
+        screen,
+        filler_rotation: filler_rotation,
+        frequency: frequency,
+        max_commercial_in_row: max_commercial_in_row,
+        insertion_time: insertion_time,
+        insertion_rotation: insertion_rotation,
+        header_start_rotation: header_start_rotation,
+        header_end_rotation: header_end_rotation
+      )
+    end
+    portraits.first
+  end
+
+  def build_cyclic_portrait_for_screen!(screen, filler_rotation:, frequency:, max_commercial_in_row:,
+    insertion_time:, insertion_rotation:, header_start_rotation:, header_end_rotation:)
     portrait = create(
       :broadcast_portrait,
-      :for_station,
-      station: station,
+      :for_screen,
+      screen: screen,
       block_frequency_per_hour: frequency,
       max_commercial_in_row: max_commercial_in_row,
       neutral_min_seconds: 10

@@ -1,3 +1,5 @@
+<% record = local_assigns[:record] || location %>
+<% param_name = record.model_name.param_key %>
 <div data-controller="operating-hours" class="mb-5">
   <p class="mb-2 text-sm text-gray-500"><%= t("admin.fields.operating_hours.hint") %></p>
   <div class="relative overflow-x-auto">
@@ -11,13 +13,13 @@
       </thead>
       <tbody>
         <% Location::OperatingHours::DAY_KEYS.each do |day| %>
-          <% window = Array(location.operating_hours&.dig(day)).first || {} %>
+          <% window = Array(record.operating_hours&.dig(day)).first || {} %>
           <tr class="bg-white border-b">
             <td class="px-4 py-2 text-gray-900"><%= t("locations.edit.days.#{day}") %></td>
             <td class="px-4 py-2">
               <input
                 type="time"
-                name="location[operating_hours][<%= day %>][][start]"
+                name="<%= param_name %>[operating_hours][<%= day %>][][start]"
                 value="<%= window['start'] || window[:start] %>"
                 class="<%= admin_input_class %>"
                 data-operating-hours-target="start"
@@ -28,7 +30,7 @@
             <td class="px-4 py-2">
               <input
                 type="time"
-                name="location[operating_hours][<%= day %>][][end]"
+                name="<%= param_name %>[operating_hours][<%= day %>][][end]"
                 value="<%= window['end'] || window[:end] %>"
                 class="<%= admin_input_class %>"
                 data-operating-hours-target="end"

@@ -10,7 +10,7 @@ RSpec.describe Rotations::ReorderItems do
     first = create(:rotation_item, rotation: rotation)
     second = create(:rotation_item, rotation: rotation)
     station = create(:station)
-    portrait = create(:broadcast_portrait, :for_station, station: station)
+    portrait = create(:broadcast_portrait, :for_screen, screen: create(:screen, station: station))
     create(:broadcast_portrait_block, :filler, broadcast_portrait: portrait, rotation: rotation)
 
     expect {

@@ -383,8 +383,8 @@ ru:
         broadcast_portrait:
           attributes:
             is_default:
-              must_be_template: можно задать только у шаблона без станции
-        station:
+              must_be_template: можно задать только у шаблона без экрана
+        screen:
           attributes:
             template_id:
               must_be_template: должен быть шаблоном портрета эфира
@@ -420,11 +420,13 @@ ru:
       rotation:
         name: Название
       screen:
+        inherit_operating_hours_from_location: Наследовать часы работы локации
         name: Название
+        operating_hours: Часы работы
         orientation: Ориентация
+        template_id: Портрет эфира
       station:
         name: Название
-        template_id: Портрет эфира
       tag:
         name: Название
         created_at: Создан
@@ -743,7 +745,7 @@ ru:
       clear_search: Сбросить поиск
       edit: Редактирование портрета
       empty:
-        description: Создайте циклический шаблон по умолчанию, затем скопируйте его на станции.
+        description: Создайте циклический шаблон по умолчанию, затем скопируйте его на экраны.
         search_description: Попробуйте другой запрос или сбросьте фильтр.
         search_title: Ничего не найдено
         title: Портретов пока нет
@@ -756,6 +758,10 @@ ru:
       search: Поиск по названию
       search_submit: Найти
       template: Шаблон
+    screens:
+      edit_portrait: Изменить портрет эфира
+      template_blank: Шаблон по умолчанию
+      template_keep: Не менять текущий
     stations:
       closed_day: Закрытый день — в текущем плейлисте нет позиций.
       current_playlist: Текущий плейлист

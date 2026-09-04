@@ -56,7 +56,7 @@ RSpec.describe "Admin broadcast portraits", type: :request do
       portrait = BroadcastPortrait.find_by!(name: "Default grid")
       expect(response).to redirect_to(admin_broadcast_portrait_path(portrait))
       expect(portrait).to be_cyclic
-      expect(portrait.station_id).to be_nil
+      expect(portrait.screen_id).to be_nil
       expect(portrait.is_default).to be(true)
       expect(portrait.neutral_min_seconds).to eq(10)
       expect(portrait.blocks.order(:position).map(&:kind)).to eq(%w[commercial filler])
@@ -85,9 +85,9 @@ RSpec.describe "Admin broadcast portraits", type: :request do
       expect(BroadcastPortrait.where(kind: "timed")).to be_empty
     end
 
-    it "replaces station portrait blocks via UpsertBlocks and enqueues GenerateForDateJob" do
-      station = create(:station)
-      portrait = create(:broadcast_portrait, :for_station, station: station, name: "Station grid")
+    it "replaces screen portrait blocks via UpsertBlocks and enqueues GenerateForDateJob" do
+      screen = create(:screen)
+      portrait = create(:broadcast_portrait, :for_screen, screen: screen, name: "Screen grid")
       create(:broadcast_portrait_block, :commercial, broadcast_portrait: portrait, position: 1)
       create(:broadcast_portrait_block, :filler, broadcast_portrait: portrait, position: 2, rotation: rotation)
 
@@ -110,14 +110,14 @@ RSpec.describe "Admin broadcast portraits", type: :request do
       expect(portrait.blocks.order(:position).map(&:kind)).to eq(%w[filler commercial])
     end
 
-    it "enqueues regen when a station portrait header is saved without blocks" do
-      station = create(:station)
-      portrait = create(:broadcast_portrait, :for_station, station: station, name: "Station grid")
+    it "enqueues regen when a screen portrait header is saved without blocks" do
+      screen = create(:screen)
+      portrait = create(:broadcast_portrait, :for_screen, screen: screen, name: "Screen grid")
 
       expect {
         patch admin_broadcast_portrait_path(portrait), params: {
           broadcast_portrait: {
-            name: "Renamed station grid",
+            name: "Renamed screen grid",
             block_frequency_per_hour: portrait.block_frequency_per_hour,
             max_commercial_in_row: portrait.max_commercial_in_row,
             neutral_min_seconds: portrait.neutral_min_seconds
@@ -125,10 +125,10 @@ RSpec.describe "Admin broadcast portraits", type: :request do
         }
       }.to have_enqueued_job(Playlists::GenerateForDateJob).at_least(:once)
 
-      expect(portrait.reload.name).to eq("Renamed station grid")
+      expect(portrait.reload.name).to eq("Renamed screen grid")
     end
 
-    it "does not enqueue regen when a template is updated without a station" do
+    it "does not enqueue regen when a template is updated without a screen" do
       portrait = create(:broadcast_portrait, :template, name: "Template grid")
 
       expect {
@@ -143,22 +143,22 @@ RSpec.describe "Admin broadcast portraits", type: :request do
       }.not_to have_enqueued_job(Playlists::GenerateForDateJob)
     end
 
-    it "does not reassign station_id on a station portrait" do
-      station = create(:station)
-      other = create(:station)
-      portrait = create(:broadcast_portrait, :for_station, station: station)
+    it "does not reassign screen_id on a screen portrait" do
+      screen = create(:screen)
+      other = create(:screen)
+      portrait = create(:broadcast_portrait, :for_screen, screen: screen)
 
       patch admin_broadcast_portrait_path(portrait), params: {
         broadcast_portrait: {
           name: portrait.name,
-          station_id: other.id,
+          screen_id: other.id,
           block_frequency_per_hour: portrait.block_frequency_per_hour,
           max_commercial_in_row: portrait.max_commercial_in_row,
           neutral_min_seconds: portrait.neutral_min_seconds
         }
       }
 
-      expect(portrait.reload.station_id).to eq(station.id)
+      expect(portrait.reload.screen_id).to eq(screen.id)
     end
   end
 end

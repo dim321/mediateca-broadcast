@@ -103,7 +103,7 @@ If you change chrome (helper classes, layout, navbar, BaseController), sync `lib
 | Advertising orders | index / show / new / create / edit / update + `activate` / `cancel` — **no destroy**; grid = cabinet form |
 | Profiles | show only |
 | Stations | agent token **display** (set/blank), not editable on the form |
-| Screens | virtual `location_id`; operator org as owner is stored as `nil`; tags via `tag_ids` |
+| Screens | virtual `location_id`; operator org as owner is stored as `nil`; tags via `tag_ids`; `template_id` copies a portrait onto the screen; inherit hours toggle + `_operating_hours_fields` when not inheriting |
 | Locations | `operating_hours` jsonb + Stimulus `operating-hours` |
 
 HasMany on forms is opt-in (screen tags, group `screen_ids`, nested organization profile). Do not dump every association onto the form.

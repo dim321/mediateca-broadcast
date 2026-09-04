@@ -37,7 +37,7 @@ RSpec.describe Playlists::GenerateForDate do
     result = generate!(station)
 
     expect(result.skipped).to be_nil
-    expect(station.reload.broadcast_portrait).to be_present
+    expect(station.screens.first.reload.broadcast_portrait).to be_present
     expect(result.playlist).to be_current
   end
 
@@ -89,6 +89,29 @@ RSpec.describe Playlists::GenerateForDate do
       (item_screen_ids(item) - plan_b.broadcast_point_group.screen_ids).empty? }).to be(true)
     expect(filler_items).to be_present
     expect(filler_items.map { |item| item_screen_ids(item) }).to all(eq([ screen_a.id, screen_b.id ].sort))
+  end
+
+  it "uses each screen's effective hours for slot offsets (AE4 hours)" do
+    station = create_playlist_station!
+    screen_a = create(:screen, station: station)
+    screen_b = create(
+      :screen,
+      station: station,
+      inherit_operating_hours_from_location: false,
+      operating_hours: { "wed" => [ { "start" => "10:00", "end" => "20:00" } ] }
+    )
+    org = create(:organization, :client)
+    filler = create_clip_rotation!(organization: org)
+    create_cyclic_portrait!(station, filler_rotation: filler)
+
+    playlist = generate!(station).playlist
+    offsets_a = playlist.items.select { |item| item_screen_ids(item).include?(screen_a.id) }.map(&:offset_seconds)
+    offsets_b = playlist.items.select { |item| item_screen_ids(item).include?(screen_b.id) }.map(&:offset_seconds)
+
+    expect(playlist.broadcast_day_starts_at).to eq(local_slot(9).utc)
+    expect(offsets_a.min).to eq(0)
+    expect(offsets_b.min).to eq(1.hour.to_i)
+    expect(offsets_a.max).to be > offsets_b.max
   end
 
   it "caps commercial clips by shows_per_hour and max_commercial_in_row (AE5)" do

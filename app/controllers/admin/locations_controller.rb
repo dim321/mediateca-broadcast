@@ -32,8 +32,10 @@ module Admin
     def update
       @location = Location.find(params[:id])
       if @location.update(location_params)
-        if @location.saved_change_to_operating_hours? || @location.saved_change_to_time_zone?
+        if @location.saved_change_to_time_zone?
           Playlists::EnqueueRegen.from_location(@location)
+        elsif @location.saved_change_to_operating_hours?
+          Playlists::EnqueueRegen.from_location_hours(@location)
         end
         redirect_to admin_location_path(@location), notice: t("admin.crud.updated"), status: :see_other
       else

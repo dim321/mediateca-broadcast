@@ -15,16 +15,17 @@ require "rails_helper"
 #  neutral_min_seconds      :integer          default(10), not null
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
-#  station_id               :bigint
+#  screen_id                :bigint
 #
 # Indexes
 #
-#  index_broadcast_portraits_on_station_id_unique  (station_id) UNIQUE WHERE (station_id IS NOT NULL)
-#  index_broadcast_portraits_one_default_template  (is_default) UNIQUE WHERE ((station_id IS NULL) AND is_default)
+#  index_broadcast_portraits_on_screen_id          (screen_id)
+#  index_broadcast_portraits_on_screen_id_unique   (screen_id) UNIQUE WHERE (screen_id IS NOT NULL)
+#  index_broadcast_portraits_one_default_template  (is_default) UNIQUE WHERE ((screen_id IS NULL) AND is_default)
 #
 # Foreign Keys
 #
-#  fk_rails_...  (station_id => stations.id) ON DELETE => cascade
+#  fk_rails_...  (screen_id => screens.id) ON DELETE => cascade
 #
 RSpec.describe BroadcastPortrait, type: :model do
   describe "validations" do
@@ -74,19 +75,19 @@ RSpec.describe BroadcastPortrait, type: :model do
       expect(build(:broadcast_portrait, neutral_min_seconds: 5)).to be_valid
     end
 
-    it "rejects is_default on a station portrait" do
-      portrait = build(:broadcast_portrait, :for_station, is_default: true)
+    it "rejects is_default on a screen portrait" do
+      portrait = build(:broadcast_portrait, :for_screen, is_default: true)
 
       expect(portrait).not_to be_valid
       expect(portrait.errors[:is_default]).to be_present
     end
 
-    it "allows only one portrait per station" do
-      existing = create(:broadcast_portrait, :for_station)
-      duplicate = build(:broadcast_portrait, station: existing.station)
+    it "allows only one portrait per screen" do
+      existing = create(:broadcast_portrait, :for_screen)
+      duplicate = build(:broadcast_portrait, screen: existing.screen)
 
       expect(duplicate).not_to be_valid
-      expect(duplicate.errors[:station_id]).to be_present
+      expect(duplicate.errors[:screen_id]).to be_present
     end
 
     it "allows only one default template" do
@@ -112,12 +113,12 @@ RSpec.describe BroadcastPortrait, type: :model do
       expect { portrait.destroy! }.to change(BroadcastPortraitBlock, :count).by(-1)
     end
 
-    it "belongs to an optional station" do
-      station = create(:station)
-      portrait = create(:broadcast_portrait, :for_station, station: station)
+    it "belongs to an optional screen" do
+      screen = create(:screen)
+      portrait = create(:broadcast_portrait, :for_screen, screen: screen)
 
-      expect(portrait.station).to eq(station)
-      expect(station.broadcast_portrait).to eq(portrait)
+      expect(portrait.screen).to eq(screen)
+      expect(screen.broadcast_portrait).to eq(portrait)
     end
   end
 end

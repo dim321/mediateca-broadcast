@@ -2,20 +2,20 @@
 
 module Portraits
   class CopyTemplate < BaseService
-    def initialize(station:, template: nil, replace: false)
-      @station = station
+    def initialize(screen:, template: nil, replace: false)
+      @screen = screen
       @template = template
       @replace = replace
     end
 
     def call
       BroadcastPortrait.transaction do
-        existing = station.broadcast_portrait
+        existing = screen.broadcast_portrait
         if existing
           return existing unless replace
 
           existing.destroy!
-          station.reload_broadcast_portrait
+          screen.reload_broadcast_portrait
         end
 
         source = template || BroadcastPortrait.templates.find_by(is_default: true)
@@ -27,10 +27,10 @@ module Portraits
 
     private
 
-    attr_reader :station, :template, :replace
+    attr_reader :screen, :template, :replace
 
     def copy_from(source)
-      portrait = station.create_broadcast_portrait!(
+      portrait = screen.create_broadcast_portrait!(
         name: source.name,
         kind: source.kind,
         block_frequency_per_hour: source.block_frequency_per_hour,
@@ -47,7 +47,7 @@ module Portraits
           time_of_day: block.time_of_day
         )
       end
-      Playlists::EnqueueRegen.from_station(station) if replace
+      Playlists::EnqueueRegen.from_screen(screen) if replace
       portrait
     end
   end

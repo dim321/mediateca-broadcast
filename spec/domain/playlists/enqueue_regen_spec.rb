@@ -109,10 +109,24 @@ RSpec.describe Playlists::EnqueueRegen do
   it "enqueues stations whose portraits reference the rotation" do
     station = build_station
     rotation = create(:rotation)
-    portrait = create(:broadcast_portrait, :for_station, station: station)
+    portrait = create(:broadcast_portrait, :for_screen, screen: create(:screen, station: station))
     create(:broadcast_portrait_block, :filler, broadcast_portrait: portrait, rotation: rotation)
 
     expect { described_class.from_rotation(rotation) }
       .to have_enqueued_job(Playlists::GenerateForDateJob).with(station.id, "2026-09-02")
+  end
+
+  it "enqueues only stations with inheriting screens from location hours" do
+    location = create(:location, time_zone: "UTC")
+    inheriting = create(:station, location: location, offline_cache_hours: 24)
+    custom = create(:station, location: location, offline_cache_hours: 24)
+    create(:screen, station: inheriting, inherit_operating_hours_from_location: true)
+    create(:screen, station: custom, inherit_operating_hours_from_location: false,
+      operating_hours: { "wed" => [ { "start" => "10:00", "end" => "20:00" } ] })
+
+    expect { described_class.from_location_hours(location) }
+      .to have_enqueued_job(Playlists::GenerateForDateJob).with(inheriting.id, "2026-09-02")
+    expect { described_class.from_location_hours(location) }
+      .not_to have_enqueued_job(Playlists::GenerateForDateJob).with(custom.id, "2026-09-02")
   end
 end

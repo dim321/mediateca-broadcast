@@ -56,8 +56,8 @@
               <%= link_to portrait.name, admin_broadcast_portrait_path(portrait), class: "text-blue-700 hover:underline" %>
             </th>
             <td class="px-6 py-4">
-              <% if portrait.station %>
-                <%= admin_link_to_record(portrait.station) %>
+              <% if portrait.screen %>
+                <%= admin_link_to_record(portrait.screen) %>
               <% else %>
                 <%= t("admin.broadcast_portraits.template") %>
               <% end %>

@@ -11,9 +11,8 @@ RSpec.describe "Admin stations", type: :request do
 
   before { sign_in_as(operator) }
 
-  it "copies the default portrait onto a newly created station" do
-    template = create(:broadcast_portrait, :default, name: "Grid")
-    create(:broadcast_portrait_block, :commercial, broadcast_portrait: template, position: 1)
+  it "creates a station without copying a portrait" do
+    create(:broadcast_portrait, :default, name: "Grid")
 
     expect {
       post admin_stations_path, params: {
@@ -23,19 +22,7 @@ RSpec.describe "Admin stations", type: :request do
 
     station = Station.find_by!(name: "Lobby")
     expect(response).to redirect_to(admin_station_path(station))
-    expect(station.broadcast_portrait.name).to eq("Grid")
-    expect(station.broadcast_portrait.blocks.map(&:kind)).to eq(%w[commercial])
-    expect(station.broadcast_portrait.is_default).to be(false)
-  end
-
-  it "still creates the station when there is no default template" do
-    post admin_stations_path, params: {
-      station: { location_id: location.id, name: "Lobby", offline_cache_hours: 24 }
-    }
-
-    station = Station.find_by!(name: "Lobby")
-    expect(response).to redirect_to(admin_station_path(station))
-    expect(station.broadcast_portrait).to be_nil
+    expect(BroadcastPortrait.where(screen_id: station.screens.select(:id))).to be_empty
   end
 
   it "enqueues GenerateForDateJob when force-regenerating playlists and redirects to show" do
@@ -61,76 +48,17 @@ RSpec.describe "Admin stations", type: :request do
     expect(response.body).to include(I18n.t("enums.playlist_item.source_kind.filler"))
   end
 
-  it "shows missing portrait copy when the station has no portrait" do
-    station = create(:station, location: location)
-
-    get admin_station_path(station)
-
-    expect(response).to have_http_status(:success)
-    expect(response.body).to include(I18n.t("admin.stations.missing_portrait"))
-  end
-
-  it "renders a portrait template select on new and preselects the default" do
-    default = create(:broadcast_portrait, :default, name: "Grid")
-    create(:broadcast_portrait, :template, name: "Night")
+  it "does not render a portrait template select on new" do
+    create(:broadcast_portrait, :default, name: "Grid")
 
     get new_admin_station_path
 
     expect(response).to have_http_status(:success)
-    expect(response.body).to include("station_template_id")
-    expect(response.body).to include("Grid")
-    expect(response.body).to include("Night")
-    expect(response.body).to include(%(selected="selected" value="#{default.id}"))
+    expect(response.body).not_to include("station_template_id")
   end
 
-  it "copies the chosen template onto a newly created station" do
-    create(:broadcast_portrait, :default, name: "Grid")
-    chosen = create(:broadcast_portrait, :template, name: "Lobby grid")
-    create(:broadcast_portrait_block, :commercial, broadcast_portrait: chosen, position: 1)
-
-    post admin_stations_path, params: {
-      station: { location_id: location.id, name: "Lobby", offline_cache_hours: 24, template_id: chosen.id }
-    }
-
-    station = Station.find_by!(name: "Lobby")
-    expect(response).to redirect_to(admin_station_path(station))
-    expect(station.broadcast_portrait.name).to eq("Lobby grid")
-    expect(station.broadcast_portrait.blocks.map(&:kind)).to eq(%w[commercial])
-  end
-
-  it "rejects assigning a station portrait as a template" do
-    other = create(:broadcast_portrait, :for_station)
-
-    expect {
-      post admin_stations_path, params: {
-        station: { location_id: location.id, name: "Lobby", offline_cache_hours: 24, template_id: other.id }
-      }
-    }.not_to change(Station, :count)
-
-    expect(response).to have_http_status(:unprocessable_content)
-    expect(response.body).to include(Station.human_attribute_name(:template_id))
-  end
-
-  it "replaces the station portrait when a template is chosen on update" do
+  it "updates the station name without a template field" do
     station = create(:station, location: location)
-    create(:broadcast_portrait, :for_station, station: station, name: "Old grid")
-    replacement = create(:broadcast_portrait, :template, name: "Night grid")
-    create(:broadcast_portrait_block, :filler, broadcast_portrait: replacement, position: 1)
-
-    expect {
-      patch admin_station_path(station), params: {
-        station: { location_id: location.id, name: station.name, offline_cache_hours: 24, template_id: replacement.id }
-      }
-    }.to have_enqueued_job(Playlists::GenerateForDateJob).at_least(:once)
-
-    expect(response).to redirect_to(admin_station_path(station))
-    expect(station.reload.broadcast_portrait.name).to eq("Night grid")
-    expect(station.broadcast_portrait.blocks.map(&:kind)).to eq(%w[filler])
-  end
-
-  it "keeps the current portrait when update omits a template" do
-    station = create(:station, location: location)
-    create(:broadcast_portrait, :for_station, station: station, name: "Old grid")
 
     patch admin_station_path(station), params: {
       station: { location_id: location.id, name: "Renamed", offline_cache_hours: 24 }
@@ -138,16 +66,5 @@ RSpec.describe "Admin stations", type: :request do
 
     expect(response).to redirect_to(admin_station_path(station))
     expect(station.reload.name).to eq("Renamed")
-    expect(station.broadcast_portrait.name).to eq("Old grid")
-  end
-
-  it "shows the assigned portrait name on the station page" do
-    station = create(:station, location: location)
-    create(:broadcast_portrait, :for_station, station: station, name: "Lobby grid")
-
-    get admin_station_path(station)
-
-    expect(response).to have_http_status(:success)
-    expect(response.body).to include("Lobby grid")
   end
 end

@@ -4,10 +4,9 @@ module Playlists
   class Fingerprint < BaseService
     PICKER_VERSION = "v1"
 
-    def initialize(station:, for_date:, portrait:)
+    def initialize(station:, for_date:)
       @station = station
       @for_date = for_date.to_date
-      @portrait = portrait
     end
 
     def call
@@ -39,23 +38,33 @@ module Playlists
 
     private
 
-    attr_reader :station, :for_date, :portrait
+    attr_reader :station, :for_date
 
     def payload
       {
         picker_algorithm: PICKER_VERSION,
-        portrait: portrait_payload,
         location: {
-          time_zone: station.location.time_zone,
-          operating_hours: station.location.operating_hours
+          time_zone: station.location.time_zone
         },
-        screen_ids: station.screens.order(:id).pluck(:id),
+        screens: screens_payload,
         occupying_plans: occupying_plans.map { |plan| plan_payload(plan) },
         rotation_items: rotation_item_payloads
       }
     end
 
-    def portrait_payload
+    def screens_payload
+      station.screens.order(:id).includes(:broadcast_portrait).map do |screen|
+        {
+          id: screen.id,
+          effective_operating_hours: screen.effective_operating_hours,
+          portrait: portrait_payload(screen.broadcast_portrait)
+        }
+      end
+    end
+
+    def portrait_payload(portrait)
+      return if portrait.nil?
+
       {
         id: portrait.id,
         updated_at: iso(portrait.updated_at),
@@ -93,7 +102,7 @@ module Playlists
     end
 
     def rotation_item_payloads
-      rotation_ids = (portrait.blocks.filter_map(&:rotation_id) + occupying_plans.map(&:rotation_id)).uniq
+      rotation_ids = (screen_rotation_ids + occupying_plans.map(&:rotation_id)).uniq
       return [] if rotation_ids.empty?
 
       RotationItem.where(rotation_id: rotation_ids).order(:rotation_id, :position, :id).map do |item|
@@ -104,6 +113,12 @@ module Playlists
           display_duration_seconds: item.display_duration_seconds,
           updated_at: iso(item.updated_at)
         }
+      end
+    end
+
+    def screen_rotation_ids
+      station.screens.includes(broadcast_portrait: :blocks).flat_map do |screen|
+        Array(screen.broadcast_portrait&.blocks).filter_map(&:rotation_id)
       end
     end
 

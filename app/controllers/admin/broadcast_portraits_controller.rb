@@ -8,7 +8,7 @@ module Admin
     def index
       @q = BroadcastPortrait.ransack(ransack_params)
       @q.sorts = "name asc" if @q.sorts.empty?
-      @broadcast_portraits = @q.result.includes(:station).page(params[:page]).per(25)
+      @broadcast_portraits = @q.result.includes(:screen).page(params[:page]).per(25)
     end
 
     def show
@@ -25,7 +25,7 @@ module Admin
 
     def create
       @portrait = BroadcastPortrait.new(portrait_header_params)
-      @portrait.station_id = nil
+      @portrait.screen_id = nil
       @portrait.kind = "cyclic"
 
       if timed_kind_requested?
@@ -67,7 +67,7 @@ module Admin
     private
 
     def set_portrait
-      @portrait = BroadcastPortrait.includes(:station, blocks: :rotation).find(params[:id])
+      @portrait = BroadcastPortrait.includes(:screen, blocks: :rotation).find(params[:id])
     end
 
     def set_rotations
@@ -82,7 +82,7 @@ module Admin
       permitted = params.require(:broadcast_portrait).permit(
         :name, :block_frequency_per_hour, :max_commercial_in_row, :neutral_min_seconds, :is_default
       )
-      permitted = permitted.except(:is_default) if @portrait&.station_id.present?
+      permitted = permitted.except(:is_default) if @portrait&.screen_id.present?
       permitted
     end
 
@@ -133,7 +133,7 @@ module Admin
       if blocks_submitted?
         persist_blocks_or_render(:edit)
       else
-        Playlists::EnqueueRegen.from_station(@portrait.station) if @portrait.station
+        Playlists::EnqueueRegen.from_screen(@portrait.screen) if @portrait.screen
         true
       end
     end

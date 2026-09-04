@@ -379,8 +379,8 @@ en:
         broadcast_portrait:
           attributes:
             is_default:
-              must_be_template: can only be set on a template without a station
-        station:
+              must_be_template: can only be set on a template without a screen
+        screen:
           attributes:
             template_id:
               must_be_template: must be a broadcast portrait template
@@ -416,11 +416,13 @@ en:
       rotation:
         name: Name
       screen:
+        inherit_operating_hours_from_location: Inherit location operating hours
         name: Name
+        operating_hours: Operating hours
         orientation: Orientation
+        template_id: Broadcast portrait
       station:
         name: Name
-        template_id: Broadcast portrait
       tag:
         name: Name
         created_at: Created at
@@ -733,7 +735,7 @@ en:
       clear_search: Clear search
       edit: Edit portrait
       empty:
-        description: Create a default cyclic template, then copy it onto stations.
+        description: Create a default cyclic template, then copy it onto screens.
         search_description: Try a different query or clear the filter.
         search_title: No matching portraits
         title: No portraits yet
@@ -746,6 +748,10 @@ en:
       search: Search by name
       search_submit: Search
       template: Template
+    screens:
+      edit_portrait: Edit broadcast portrait
+      template_blank: Default template
+      template_keep: Keep current
     stations:
       closed_day: Closed day — the current playlist has no items.
       current_playlist: Current playlist

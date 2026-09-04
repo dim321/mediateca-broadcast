@@ -5,20 +5,8 @@
     <div><dt class="text-sm font-medium text-gray-500"><%= Station.human_attribute_name(:name) %></dt><dd class="mt-1 text-sm text-gray-900"><%= @station.name %></dd></div>
     <div><dt class="text-sm font-medium text-gray-500"><%= Station.human_attribute_name(:location) %></dt><dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@station.location) %></dd></div>
     <div><dt class="text-sm font-medium text-gray-500"><%= Station.human_attribute_name(:offline_cache_hours) %></dt><dd class="mt-1 text-sm text-gray-900"><%= @station.offline_cache_hours %></dd></div>
-    <div>
-      <dt class="text-sm font-medium text-gray-500"><%= BroadcastPortrait.model_name.human %></dt>
-      <dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@station.broadcast_portrait) %></dd>
-    </div>
     <div><dt class="text-sm font-medium text-gray-500"><%= Station.human_attribute_name(:agent_token_digest) %></dt><dd class="mt-1 text-sm text-gray-900"><%= @station.agent_token_digest.present? ? t("admin.crud.token_set") : t("admin.crud.token_blank") %></dd></div>
   </dl>
-</div>
-
-<div class="mt-6">
-  <% if @station.broadcast_portrait %>
-    <%= link_to t("admin.stations.edit_portrait"), edit_admin_broadcast_portrait_path(@station.broadcast_portrait), class: admin_secondary_button_class %>
-  <% else %>
-    <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50"><%= t("admin.stations.missing_portrait") %></div>
-  <% end %>
 </div>
 
 <div class="mt-6 bg-white border border-gray-200 rounded-lg p-6">

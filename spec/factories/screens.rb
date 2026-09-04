@@ -4,13 +4,15 @@
 #
 # Table name: screens
 #
-#  id                    :bigint           not null, primary key
-#  name                  :string           not null
-#  orientation           :string           default("landscape"), not null
-#  created_at            :datetime         not null
-#  updated_at            :datetime         not null
-#  owner_organization_id :bigint
-#  station_id            :bigint           not null
+#  id                                    :bigint           not null, primary key
+#  inherit_operating_hours_from_location :boolean          default(TRUE), not null
+#  name                                  :string           not null
+#  operating_hours                       :jsonb            not null
+#  orientation                           :string           default("landscape"), not null
+#  created_at                            :datetime         not null
+#  updated_at                            :datetime         not null
+#  owner_organization_id                 :bigint
+#  station_id                            :bigint           not null
 #
 # Indexes
 #
@@ -28,6 +30,8 @@ FactoryBot.define do
     station
     sequence(:name) { |n| "Screen #{n}" }
     orientation { :landscape }
+    inherit_operating_hours_from_location { true }
+    operating_hours { {} }
 
     trait :owned do
       association :owner_organization, factory: %i[organization client]

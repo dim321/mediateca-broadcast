@@ -13,16 +13,17 @@ module Playlists
     def call
       ApplicationRecord.transaction do
         StationDateLock.call(station: station)
-        @portrait = resolve_portrait
-        return Result.new(playlist: nil, warnings: [], skipped: :missing_portrait) if portrait.nil?
+        screens = load_screens
+        ensure_portraits!(screens)
+        return Result.new(playlist: nil, warnings: [], skipped: :missing_portrait) if screens.none? { |screen| screen.broadcast_portrait }
 
-        fingerprint = Fingerprint.call(station: station, for_date: for_date, portrait: portrait)
+        fingerprint = Fingerprint.call(station: station, for_date: for_date)
         current = Playlist.current.find_by(station: station, for_date: for_date)
         if current&.fingerprint == fingerprint
           return Result.new(playlist: current, warnings: [], skipped: nil)
         end
 
-        entries = build_entries
+        entries = build_entries(screens)
         playlist = persist(current, fingerprint, entries)
         Result.new(playlist: playlist, warnings: warnings.uniq, skipped: nil)
       end
@@ -30,27 +31,30 @@ module Playlists
 
     private
 
-    attr_reader :station, :for_date, :portrait, :warnings, :anchor
+    attr_reader :station, :for_date, :warnings, :anchor
 
-    def resolve_portrait
-      existing = station.broadcast_portrait
-      portrait = existing || Portraits::CopyTemplate.call(station: station)
-      return if portrait.nil?
-
-      portrait.blocks.includes(:rotation).load
-      portrait
+    def load_screens
+      station.screens.order(:id).includes(:broadcast_portrait).to_a
     end
 
-    def build_entries
-      windows = operating_windows
-      if windows.empty?
+    def ensure_portraits!(screens)
+      screens.each do |screen|
+        next if screen.broadcast_portrait
+
+        Portraits::CopyTemplate.call(screen: screen)
+        screen.reload_broadcast_portrait
+      end
+    end
+
+    def build_entries(screens)
+      window_starts = screens.flat_map { |screen| operating_windows(screen).map { |window| window[:start] } }
+      if window_starts.empty?
         @anchor = zone.local(for_date.year, for_date.month, for_date.day)
         return []
       end
 
-      @anchor = windows.first.fetch(:start)
-      slots = build_slots(windows)
-      emissions = station.screens.order(:id).flat_map { |screen| emissions_for_screen(screen, slots) }
+      @anchor = window_starts.min
+      emissions = screens.flat_map { |screen| emissions_for_screen(screen) }
       merge_emissions(emissions)
     end
 
@@ -98,26 +102,34 @@ module Playlists
       end
     end
 
-    def emissions_for_screen(screen, slots)
+    def emissions_for_screen(screen)
+      portrait = screen.broadcast_portrait
+      return [] unless portrait
+
+      windows = operating_windows(screen)
+      return [] if windows.empty?
+
       pickers = {}
       cycle_index = 0
-      cycle = cycle_blocks
+      cycle = cycle_blocks(portrait)
+      insertions = insertion_events(portrait)
+      slots = build_slots(windows, portrait)
       slots.flat_map do |slot_start, slot_end|
-        matching = insertions_in_slot(slot_start, slot_end)
+        matching = insertions.select { |event| slot_start <= event[:at] && event[:at] < slot_end }.map { |event| event[:block] }
         if matching.any?
           cycle_index += 1 if cycle.any?
-          matching.flat_map { |block| emit_insertion(block, screen, slot_start, pickers) }
+          matching.flat_map { |block| emit_insertion(block, screen, portrait, slot_start, pickers) }
         elsif cycle.empty?
           []
         else
           block = cycle[cycle_index % cycle.size]
           cycle_index += 1
-          emit_cycle_block(block, screen, slot_start, pickers)
+          emit_cycle_block(block, screen, portrait, slot_start, pickers)
         end
       end
     end
 
-    def emit_insertion(block, screen, slot_start, pickers)
+    def emit_insertion(block, screen, portrait, slot_start, pickers)
       pick = take_from_block(block, screen, pickers, min_seconds: portrait.neutral_min_seconds)
       return [ emission(pick, screen, slot_start, "insertion") ] if pick
 
@@ -125,12 +137,12 @@ module Playlists
       []
     end
 
-    def emit_cycle_block(block, screen, slot_start, pickers)
+    def emit_cycle_block(block, screen, portrait, slot_start, pickers)
       case block.kind
       when "commercial"
-        emit_commercial(screen, slot_start, pickers)
+        emit_commercial(screen, portrait, slot_start, pickers)
       when "filler"
-        emit_filler(block, screen, slot_start, pickers)
+        emit_filler(block, screen, portrait, slot_start, pickers)
       when "service_header_start", "service_header_end"
         emit_service_cycle(block, screen, slot_start)
       else
@@ -138,9 +150,9 @@ module Playlists
       end
     end
 
-    def emit_commercial(screen, slot_start, pickers)
+    def emit_commercial(screen, portrait, slot_start, pickers)
       plan = occupying_plan_for(screen, slot_start)
-      return emit_commercial_fallback(screen, slot_start, pickers) unless plan
+      return emit_commercial_fallback(screen, portrait, slot_start, pickers) unless plan
 
       clips = commercial_clips(plan, screen, pickers)
       return [] if clips.empty?
@@ -148,7 +160,7 @@ module Playlists
       offset = offset_seconds(slot_start)
       items = []
       if plan.commercial?
-        header_blocks("service_header_start").each do |block|
+        header_blocks(portrait, "service_header_start").each do |block|
           pick = header_pick(block)
           if pick
             items << emission(pick, screen, offset, "service")
@@ -163,7 +175,7 @@ module Playlists
         offset += clip[:duration_seconds]
       end
       if plan.commercial?
-        header_blocks("service_header_end").each do |block|
+        header_blocks(portrait, "service_header_end").each do |block|
           pick = header_pick(block)
           if pick
             items << emission(pick, screen, offset, "service")
@@ -176,17 +188,17 @@ module Playlists
       items
     end
 
-    def emit_commercial_fallback(screen, slot_start, pickers)
-      filler = cycle_blocks.find(&:filler?)
+    def emit_commercial_fallback(screen, portrait, slot_start, pickers)
+      filler = cycle_blocks(portrait).find(&:filler?)
       unless filler
         warn_once("no occupying plan and no filler block")
         return []
       end
 
-      emit_filler(filler, screen, slot_start, pickers)
+      emit_filler(filler, screen, portrait, slot_start, pickers)
     end
 
-    def emit_filler(block, screen, slot_start, pickers)
+    def emit_filler(block, screen, portrait, slot_start, pickers)
       pick = take_from_block(block, screen, pickers, min_seconds: portrait.neutral_min_seconds)
       return [ emission(pick, screen, slot_start, "filler") ] if pick
 
@@ -204,7 +216,7 @@ module Playlists
 
     def commercial_clips(plan, screen, pickers)
       picker = picker_for(pickers, screen, plan.rotation, "sequential", min_seconds: nil)
-      clips = picker.take(commercial_clip_count(plan))
+      clips = picker.take(commercial_clip_count(plan, screen.broadcast_portrait))
       if clips.empty?
         warn_once("media plan #{plan.id} rotation has no eligible clips")
         return []
@@ -213,7 +225,7 @@ module Playlists
       clips
     end
 
-    def commercial_clip_count(plan)
+    def commercial_clip_count(plan, portrait)
       return 1 if plan.shows_per_hour.nil?
 
       n = portrait.block_frequency_per_hour
@@ -285,12 +297,8 @@ module Playlists
       @occupying_plans ||= Fingerprint.occupying_plans(station: station, for_date: for_date)
     end
 
-    def insertions_in_slot(slot_start, slot_end)
-      insertion_events.select { |event| slot_start <= event[:at] && event[:at] < slot_end }.map { |event| event[:block] }
-    end
-
-    def insertion_events
-      @insertion_events ||= portrait.blocks.select(&:insertion?).filter_map do |block|
+    def insertion_events(portrait)
+      portrait.blocks.select(&:insertion?).filter_map do |block|
         tod = block.time_of_day
         next unless tod
 
@@ -301,33 +309,25 @@ module Playlists
       end
     end
 
-    def cycle_blocks
-      @cycle_blocks ||= portrait.blocks.sort_by(&:position).reject(&:insertion?)
+    def cycle_blocks(portrait)
+      portrait.blocks.sort_by(&:position).reject(&:insertion?)
     end
 
-    def header_blocks(kind)
+    def header_blocks(portrait, kind)
       portrait.blocks.sort_by(&:position).select { |block| block.kind == kind }
     end
 
-    def operating_windows
-      day_key = Location::OperatingHours::DAY_KEYS[for_date.wday.zero? ? 6 : for_date.wday - 1]
-      raw = station.location.operating_hours.is_a?(Hash) ? station.location.operating_hours[day_key] : nil
-      Array(raw).filter_map do |window|
-        next unless window.is_a?(Hash)
-
-        start_s = window["start"] || window[:start]
-        end_s = window["end"] || window[:end]
-        next if start_s.blank? || end_s.blank?
-
-        win_start = parse_hhmm(start_s)
-        win_end = parse_hhmm(end_s)
+    def operating_windows(screen)
+      Location::OperatingHours.day_windows(screen.effective_operating_hours, for_date).filter_map do |window|
+        win_start = parse_hhmm(window[:start])
+        win_end = parse_hhmm(window[:end])
         next if win_start.nil? || win_end.nil? || win_end <= win_start
 
         { start: win_start, end: win_end }
       end.sort_by { |window| window[:start] }
     end
 
-    def build_slots(windows)
+    def build_slots(windows, portrait)
       step = 3600 / portrait.block_frequency_per_hour
       windows.flat_map do |window|
         slots = []

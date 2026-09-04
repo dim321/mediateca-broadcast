@@ -15,10 +15,10 @@
       <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@portrait, :kind) %></dd>
     </div>
     <div>
-      <dt class="text-sm font-medium text-gray-500"><%= BroadcastPortrait.human_attribute_name(:station) %></dt>
+      <dt class="text-sm font-medium text-gray-500"><%= BroadcastPortrait.human_attribute_name(:screen) %></dt>
       <dd class="mt-1 text-sm text-gray-900">
-        <% if @portrait.station %>
-          <%= admin_link_to_record(@portrait.station) %>
+        <% if @portrait.screen %>
+          <%= admin_link_to_record(@portrait.screen) %>
         <% else %>
           <%= t("admin.broadcast_portraits.template") %>
         <% end %>
