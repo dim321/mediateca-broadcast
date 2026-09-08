@@ -72,13 +72,48 @@ module Location::OperatingHours
     nil
   end
 
+  def self.compact_label(hours)
+    hash = hours.is_a?(Hash) ? hours : {}
+    serialized = DAY_KEYS.filter_map do |day|
+      text = day_windows_text(hash, day)
+      [ day, text ] if text.present?
+    end
+    return if serialized.empty?
+
+    clusters = []
+    serialized.each do |day, text|
+      last = clusters.last
+      if last && last[:text] == text && consecutive_day?(last[:days].last, day)
+        last[:days] << day
+      else
+        clusters << { days: [ day ], text: text }
+      end
+    end
+
+    clusters.map { |cluster| "#{day_range_label(cluster[:days])} #{cluster[:text]}" }.join("; ")
+  end
+
   def self.normalize_clock(value)
     raw = value.to_s.strip
     return if raw.blank?
 
     raw[0, 5]
   end
-  private_class_method :normalize_clock
+
+  def self.day_windows_text(hours, day)
+    windows = Array(hours[day] || hours[day.to_sym]).filter_map { |entry| normalized_window(entry) }
+    windows.map { |window| "#{window[:start]}–#{window[:end]}" }.join(", ")
+  end
+
+  def self.consecutive_day?(left, right)
+    DAY_KEYS.index(left).to_i + 1 == DAY_KEYS.index(right)
+  end
+
+  def self.day_range_label(days)
+    names = days.map { |day| I18n.t("operating_hours.short_days.#{day}") }
+    names.one? ? names.first : "#{names.first}–#{names.last}"
+  end
+  private_class_method :normalize_clock, :day_windows_text, :consecutive_day?, :day_range_label
 
   def operating_hours_configured?
     DAY_KEYS.any? { |day| windows_for(day).any? }

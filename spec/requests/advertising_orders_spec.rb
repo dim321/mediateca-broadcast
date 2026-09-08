@@ -15,8 +15,6 @@ RSpec.describe "AdvertisingOrders", type: :request do
         product_name: "Triumph",
         media_asset_id: asset.id,
         placement_kind: "own_atmosphere",
-        coefficient_percent: 0,
-        discount_rubles: 0,
         lines: {
           "0" => {
             broadcast_point_group_id: group_id,
@@ -175,6 +173,25 @@ RSpec.describe "AdvertisingOrders", type: :request do
     end
   end
 
+  describe "GET /advertising_orders/new" do
+    before { sign_in_as(user) }
+
+    it "does not render the admin screen picker" do
+      get new_advertising_order_path
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include(I18n.t("advertising_orders.form.grid"))
+      expect(response.body).not_to include('data-controller="order-screen-picker"')
+    end
+
+    it "does not render coefficient or discount fields" do
+      get new_advertising_order_path
+
+      expect(response.body).not_to include('name="advertising_order[coefficient_percent]"')
+      expect(response.body).not_to include('name="advertising_order[discount_rubles]"')
+    end
+  end
+
   describe "PATCH /advertising_orders/:id" do
     before { sign_in_as(user) }
 
@@ -196,6 +213,30 @@ RSpec.describe "AdvertisingOrders", type: :request do
       expect(response).to redirect_to(advertising_order_path(order))
       expect(order.reload.total_shows).to eq(72)
       expect(order.total_sum_cents).to eq(2 * 25_00)
+    end
+
+    it "does not change coefficient or discount from form params" do
+      order = Advertising::CreateOrder.call(
+        organization: organization,
+        created_by: user,
+        media_asset: asset,
+        product_name: "Triumph",
+        coefficient_percent: 15,
+        discount_cents: 1_000
+      )
+      Advertising::UpdateGrid.call(
+        order: order,
+        lines: [ {
+          broadcast_point_group_id: group.id,
+          price_per_day_cents: 1_000,
+          days: [ { date: Date.new(2026, 6, 3), shows: 36 } ]
+        } ]
+      )
+
+      patch advertising_order_path(order), params: order_params(coefficient_percent: 99, discount_rubles: 50)
+
+      expect(order.reload.coefficient_percent).to eq(15)
+      expect(order.discount_cents).to eq(1_000)
     end
   end
 

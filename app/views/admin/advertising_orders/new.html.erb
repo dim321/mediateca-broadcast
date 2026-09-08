@@ -34,5 +34,6 @@
         cancel_url: admin_advertising_orders_path,
         time_zone: @form_organization.time_zone,
         organization_id: @form_organization.id,
-        business_sphere_preview: @form_organization.profile&.business_sphere&.name %>
+        business_sphere_preview: @form_organization.profile&.business_sphere&.name,
+        show_screen_picker: true %>
 <% end %>

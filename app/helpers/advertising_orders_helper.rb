@@ -23,4 +23,13 @@ module AdvertisingOrdersHelper
     name = asset.file.attached? ? asset.file.filename.to_s : asset.id.to_s
     "#{name} (#{asset.duration_seconds}s)"
   end
+
+  def order_screen_hours_label(screen)
+    Location::OperatingHours.compact_label(screen.effective_operating_hours).presence ||
+      t("operating_hours.unset")
+  end
+
+  def order_screen_selected?(screen)
+    Array(@selected_screen_ids).include?(screen.id)
+  end
 end

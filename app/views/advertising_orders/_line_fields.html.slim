@@ -6,7 +6,8 @@
           options_from_collection_for_select(@broadcast_point_groups, :id, :name, line.broadcast_point_group_id),
           include_blank: true,
           id: "advertising_order_lines_#{index}_broadcast_point_group_id",
-          class: 'select select-bordered w-full mt-1'
+          class: 'select select-bordered w-full mt-1',
+          data: ({ 'order-screen-picker-target': 'groupSelect' } if local_assigns[:show_screen_picker])
     div
       label.block.text-sm.font-medium = t('.price_per_day_rubles')
       = number_field_tag "advertising_order[lines][#{index}][price_per_day_rubles]",

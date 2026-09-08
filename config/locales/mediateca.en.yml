@@ -22,6 +22,16 @@ en:
       locale: Language
       locale_ru: RU
       locale_en: EN
+  operating_hours:
+    unset: Not set
+    short_days:
+      mon: Mon
+      tue: Tue
+      wed: Wed
+      thu: Thu
+      fri: Fri
+      sat: Sat
+      sun: Sun
   pundit:
     not_authorized: You are not authorized to perform this action.
   fleet:
@@ -633,8 +643,19 @@ en:
     form:
       submit: Save
       cancel: Cancel
-      discount_rubles: Discount, ₽
       grid: Airtime grid
+      screens: Screens
+      screen_picker:
+        hint: Select screens. Column filters narrow the list; checked rows stay selected.
+        empty: No screens yet.
+        selected: "Selected:"
+        select_all: Select visible
+        hours: Operating hours
+        filter_location: Location
+        filter_station: Station
+        filter_tags: Tags
+        filter_portrait: Broadcast portrait
+        filter_hours: Operating hours
       multiplicity_hint: Daily shows must be a multiple of the group's operating hours.
       fill_from: From
       fill_to: To

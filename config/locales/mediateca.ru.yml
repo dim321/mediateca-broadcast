@@ -22,6 +22,16 @@ ru:
       locale: Язык
       locale_ru: RU
       locale_en: EN
+  operating_hours:
+    unset: Не заданы
+    short_days:
+      mon: пн
+      tue: вт
+      wed: ср
+      thu: чт
+      fri: пт
+      sat: сб
+      sun: вс
   fleet:
     screens:
       index:
@@ -639,8 +649,19 @@ ru:
     form:
       submit: Сохранить
       cancel: Отмена
-      discount_rubles: Скидка, ₽
       grid: Сетка выходов
+      screens: Выбор экранов
+      screen_picker:
+        hint: Отметьте экраны. Фильтры по колонкам сужают список, выбранные экраны остаются.
+        empty: Экранов пока нет.
+        selected: "Выбрано:"
+        select_all: Выбрать видимые
+        hours: Часы работы
+        filter_location: Локация
+        filter_station: Станция
+        filter_tags: Теги
+        filter_portrait: Портрет эфира
+        filter_hours: Часы работы
       multiplicity_hint: Число выходов в день должно делиться на часы работы группы.
       fill_from: С
       fill_to: По

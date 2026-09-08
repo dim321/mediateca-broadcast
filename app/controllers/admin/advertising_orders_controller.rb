@@ -37,9 +37,7 @@ module Admin
         created_by: Current.user,
         media_asset: asset,
         product_name: order_params[:product_name],
-        placement_kind: order_params[:placement_kind].presence || :own_atmosphere,
-        coefficient_percent: order_params[:coefficient_percent].presence || 0,
-        discount_cents: discount_cents_from_params
+        placement_kind: order_params[:placement_kind].presence || :own_atmosphere
       )
       persist_grid!(@advertising_order)
       redirect_to admin_advertising_order_path(@advertising_order), notice: t("advertising_orders.create.created")
@@ -116,6 +114,8 @@ module Admin
       own_groups = @form_organization.broadcast_point_groups.to_a
       owner_groups = BroadcastPointGroup.commercial_eligible_groups_for(@form_organization).to_a
       @broadcast_point_groups = (own_groups + owner_groups).uniq.sort_by(&:name)
+      @order_screens = Fleet::ScreensForOrderPicker.call
+      @selected_screen_ids = selected_screen_ids
     end
 
     def persist_grid!(order)
@@ -144,14 +144,16 @@ module Admin
     def header_update_attrs
       {
         product_name: order_params[:product_name],
-        coefficient_percent: order_params[:coefficient_percent].presence || 0,
-        discount_cents: discount_cents_from_params,
         placement_kind: order_params[:placement_kind].presence || @advertising_order.placement_kind
       }.compact
     end
 
-    def discount_cents_from_params
-      order_params[:discount_rubles].to_i * 100
+    def selected_screen_ids
+      raw = order_params[:screen_ids]
+      ids = Array(raw).map(&:to_i).reject(&:zero?)
+      return ids if ids.any?
+
+      @advertising_order.advertising_order_lines.filter_map(&:broadcast_point_group).flat_map(&:screen_ids).uniq
     end
 
     def find_media_asset
@@ -225,9 +227,8 @@ module Admin
         :product_name,
         :media_asset_id,
         :placement_kind,
-        :coefficient_percent,
-        :discount_rubles,
         :broadcast_point_group_id,
+        screen_ids: [],
         lines: [ :broadcast_point_group_id, :price_per_day_rubles, { days: [ :date, :shows ] } ]
       )
     end

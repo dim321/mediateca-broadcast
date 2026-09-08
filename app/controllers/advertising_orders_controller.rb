@@ -41,9 +41,7 @@ class AdvertisingOrdersController < ApplicationController
       created_by: Current.user,
       media_asset: asset,
       product_name: order_params[:product_name],
-      placement_kind: order_params[:placement_kind].presence || :own_atmosphere,
-      coefficient_percent: order_params[:coefficient_percent].presence || 0,
-      discount_cents: discount_cents_from_params
+      placement_kind: order_params[:placement_kind].presence || :own_atmosphere
     )
     persist_grid!(@advertising_order)
     redirect_to @advertising_order, notice: t(".created")
@@ -175,14 +173,8 @@ class AdvertisingOrdersController < ApplicationController
   def header_update_attrs
     {
       product_name: order_params[:product_name],
-      coefficient_percent: order_params[:coefficient_percent].presence || 0,
-      discount_cents: discount_cents_from_params,
       placement_kind: order_params[:placement_kind].presence || @advertising_order.placement_kind
     }.compact
-  end
-
-  def discount_cents_from_params
-    order_params[:discount_rubles].to_i * 100
   end
 
   def find_media_asset
@@ -257,8 +249,6 @@ class AdvertisingOrdersController < ApplicationController
       :product_name,
       :media_asset_id,
       :placement_kind,
-      :coefficient_percent,
-      :discount_rubles,
       :broadcast_point_group_id,
       lines: [ :broadcast_point_group_id, :price_per_day_rubles, { days: [ :date, :shows ] } ]
     )

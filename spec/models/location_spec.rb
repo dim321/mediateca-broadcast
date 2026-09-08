@@ -88,5 +88,19 @@ RSpec.describe Location, type: :model do
     it "returns nil day_bounds when the day is closed" do
       expect(described_class::OperatingHours.day_bounds({}, Date.new(2026, 9, 2), "UTC")).to be_nil
     end
+
+    it "compacts identical weekday windows into a range label" do
+      hours = %w[mon tue wed thu fri].index_with do
+        [ { "start" => "09:00", "end" => "21:00" } ]
+      end
+
+      I18n.with_locale(:ru) do
+        expect(described_class::OperatingHours.compact_label(hours)).to eq("пн–пт 09:00–21:00")
+      end
+    end
+
+    it "returns nil when hours are empty" do
+      expect(described_class::OperatingHours.compact_label({})).to be_nil
+    end
   end
 end

@@ -20,8 +20,6 @@ RSpec.describe "Admin advertising orders", type: :request do
         product_name: "Triumph",
         media_asset_id: asset.id,
         placement_kind: "own_atmosphere",
-        coefficient_percent: 0,
-        discount_rubles: 0,
         lines: {
           "0" => {
             broadcast_point_group_id: group_id,
@@ -86,6 +84,65 @@ RSpec.describe "Admin advertising orders", type: :request do
       expect(order.reload).to be_cancelled
     end
 
+    def catalog_screen_on_group
+      location = create(:location, name: "ТЦ Галерея", operating_hours: AdvertisingNetwork::WEEKLY_HOURS)
+      station = create(:station, location: location, name: "Касса 1")
+      screen = create(:screen, station: station, name: "Экран витрины", owner_organization: client)
+      create(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen)
+      create(:screen_tag, screen: screen, tag: create(:tag, name: "витрина"))
+      create(:broadcast_portrait, :for_screen, screen: screen, name: "Цикл 4/час")
+      screen
+    end
+
+    it "renders the screen picker before the airtime grid on the new form" do
+      catalog_screen_on_group
+
+      get new_admin_advertising_order_path, params: { organization_id: client.id }
+
+      body = response.body
+      picker_at = body.index(I18n.t("advertising_orders.form.screens"))
+      grid_at = body.index(I18n.t("advertising_orders.form.grid"))
+
+      expect(response).to have_http_status(:success)
+      expect(picker_at).to be_present
+      expect(picker_at).to be < grid_at
+      expect(body).to include("order-screen-picker")
+      expect(body).to include('name="advertising_order[screen_ids][]"')
+    end
+
+    it "lists fleet screens and screens of other organizations" do
+      fleet = create(:screen, name: "Флот оператора")
+      other = create(:organization, :client)
+      foreign = create(:screen, name: "Чужой экран", owner_organization: other)
+
+      get new_admin_advertising_order_path, params: { organization_id: client.id }
+
+      expect(response.body).to include(fleet.name)
+      expect(response.body).to include(foreign.name)
+    end
+
+    it "lists screens with location, station, tags, portrait, hours and column filters" do
+      screen = catalog_screen_on_group
+
+      get new_admin_advertising_order_path, params: { organization_id: client.id }
+
+      expect(response.body).to include(screen.name)
+      expect(response.body).to include("ТЦ Галерея")
+      expect(response.body).to include("Касса 1")
+      expect(response.body).to include("витрина")
+      expect(response.body).to include("Цикл 4/час")
+      expect(response.body).to include("09:00")
+      expect(response.body).to include(I18n.t("advertising_orders.form.screen_picker.filter_location"))
+      expect(response.body).to include(I18n.t("advertising_orders.form.screen_picker.filter_hours"))
+    end
+
+    it "does not render coefficient or discount fields on the new form" do
+      get new_admin_advertising_order_path, params: { organization_id: client.id }
+
+      expect(response.body).not_to include('name="advertising_order[coefficient_percent]"')
+      expect(response.body).not_to include('name="advertising_order[discount_rubles]"')
+    end
+
     it "reloads the new form in the selected organization context" do
       operator_clip = create(:media_asset, :ready, :with_png_file, organization: operator_org)
       operator_clip.file.blob.update!(filename: "operator-only.mp4")
@@ -98,6 +155,30 @@ RSpec.describe "Admin advertising orders", type: :request do
       expect(response.body).not_to include("operator-only.mp4")
       expect(response.body).to include("Ритейл")
       expect(response.body).to include(client.name)
+    end
+
+    it "does not change coefficient or discount from form params" do
+      order = Advertising::CreateOrder.call(
+        organization: client,
+        created_by: client_user,
+        media_asset: asset,
+        product_name: "Triumph",
+        coefficient_percent: 15,
+        discount_cents: 1_000
+      )
+      Advertising::UpdateGrid.call(
+        order: order,
+        lines: [ {
+          broadcast_point_group_id: group.id,
+          price_per_day_cents: 1_000,
+          days: [ { date: Date.new(2026, 6, 3), shows: 36 } ]
+        } ]
+      )
+
+      patch admin_advertising_order_path(order), params: order_params(coefficient_percent: 99, discount_rubles: 50)
+
+      expect(order.reload.coefficient_percent).to eq(15)
+      expect(order.discount_cents).to eq(1_000)
     end
 
     it "lets an operator create an order for a client (AE11)" do
