@@ -397,6 +397,10 @@ ru:
               must_be_template: должен быть шаблоном портрета эфира
             service_theme_id:
               must_be_theme: должна быть существующей тематикой
+        broadcast_portrait_block:
+          attributes:
+            service_theme_id:
+              must_be_theme: должна быть существующей тематикой
     attributes:
       airtime_booking:
         status: Статус
@@ -488,6 +492,7 @@ ru:
         pick_strategy: Стратегия выбора
         position: Позиция
         rotation: Ротация
+        service_theme: Тематика
         time_of_day: Время суток
       service_theme:
         name: Название

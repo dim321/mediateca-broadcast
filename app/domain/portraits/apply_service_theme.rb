@@ -35,6 +35,7 @@ module Portraits
           block.position = next_position
         end
         block.assign_attributes(
+          service_theme: theme,
           rotation: theme.rotation_for(role),
           pick_strategy: strategy_for(role),
           time_of_day: nil

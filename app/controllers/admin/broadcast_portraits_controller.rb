@@ -3,7 +3,7 @@
 module Admin
   class BroadcastPortraitsController < Admin::BaseController
     before_action :set_portrait, only: %i[show edit update destroy]
-    before_action :set_rotations, only: %i[new create edit update]
+    before_action :set_block_options, only: %i[new create edit update]
 
     def index
       @q = BroadcastPortrait.ransack(ransack_params)
@@ -67,12 +67,13 @@ module Admin
     private
 
     def set_portrait
-      @portrait = BroadcastPortrait.includes(:screen, blocks: :rotation).find(params[:id])
+      @portrait = BroadcastPortrait.includes(:screen, blocks: [ :rotation, :service_theme ]).find(params[:id])
     end
 
-    def set_rotations
+    def set_block_options
       bound_ids = Array(@portrait&.blocks).filter_map(&:rotation_id)
       @rotations = Rotation.assignable(bound_ids).order(:name)
+      @service_themes = ServiceTheme.order(:name)
     end
 
     def timed_kind_requested?
@@ -105,13 +106,13 @@ module Admin
         next if block.blank?
 
         attrs = if block.respond_to?(:permit)
-          block.permit(:position, :kind, :rotation_id, :pick_strategy, :time_of_day).to_h
+          block.permit(:position, :kind, :rotation_id, :pick_strategy, :time_of_day, :service_theme_id).to_h
         else
-          block.to_h.slice("position", "kind", "rotation_id", "pick_strategy", "time_of_day",
-            :position, :kind, :rotation_id, :pick_strategy, :time_of_day)
+          block.to_h.slice("position", "kind", "rotation_id", "pick_strategy", "time_of_day", "service_theme_id",
+            :position, :kind, :rotation_id, :pick_strategy, :time_of_day, :service_theme_id)
         end
         attrs = attrs.with_indifferent_access
-        %w[rotation_id pick_strategy time_of_day].each do |key|
+        %w[rotation_id pick_strategy time_of_day service_theme_id].each do |key|
           attrs[key] = nil if attrs[key].blank?
         end
         next if attrs[:kind].blank?

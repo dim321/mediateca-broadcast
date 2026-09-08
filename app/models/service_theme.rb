@@ -54,12 +54,20 @@ class ServiceTheme < ApplicationRecord
   belongs_to :close_rotation, class_name: "Rotation"
 
   has_many :broadcast_portraits, dependent: :restrict_with_exception
+  has_many :broadcast_portrait_blocks, dependent: :restrict_with_exception
 
   validates :name, presence: true, uniqueness: { scope: :organization_id, case_sensitive: true }
   validate :organization_must_be_operator
 
   def rotations
     [ header_start_rotation, header_end_rotation, welcome_rotation, close_rotation ]
+  end
+
+  def processing_clips?
+    MediaAsset.joins(:rotation_items).where(
+      rotation_items: { rotation_id: rotations.map(&:id) },
+      processing_status: %w[pending processing]
+    ).exists?
   end
 
   def rotation_for(role)

@@ -1,13 +1,13 @@
 import { Controller } from "@hotwired/stimulus"
 
 const FIELD_VISIBILITY = {
-  commercial: { rotation: false, pick: false, time: false },
-  filler: { rotation: true, pick: true, time: false },
-  insertion: { rotation: true, pick: true, time: true },
-  service_header_start: { rotation: true, pick: true, time: false },
-  service_header_end: { rotation: true, pick: true, time: false },
-  service_welcome: { rotation: true, pick: true, time: false },
-  service_close: { rotation: true, pick: true, time: false }
+  commercial: { rotation: false, theme: false, pick: false, time: false },
+  filler: { rotation: true, theme: false, pick: true, time: false },
+  insertion: { rotation: true, theme: false, pick: true, time: true },
+  service_header_start: { rotation: false, theme: true, pick: true, time: false },
+  service_header_end: { rotation: false, theme: true, pick: true, time: false },
+  service_welcome: { rotation: false, theme: true, pick: true, time: false },
+  service_close: { rotation: false, theme: true, pick: true, time: false }
 }
 
 export default class extends Controller {
@@ -82,6 +82,7 @@ export default class extends Controller {
     const visibility = FIELD_VISIBILITY[kind] || FIELD_VISIBILITY.commercial
 
     this.toggleField(row, "rotation", visibility.rotation)
+    this.toggleField(row, "theme", visibility.theme)
     this.toggleField(row, "pick", visibility.pick)
     this.toggleField(row, "time", visibility.time)
   }

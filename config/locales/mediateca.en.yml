@@ -393,6 +393,10 @@ en:
               must_be_template: must be a broadcast portrait template
             service_theme_id:
               must_be_theme: must be an existing service theme
+        broadcast_portrait_block:
+          attributes:
+            service_theme_id:
+              must_be_theme: must be an existing service theme
     attributes:
       airtime_booking:
         status: Status
@@ -484,6 +488,7 @@ en:
         pick_strategy: Pick strategy
         position: Position
         rotation: Rotation
+        service_theme: Service theme
         time_of_day: Time of day
       service_theme:
         name: Name

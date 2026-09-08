@@ -15,17 +15,20 @@ require "rails_helper"
 #  updated_at            :datetime         not null
 #  broadcast_portrait_id :bigint           not null
 #  rotation_id           :bigint
+#  service_theme_id      :bigint
 #
 # Indexes
 #
 #  index_broadcast_portrait_blocks_on_broadcast_portrait_id  (broadcast_portrait_id)
 #  index_broadcast_portrait_blocks_on_portrait_and_position  (broadcast_portrait_id,position) UNIQUE
 #  index_broadcast_portrait_blocks_on_rotation_id            (rotation_id)
+#  index_broadcast_portrait_blocks_on_service_theme_id       (service_theme_id)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (broadcast_portrait_id => broadcast_portraits.id) ON DELETE => cascade
 #  fk_rails_...  (rotation_id => rotations.id) ON DELETE => restrict
+#  fk_rails_...  (service_theme_id => service_themes.id) ON DELETE => restrict
 #
 RSpec.describe BroadcastPortraitBlock, type: :model do
   describe "validations" do
@@ -104,14 +107,41 @@ RSpec.describe BroadcastPortraitBlock, type: :model do
       expect(with_rotation_only.errors[:pick_strategy]).to be_present
     end
 
+    it "assigns the matching theme rotation when a service theme is set on a header block" do
+      theme = create(:service_theme)
+      block = build(:broadcast_portrait_block, :service_header_start, service_theme: theme, pick_strategy: :random)
+
+      expect(block).to be_valid
+      expect(block.rotation).to eq(theme.header_start_rotation)
+    end
+
+    it "rejects a service theme on commercial, filler, and insertion blocks" do
+      theme = create(:service_theme)
+      commercial = build(:broadcast_portrait_block, :commercial, service_theme: theme)
+      filler = build(:broadcast_portrait_block, :filler, service_theme: theme)
+      insertion = build(:broadcast_portrait_block, :insertion, service_theme: theme)
+
+      expect(commercial).not_to be_valid
+      expect(commercial.errors[:service_theme_id]).to be_present
+      expect(filler).not_to be_valid
+      expect(filler.errors[:service_theme_id]).to be_present
+      expect(insertion).not_to be_valid
+      expect(insertion.errors[:service_theme_id]).to be_present
+    end
+
     it "requires rotation and pick strategy on welcome and close blocks" do
       missing = build(:broadcast_portrait_block, :service_welcome, rotation: nil, pick_strategy: nil)
       valid = build(:broadcast_portrait_block, :service_close)
+      with_theme = build(:broadcast_portrait_block, :service_welcome, service_theme: create(:service_theme),
+        pick_strategy: :sequential)
 
       expect(missing).not_to be_valid
       expect(missing.errors[:rotation_id]).to be_present
+      expect(missing.errors[:service_theme_id]).to be_present
       expect(missing.errors[:pick_strategy]).to be_present
       expect(valid).to be_valid
+      expect(with_theme).to be_valid
+      expect(with_theme.rotation).to eq(with_theme.service_theme.welcome_rotation)
     end
 
     it "rejects time_of_day on welcome and close blocks" do

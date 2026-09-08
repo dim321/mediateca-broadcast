@@ -38,7 +38,7 @@ module ServiceThemes
         organization: theme.organization,
         uploaded_by: uploaded_by,
         content_type: :service,
-        visibility: :organization
+        visibility: :network
       ).tap { |asset| asset.file.attach(file) if file.present? }
     end
   end

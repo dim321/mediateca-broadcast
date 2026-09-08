@@ -114,7 +114,7 @@ HasMany on forms is opt-in (screen tags, group `screen_ids`, nested organization
 - `sidebar`, `dropdown`, `modal`, `tabs` (chrome)
 - `operating-hours` — copy Monday on location form
 - `screen-form` — filter stations by location, inherit-hours toggle, optional name autofill (`data-auto-fill-name`)
-- `portrait-blocks` — add/reorder portrait blocks; pick strategy visible for filler, insertion, headers, welcome, close
+- `portrait-blocks` — add/reorder portrait blocks; service theme picker for headers/welcome/close; pick strategy for filler, insertion, and service kinds; rotation for filler/insertion
 
 New interactivity: a small controller in `app/javascript/admin/controllers/`, not Flowbite JS.
 

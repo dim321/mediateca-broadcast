@@ -10,6 +10,16 @@
     </select>
   </div>
 
+  <div data-portrait-blocks-field="theme">
+    <label class="<%= admin_label_class %>"><%= BroadcastPortraitBlock.human_attribute_name(:service_theme) %></label>
+    <select name="broadcast_portrait[blocks][][service_theme_id]" class="<%= admin_select_class %>" data-portrait-blocks-theme>
+      <option value=""></option>
+      <% service_themes.each do |theme| %>
+        <option value="<%= theme.id %>" <%= "selected" if block.service_theme_id == theme.id %>><%= theme.name %></option>
+      <% end %>
+    </select>
+  </div>
+
   <div data-portrait-blocks-field="rotation">
     <label class="<%= admin_label_class %>"><%= BroadcastPortraitBlock.human_attribute_name(:rotation) %></label>
     <select name="broadcast_portrait[blocks][][rotation_id]" class="<%= admin_select_class %>" data-portrait-blocks-rotation>

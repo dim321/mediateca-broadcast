@@ -1,7 +1,7 @@
 ---
 title: Operator service themes on screen portraits
 date: 2026-09-04
-last_updated: 2026-09-04
+last_updated: 2026-09-05
 category: architecture-patterns
 module: service-themes
 problem_type: architecture_pattern
@@ -45,7 +45,7 @@ Shipped split:
 
 1. **ServiceTheme** — operator-org row with four rotations (`header_start`, `header_end`, `welcome`, `close`). `ServiceThemes::Create` builds the folders; destroy is restrict while a portrait still references the theme.
 2. **Admin library** — `/admin` service-library CRUD and nested clip upload (`ServiceThemes::AddClip` → `MediaAsset` `content_type: service` + `RotationItem`). Cabinet upload rejects `service`. Theme rotations are hidden from ordinary `Admin::RotationsController#index` (`Rotation.unmanaged`); clip edits go through the theme, not Rotation CRUD.
-3. **Screen portrait + hours** — instance portraits have `screen_id`; templates have `screen_id` nil. Hours: `inherit_operating_hours_from_location` (default true) plus optional `screens.operating_hours`. `Screen#effective_operating_hours` feeds generation. `Portraits::ApplyServiceTheme` upserts the four blocks and does not rewrite commercial/filler. Manual block edit clears `service_theme_id`.
+3. **Screen portrait + hours** — instance portraits have `screen_id`; templates have `screen_id` nil. Hours: `inherit_operating_hours_from_location` (default true) plus optional `screens.operating_hours`. `Screen#effective_operating_hours` feeds generation. `Portraits::ApplyServiceTheme` upserts the four blocks (each with `service_theme_id` and the matching rotation) and does not rewrite commercial/filler. Manual block edit clears portrait-level `service_theme_id`. Portrait form service kinds pick a theme folder, not a raw rotation.
 4. **Generator** — per screen, then merge via `playlist_item_screens`. Welcome at the first effective window open, close at the last window end, outside the hourly cycle. Closed weekday: no welcome/close, still a current playlist. Headers use `NeutralPicker` with the block `pick_strategy` and `min_seconds: nil`.
 5. **Regen** — clip/rotation item → `EnqueueRegen.from_rotation`; portrait/theme/hours on the screen → `from_screen`; location hours → `from_location_hours` (inheriting screens only). Horizon stays location TZ.
 
@@ -60,7 +60,7 @@ Empty service folders warn (`warn_once`) and skip that emission; generate still 
 - Adding a fifth service role — extend `ServiceTheme::ROTATION_ROLES` and `ApplyServiceTheme`, not a one-off rotation flag on the portrait.
 - Changing hours — inherit vs custom on the screen; location hours only regen inheriting screens.
 - Changing header pick — go through `NeutralPicker` / block `pick_strategy`, not “first eligible item”.
-- Admin rotation lists or portrait rotation selects — start from `Rotation.unmanaged` / `Rotation.assignable`.
+- Admin rotation lists — start from `Rotation.unmanaged` / `Rotation.assignable`. Portrait service blocks use the `ServiceTheme` picker; filler/insertion still use assignable rotations.
 
 ## Related
 

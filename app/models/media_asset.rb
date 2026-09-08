@@ -57,6 +57,9 @@ class MediaAsset < ApplicationRecord
   ALLOWED_CONTENT_TYPES = {
     "video/mp4" => "video",
     "video/webm" => "video",
+    "video/mpeg" => "video",
+    "video/mpg" => "video",
+    "video/x-mpeg" => "video",
     "image/png" => "image",
     "image/jpeg" => "image",
     "image/jpg" => "image",
@@ -192,7 +195,16 @@ class MediaAsset < ApplicationRecord
       partial: "media_assets/media_asset",
       locals: { media_asset: self }
 
+    broadcast_processing_status
     broadcast_processing_flash if should_broadcast_processing_flash?
+  end
+
+  def broadcast_processing_status
+    return unless saved_change_to_processing_status?
+
+    broadcast_update_to [ organization, :media_library ],
+      target: ActionView::RecordIdentifier.dom_id(self, :processing_status),
+      html: I18n.t("enums.media_asset.processing_status.#{processing_status}")
   end
 
   def should_broadcast_processing_flash?

@@ -44,6 +44,7 @@ module Portraits
           position: block.position,
           kind: block.kind,
           rotation_id: block.rotation_id,
+          service_theme_id: block.service_theme_id,
           pick_strategy: block.pick_strategy,
           time_of_day: block.time_of_day
         )

@@ -20,4 +20,13 @@ RSpec.describe ServiceThemes::Destroy do
     expect { described_class.call(theme: theme) }.to raise_error(ActiveRecord::DeleteRestrictionError)
     expect(theme.reload).to be_persisted
   end
+
+  it "restricts destroy when a portrait block references the theme" do
+    theme = create(:service_theme)
+    portrait = create(:broadcast_portrait, :for_screen)
+    create(:broadcast_portrait_block, :service_welcome, broadcast_portrait: portrait, service_theme: theme)
+
+    expect { described_class.call(theme: theme) }.to raise_error(ActiveRecord::DeleteRestrictionError)
+    expect(theme.reload).to be_persisted
+  end
 end

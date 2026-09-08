@@ -24,10 +24,12 @@ RSpec.describe Portraits::ApplyServiceTheme do
       "commercial", "service_header_start", "service_header_end", "service_welcome", "service_close"
     )
     expect(portrait.blocks.find_by!(kind: "service_header_start")).to have_attributes(
+      service_theme: theme,
       rotation: theme.header_start_rotation,
       pick_strategy: "random"
     )
     expect(portrait.blocks.find_by!(kind: "service_welcome")).to have_attributes(
+      service_theme: theme,
       rotation: theme.welcome_rotation,
       pick_strategy: "ordered"
     )

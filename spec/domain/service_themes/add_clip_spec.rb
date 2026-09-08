@@ -29,7 +29,7 @@ RSpec.describe ServiceThemes::AddClip do
     asset = MediaAsset.last
     expect(asset).to have_attributes(
       content_type: "service",
-      visibility: "organization",
+      visibility: "network",
       organization: operator,
       uploaded_by: user
     )

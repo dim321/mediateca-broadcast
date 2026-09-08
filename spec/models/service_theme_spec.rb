@@ -56,4 +56,11 @@ RSpec.describe ServiceTheme, type: :model do
 
     expect { theme.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
   end
+
+  it "restricts destroy when a portrait block uses the theme" do
+    theme = create(:service_theme)
+    create(:broadcast_portrait_block, :service_welcome, service_theme: theme)
+
+    expect { theme.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
+  end
 end

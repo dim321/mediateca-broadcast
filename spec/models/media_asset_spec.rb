@@ -57,6 +57,20 @@ RSpec.describe MediaAsset, type: :model do
       expect(asset.errors[:file]).to be_present
     end
 
+    it "accepts mpeg program stream video (.mpg)" do
+      org = create(:organization)
+      uploader = create(:user, organization: org)
+      asset = build(:media_asset, organization: org, uploaded_by: uploader, content_kind: nil)
+      asset.file.attach(
+        io: StringIO.new("x"),
+        filename: "clip.mpg",
+        content_type: "video/mpeg"
+      )
+
+      expect(asset).to be_valid
+      expect(asset.content_kind).to eq("video")
+    end
+
     it "rejects files larger than 1 GiB" do
       asset = build(:media_asset)
       asset.file.attach(
@@ -135,7 +149,26 @@ RSpec.describe MediaAsset, type: :model do
 
       asset.update!(processing_status: :processing)
 
-      expect(asset).not_to have_received(:broadcast_update_to)
+      expect(asset).not_to have_received(:broadcast_update_to).with(
+        [ organization, :media_library ],
+        hash_including(target: "flash")
+      )
+    end
+
+    it "broadcasts processing status so admin theme folders can refresh" do
+      asset = create(:media_asset, :with_png_file, organization: organization, processing_status: :processing)
+      allow(asset).to receive(:broadcast_replace_to)
+      allow(asset).to receive(:broadcast_update_to)
+
+      asset.update!(processing_status: :ready, duration_seconds: 12)
+
+      expect(asset).to have_received(:broadcast_update_to).with(
+        [ organization, :media_library ],
+        hash_including(
+          target: ActionView::RecordIdentifier.dom_id(asset, :processing_status),
+          html: I18n.t("enums.media_asset.processing_status.ready")
+        )
+      )
     end
   end
 end

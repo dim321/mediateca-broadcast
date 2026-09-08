@@ -74,6 +74,18 @@ RSpec.describe "Admin service themes", type: :request do
       expect(response.body).to include(I18n.t("enums.broadcast_portrait_block.kind.service_close"))
     end
 
+    it "embeds hidden service content type and network visibility on clip upload" do
+      theme = ServiceThemes::Create.call(organization: operator_org, name: "Рыбный отдел")
+
+      get admin_service_theme_path(theme)
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include('name="clip[content_type]"')
+      expect(response.body).to include('value="service"')
+      expect(response.body).to include('name="clip[visibility]"')
+      expect(response.body).to include('value="network"')
+    end
+
     it "uploads a service clip into a theme folder (AE2)" do
       theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
       png = fixture_file_upload("spec/fixtures/files/1x1.png", "image/png")
@@ -84,7 +96,36 @@ RSpec.describe "Admin service themes", type: :request do
         .and change { theme.welcome_rotation.rotation_items.count }.by(1)
 
       expect(response).to redirect_to(admin_service_theme_path(theme))
-      expect(MediaAsset.last).to have_attributes(content_type: "service", organization: operator_org)
+      expect(MediaAsset.last).to have_attributes(
+        content_type: "service",
+        visibility: "network",
+        organization: operator_org
+      )
+    end
+
+    it "live-updates processing status and refreshes while a clip is in flight" do
+      theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
+      asset = create(:media_asset, :with_png_file, content_type: :service, processing_status: :processing,
+        organization: operator_org)
+      theme.welcome_rotation.rotation_items.create!(media_asset: asset)
+
+      get admin_service_theme_path(theme)
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include("turbo-cable-stream-source")
+      expect(response.body).to include(ActionView::RecordIdentifier.dom_id(asset, :processing_status))
+      expect(response.body).to include('http-equiv="refresh"')
+    end
+
+    it "stops auto-refresh when every clip is ready" do
+      theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
+      asset = create(:media_asset, :with_png_file, :ready, content_type: :service, organization: operator_org)
+      theme.welcome_rotation.rotation_items.create!(media_asset: asset)
+
+      get admin_service_theme_path(theme)
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).not_to include('http-equiv="refresh"')
     end
 
     it "updates a theme name" do

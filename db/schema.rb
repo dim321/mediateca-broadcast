@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_04_121000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_05_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -142,11 +142,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_04_121000) do
     t.string "pick_strategy"
     t.integer "position", null: false
     t.bigint "rotation_id"
+    t.bigint "service_theme_id"
     t.time "time_of_day"
     t.datetime "updated_at", null: false
     t.index ["broadcast_portrait_id", "position"], name: "index_broadcast_portrait_blocks_on_portrait_and_position", unique: true
     t.index ["broadcast_portrait_id"], name: "index_broadcast_portrait_blocks_on_broadcast_portrait_id"
     t.index ["rotation_id"], name: "index_broadcast_portrait_blocks_on_rotation_id"
+    t.index ["service_theme_id"], name: "index_broadcast_portrait_blocks_on_service_theme_id"
     t.check_constraint "\"position\" > 0", name: "broadcast_portrait_blocks_position_positive"
   end
 
@@ -417,6 +419,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_04_121000) do
   add_foreign_key "broadcast_point_groups", "organizations"
   add_foreign_key "broadcast_portrait_blocks", "broadcast_portraits", on_delete: :cascade
   add_foreign_key "broadcast_portrait_blocks", "rotations", on_delete: :restrict
+  add_foreign_key "broadcast_portrait_blocks", "service_themes", on_delete: :restrict
   add_foreign_key "broadcast_portraits", "screens", on_delete: :cascade
   add_foreign_key "broadcast_portraits", "service_themes", on_delete: :restrict
   add_foreign_key "media_assets", "organizations"

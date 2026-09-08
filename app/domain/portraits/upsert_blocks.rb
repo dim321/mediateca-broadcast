@@ -26,7 +26,18 @@ module Portraits
 
     def block_attributes(attrs)
       attrs = attrs.to_h.with_indifferent_access
-      attrs.slice(:position, :kind, :rotation_id, :pick_strategy, :time_of_day)
+      sliced = attrs.slice(:position, :kind, :rotation_id, :pick_strategy, :time_of_day, :service_theme_id)
+      bind_service_theme(sliced)
+    end
+
+    def bind_service_theme(attrs)
+      kind = attrs[:kind].to_s
+      if ServiceTheme::ROTATION_ROLES.value?(kind)
+        attrs[:rotation_id] = nil if attrs[:service_theme_id].blank?
+      else
+        attrs[:service_theme_id] = nil
+      end
+      attrs
     end
   end
 end

@@ -56,6 +56,7 @@
           <tr>
             <th scope="col" class="px-4 py-3"><%= BroadcastPortraitBlock.human_attribute_name(:position) %></th>
             <th scope="col" class="px-4 py-3"><%= BroadcastPortraitBlock.human_attribute_name(:kind) %></th>
+            <th scope="col" class="px-4 py-3"><%= BroadcastPortraitBlock.human_attribute_name(:service_theme) %></th>
             <th scope="col" class="px-4 py-3"><%= BroadcastPortraitBlock.human_attribute_name(:rotation) %></th>
             <th scope="col" class="px-4 py-3"><%= BroadcastPortraitBlock.human_attribute_name(:pick_strategy) %></th>
             <th scope="col" class="px-4 py-3"><%= BroadcastPortraitBlock.human_attribute_name(:time_of_day) %></th>
@@ -66,6 +67,7 @@
             <tr class="bg-white border-b">
               <td class="px-4 py-3"><%= block.position %></td>
               <td class="px-4 py-3"><%= admin_enum_label(block, :kind) %></td>
+              <td class="px-4 py-3"><%= admin_link_to_record(block.service_theme) %></td>
               <td class="px-4 py-3"><%= admin_link_to_record(block.rotation) %></td>
               <td class="px-4 py-3"><%= block.pick_strategy.present? ? admin_enum_label(block, :pick_strategy) : t("admin.crud.none") %></td>
               <td class="px-4 py-3"><%= block.time_of_day&.strftime("%H:%M") || t("admin.crud.none") %></td>

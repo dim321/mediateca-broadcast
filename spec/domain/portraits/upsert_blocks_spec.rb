@@ -69,4 +69,37 @@ RSpec.describe Portraits::UpsertBlocks do
 
     expect(screen_portrait.reload.service_theme).to be_nil
   end
+
+  it "binds a service block to the matching theme rotation" do
+    theme = create(:service_theme)
+
+    described_class.call(
+      portrait: portrait,
+      blocks: [
+        { position: 1, kind: "service_welcome", service_theme_id: theme.id, pick_strategy: "random" },
+        { position: 2, kind: "service_header_start", service_theme_id: theme.id, pick_strategy: "sequential" }
+      ]
+    )
+
+    welcome = portrait.blocks.find_by!(kind: "service_welcome")
+    header = portrait.blocks.find_by!(kind: "service_header_start")
+    expect(welcome).to have_attributes(service_theme: theme, rotation: theme.welcome_rotation, pick_strategy: "random")
+    expect(header).to have_attributes(service_theme: theme, rotation: theme.header_start_rotation)
+  end
+
+  it "allows mixed themes on service blocks" do
+    salon = create(:service_theme, name: "Салон")
+    fish = create(:service_theme, organization: salon.organization, name: "Рыбный отдел")
+
+    described_class.call(
+      portrait: portrait,
+      blocks: [
+        { position: 1, kind: "service_welcome", service_theme_id: salon.id, pick_strategy: "sequential" },
+        { position: 2, kind: "service_close", service_theme_id: fish.id, pick_strategy: "random" }
+      ]
+    )
+
+    expect(portrait.blocks.find_by!(kind: "service_welcome").rotation).to eq(salon.welcome_rotation)
+    expect(portrait.blocks.find_by!(kind: "service_close").rotation).to eq(fish.close_rotation)
+  end
 end

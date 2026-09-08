@@ -37,14 +37,14 @@
     <h2 class="mb-3 text-lg font-medium text-gray-900"><%= t("admin.broadcast_portraits.blocks") %></h2>
     <div class="space-y-4" data-portrait-blocks-target="list">
       <% portrait.blocks.sort_by { |block| block.position.to_i }.each do |block| %>
-        <%= render "block_fields", block: block, rotations: rotations %>
+        <%= render "block_fields", block: block, rotations: rotations, service_themes: service_themes %>
       <% end %>
     </div>
     <button type="button" class="<%= admin_secondary_button_class %> mt-3" data-action="portrait-blocks#add">
       <%= t("admin.broadcast_portraits.add_block") %>
     </button>
     <template data-portrait-blocks-target="template">
-      <%= render "block_fields", block: BroadcastPortraitBlock.new, rotations: rotations %>
+      <%= render "block_fields", block: BroadcastPortraitBlock.new, rotations: rotations, service_themes: service_themes %>
     </template>
   </div>
 

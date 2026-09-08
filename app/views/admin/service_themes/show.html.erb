@@ -1,4 +1,10 @@
 <% content_for :title, @service_theme.name %>
+<% content_for :head do %>
+  <%= turbo_stream_from @service_theme.organization, :media_library %>
+  <% if @service_theme.processing_clips? %>
+    <meta http-equiv="refresh" content="2">
+  <% end %>
+<% end %>
 
 <div class="mb-4">
   <h1 class="text-2xl font-semibold text-gray-900"><%= @service_theme.name %></h1>
@@ -34,12 +40,15 @@
         <%= form_with url: admin_service_theme_clips_path(@service_theme),
               multipart: true,
               class: "flex flex-col gap-2 sm:flex-row sm:items-end" do %>
-          <%= hidden_field_tag :role, role %>
+          <%= hidden_field_tag :role, role, id: "clip_role_#{role}" %>
+          <%= hidden_field_tag "clip[content_type]", "service", id: "clip_content_type_#{role}" %>
+          <%= hidden_field_tag "clip[visibility]", "network", id: "clip_visibility_#{role}" %>
           <div>
             <label for="clip_file_<%= role %>" class="<%= admin_label_class %>"><%= t("admin.service_themes.upload") %></label>
             <%= file_field_tag "clip[file]",
                   id: "clip_file_#{role}",
                   required: true,
+                  accept: "video/mp4,video/webm,video/mpeg,.mpg,.mpeg,image/*,audio/*",
                   class: "block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none" %>
           </div>
           <%= submit_tag t("admin.service_themes.upload_submit"), class: admin_primary_button_class %>
@@ -66,7 +75,9 @@
                           admin_media_asset_path(item.media_asset),
                           class: "text-blue-700 hover:underline" %>
                   </td>
-                  <td class="px-4 py-3"><%= admin_enum_label(item.media_asset, :processing_status) %></td>
+                  <td class="px-4 py-3" id="<%= dom_id(item.media_asset, :processing_status) %>">
+                    <%= admin_enum_label(item.media_asset, :processing_status) %>
+                  </td>
                 </tr>
               <% end %>
             </tbody>

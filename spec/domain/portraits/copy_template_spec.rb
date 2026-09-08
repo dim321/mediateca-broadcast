@@ -80,9 +80,15 @@ RSpec.describe Portraits::CopyTemplate do
   it "copies service_theme_id from the template" do
     theme = create(:service_theme)
     template = create(:broadcast_portrait, :default, name: "Grid", service_theme: theme)
+    create(:broadcast_portrait_block, :service_welcome, broadcast_portrait: template, position: 1,
+      service_theme: theme)
 
     portrait = described_class.call(screen: screen, template: template)
 
     expect(portrait.service_theme).to eq(theme)
+    expect(portrait.blocks.find_by!(kind: "service_welcome")).to have_attributes(
+      service_theme: theme,
+      rotation: theme.welcome_rotation
+    )
   end
 end
