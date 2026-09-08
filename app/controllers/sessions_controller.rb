@@ -11,7 +11,7 @@ class SessionsController < ApplicationController
     user = User.find_by(email: params[:email].to_s.strip.downcase)
     if user&.authenticate(params[:password])
       session[:user_id] = user.id
-      redirect_to media_assets_path, notice: t(".signed_in")
+      redirect_to after_authentication_path(user), notice: t(".signed_in")
     else
       flash.now[:alert] = t(".invalid_credentials")
       render :new, status: :unprocessable_entity
@@ -26,6 +26,13 @@ class SessionsController < ApplicationController
   private
 
   def redirect_if_signed_in
-    redirect_to media_assets_path if session[:user_id].present?
+    return if session[:user_id].blank?
+
+    user = User.find_by(id: session[:user_id])
+    redirect_to after_authentication_path(user) if user
+  end
+
+  def after_authentication_path(user)
+    user.organization.operator? ? admin_root_path : media_assets_path
   end
 end
