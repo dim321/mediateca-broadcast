@@ -35,6 +35,19 @@ module Location::OperatingHours
     DAY_KEYS[date.wday.zero? ? 6 : date.wday - 1]
   end
 
+  # Minutes of +hours+ open during the clock hour that contains +local_time+.
+  # +local_time+ must already be in the wall-clock zone used for the weekly schedule.
+  def self.minutes_in_hour(hours, local_time)
+    hash = hours.is_a?(Hash) ? hours : {}
+    return 0 if hash.blank?
+
+    hour_start = local_time.change(min: 0, sec: 0)
+    hour_end = hour_start + 1.hour
+    day_windows(hash, local_time.to_date).sum do |window|
+      overlap_minutes(window, hour_start, hour_end)
+    end
+  end
+
   def self.day_windows(hours, date)
     key = day_key_for(date)
     hash = hours.is_a?(Hash) ? hours : {}
@@ -113,34 +126,8 @@ module Location::OperatingHours
     names = days.map { |day| I18n.t("operating_hours.short_days.#{day}") }
     names.one? ? names.first : "#{names.first}–#{names.last}"
   end
-  private_class_method :normalize_clock, :day_windows_text, :consecutive_day?, :day_range_label
 
-  def operating_hours_configured?
-    DAY_KEYS.any? { |day| windows_for(day).any? }
-  end
-
-  # Minutes of this schedule open during the clock hour that contains +local_time+.
-  # +local_time+ must already be in the wall-clock zone used for the weekly schedule.
-  def operating_minutes_in_hour(local_time)
-    return 0 unless operating_hours_configured?
-
-    hour_start = local_time.change(min: 0, sec: 0)
-    hour_end = hour_start + 1.hour
-    day = DAY_KEYS[local_time.wday.zero? ? 6 : local_time.wday - 1]
-
-    windows_for(day).sum do |window|
-      overlap_minutes(window, hour_start, hour_end)
-    end
-  end
-
-  private
-
-  def windows_for(day)
-    raw = operating_hours.is_a?(Hash) ? operating_hours[day] || operating_hours[day.to_sym] : nil
-    Array(raw).filter_map { |entry| Location::OperatingHours.normalized_window(entry) }
-  end
-
-  def overlap_minutes(window, hour_start, hour_end)
+  def self.overlap_minutes(window, hour_start, hour_end)
     win_start = parse_on_day(hour_start, window[:start])
     win_end = parse_on_day(hour_start, window[:end])
     return 0 if win_end <= win_start
@@ -152,9 +139,30 @@ module Location::OperatingHours
     ((to - from) / 60).to_i
   end
 
-  def parse_on_day(day_time, hhmm)
+  def self.parse_on_day(day_time, hhmm)
     h, m = hhmm.split(":").map(&:to_i)
     day_time.change(hour: h, min: m, sec: 0)
+  end
+  private_class_method :normalize_clock, :day_windows_text, :consecutive_day?, :day_range_label,
+    :overlap_minutes, :parse_on_day
+
+  def operating_hours_configured?
+    DAY_KEYS.any? { |day| windows_for(day).any? }
+  end
+
+  # Minutes of this schedule open during the clock hour that contains +local_time+.
+  # +local_time+ must already be in the wall-clock zone used for the weekly schedule.
+  def operating_minutes_in_hour(local_time)
+    return 0 unless operating_hours_configured?
+
+    Location::OperatingHours.minutes_in_hour(operating_hours, local_time)
+  end
+
+  private
+
+  def windows_for(day)
+    raw = operating_hours.is_a?(Hash) ? operating_hours[day] || operating_hours[day.to_sym] : nil
+    Array(raw).filter_map { |entry| Location::OperatingHours.normalized_window(entry) }
   end
 
   def operating_hours_shape
