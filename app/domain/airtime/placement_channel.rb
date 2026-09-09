@@ -8,6 +8,17 @@ module Airtime
       new(...).assert!
     end
 
+    def self.assert_screens!(organization:, screens:, placement_kind:)
+      kind = placement_kind.to_s
+      Array(screens).each do |screen|
+        next if kind == "commercial"
+        next if screen.owner_organization_id == organization.id
+
+        raise ArgumentError, "own/atmosphere placement is only allowed on your organization screens"
+      end
+      true
+    end
+
     def initialize(organization:, broadcast_point_group:, placement_kind:)
       @organization = organization
       @broadcast_point_group = broadcast_point_group

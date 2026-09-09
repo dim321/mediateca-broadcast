@@ -106,19 +106,30 @@ class MediaPlan < ApplicationRecord
   end
 
   def placement_channel_allowed
-    return if organization.blank? || broadcast_point_group.blank? || placement_kind.blank?
+    return if organization.blank? || placement_kind.blank?
 
-    Airtime::PlacementChannel.assert!(
-      organization: organization,
-      broadcast_point_group: broadcast_point_group,
-      placement_kind: placement_kind
-    )
+    if broadcast_point_group.present?
+      Airtime::PlacementChannel.assert!(
+        organization: organization,
+        broadcast_point_group: broadcast_point_group,
+        placement_kind: placement_kind
+      )
+    else
+      channel_screens = media_plan_screens.map(&:screen)
+      return if channel_screens.blank?
+
+      Airtime::PlacementChannel.assert_screens!(
+        organization: organization,
+        screens: channel_screens,
+        placement_kind: placement_kind
+      )
+    end
   rescue ArgumentError => e
     errors.add(:base, e.message)
   end
 
   def must_have_screens
-    return if screens.exists? || broadcast_point_group&.screens&.any?
+    return if media_plan_screens.any? || (persisted? && screens.exists?) || broadcast_point_group&.screens&.any?
 
     errors.add(:broadcast_point_group, :must_have_screens)
   end
@@ -154,6 +165,7 @@ class MediaPlan < ApplicationRecord
   end
 
   def no_overlapping_media_plans
+    return if advertising_order_line_id.present?
     return if broadcast_point_group.blank? || starts_at.blank? || ends_at.blank?
     return if conflict_screen_ids.blank?
 

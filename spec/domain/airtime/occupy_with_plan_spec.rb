@@ -48,6 +48,48 @@ RSpec.describe Airtime::OccupyWithPlan do
     expect(plan.airtime_booking).to be_confirmed
     expect(plan.airtime_booking.seconds).to eq(600)
     expect(plan.airtime_booking.organization).to eq(organization)
+    expect(plan.screens).to contain_exactly(screen)
+  end
+
+  def occupy_order_claim(org:, screen:)
+    line = create(
+      :advertising_order_line,
+      advertising_order: create(:advertising_order, organization: org),
+      screen: screen
+    )
+    described_class.call(
+      organization: org,
+      rotation: line.advertising_order.rotation,
+      starts_at: starts_at,
+      ends_at: ends_at,
+      placement_kind: :commercial,
+      shows_per_hour: 3,
+      screens: [ screen ],
+      order_claim: true,
+      advertising_order_line: line
+    )
+  end
+
+  it "allows a second order claim on the same screen and window" do
+    other = create(:organization, :client)
+    first = occupy_order_claim(org: organization, screen: screen)
+    second = occupy_order_claim(org: other, screen: screen)
+
+    expect(first).to be_active
+    expect(second).to be_active
+    expect(first.screens).to contain_exactly(screen)
+    expect(second.screens).to contain_exactly(screen)
+    expect(MediaPlan.active.count).to eq(2)
+  end
+
+  it "still rejects a manual plan overlapping an order claim on the same screen" do
+    occupy_order_claim(org: organization, screen: screen)
+
+    expect do
+      occupy!
+    end.to raise_error(Airtime::ConflictError)
+
+    expect(MediaPlan.active.count).to eq(1)
   end
 
   it 'allows adjacent non-overlapping windows' do

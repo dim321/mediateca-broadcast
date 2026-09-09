@@ -46,4 +46,24 @@ RSpec.describe Airtime::PlacementChannel do
       )
     end.to raise_error(ArgumentError, /own\/atmosphere/)
   end
+
+  it "allows commercial on fleet screens without a group" do
+    expect do
+      described_class.assert_screens!(
+        organization: placer,
+        screens: [ create(:screen) ],
+        placement_kind: :commercial
+      )
+    end.not_to raise_error
+  end
+
+  it "rejects own_atmosphere on screens not owned by the organization" do
+    expect do
+      described_class.assert_screens!(
+        organization: placer,
+        screens: [ screen ],
+        placement_kind: :own_atmosphere
+      )
+    end.to raise_error(ArgumentError, /own\/atmosphere/)
+  end
 end
