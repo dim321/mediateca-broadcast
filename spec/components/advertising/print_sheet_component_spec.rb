@@ -16,11 +16,21 @@ RSpec.describe Advertising::PrintSheetComponent, type: :component do
       product_name: "Triumph",
       discount_cents: discount_cents
     )
-    Advertising::UpdateGrid.call(
-      order: order,
-      lines: advertising_order_grid_lines(screen: group.screens.first, dates: dates, shows: shows)
-    )
+    fill_order_grid!(order, screen: group.screens.first, dates: dates, shows: shows)
     order.reload
+  end
+
+  it "renders the screen, hourly rate, and day windows" do
+    order = order_with_days(dates: [ Date.new(2026, 6, 3) ], shows: 9)
+
+    render_inline(described_class.new(order: order))
+
+    expect(page).to have_content(group.screens.first.name)
+    expect(page).to have_content(AdvertisingOrder.human_attribute_name(:shows_per_hour))
+    expect(page).to have_content(order.shows_per_hour)
+    expect(page).to have_content(I18n.t("advertising.print_sheet.windows"))
+    expect(page).to have_content("09:00")
+    expect(page).to have_content("12:00")
   end
 
   it "renders dashes for days without placement inside a block" do

@@ -480,6 +480,7 @@ en:
         placement_kind: Placement type
         product_name: Product
         rotation: Rotation
+        shows_per_hour: Shows per hour
         status: Status
         total_shows: Total shows
         total_sum_cents: Total
@@ -1144,6 +1145,7 @@ en:
       duration_seconds:
         one: "%{count} sec"
         other: "%{count} sec"
+      windows: Day windows
       line_totals: Line totals
       subtotal: Subtotal
       total_with_discount: Total with discount

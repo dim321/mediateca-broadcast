@@ -70,6 +70,29 @@ RSpec.describe Agent::PackageBuilder do
 
       expect(package[:items]).to be_empty
     end
+
+    it "includes screen-only order claims that have no broadcast point group" do
+      client = create(:organization, :client)
+      station = create(:station, offline_cache_hours: 24)
+      screen = create(:screen, station: station, owner_organization: client)
+      rotation = create(:rotation, organization: client)
+      create(:rotation_item, rotation: rotation, media_asset: create(:media_asset, :ready, :with_png_file, organization: client))
+      plan = Airtime::OccupyWithPlan.call(
+        organization: client,
+        rotation: rotation,
+        starts_at: Time.utc(2026, 8, 10, 10, 0, 0),
+        ends_at: Time.utc(2026, 8, 10, 11, 0, 0),
+        screens: [ screen ],
+        order_claim: true,
+        placement_kind: :commercial,
+        shows_per_hour: 3
+      )
+
+      package = described_class.call(station: station, now: Time.utc(2026, 8, 10, 9, 0, 0))
+
+      expect(package[:items].map { |item| item[:media_plan_id] }).to eq([ plan.id ])
+      expect(package[:items].sole[:screen_ids]).to eq([ screen.id ])
+    end
   end
 
   private

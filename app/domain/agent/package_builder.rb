@@ -36,16 +36,24 @@ module Agent
     end
 
     def media_plans
+      screen_ids = station.screen_ids
+      return MediaPlan.none if screen_ids.empty?
+
       MediaPlan
         .active
         .joins(:airtime_booking)
-        .joins(broadcast_point_group: :screens)
+        .left_outer_joins(:media_plan_screens)
+        .left_outer_joins(broadcast_point_group: :broadcast_point_group_memberships)
         .merge(AirtimeBooking.confirmed)
-        .where(screens: { station_id: station.id })
+        .where(
+          "media_plan_screens.screen_id IN (:ids) OR broadcast_point_group_memberships.screen_id IN (:ids)",
+          ids: screen_ids
+        )
         .where("media_plans.starts_at <= ? AND media_plans.ends_at >= ?", horizon, now)
         .where("airtime_bookings.starts_at <= media_plans.starts_at AND airtime_bookings.ends_at >= media_plans.ends_at")
         .includes(
           :airtime_booking,
+          :screens,
           broadcast_point_group: :screens,
           rotation: { rotation_items: { media_asset: [ { file_attachment: :blob }, { broadcast_file_attachment: :blob } ] } }
         )
@@ -73,7 +81,9 @@ module Agent
     end
 
     def station_screen_ids(media_plan)
-      media_plan.broadcast_point_group.screens
+      screens = media_plan.screens.to_a
+      screens = Array(media_plan.broadcast_point_group&.screens) if screens.empty?
+      screens
         .select { |screen| screen.station_id == station.id }
         .sort_by(&:id)
         .map(&:id)

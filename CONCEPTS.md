@@ -29,17 +29,17 @@ IANA TZDB zone on Location (default `"UTC"`). It is the clock of the **broadcast
 A media-plan placement kind counted toward commercial quota. Own/atmosphere placements do not increase the commercial numerator. Foreign commercial on owned screens is allowed only via the owner’s broadcast point group.
 
 ### Shows per hour
-Integer N on a media plan. Planned play time for a clock hour is `N × rotation cycle duration`. Multiple commercial plans in the same hour sum without subtracting real on-screen overlap (soft MVP). When the quota period unit is day, checks still slice by hour within the day.
+Integer N on a media plan and on an advertising order. Planned play time for a clock hour is `N × rotation cycle duration`. Multiple commercial plans in the same hour sum without subtracting real on-screen overlap (soft MVP). When the quota period unit is day, checks still slice by hour within the day. An advertising order stores one N for the whole document; activation copies it onto each occupied claim.
 
 ### Airtime booking
-An internal reservation record for a calendar window on a group. Kept as a non-UX companion under a media plan so shared-screen exclusivity across organizations can be enforced independently of same-org media-plan conflict checks.
+An internal reservation record for a calendar window on screens (optional broadcast point group). Kept as a non-UX companion under a media plan so shared-screen exclusivity across organizations can be enforced independently of same-org media-plan conflict checks.
 *Avoid:* treating booking as a separate client “hold without content” step in the MediaPlan-as-slot model.
 
 ### Media plan
-Binding of a rotation to a broadcast point group for a time window. In the slot model, creating an active media plan occupies the airtime slot; soft-cancel releases it.
+Binding of a rotation to screens (`media_plan_screens`; broadcast point group optional) for a time window. In the slot model, creating an active media plan occupies the airtime slot; soft-cancel releases it.
 
 ### Advertising order
-Commercial order document (counterparty, product, clip, per-placement day grid with shows and prices) that unfolds into media-plan slots via the standard occupy flow. Slots keep a nullable reference to their order line; manually created slots have none. The order is the commercial truth; the slot remains the airtime truth. Authored either by the client's manager in the client cabinet or by the operator on the client's behalf in the admin panel — the order always belongs to the client organization, while `created_by_user_id` records the actual author.
+Commercial order document (counterparty, product, clip, hourly rate and day windows on the order, per-screen day grid). Each order line is one screen. Activation occupies intersecting operating-hour windows as overlapping claims; two commercial orders may share a screen hour. Slots keep a nullable reference to their order line; manually created slots have none. The order is the commercial truth; the slot remains the airtime truth. Authored either by the client's manager in the client cabinet or by the operator on the client's behalf in the admin panel — the order always belongs to the client organization, while `created_by_user_id` records the actual author.
 
 ### Organization profile
 A 1:1 companion of an Organization holding descriptive attributes filled by the operator in the admin panel: business sphere (chosen from the operator-managed `Directory::BusinessSphere` directory), brand, and holding (a holding groups several brands, e.g. holding "Командор" contains brands Командор, Аллея, Хороший). An advertising order snapshots the business sphere name from the profile at creation; later profile or directory edits do not rewrite issued order documents.
@@ -75,7 +75,7 @@ Conflict rule for overlapping placements on shared screens: the first successful
 Transaction-scoped serialization over the screens affected by an occupy or reschedule, so two writers cannot both pass the overlap check in the same window.
 
 ### Screen overlap guard
-The all-organization check that confirmed bookings must not overlap on shared screens. Distinct from same-organization media-plan conflict detection.
+The all-organization check that confirmed bookings must not overlap on shared screens. Distinct from same-organization media-plan conflict detection. Advertising-order claims (`order_claim`, `advertising_order_line_id` present) may overlap each other; a manual media plan without an order line stays first-write-wins against everyone, including order claims.
 
 ### Media plan conflict (same-org)
 Rule that active media plans from the same organization must not overlap on shared screens. Does not by itself enforce exclusivity between different organizations.

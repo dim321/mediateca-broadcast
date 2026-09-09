@@ -19,6 +19,12 @@
         dt = AdvertisingOrder.human_attribute_name(:duration_seconds)
         dd = duration_label
       div
+        dt = AdvertisingOrder.human_attribute_name(:shows_per_hour)
+        dd = order.shows_per_hour.presence || dash
+      div
+        dt = t("advertising.print_sheet.windows")
+        dd = windows_label
+      div
         dt = AdvertisingOrder.human_attribute_name(:coefficient_percent)
         dd = coefficient_label
 

@@ -42,6 +42,13 @@ module Advertising
       I18n.t("advertising.print_sheet.duration_seconds", count: order.duration_seconds)
     end
 
+    def windows_label
+      windows = order.advertising_order_windows.sort_by(&:starts_at)
+      return dash if windows.empty?
+
+      windows.map { |window| "#{clock(window.starts_at)}–#{clock(window.ends_at)}" }.join(", ")
+    end
+
     def dash
       I18n.t("advertising.print_sheet.dash")
     end
@@ -49,6 +56,12 @@ module Advertising
     def cell_value(line, date)
       shows = shows_for(line, date)
       shows.present? ? shows : dash
+    end
+
+    private
+
+    def clock(value)
+      value.strftime("%H:%M")
     end
   end
 end

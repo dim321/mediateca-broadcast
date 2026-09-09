@@ -484,6 +484,7 @@ ru:
         placement_kind: Тип размещения
         product_name: Продукт
         rotation: Ротация
+        shows_per_hour: Показов в час
         status: Статус
         total_shows: Всего выходов
         total_sum_cents: Сумма
@@ -1151,6 +1152,7 @@ ru:
         few: "%{count} сек"
         many: "%{count} сек"
         other: "%{count} сек"
+      windows: Интервалы показа
       line_totals: Итого по строкам
       subtotal: Сумма без скидки
       total_with_discount: ИТОГО со скидкой
