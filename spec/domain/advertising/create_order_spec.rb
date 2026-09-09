@@ -63,4 +63,10 @@ RSpec.describe Advertising::CreateOrder do
   it "does not occupy airtime" do
     expect { create_order! }.not_to change(MediaPlan, :count)
   end
+
+  it "stores shows_per_hour on the draft" do
+    order = create_order!(shows_per_hour: 3)
+
+    expect(order.shows_per_hour).to eq(3)
+  end
 end

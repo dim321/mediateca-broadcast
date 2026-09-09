@@ -14,20 +14,38 @@ RSpec.describe Advertising::CancelOrder do
     )
   end
   let(:group) { create_group_with_hours!(organization: organization) }
+  let(:screen) { group.screens.first }
 
   before do
     Advertising::UpdateGrid.call(
       order: order,
       lines: [ {
-        broadcast_point_group_id: group.id,
-        price_per_day_cents: 34_020_00,
+        screen_id: screen.id,
         days: [ { date: Date.new(2026, 6, 3), shows: 36 } ]
       } ]
     )
+    occupy_order_slot!
+  end
+
+  def occupy_order_slot!
+    line = order.advertising_order_lines.sole
+    zone = Time.find_zone!(organization.time_zone)
+    starts_at = zone.local(2026, 6, 3)
+    ends_at = zone.local(2026, 6, 4)
+    plan = Airtime::OccupyWithPlan.call(
+      organization: organization,
+      broadcast_point_group: group,
+      rotation: order.rotation,
+      starts_at: starts_at,
+      ends_at: ends_at,
+      placement_kind: order.placement_kind,
+      shows_per_hour: 3
+    )
+    plan.update_column(:advertising_order_line_id, line.id)
+    order.active!
   end
 
   it "soft-cancels generated slots, keeps document totals, and frees the window (AE8)" do
-    Advertising::ActivateOrder.call(order: order)
     totals = order.reload.attributes.slice("total_shows", "total_sum_cents")
     plan = order.media_plans.sole
     window = [ plan.starts_at, plan.ends_at ]
@@ -50,7 +68,6 @@ RSpec.describe Advertising::CancelOrder do
   end
 
   it "cancels remaining active slots even if the rotation is no longer broadcast-ready" do
-    Advertising::ActivateOrder.call(order: order)
     order.media_asset.update_column(:processing_status, "processing")
 
     expect { described_class.call(order: order) }.not_to raise_error

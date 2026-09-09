@@ -4,14 +4,10 @@ require "rails_helper"
 
 RSpec.describe Advertising::RecalculateTotals do
   let(:order) { create(:advertising_order, discount_cents: 10_000) }
-  let(:group_a) { create(:broadcast_point_group, organization: order.organization) }
-  let(:group_b) { create(:broadcast_point_group, organization: order.organization) }
 
   it "sets line and order totals as days × price minus discount (AE1)" do
-    line_a = create(:advertising_order_line, advertising_order: order, broadcast_point_group: group_a,
-      price_per_day_cents: 34_020_00)
-    line_b = create(:advertising_order_line, advertising_order: order, broadcast_point_group: group_b,
-      price_per_day_cents: 20_000_00)
+    line_a = create(:advertising_order_line, advertising_order: order, price_per_day_cents: 34_020_00)
+    line_b = create(:advertising_order_line, advertising_order: order, price_per_day_cents: 20_000_00)
     create_order_line_days!(line_a, dates: Date.new(2026, 6, 3)..Date.new(2026, 6, 5), shows: 36)
     create_order_line_days!(line_b, dates: Date.new(2026, 6, 3)..Date.new(2026, 6, 4), shows: 12)
 

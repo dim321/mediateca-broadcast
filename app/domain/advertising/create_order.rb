@@ -8,6 +8,7 @@ module Advertising
       media_asset:,
       product_name:,
       placement_kind: :own_atmosphere,
+      shows_per_hour: nil,
       coefficient_percent: 0,
       discount_cents: 0
     )
@@ -16,6 +17,7 @@ module Advertising
       @media_asset = media_asset
       @product_name = product_name
       @placement_kind = placement_kind
+      @shows_per_hour = shows_per_hour
       @coefficient_percent = coefficient_percent
       @discount_cents = discount_cents
     end
@@ -36,6 +38,7 @@ module Advertising
           rotation: rotation,
           product_name: product_name,
           placement_kind: placement_kind,
+          shows_per_hour: shows_per_hour,
           coefficient_percent: coefficient_percent,
           discount_cents: discount_cents
         )
@@ -47,6 +50,6 @@ module Advertising
     private
 
     attr_reader :organization, :created_by, :media_asset, :product_name, :placement_kind,
-      :coefficient_percent, :discount_cents
+      :shows_per_hour, :coefficient_percent, :discount_cents
   end
 end
