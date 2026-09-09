@@ -27,20 +27,14 @@ RSpec.describe Advertising::ReplaceClip do
   end
 
   def activate!
-    Advertising::UpdateGrid.call(
-      order: order,
-        lines: advertising_order_grid_lines(screen: group.screens.first, dates: [ Date.new(2026, 6, 3) ])
-    )
+    fill_order_grid!(order, screen: group.screens.first, dates: [ Date.new(2026, 6, 3) ])
     Advertising::ActivateOrder.call(order: order)
     order.reload
   end
 
   it "enqueues GenerateForDateJob for active media plans of the order rotation (AE7)" do
     travel_to Time.utc(2026, 9, 2, 12, 0, 0) do
-      Advertising::UpdateGrid.call(
-        order: order,
-        lines: advertising_order_grid_lines(screen: group.screens.first, dates: [ Date.new(2026, 9, 3) ])
-      )
+      fill_order_grid!(order, screen: group.screens.first, dates: [ Date.new(2026, 9, 3) ])
       Advertising::ActivateOrder.call(order: order)
       order.reload
       station_id = group.screens.first.station_id

@@ -109,4 +109,24 @@ RSpec.describe CommercialQuota::Check do
 
     expect(described_class.call(plan: plan).exceeded).to be(false)
   end
+
+  it "resolves quota from the screen's owner group when the plan has no group" do
+    expect(group).to be_commercial_quota_configured
+
+    candidate = Airtime::OccupyWithPlan.call(
+      organization: owner,
+      rotation: rotation,
+      starts_at: Time.utc(2026, 8, 10, 10, 0, 0),
+      ends_at: Time.utc(2026, 8, 10, 11, 0, 0),
+      placement_kind: :commercial,
+      shows_per_hour: 10,
+      screens: [ screen ],
+      order_claim: true
+    )
+
+    result = described_class.call(plan: candidate)
+
+    expect(result.exceeded).to be(true)
+    expect(result.hours).to include(Time.utc(2026, 8, 10, 10, 0, 0))
+  end
 end

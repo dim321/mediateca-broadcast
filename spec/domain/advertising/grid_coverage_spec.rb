@@ -15,11 +15,12 @@ RSpec.describe Advertising::GridCoverage do
   let(:group) { create_group_with_hours!(organization: organization) }
 
   before do
-    Advertising::UpdateGrid.call(
-      order: order,
-      lines: advertising_order_grid_lines(screen: group.screens.first, dates: [
+    fill_order_grid!(
+      order,
+      screen: group.screens.first,
+      dates: [
         Date.new(2026, 6, 3), Date.new(2026, 6, 4), Date.new(2026, 6, 5)
-      ])
+      ]
     )
   end
 

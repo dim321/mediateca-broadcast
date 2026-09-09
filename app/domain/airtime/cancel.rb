@@ -13,7 +13,7 @@ module Airtime
         raise ArgumentError, "plan already cancelled" if locked_plan.cancelled?
 
         locked_booking = AirtimeBooking.lock.find(locked_plan.airtime_booking_id)
-        ScreenLock.call(screen_ids: locked_booking.broadcast_point_group.screen_ids)
+        ScreenLock.call(screen_ids: occupying_screen_ids(locked_plan, locked_booking))
 
         # Skip full AR validations: cancel must free the slot even if rotation/media
         # later became not broadcast-ready or the group lost screens.
@@ -37,5 +37,12 @@ module Airtime
     private
 
     attr_reader :plan
+
+    def occupying_screen_ids(locked_plan, locked_booking)
+      ids = locked_plan.screens.ids
+      return ids if ids.any?
+
+      Array(locked_booking.broadcast_point_group&.screen_ids)
+    end
   end
 end

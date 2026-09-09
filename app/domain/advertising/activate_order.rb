@@ -16,9 +16,8 @@ module Advertising
       occupied = []
       conflicted = []
 
-      order.advertising_order_lines.includes(:advertising_order_line_days, screen: :broadcast_point_groups).find_each do |line|
-        collapse(line).each do |chain, shows_per_hour|
-          window = occupy_chain(line, chain, shows_per_hour)
+      order.advertising_order_lines.includes(:advertising_order_line_days, :screen).find_each do |line|
+        occupy_line(line).each do |window|
           if window.is_a?(OccupiedWindow)
             occupied << window
           else
@@ -39,74 +38,42 @@ module Advertising
 
     attr_reader :order
 
-    def collapse(line)
-      days = line.advertising_order_line_days.sort_by(&:date).reject do |day|
-        Coverage.occupied?(line: line, date: day.date, time_zone: time_zone)
-      end
-      return [] if days.empty?
-
-      chains = []
-      current = []
-      current_rate = nil
-
-      days.each do |day|
-        group = occupy_group_for(line)
-        next if group.blank?
-
-        hours = OperatingHours.call(group: group, date: day.date, time_zone: time_zone)
-        next if hours.zero?
-
-        rate = day.shows / hours
-        if current.empty?
-          current = [ day ]
-          current_rate = rate
-        elsif day.date == current.last.date + 1 && rate == current_rate
-          current << day
-        else
-          chains << [ current, current_rate ]
-          current = [ day ]
-          current_rate = rate
-        end
-      end
-      chains << [ current, current_rate ] if current.any?
-      chains
-    end
-
-    def occupy_chain(line, chain, shows_per_hour)
-      starts_at, ends_at = bounds(chain.first.date, chain.last.date)
-      begin
-        plan = nil
-        MediaPlan.transaction do
-          plan = Airtime::OccupyWithPlan.call(
-            organization: order.organization,
-            broadcast_point_group: occupy_group_for(line),
-            rotation: order.rotation,
-            starts_at: starts_at,
-            ends_at: ends_at,
-            placement_kind: order.placement_kind,
-            shows_per_hour: shows_per_hour
-          )
-          plan.update_column(:advertising_order_line_id, line.id)
-        end
-        OccupiedWindow.new(line: line, starts_at: plan.starts_at, ends_at: plan.ends_at, plan: plan)
-      rescue Airtime::ConflictError, Airtime::InvalidWindowError, ArgumentError, ActiveRecord::RecordInvalid => e
-        ConflictedWindow.new(line: line, starts_at: starts_at, ends_at: ends_at, error: e.message)
+    def occupy_line(line)
+      days_to_occupy(line).flat_map do |day|
+        ScreenDayHours.call(
+          screen: line.screen,
+          date: day.date,
+          windows: order.advertising_order_windows,
+          time_zone: time_zone
+        ).ranges.map { |starts_at, ends_at| occupy_range(line, starts_at, ends_at) }
       end
     end
 
-    def bounds(first_date, last_date)
-      zone = Time.find_zone!(time_zone)
-      starts = zone.local(first_date.year, first_date.month, first_date.day)
-      ends = zone.local((last_date + 1).year, (last_date + 1).month, (last_date + 1).day)
-      [ starts, ends ]
+    def days_to_occupy(line)
+      line.advertising_order_line_days.sort_by(&:date).reject do |day|
+        day.shows <= 0 || Coverage.occupied?(line: line, date: day.date, time_zone: time_zone)
+      end
+    end
+
+    def occupy_range(line, starts_at, ends_at)
+      plan = Airtime::OccupyWithPlan.call(
+        organization: order.organization,
+        rotation: order.rotation,
+        starts_at: starts_at,
+        ends_at: ends_at,
+        placement_kind: order.placement_kind,
+        shows_per_hour: order.shows_per_hour,
+        screens: [ line.screen ],
+        order_claim: true,
+        advertising_order_line: line
+      )
+      OccupiedWindow.new(line: line, starts_at: plan.starts_at, ends_at: plan.ends_at, plan: plan)
+    rescue Airtime::ConflictError, Airtime::InvalidWindowError, ArgumentError, ActiveRecord::RecordInvalid => e
+      ConflictedWindow.new(line: line, starts_at: starts_at, ends_at: ends_at, error: e.message)
     end
 
     def quota_exceeded?(occupied)
       occupied.any? { |window| CommercialQuota::Check.call(plan: window.plan).exceeded }
-    end
-
-    def occupy_group_for(line)
-      line.screen.broadcast_point_groups.first
     end
 
     def time_zone

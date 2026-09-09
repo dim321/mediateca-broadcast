@@ -36,10 +36,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
     order = Advertising::CreateOrder.call(
       organization: organization, created_by: user, media_asset: asset, product_name: "Triumph"
     )
-    Advertising::UpdateGrid.call(
-      order: order,
-      lines: advertising_order_grid_lines(screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
-    )
+    fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
     Advertising::ActivateOrder.call(order: order)
     order.reload
   end
@@ -298,14 +295,11 @@ RSpec.describe "AdvertisingOrders", type: :request do
   describe "POST /advertising_orders/:id/activate" do
     before { sign_in_as(user) }
 
-    def draft_with_days(dates:, shows: 36)
+    def draft_with_days(dates:, shows: 9)
       order = Advertising::CreateOrder.call(
         organization: organization, created_by: user, media_asset: asset, product_name: "Triumph"
       )
-      Advertising::UpdateGrid.call(
-        order: order,
-        lines: advertising_order_grid_lines(screen: order_screen, dates: dates, shows: shows)
-      )
+      fill_order_grid!(order, screen: order_screen, dates: dates, shows: shows)
       order
     end
 
@@ -355,10 +349,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
         product_name: "Triumph",
         placement_kind: :commercial
       )
-      Advertising::UpdateGrid.call(
-        order: order,
-        lines: advertising_order_grid_lines(screen: owned.screens.first, dates: [ Date.new(2026, 6, 3) ])
-      )
+      fill_order_grid!(order, screen: owned.screens.first, dates: [ Date.new(2026, 6, 3) ])
 
       post activate_advertising_order_path(order)
       follow_redirect!
@@ -459,10 +450,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
       order = Advertising::CreateOrder.call(
         organization: organization, created_by: user, media_asset: asset, product_name: "Triumph"
       )
-      Advertising::UpdateGrid.call(
-        order: order,
-        lines: advertising_order_grid_lines(screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
-      )
+      fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
       Advertising::ActivateOrder.call(order: order)
       total = order.reload.total_sum_cents
 

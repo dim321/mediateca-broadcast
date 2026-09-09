@@ -68,10 +68,7 @@ RSpec.describe "Admin advertising orders", type: :request do
       order = Advertising::CreateOrder.call(
         organization: client, created_by: client_user, media_asset: asset, product_name: "Triumph"
       )
-      Advertising::UpdateGrid.call(
-        order: order,
-        lines: advertising_order_grid_lines(screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
-      )
+      fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
       Advertising::ActivateOrder.call(order: order)
 
       get admin_advertising_order_path(order)

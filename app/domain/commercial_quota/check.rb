@@ -10,9 +10,10 @@ module CommercialQuota
     end
 
     def call
-      group = plan.broadcast_point_group
       return Result.new(exceeded: false, hours: []) unless plan.commercial?
-      return Result.new(exceeded: false, hours: []) unless group.commercial_quota_configured?
+
+      group = quota_group
+      return Result.new(exceeded: false, hours: []) unless group&.commercial_quota_configured?
 
       time_zone = group.organization.time_zone.presence || "UTC"
       exceeded_hours = touched_hour_starts.filter_map do |hour_start|
@@ -36,6 +37,12 @@ module CommercialQuota
     private
 
     attr_reader :plan
+
+    def quota_group
+      return plan.broadcast_point_group if plan.broadcast_point_group&.commercial_quota_configured?
+
+      plan.screens.flat_map(&:broadcast_point_groups).find(&:commercial_quota_configured?)
+    end
 
     def touched_hour_starts
       cursor = plan.starts_at.beginning_of_hour

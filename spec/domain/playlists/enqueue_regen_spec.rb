@@ -71,6 +71,23 @@ RSpec.describe Playlists::EnqueueRegen do
       .to have_enqueued_job(Playlists::GenerateForDateJob).with(station.id, "2026-09-03").exactly(:once)
   end
 
+  it "enqueues from media_plan_screens when the plan has no group" do
+    station = build_station
+    organization = create(:organization, :client)
+    screen = create(:screen, station: station, owner_organization: organization)
+    plan = Airtime::OccupyWithPlan.call(
+      organization: organization,
+      rotation: create(:rotation, organization: organization),
+      starts_at: Time.utc(2026, 9, 3, 10, 0, 0),
+      ends_at: Time.utc(2026, 9, 3, 11, 0, 0),
+      screens: [ screen ],
+      order_claim: true
+    )
+
+    expect { described_class.from_plan(plan) }
+      .to have_enqueued_job(Playlists::GenerateForDateJob).with(station.id, "2026-09-03").exactly(:once)
+  end
+
   it "dedups two screens of the same station on from_plan" do
     station = build_station
     plan = plan_on(station, starts_at: Time.utc(2026, 9, 3, 10, 0, 0), ends_at: Time.utc(2026, 9, 3, 11, 0, 0))

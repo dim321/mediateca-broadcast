@@ -29,10 +29,7 @@ RSpec.describe "Advertising order clip replacement", type: :system do
       media_asset: original,
       product_name: "Triumph"
     )
-    Advertising::UpdateGrid.call(
-      order: order,
-      lines: advertising_order_grid_lines(screen: group.screens.first, dates: [ date ])
-    )
+    fill_order_grid!(order, screen: group.screens.first, dates: [ date ])
     Advertising::ActivateOrder.call(order: order)
     order.reload
   end

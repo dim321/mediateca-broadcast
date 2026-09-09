@@ -26,16 +26,23 @@ module Playlists
     def self.from_plan(plan)
       return if plan.blank?
 
-      from_group_window(group: plan.broadcast_point_group, starts_at: plan.starts_at, ends_at: plan.ends_at)
+      from_screens_window(screens: occupying_screens_for(plan), starts_at: plan.starts_at, ends_at: plan.ends_at)
     end
 
     def self.from_group_window(group:, starts_at:, ends_at:)
-      return if group.blank?
+      from_screens_window(screens: group&.screens, starts_at: starts_at, ends_at: ends_at)
+    end
 
-      stations = group.screens.includes(station: :location).filter_map(&:station).uniq
-      stations.each do |station|
-        call(station_ids: [ station.id ], dates: overlapping_dates(station, starts_at, ends_at))
-      end
+    def self.from_screens_window(screens:, starts_at:, ends_at:)
+      return if screens.blank?
+
+      Screen.where(id: Array(screens).map(&:id))
+        .includes(station: :location)
+        .filter_map(&:station)
+        .uniq
+        .each do |station|
+          call(station_ids: [ station.id ], dates: overlapping_dates(station, starts_at, ends_at))
+        end
     end
 
     def self.from_station(station)
@@ -74,7 +81,7 @@ module Playlists
         .pluck("screens.station_id")
       Station.where(id: portrait_station_ids).includes(:location).find_each { from_station(it) }
 
-      rotation.media_plans.active.includes(broadcast_point_group: { screens: { station: :location } }).find_each do |plan|
+      rotation.media_plans.active.includes(:screens, broadcast_point_group: { screens: { station: :location } }).find_each do |plan|
         from_plan(plan)
       end
     end
@@ -97,6 +104,13 @@ module Playlists
       return [] if end_date < start_date
 
       (start_date..end_date).to_a
+    end
+
+    def self.occupying_screens_for(plan)
+      attached = plan.screens.to_a
+      return attached if attached.any?
+
+      Array(plan.broadcast_point_group&.screens)
     end
 
     private

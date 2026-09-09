@@ -8,7 +8,7 @@ RSpec.describe Airtime::Cancel do
 
   let(:organization) { create(:organization, :client) }
   let(:group) { create(:broadcast_point_group, organization: organization) }
-  let(:screen) { create(:screen) }
+  let(:screen) { create(:screen, owner_organization: organization) }
   let(:rotation) { create(:rotation, organization: organization) }
   let(:starts_at) { Time.utc(2026, 8, 10, 10, 0, 0) }
   let(:ends_at) { Time.utc(2026, 8, 10, 10, 10, 0) }
@@ -71,6 +71,24 @@ RSpec.describe Airtime::Cancel do
     described_class.call(plan: plan)
 
     expect { described_class.call(plan: plan.reload) }.to raise_error(ArgumentError, /already cancelled/)
+  end
+
+  it "cancels a screen-only order claim that has no group" do
+    claim = Airtime::OccupyWithPlan.call(
+      organization: organization,
+      rotation: rotation,
+      starts_at: starts_at,
+      ends_at: ends_at,
+      screens: [ screen ],
+      order_claim: true,
+      placement_kind: :commercial,
+      shows_per_hour: 3
+    )
+
+    described_class.call(plan: claim)
+
+    expect(claim.reload).to be_cancelled
+    expect(claim.airtime_booking.reload).to be_cancelled
   end
 
   it 'still cancels when rotation media later becomes not broadcast-ready' do

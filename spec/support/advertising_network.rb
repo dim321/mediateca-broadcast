@@ -74,6 +74,21 @@ module AdvertisingNetwork
     } ]
   end
 
+  def prepare_order_windows!(order, shows_per_hour: 3, windows: [ { starts_at: "09:00", ends_at: "12:00" } ])
+    order.update!(shows_per_hour: shows_per_hour)
+    order.advertising_order_windows.destroy_all
+    windows.each { |window| order.advertising_order_windows.create!(window) }
+    order
+  end
+
+  def fill_order_grid!(order, screen:, dates:, shows: 9, **window_attrs)
+    prepare_order_windows!(order, **window_attrs)
+    Advertising::UpdateGrid.call(
+      order: order,
+      lines: advertising_order_grid_lines(screen: screen, dates: dates, shows: shows)
+    )
+  end
+
   def create_group_with_hours!(organization:, hours: WEEKLY_HOURS, **group_attrs)
     location = create(:location, operating_hours: hours)
     station = create(:station, location: location)
