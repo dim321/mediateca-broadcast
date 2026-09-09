@@ -476,6 +476,7 @@ en:
         document_version: Document version
         duration_seconds: Duration
         media_asset: Clip
+        media_asset_id: Clip
         organization: Organization
         placement_kind: Placement type
         product_name: Product
@@ -674,9 +675,12 @@ en:
       screen: Screen
       fill_from: From
       fill_to: To
+      date_placeholder: dd.mm.yyyy
       show_grid: Show grid
+      grand_total_shows: Grand total
     line_fields:
       price_per_day_rubles: Price per day, ₽
+      total_shows: Total
     show:
       edit: Edit grid
       activate: Activate

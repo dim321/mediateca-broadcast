@@ -151,7 +151,14 @@ module AdvertisingOrderGrid
   end
 
   def parse_grid_date(value)
-    Date.iso8601(value.to_s)
+    str = value.to_s.strip
+    return if str.blank?
+
+    if str.match?(/\A\d{4}-\d{2}-\d{2}\z/)
+      Date.iso8601(str)
+    elsif str.match?(/\A\d{1,2}\.\d{1,2}\.\d{4}\z/)
+      Date.strptime(str, "%d.%m.%Y")
+    end
   rescue ArgumentError, TypeError
     nil
   end

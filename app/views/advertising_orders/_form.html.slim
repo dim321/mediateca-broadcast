@@ -59,9 +59,34 @@
   .card.bg-base-100.border.border-base-300
     .card-body.gap-3
       h2.card-title.text-base = t('.grid')
-      .space-y-4 data-order-grid-target='lines' data-order-screen-picker-target='gridLines'
-        - advertising_order.advertising_order_lines.select(&:screen_id).each_with_index do |line, index|
-          = render 'advertising_orders/line_fields', **order_line_field_locals(line, index)
+      .overflow-x-auto.rounded-box.border.border-base-300.shadow-sm
+        table#order-airtime-grid.table.table-sm.table-pin-rows.table-pin-cols.w-full
+          thead
+            tr.bg-base-200.text-xs.text-base-content/70
+              th.align-bottom.whitespace-nowrap.px-4 rowspan='2' = t('.screen')
+              - advertising_grid_months(@grid_dates).each do |month, dates|
+                th.text-center.font-medium.normal-case.text-base-content colspan=dates.size = l(month, format: '%B %Y')
+              th.align-bottom.text-center.whitespace-nowrap.px-2 rowspan='2' = t('advertising_orders.line_fields.total_shows')
+            tr.bg-base-200.text-xs.text-base-content/70
+              - Array(@grid_dates).each do |date|
+                - weekend = date.saturday? || date.sunday?
+                th.text-center.font-normal.w-10 class=(weekend ? 'bg-base-300' : nil) = date.day
+          tbody data-order-grid-target='lines' data-order-screen-picker-target='gridLines'
+            - advertising_order.advertising_order_lines.select(&:screen_id).each_with_index do |line, index|
+              = render 'advertising_orders/line_fields', **order_line_field_locals(line, index)
+          tfoot
+            tr.bg-base-200.border-t.border-base-300
+              td.font-medium.px-4 = t('.grand_total_shows')
+              - dates_count = Array(@grid_dates).size
+              - if dates_count.positive?
+                td colspan=dates_count
+              td.p-1.text-center
+                = number_field_tag nil,
+                    advertising_order.total_shows,
+                    readonly: true,
+                    tabindex: -1,
+                    class: 'input input-bordered input-xs w-16 text-center',
+                    data: { order_grid_target: 'grandTotal' }
       template data-order-screen-picker-target='rowTemplate'
         = render 'advertising_orders/line_fields', **order_line_field_locals(AdvertisingOrderLine.new, 'NEW_LINE')
   .flex.gap-3

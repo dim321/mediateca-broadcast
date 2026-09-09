@@ -18,11 +18,11 @@
   </div>
   <div>
     <label class="<%= admin_label_class %>"><%= t("advertising_orders.form.fill_from") %></label>
-    <%= date_field_tag :grid_from, @grid_dates.first, class: admin_input_class %>
+    <%= order_grid_date_field_tag :grid_from, @grid_dates.first, html_class: admin_input_class %>
   </div>
   <div>
     <label class="<%= admin_label_class %>"><%= t("advertising_orders.form.fill_to") %></label>
-    <%= date_field_tag :grid_to, @grid_dates.last, class: admin_input_class %>
+    <%= order_grid_date_field_tag :grid_to, @grid_dates.last, html_class: admin_input_class %>
   </div>
   <%= submit_tag t("advertising_orders.form.show_grid"), class: admin_primary_button_class %>
 <% end %>

@@ -157,6 +157,10 @@ RSpec.describe "AdvertisingOrders", type: :request do
   describe "GET /advertising_orders/new" do
     before { sign_in_as(user) }
 
+    def visible_grid_date_input(name)
+      Nokogiri::HTML(response.body).css("input[name='#{name}']").find { |node| node["type"] != "hidden" }
+    end
+
     it "renders the screen picker, hourly rate, and day windows" do
       get new_advertising_order_path
 
@@ -174,6 +178,78 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
       expect(response.body).not_to include('name="advertising_order[coefficient_percent]"')
       expect(response.body).not_to include('name="advertising_order[discount_rubles]"')
+    end
+
+    it "shows С/По dates as dd.mm.yyyy text fields" do
+      get new_advertising_order_path, params: { grid_from: "2026-06-03", grid_to: "2026-06-05" }
+
+      from = visible_grid_date_input("grid_from")
+      to = visible_grid_date_input("grid_to")
+      expect(from["type"]).to eq("text")
+      expect(to["type"]).to eq("text")
+      expect(from["value"]).to eq("03.06.2026")
+      expect(to["value"]).to eq("05.06.2026")
+    end
+
+    it "accepts dotted С/По dates when showing the grid" do
+      get new_advertising_order_path, params: { grid_from: "03.06.2026", grid_to: "05.06.2026" }
+
+      expect(visible_grid_date_input("grid_from")["value"]).to eq("03.06.2026")
+      expect(visible_grid_date_input("grid_to")["value"]).to eq("05.06.2026")
+      month_label = I18n.l(Date.new(2026, 6, 1), format: "%B %Y")
+      thead = Nokogiri::HTML(response.body).at_css("#order-airtime-grid thead")
+      expect(thead.text).to include(month_label)
+    end
+
+    it "labels the media asset select in Russian" do
+      get new_advertising_order_path
+
+      expect(AdvertisingOrder.human_attribute_name(:media_asset_id)).to eq("Ролик")
+      expect(response.body).to include("Ролик")
+    end
+  end
+
+  describe "GET /advertising_orders/:id/edit" do
+    before { sign_in_as(user) }
+
+    it "shows screen and location on the grid row with a total shows field" do
+      screen = order_screen
+      screen.update!(name: "Витрина 7")
+      screen.location.update!(name: "ТЦ Галерея")
+      screen.station.update!(name: "Станция Невидимая")
+      order = Advertising::CreateOrder.call(
+        organization: organization, created_by: user, media_asset: asset, product_name: "Triumph"
+      )
+      fill_order_grid!(order, screen: screen, dates: [ Date.new(2026, 6, 3), Date.new(2026, 6, 4) ], shows: 9)
+
+      get edit_advertising_order_path(order), params: { grid_from: "2026-06-03", grid_to: "2026-06-04" }
+
+      html = Nokogiri::HTML(response.body)
+      row = html.at_css("[data-order-grid-target='lineRow']")
+      expect(row.name).to eq("tr")
+      expect(row.text).to include("Витрина 7")
+      expect(row.text).to include("ТЦ Галерея")
+      expect(row.text).not_to include("Станция Невидимая")
+      expect(row.at_css("[data-order-screen-picker-target='screenName']")).to be_present
+      expect(row.at_css("[data-order-grid-target='total']")["value"]).to eq("18")
+      expect(html.at_css("[data-order-grid-target='grandTotal']")["value"]).to eq("18")
+    end
+
+    it "shows the month once in the grid header instead of each screen row" do
+      order = Advertising::CreateOrder.call(
+        organization: organization, created_by: user, media_asset: asset, product_name: "Triumph"
+      )
+      fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3), Date.new(2026, 6, 4) ], shows: 9)
+
+      get edit_advertising_order_path(order), params: { grid_from: "2026-06-03", grid_to: "2026-06-04" }
+
+      html = Nokogiri::HTML(response.body)
+      month_label = I18n.l(Date.new(2026, 6, 1), format: "%B %Y")
+      thead = html.at_css("#order-airtime-grid thead")
+      row = html.at_css("[data-order-grid-target='lineRow']")
+      expect(thead.text).to include(month_label)
+      expect(thead.text.scan(month_label).size).to eq(1)
+      expect(row.text).not_to include(month_label)
     end
   end
 

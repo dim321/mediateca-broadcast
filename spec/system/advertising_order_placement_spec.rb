@@ -8,6 +8,14 @@ RSpec.describe "Advertising order placement", type: :system do
   let(:asset) { create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 10) }
   let(:group) { create_group_with_hours!(organization: organization, name: "Витрины Триумф") }
 
+  def named_screen
+    group.screens.first.tap do |screen|
+      screen.update!(name: "Витрина Триумф")
+      screen.location.update!(name: "ТЦ Галерея")
+      screen.station.update!(name: "Станция Невидимая")
+    end
+  end
+
   def sign_in_through_ui
     visit login_path
     fill_in I18n.t("sessions.new.email"), with: user.email
@@ -18,7 +26,7 @@ RSpec.describe "Advertising order placement", type: :system do
   # rubocop:disable RSpec/ExampleLength, RSpec/MultipleExpectations -- one end-to-end journey
   it "lets a manager create a draft grid and activate it" do
     asset
-    screen = group.screens.first
+    screen = named_screen
     sign_in_through_ui
 
     click_link I18n.t("layouts.application.advertising_orders")
@@ -36,6 +44,17 @@ RSpec.describe "Advertising order placement", type: :system do
     expect(page).to have_content(I18n.t("advertising_orders.create.created"))
     expect(page).to have_content("Triumph")
 
+    click_link I18n.t("advertising_orders.show.edit")
+    within("[data-order-grid-target='lineRow']") do
+      expect(page).to have_content("Витрина Триумф")
+      expect(page).to have_content("ТЦ Галерея")
+      expect(page).not_to have_content("Станция Невидимая")
+      total_shows = AdvertisingOrder.last.advertising_order_lines.sole.total_shows
+      expect(find("[data-order-grid-target='total']").value).to eq(total_shows.to_s)
+    end
+    expect(find("[data-order-grid-target='grandTotal']").value).to eq(AdvertisingOrder.last.total_shows.to_s)
+
+    visit advertising_order_path(AdvertisingOrder.last)
     click_button I18n.t("advertising_orders.show.activate")
     expect(page).to have_content(I18n.t("advertising_orders.activate.activated"))
     expect(AdvertisingOrder.last).to be_active

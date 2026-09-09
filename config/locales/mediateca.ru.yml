@@ -480,6 +480,7 @@ ru:
         document_version: Версия документа
         duration_seconds: Хронометраж
         media_asset: Ролик
+        media_asset_id: Ролик
         organization: Организация
         placement_kind: Тип размещения
         product_name: Продукт
@@ -680,9 +681,12 @@ ru:
       screen: Экран
       fill_from: С
       fill_to: По
+      date_placeholder: дд.мм.гггг
       show_grid: Показать сетку
+      grand_total_shows: Всего
     line_fields:
       price_per_day_rubles: Цена за день, ₽
+      total_shows: Итого
     show:
       edit: Изменить сетку
       activate: Активировать

@@ -9,6 +9,20 @@ module AdvertisingOrdersHelper
     Array(dates).group_by { |date| Date.new(date.year, date.month, 1) }
   end
 
+  def order_grid_date_value(date)
+    date&.strftime("%d.%m.%Y")
+  end
+
+  def order_grid_date_field_tag(name, date, html_class:)
+    text_field_tag(
+      name,
+      order_grid_date_value(date),
+      class: html_class,
+      placeholder: t("advertising_orders.form.date_placeholder"),
+      autocomplete: "off"
+    )
+  end
+
   def advertising_order_price_rubles(line)
     return if line.price_per_day_cents.blank?
 
@@ -41,9 +55,7 @@ module AdvertisingOrdersHelper
   end
 
   def order_screen_meta(screen)
-    return if screen.blank?
-
-    [ screen.location&.name, screen.station&.name ].compact.join(" · ")
+    screen&.location&.name
   end
 
   def order_form_windows
@@ -82,7 +94,8 @@ module AdvertisingOrdersHelper
       screen_id: screen&.id || "NEW_SCREEN",
       screen_name: screen&.name || t("advertising_orders.form.screen"),
       screen_meta: order_screen_meta(screen),
-      hours_json: screen ? order_screen_hours_json(screen) : {}
+      hours_json: screen ? order_screen_hours_json(screen) : {},
+      shows_total: line.total_shows
     }
   end
 end
