@@ -151,15 +151,59 @@ module Playlists
     end
 
     def emit_commercial(screen, portrait, slot_start, pickers)
-      plan = occupying_plan_for(screen, slot_start)
-      return emit_commercial_fallback(screen, portrait, slot_start, pickers) unless plan
+      plans = occupying_plans_for(screen, slot_start)
+      return emit_commercial_fallback(screen, portrait, slot_start, pickers) if plans.empty?
 
+      if plans.one? && plans.first.advertising_order_line_id.nil?
+        return emit_single_plan_commercial(plans.first, screen, portrait, slot_start, pickers)
+      end
+
+      emit_mixed_commercial(plans, screen, portrait, slot_start, pickers)
+    end
+
+    def emit_single_plan_commercial(plan, screen, portrait, slot_start, pickers)
       clips = commercial_clips(plan, screen, pickers)
       return [] if clips.empty?
 
+      wrap_commercial_emissions(plan.commercial?, screen, portrait, slot_start, pickers) do |offset|
+        clips.map do |clip|
+          item = emission(clip, screen, offset, "media_plan", media_plan_id: plan.id)
+          offset += clip[:duration_seconds]
+          item
+        end
+      end
+    end
+
+    def emit_mixed_commercial(plans, screen, portrait, slot_start, pickers)
+      remaining = portrait.max_commercial_in_row
+      batches = []
+      plans.each do |plan|
+        break if remaining <= 0
+
+        count = [ commercial_clip_count(plan, portrait), remaining ].min
+        next if count < 1
+
+        clips = commercial_clips(plan, screen, pickers, count: count)
+        next if clips.empty?
+
+        remaining -= clips.size
+        batches << [ plan, clips ]
+      end
+      return [] if batches.empty?
+
+      wrap_commercial_emissions(plans.any?(&:commercial?), screen, portrait, slot_start, pickers) do |offset|
+        round_robin_plan_clips(batches).map do |plan, clip|
+          item = emission(clip, screen, offset, "media_plan", media_plan_id: plan.id)
+          offset += clip[:duration_seconds]
+          item
+        end
+      end
+    end
+
+    def wrap_commercial_emissions(wrap, screen, portrait, slot_start, pickers)
       offset = offset_seconds(slot_start)
       items = []
-      if plan.commercial?
+      if wrap
         header_blocks(portrait, "service_header_start").each do |block|
           pick = take_from_block(block, screen, pickers, min_seconds: nil)
           if pick
@@ -170,11 +214,12 @@ module Playlists
           end
         end
       end
-      clips.each do |clip|
-        items << emission(clip, screen, offset, "media_plan", media_plan_id: plan.id)
-        offset += clip[:duration_seconds]
+      items.concat(yield(offset))
+      if items.any?
+        last = items.last
+        offset = last[:offset_seconds] + last[:duration_seconds]
       end
-      if plan.commercial?
+      if wrap
         header_blocks(portrait, "service_header_end").each do |block|
           pick = take_from_block(block, screen, pickers, min_seconds: nil)
           if pick
@@ -186,6 +231,23 @@ module Playlists
         end
       end
       items
+    end
+
+    def round_robin_plan_clips(batches)
+      queues = batches.map { |plan, clips| clips.map { |clip| [ plan, clip ] } }
+      interleaved = []
+      loop do
+        progressed = false
+        queues.each do |queue|
+          pair = queue.shift
+          next unless pair
+
+          interleaved << pair
+          progressed = true
+        end
+        break unless progressed
+      end
+      interleaved
     end
 
     def emit_commercial_fallback(screen, portrait, slot_start, pickers)
@@ -214,9 +276,9 @@ module Playlists
       []
     end
 
-    def commercial_clips(plan, screen, pickers)
+    def commercial_clips(plan, screen, pickers, count: nil)
       picker = picker_for(pickers, screen, plan.rotation, "sequential", min_seconds: nil)
-      clips = picker.take(commercial_clip_count(plan, screen.broadcast_portrait))
+      clips = picker.take(count || commercial_clip_count(plan, screen.broadcast_portrait))
       if clips.empty?
         warn_once("media plan #{plan.id} rotation has no eligible clips")
         return []
@@ -271,12 +333,17 @@ module Playlists
         .sort_by { |entry| [ entry[:offset_seconds], entry[:source_kind].to_s, entry[:media_asset_id] ] }
     end
 
-    def occupying_plan_for(screen, slot_start)
-      occupying_plans.find do |plan|
-        next unless plan.broadcast_point_group.screens.any? { |member| member.id == screen.id }
+    def occupying_plans_for(screen, slot_start)
+      occupying_plans.select do |plan|
+        next false unless plan_covers_screen?(plan, screen)
 
         plan.starts_at <= slot_start && slot_start < plan.ends_at
       end
+    end
+
+    def plan_covers_screen?(plan, screen)
+      plan.media_plan_screens.any? { |row| row.screen_id == screen.id } ||
+        Array(plan.broadcast_point_group&.screens).any? { |member| member.id == screen.id }
     end
 
     def occupying_plans

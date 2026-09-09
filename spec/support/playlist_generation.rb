@@ -92,6 +92,25 @@ module PlaylistGeneration
     portrait
   end
 
+  def occupy_order_claim!(screen:, organization:, rotation:, starts_at:, ends_at:, shows_per_hour: 3)
+    line = create(
+      :advertising_order_line,
+      advertising_order: create(:advertising_order, organization: organization),
+      screen: screen
+    )
+    Airtime::OccupyWithPlan.call(
+      organization: organization,
+      rotation: rotation,
+      starts_at: starts_at,
+      ends_at: ends_at,
+      placement_kind: :commercial,
+      shows_per_hour: shows_per_hour,
+      screens: [ screen ],
+      order_claim: true,
+      advertising_order_line: line
+    )
+  end
+
   def occupy_with_clips!(screen:, organization:, rotation:, starts_at:, ends_at:,
     placement_kind: :own_atmosphere, shows_per_hour: nil, group_organization: nil)
     group = create(:broadcast_point_group, organization: group_organization || organization)

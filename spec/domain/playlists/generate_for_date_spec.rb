@@ -134,6 +134,74 @@ RSpec.describe Playlists::GenerateForDate do
     expect(max_run).to be <= 3
   end
 
+  it "mixes clips from two overlapping commercial order claims on the same screen" do
+    station = create_playlist_station!
+    screen = create(:screen, station: station)
+    filler = create_clip_rotation!(organization: create(:organization, :client))
+    create_cyclic_portrait!(station, filler_rotation: filler, frequency: 4, max_commercial_in_row: 3)
+
+    first_org = create(:organization, :client)
+    second_org = create(:organization, :client)
+    first_ads = create_clip_rotation!(organization: first_org)
+    second_ads = create_clip_rotation!(organization: second_org)
+    occupy_order_claim!(
+      screen: screen, organization: first_org, rotation: first_ads,
+      starts_at: local_slot(9), ends_at: local_slot(21), shows_per_hour: 3
+    )
+    occupy_order_claim!(
+      screen: screen, organization: second_org, rotation: second_ads,
+      starts_at: local_slot(9), ends_at: local_slot(21), shows_per_hour: 3
+    )
+
+    hour = generate!(station).playlist.items.sort_by(&:offset_seconds).select do |item|
+      item.offset_seconds < 3600 && item.media_plan? && item_screen_ids(item).include?(screen.id)
+    end
+
+    expect(hour.map(&:media_asset_id)).to include(
+      first_ads.ordered_items.first.media_asset_id,
+      second_ads.ordered_items.first.media_asset_id
+    )
+  end
+
+  it "wraps mixed order-claim commercials with service headers once" do
+    station = create_playlist_station!
+    owner = create(:organization, :client)
+    screen = create(:screen, station: station, owner_organization: owner)
+    filler = create_clip_rotation!(organization: owner)
+    start_rot = create_clip_rotation!(organization: owner)
+    end_rot = create_clip_rotation!(organization: owner)
+    create_cyclic_portrait!(
+      station,
+      filler_rotation: filler,
+      header_start_rotation: start_rot,
+      header_end_rotation: end_rot
+    )
+    first_org = create(:organization, :client)
+    second_org = create(:organization, :client)
+    occupy_order_claim!(
+      screen: screen, organization: first_org,
+      rotation: create_clip_rotation!(organization: first_org),
+      starts_at: local_slot(9), ends_at: local_slot(21), shows_per_hour: 3
+    )
+    occupy_order_claim!(
+      screen: screen, organization: second_org,
+      rotation: create_clip_rotation!(organization: second_org),
+      starts_at: local_slot(9), ends_at: local_slot(21), shows_per_hour: 3
+    )
+
+    first_slot = generate!(station).playlist.items.sort_by(&:offset_seconds).select do |item|
+      item.offset_seconds < 900 && item_screen_ids(item).include?(screen.id)
+    end
+    kinds = first_slot.map(&:source_kind)
+
+    expect(kinds.first).to eq("service")
+    expect(kinds.last).to eq("service")
+    expect(kinds.count("service")).to eq(2)
+    expect(kinds.count("media_plan")).to eq(2)
+    expect(first_slot.first.media_asset_id).to eq(start_rot.ordered_items.first.media_asset_id)
+    expect(first_slot.last.media_asset_id).to eq(end_rot.ordered_items.first.media_asset_id)
+  end
+
   it "lets a 12:00 insertion replace that slot without shifting later cyclic items (AE6)" do
     station = create_playlist_station!
     screen = create(:screen, station: station)

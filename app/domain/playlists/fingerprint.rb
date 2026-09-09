@@ -17,17 +17,24 @@ module Playlists
       zone = Time.find_zone!(station.location.time_zone)
       day_start = zone.local(for_date.year, for_date.month, for_date.day)
       day_end = zone.local((for_date + 1).year, (for_date + 1).month, (for_date + 1).day)
+      screen_ids = station.screen_ids
+      return [] if screen_ids.empty?
 
       MediaPlan
         .active
         .joins(:airtime_booking)
-        .joins(broadcast_point_group: :screens)
+        .left_outer_joins(:media_plan_screens)
+        .left_outer_joins(broadcast_point_group: :broadcast_point_group_memberships)
         .merge(AirtimeBooking.confirmed)
-        .where(screens: { station_id: station.id })
+        .where(
+          "media_plan_screens.screen_id IN (:ids) OR broadcast_point_group_memberships.screen_id IN (:ids)",
+          ids: screen_ids
+        )
         .where("media_plans.starts_at < ? AND media_plans.ends_at > ?", day_end, day_start)
         .where("airtime_bookings.starts_at <= media_plans.starts_at AND airtime_bookings.ends_at >= media_plans.ends_at")
         .includes(
           :airtime_booking,
+          :media_plan_screens,
           rotation: { rotation_items: { media_asset: [ { file_attachment: :blob }, { broadcast_file_attachment: :blob } ] } },
           broadcast_point_group: :screens
         )
