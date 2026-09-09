@@ -305,6 +305,9 @@ ru:
       advertising_order_line_day:
         one: День строки заказа
         other: Дни строки заказа
+      advertising_order_window:
+        one: Интервал показа
+        other: Интервалы показа
       broadcast_portrait:
         one: Портрет эфира
         other: Портреты эфира
@@ -391,6 +394,10 @@ ru:
             broadcast_point_group:
               wrong_organization: должна принадлежать вашей организации
               missing_operating_hours: должна иметь часы работы у всех локаций
+        advertising_order_window:
+          attributes:
+            ends_at:
+              must_be_after_starts: должен быть позже времени начала
         advertising_order_line_day:
           attributes:
             date:

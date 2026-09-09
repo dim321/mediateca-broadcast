@@ -6,25 +6,25 @@ require "rails_helper"
 #
 # Table name: advertising_order_lines
 #
-#  id                       :bigint           not null, primary key
-#  price_per_day_cents      :integer          not null
-#  total_shows              :integer          default(0), not null
-#  total_sum_cents          :integer          default(0), not null
-#  created_at               :datetime         not null
-#  updated_at               :datetime         not null
-#  advertising_order_id     :bigint           not null
-#  broadcast_point_group_id :bigint           not null
+#  id                   :bigint           not null, primary key
+#  price_per_day_cents  :integer          not null
+#  total_shows          :integer          default(0), not null
+#  total_sum_cents      :integer          default(0), not null
+#  created_at           :datetime         not null
+#  updated_at           :datetime         not null
+#  advertising_order_id :bigint           not null
+#  screen_id            :bigint           not null
 #
 # Indexes
 #
-#  index_advertising_order_lines_on_advertising_order_id      (advertising_order_id)
-#  index_advertising_order_lines_on_broadcast_point_group_id  (broadcast_point_group_id)
-#  index_advertising_order_lines_on_order_and_group           (advertising_order_id,broadcast_point_group_id) UNIQUE
+#  index_advertising_order_lines_on_advertising_order_id  (advertising_order_id)
+#  index_advertising_order_lines_on_order_and_screen      (advertising_order_id,screen_id) UNIQUE
+#  index_advertising_order_lines_on_screen_id             (screen_id)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (advertising_order_id => advertising_orders.id) ON DELETE => cascade
-#  fk_rails_...  (broadcast_point_group_id => broadcast_point_groups.id) ON DELETE => restrict
+#  fk_rails_...  (screen_id => screens.id) ON DELETE => restrict
 #
 RSpec.describe AdvertisingOrderLine, type: :model do
   describe "validations" do
@@ -34,32 +34,11 @@ RSpec.describe AdvertisingOrderLine, type: :model do
       expect(line.errors[:price_per_day_cents]).to be_present
     end
 
-    it "enforces uniqueness of a group within an order" do
-      existing = create(:advertising_order_line)
-      duplicate = build(
-        :advertising_order_line,
-        advertising_order: existing.advertising_order,
-        broadcast_point_group: existing.broadcast_point_group
-      )
+    it "rejects a second line for the same screen on the same order" do
+      line = create(:advertising_order_line)
+      duplicate = build(:advertising_order_line, advertising_order: line.advertising_order, screen: line.screen)
       expect(duplicate).not_to be_valid
-      expect(duplicate.errors[:broadcast_point_group_id]).to be_present
-    end
-
-    it "requires the group to belong to the order organization for own atmosphere" do
-      order = create(:advertising_order, placement_kind: :own_atmosphere)
-      foreign_group = create(:broadcast_point_group)
-      line = build(:advertising_order_line, advertising_order: order, broadcast_point_group: foreign_group)
-
-      expect(line).not_to be_valid
-      expect(line.errors[:broadcast_point_group]).to be_present
-    end
-
-    it "allows a foreign group on a commercial order at the model layer" do
-      order = create(:advertising_order, placement_kind: :commercial)
-      foreign_group = create(:broadcast_point_group)
-      line = build(:advertising_order_line, advertising_order: order, broadcast_point_group: foreign_group)
-
-      expect(line).to be_valid
+      expect(duplicate.errors[:screen_id]).to be_present
     end
   end
 

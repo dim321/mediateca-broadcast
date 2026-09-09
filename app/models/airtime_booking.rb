@@ -11,7 +11,7 @@
 #  status                   :string           default("confirmed"), not null
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
-#  broadcast_point_group_id :bigint           not null
+#  broadcast_point_group_id :bigint
 #  organization_id          :bigint           not null
 #
 # Indexes
@@ -28,7 +28,7 @@
 #
 class AirtimeBooking < ApplicationRecord
   belongs_to :organization
-  belongs_to :broadcast_point_group
+  belongs_to :broadcast_point_group, optional: true
   has_many :media_plans, dependent: :restrict_with_exception
 
   enum :status, {
@@ -43,8 +43,8 @@ class AirtimeBooking < ApplicationRecord
   def covers_plan?(plan)
     plan.starts_at >= starts_at &&
       plan.ends_at <= ends_at &&
-      plan.broadcast_point_group_id == broadcast_point_group_id &&
-      plan.organization_id == organization_id
+      plan.organization_id == organization_id &&
+      (broadcast_point_group_id.nil? || plan.broadcast_point_group_id == broadcast_point_group_id)
   end
 
   private

@@ -14,7 +14,7 @@
 #  updated_at                :datetime         not null
 #  advertising_order_line_id :bigint
 #  airtime_booking_id        :bigint           not null
-#  broadcast_point_group_id  :bigint           not null
+#  broadcast_point_group_id  :bigint
 #  organization_id           :bigint           not null
 #  rotation_id               :bigint           not null
 #
@@ -48,9 +48,11 @@ class MediaPlan < ApplicationRecord
 
   belongs_to :organization
   belongs_to :rotation
-  belongs_to :broadcast_point_group
+  belongs_to :broadcast_point_group, optional: true
   belongs_to :airtime_booking
   belongs_to :advertising_order_line, optional: true
+  has_many :media_plan_screens, dependent: :destroy
+  has_many :screens, through: :media_plan_screens
 
   enum :status, {
     active: "active",
@@ -71,7 +73,7 @@ class MediaPlan < ApplicationRecord
   validate :ends_after_starts
   validate :rotation_matches_organization
   validate :broadcast_point_group_matches_organization
-  validate :broadcast_point_group_has_screens
+  validate :must_have_screens
   validate :rotation_is_broadcast_ready
   validate :booking_must_be_confirmed
   validate :booking_matches_organization_and_group
@@ -115,9 +117,8 @@ class MediaPlan < ApplicationRecord
     errors.add(:base, e.message)
   end
 
-  def broadcast_point_group_has_screens
-    return if broadcast_point_group.blank?
-    return if conflict_screen_ids.any?
+  def must_have_screens
+    return if screens.exists? || broadcast_point_group&.screens&.any?
 
     errors.add(:broadcast_point_group, :must_have_screens)
   end
@@ -167,6 +168,6 @@ class MediaPlan < ApplicationRecord
   end
 
   def conflict_screen_ids
-    @conflict_screen_ids ||= broadcast_point_group.screen_ids
+    @conflict_screen_ids ||= screens.ids.presence || Array(broadcast_point_group&.screen_ids)
   end
 end

@@ -16,7 +16,7 @@ require 'rails_helper'
 #  updated_at                :datetime         not null
 #  advertising_order_line_id :bigint
 #  airtime_booking_id        :bigint           not null
-#  broadcast_point_group_id  :bigint           not null
+#  broadcast_point_group_id  :bigint
 #  organization_id           :bigint           not null
 #  rotation_id               :bigint           not null
 #

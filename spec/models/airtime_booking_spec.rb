@@ -13,7 +13,7 @@ require 'rails_helper'
 #  status                   :string           default("confirmed"), not null
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
-#  broadcast_point_group_id :bigint           not null
+#  broadcast_point_group_id :bigint
 #  organization_id          :bigint           not null
 #
 # Indexes

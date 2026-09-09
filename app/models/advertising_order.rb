@@ -13,6 +13,7 @@
 #  duration_seconds    :integer
 #  placement_kind      :string           default("own_atmosphere"), not null
 #  product_name        :string           not null
+#  shows_per_hour      :integer
 #  status              :string           default("draft"), not null
 #  total_shows         :integer          default(0), not null
 #  total_sum_cents     :integer          default(0), not null
@@ -40,11 +41,11 @@
 #
 class AdvertisingOrder < ApplicationRecord
   def self.ransackable_attributes(_auth_object = nil)
-    %w[id business_sphere clip_title coefficient_percent discount_cents document_version duration_seconds placement_kind product_name status total_shows total_sum_cents created_at updated_at created_by_user_id media_asset_id organization_id rotation_id]
+    %w[id business_sphere clip_title coefficient_percent discount_cents document_version duration_seconds placement_kind product_name shows_per_hour status total_shows total_sum_cents created_at updated_at created_by_user_id media_asset_id organization_id rotation_id]
   end
 
   def self.ransackable_associations(_auth_object = nil)
-    %w[organization created_by]
+    %w[organization created_by advertising_order_windows]
   end
 
   belongs_to :organization
@@ -55,6 +56,7 @@ class AdvertisingOrder < ApplicationRecord
 
   has_many :advertising_order_lines, dependent: :destroy
   has_many :advertising_order_line_days, through: :advertising_order_lines
+  has_many :advertising_order_windows, dependent: :destroy
   has_many :media_plans, through: :advertising_order_lines
 
   enum :status, {
@@ -71,6 +73,7 @@ class AdvertisingOrder < ApplicationRecord
   }, default: :own_atmosphere
 
   validates :product_name, presence: true
+  validates :shows_per_hour, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
   validates :discount_cents, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :total_sum_cents, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :total_shows, numericality: { only_integer: true, greater_than_or_equal_to: 0 }

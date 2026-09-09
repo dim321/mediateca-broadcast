@@ -301,6 +301,9 @@ en:
       advertising_order_line_day:
         one: Advertising order line day
         other: Advertising order line days
+      advertising_order_window:
+        one: Order time window
+        other: Order time windows
       broadcast_portrait:
         one: Broadcast portrait
         other: Broadcast portraits
@@ -387,6 +390,10 @@ en:
             broadcast_point_group:
               wrong_organization: must belong to your organization
               missing_operating_hours: must have operating hours on every location
+        advertising_order_window:
+          attributes:
+            ends_at:
+              must_be_after_starts: must be after the start time
         advertising_order_line_day:
           attributes:
             date:
