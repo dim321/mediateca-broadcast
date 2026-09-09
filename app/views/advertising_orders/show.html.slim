@@ -31,8 +31,7 @@
   - @advertising_order.advertising_order_lines.each do |line|
     .card.bg-base-100.border.border-base-300.shadow-sm
       .card-body.gap-2
-        h2.card-title.text-base = line.broadcast_point_group.name
-        p.text-sm = money_display(line.price_per_day_cents)
+        h2.card-title.text-base = line.screen.name
         - unoccupied = unoccupied_dates_for(coverage, line)
         - if unoccupied.any?
           p.text-sm.text-warning

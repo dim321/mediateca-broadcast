@@ -85,8 +85,8 @@ module Advertising
       else
         hash = window.respond_to?(:to_h) ? window.to_h : {}
         [
-          clock(hash[:start] || hash["start"]),
-          clock(hash[:end] || hash["end"])
+          clock(hash[:start] || hash["start"] || hash[:starts_at] || hash["starts_at"]),
+          clock(hash[:end] || hash["end"] || hash[:ends_at] || hash["ends_at"])
         ]
       end
     end

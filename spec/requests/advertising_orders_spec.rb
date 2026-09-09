@@ -9,17 +9,23 @@ RSpec.describe "AdvertisingOrders", type: :request do
   let(:asset) { create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 10) }
   let(:group) { create_group_with_hours!(organization: organization) }
 
-  def order_params(group_id: group.id, shows: 36, price_rubles: 34_020, dates: [ "2026-06-03" ], **header)
+  def order_screen
+    group.screens.first
+  end
+
+  def order_params(screen: order_screen, dates: [ "2026-06-03" ], shows_per_hour: 3, **header)
     {
       advertising_order: {
         product_name: "Triumph",
         media_asset_id: asset.id,
         placement_kind: "own_atmosphere",
+        shows_per_hour: shows_per_hour,
+        windows: [ { starts_at: "09:00", ends_at: "12:00" } ],
+        screen_ids: [ screen.id ],
         lines: {
           "0" => {
-            broadcast_point_group_id: group_id,
-            price_per_day_rubles: price_rubles,
-            days: dates.map { |date| { date: date, shows: shows } }
+            screen_id: screen.id,
+            days: dates.map { |date| { date: date, shows: 9 } }
           }
         }
       }.merge(header)
@@ -32,11 +38,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
     )
     Advertising::UpdateGrid.call(
       order: order,
-      lines: [ {
-        broadcast_point_group_id: group.id,
-        price_per_day_cents: 1_000,
-        days: [ { date: Date.new(2026, 6, 3), shows: 36 } ]
-      } ]
+      lines: advertising_order_grid_lines(screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
     )
     Advertising::ActivateOrder.call(order: order)
     order.reload
@@ -121,30 +123,12 @@ RSpec.describe "AdvertisingOrders", type: :request do
       order = AdvertisingOrder.last
       expect(response).to redirect_to(advertising_order_path(order))
       expect(order).to be_draft
-      expect(order.total_shows).to eq(72)
-      expect(order.total_sum_cents).to eq(2 * 34_020_00)
+      expect(order.shows_per_hour).to eq(3)
+      expect(order.advertising_order_windows.sole.starts_at.strftime("%H:%M")).to eq("09:00")
+      expect(order.advertising_order_windows.sole.ends_at.strftime("%H:%M")).to eq("12:00")
+      expect(order.total_shows).to eq(18)
+      expect(order.total_sum_cents).to eq(0)
       expect(order.created_by).to eq(user)
-    end
-
-    it "rejects shows that are not a multiple of operating hours (AE2)" do
-      eleven = create_group_with_hours!(organization: organization, hours: AdvertisingNetwork::ELEVEN_HOURS)
-
-      expect do
-        post advertising_orders_path, params: order_params(group_id: eleven.id, shows: 36)
-      end.not_to change(AdvertisingOrderLineDay, :count)
-
-      expect(response).to have_http_status(:unprocessable_content)
-      expect(response.body).to include("33").and include("44")
-    end
-
-    it "rejects a line whose group has no operating hours (AE3)" do
-      bare = create(:broadcast_point_group, organization: organization)
-      create(:broadcast_point_group_membership, broadcast_point_group: bare, screen: create(:screen, owner_organization: organization))
-
-      post advertising_orders_path, params: order_params(group_id: bare.id)
-
-      expect(response).to have_http_status(:unprocessable_content)
-      expect(AdvertisingOrderLine.count).to eq(0)
     end
 
     it "renders occupancy without foreign org ids" do
@@ -160,14 +144,14 @@ RSpec.describe "AdvertisingOrders", type: :request do
       )
 
       get new_advertising_order_path, params: {
-        advertising_order: { broadcast_point_group_id: group.id },
+        advertising_order: { screen_ids: [ group.screens.first.id ] },
         grid_from: "2026-06-01",
         grid_to: "2026-06-30"
       }
 
       expect(response).to have_http_status(:success)
       expect(response.body).to include(I18n.t("media_plans.occupied_slots.heading"))
-      expect(response.body).to include('data-controller="order-grid"')
+      expect(response.body).to include('data-controller="order-grid')
       expect(response.body).not_to include("ForeignOrgXYZ-NeverLeak")
       expect(response.body).not_to include("airtime_booking_id")
     end
@@ -176,12 +160,16 @@ RSpec.describe "AdvertisingOrders", type: :request do
   describe "GET /advertising_orders/new" do
     before { sign_in_as(user) }
 
-    it "does not render the admin screen picker" do
+    it "renders the screen picker, hourly rate, and day windows" do
       get new_advertising_order_path
 
       expect(response).to have_http_status(:success)
       expect(response.body).to include(I18n.t("advertising_orders.form.grid"))
-      expect(response.body).not_to include('data-controller="order-screen-picker"')
+      expect(response.body).to include("order-screen-picker")
+      expect(response.body).to include('name="advertising_order[shows_per_hour]"')
+      expect(response.body).to include("advertising_order[windows]")
+      expect(response.body).to include(I18n.t("advertising_orders.form.add_window"))
+      expect(response.body).not_to include("broadcast_point_group_id")
     end
 
     it "does not render coefficient or discount fields" do
@@ -201,18 +189,14 @@ RSpec.describe "AdvertisingOrders", type: :request do
       )
       Advertising::UpdateGrid.call(
         order: order,
-        lines: [ {
-          broadcast_point_group_id: group.id,
-          price_per_day_cents: 1_000,
-          days: [ { date: Date.new(2026, 6, 3), shows: 36 } ]
-        } ]
+        lines: advertising_order_grid_lines(screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
       )
 
-      patch advertising_order_path(order), params: order_params(dates: [ "2026-06-03", "2026-06-04" ], price_rubles: 25)
+      patch advertising_order_path(order), params: order_params(dates: [ "2026-06-03", "2026-06-04" ])
 
       expect(response).to redirect_to(advertising_order_path(order))
-      expect(order.reload.total_shows).to eq(72)
-      expect(order.total_sum_cents).to eq(2 * 25_00)
+      expect(order.reload.total_shows).to eq(18)
+      expect(order.total_sum_cents).to eq(0)
     end
 
     it "does not change coefficient or discount from form params" do
@@ -226,11 +210,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
       )
       Advertising::UpdateGrid.call(
         order: order,
-        lines: [ {
-          broadcast_point_group_id: group.id,
-          price_per_day_cents: 1_000,
-          days: [ { date: Date.new(2026, 6, 3), shows: 36 } ]
-        } ]
+        lines: advertising_order_grid_lines(screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
       )
 
       patch advertising_order_path(order), params: order_params(coefficient_percent: 99, discount_rubles: 50)
@@ -287,11 +267,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
       )
       Advertising::UpdateGrid.call(
         order: order,
-        lines: [ {
-          broadcast_point_group_id: group.id,
-          price_per_day_cents: 34_020_00,
-          days: [ { date: Date.new(2026, 6, 3), shows: 36 } ]
-        } ]
+        lines: advertising_order_grid_lines(screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
       )
       order.reload
     end
@@ -328,11 +304,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
       )
       Advertising::UpdateGrid.call(
         order: order,
-        lines: [ {
-          broadcast_point_group_id: group.id,
-          price_per_day_cents: 1_000,
-          days: dates.map { |date| { date: date, shows: shows } }
-        } ]
+        lines: advertising_order_grid_lines(screen: order_screen, dates: dates, shows: shows)
       )
       order
     end
@@ -385,11 +357,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
       )
       Advertising::UpdateGrid.call(
         order: order,
-        lines: [ {
-          broadcast_point_group_id: owned.id,
-          price_per_day_cents: 1_000,
-          days: [ { date: Date.new(2026, 6, 3), shows: 36 } ]
-        } ]
+        lines: advertising_order_grid_lines(screen: owned.screens.first, dates: [ Date.new(2026, 6, 3) ])
       )
 
       post activate_advertising_order_path(order)
@@ -493,11 +461,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
       )
       Advertising::UpdateGrid.call(
         order: order,
-        lines: [ {
-          broadcast_point_group_id: group.id,
-          price_per_day_cents: 5_000,
-          days: [ { date: Date.new(2026, 6, 3), shows: 36 } ]
-        } ]
+        lines: advertising_order_grid_lines(screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
       )
       Advertising::ActivateOrder.call(order: order)
       total = order.reload.total_sum_cents

@@ -11,7 +11,7 @@ module Advertising
     attr_reader :order
 
     def lines
-      order.advertising_order_lines.sort_by { |line| line.broadcast_point_group.name }
+      order.advertising_order_lines.sort_by { |line| line.screen.name }
     end
 
     def month_blocks

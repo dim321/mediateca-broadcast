@@ -485,6 +485,7 @@ en:
         total_sum_cents: Total
       advertising_order_line:
         broadcast_point_group: Screen group
+        screen: Screen
         price_per_day_cents: Price per day
         total_shows: Shows
         total_sum_cents: Total
@@ -663,12 +664,15 @@ en:
         filter_tags: Tags
         filter_portrait: Broadcast portrait
         filter_hours: Operating hours
-      multiplicity_hint: Daily shows must be a multiple of the group's operating hours.
+      shows_per_hour: Shows per hour
+      windows: Day windows
+      add_window: Add window
+      remove_window: Remove
+      window_start: Start
+      window_end: End
+      screen: Screen
       fill_from: From
       fill_to: To
-      fill_shows: Shows
-      fill_range: Fill range
-      add_line: Add line
       show_grid: Show grid
     line_fields:
       price_per_day_rubles: Price per day, ₽

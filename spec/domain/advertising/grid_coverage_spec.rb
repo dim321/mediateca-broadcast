@@ -17,15 +17,9 @@ RSpec.describe Advertising::GridCoverage do
   before do
     Advertising::UpdateGrid.call(
       order: order,
-      lines: [ {
-        broadcast_point_group_id: group.id,
-        price_per_day_cents: 1_000,
-        days: [
-          { date: Date.new(2026, 6, 3), shows: 36 },
-          { date: Date.new(2026, 6, 4), shows: 36 },
-          { date: Date.new(2026, 6, 5), shows: 36 }
-        ]
-      } ]
+      lines: advertising_order_grid_lines(screen: group.screens.first, dates: [
+        Date.new(2026, 6, 3), Date.new(2026, 6, 4), Date.new(2026, 6, 5)
+      ])
     )
   end
 

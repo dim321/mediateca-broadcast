@@ -16,7 +16,7 @@ module Advertising
       occupied = []
       conflicted = []
 
-      order.advertising_order_lines.includes(:advertising_order_line_days, :broadcast_point_group).find_each do |line|
+      order.advertising_order_lines.includes(:advertising_order_line_days, screen: :broadcast_point_groups).find_each do |line|
         collapse(line).each do |chain, shows_per_hour|
           window = occupy_chain(line, chain, shows_per_hour)
           if window.is_a?(OccupiedWindow)
@@ -50,7 +50,10 @@ module Advertising
       current_rate = nil
 
       days.each do |day|
-        hours = OperatingHours.call(group: line.broadcast_point_group, date: day.date, time_zone: time_zone)
+        group = occupy_group_for(line)
+        next if group.blank?
+
+        hours = OperatingHours.call(group: group, date: day.date, time_zone: time_zone)
         next if hours.zero?
 
         rate = day.shows / hours
@@ -76,7 +79,7 @@ module Advertising
         MediaPlan.transaction do
           plan = Airtime::OccupyWithPlan.call(
             organization: order.organization,
-            broadcast_point_group: line.broadcast_point_group,
+            broadcast_point_group: occupy_group_for(line),
             rotation: order.rotation,
             starts_at: starts_at,
             ends_at: ends_at,
@@ -100,6 +103,10 @@ module Advertising
 
     def quota_exceeded?(occupied)
       occupied.any? { |window| CommercialQuota::Check.call(plan: window.plan).exceeded }
+    end
+
+    def occupy_group_for(line)
+      line.screen.broadcast_point_groups.first
     end
 
     def time_zone

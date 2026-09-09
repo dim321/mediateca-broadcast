@@ -1,9 +1,10 @@
 - time_zone = local_assigns.fetch(:time_zone) { Current.user.organization.time_zone }
 - cancel_url = local_assigns.fetch(:cancel_url, advertising_orders_path)
 - sphere_text = advertising_order.business_sphere.presence || local_assigns[:business_sphere_preview]
-- stimulus_controllers = ['order-grid']
-- stimulus_controllers << 'order-screen-picker' if local_assigns[:show_screen_picker]
-= form_with model: advertising_order, url: local_assigns[:form_url], class: 'space-y-6', data: { controller: stimulus_controllers.join(' ') } do |f|
+- show_picker = local_assigns.fetch(:show_screen_picker, false)
+- stimulus_controllers = ['order-grid', 'order-windows']
+- stimulus_controllers << 'order-screen-picker' if show_picker
+= form_with model: advertising_order, url: local_assigns[:form_url], class: 'space-y-6', data: { controller: stimulus_controllers.join(' '), action: 'order-grid:recompute->order-grid#recompute' } do |f|
   = hidden_field_tag :grid_from, @grid_dates.first
   = hidden_field_tag :grid_to, @grid_dates.last
   - if local_assigns[:organization_id].present?
@@ -38,30 +39,31 @@
     div
       = f.label :placement_kind, class: 'block text-sm font-medium'
       = f.select :placement_kind, AdvertisingOrder.placement_kinds.keys.map { |kind| [t("enums.advertising_order.placement_kind.#{kind}"), kind] }, {}, class: 'select select-bordered w-full mt-1'
+    div
+      = f.label :shows_per_hour, t('.shows_per_hour'), class: 'block text-sm font-medium'
+      = f.number_field :shows_per_hour, min: 1, class: 'input input-bordered w-full mt-1', data: { order_grid_target: 'showsPerHour', action: 'input->order-grid#recompute' }
+  .card.bg-base-100.border.border-base-300
+    .card-body.gap-3
+      h2.card-title.text-base = t('.windows')
+      .space-y-3 data-order-windows-target='list'
+        - windows = advertising_order.advertising_order_windows
+        - windows = [AdvertisingOrderWindow.new(starts_at: '09:00', ends_at: '12:00')] if windows.empty?
+        - windows.each do |window|
+          = render 'advertising_orders/window_fields', starts_at: order_clock_hhmm(window.starts_at), ends_at: order_clock_hhmm(window.ends_at)
+      button.btn.btn-sm.btn-ghost type='button' data-action='order-windows#add' = t('.add_window')
+      template data-order-windows-target='template'
+        = render 'advertising_orders/window_fields', starts_at: '09:00', ends_at: '12:00'
   = render 'media_plans/occupied_slots', occupied_slots: @occupied_slots || [], time_zone: time_zone
-  - if local_assigns[:show_screen_picker]
+  - if show_picker
     = render 'advertising_orders/screen_picker'
   .card.bg-base-100.border.border-base-300
     .card-body.gap-3
       h2.card-title.text-base = t('.grid')
-      p.text-sm.text-base-content/60 = t('.multiplicity_hint')
-      .flex.flex-wrap.items-end.gap-3
-        div
-          label.block.text-xs.font-medium = t('.fill_from')
-          input.input.input-bordered.input-sm type='date' data-order-grid-target='fillFrom' value=@grid_dates.first
-        div
-          label.block.text-xs.font-medium = t('.fill_to')
-          input.input.input-bordered.input-sm type='date' data-order-grid-target='fillTo' value=@grid_dates.last
-        div
-          label.block.text-xs.font-medium = t('.fill_shows')
-          input.input.input-bordered.input-sm type='number' min='0' data-order-grid-target='fillShows'
-        button.btn.btn-sm type='button' data-action='order-grid#fillRange' = t('.fill_range')
-      .space-y-4 data-order-grid-target='lines'
-        - advertising_order.advertising_order_lines.each_with_index do |line, index|
-          = render 'advertising_orders/line_fields', line: line, index: index, show_screen_picker: local_assigns[:show_screen_picker]
-      button.btn.btn-sm.btn-ghost type='button' data-action='order-grid#addLine' = t('.add_line')
-      template data-order-grid-target='lineTemplate'
-        = render 'advertising_orders/line_fields', line: AdvertisingOrderLine.new, index: 'NEW_LINE', show_screen_picker: local_assigns[:show_screen_picker]
+      .space-y-4 data-order-grid-target='lines' data-order-screen-picker-target='gridLines'
+        - advertising_order.advertising_order_lines.select(&:screen_id).each_with_index do |line, index|
+          = render 'advertising_orders/line_fields', **order_line_field_locals(line, index)
+      template data-order-screen-picker-target='rowTemplate'
+        = render 'advertising_orders/line_fields', **order_line_field_locals(AdvertisingOrderLine.new, 'NEW_LINE')
   .flex.gap-3
     = f.submit t('.submit'), class: 'btn btn-primary btn-sm'
     = link_to t('.cancel'), cancel_url, class: 'btn btn-ghost btn-sm'

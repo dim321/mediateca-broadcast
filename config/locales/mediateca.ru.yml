@@ -489,6 +489,7 @@ ru:
         total_sum_cents: Сумма
       advertising_order_line:
         broadcast_point_group: Группа экранов
+        screen: Экран
         price_per_day_cents: Цена за день
         total_shows: Выходов
         total_sum_cents: Сумма
@@ -669,12 +670,15 @@ ru:
         filter_tags: Теги
         filter_portrait: Портрет эфира
         filter_hours: Часы работы
-      multiplicity_hint: Число выходов в день должно делиться на часы работы группы.
+      shows_per_hour: Показов в час
+      windows: Интервалы показа
+      add_window: Добавить интервал
+      remove_window: Удалить
+      window_start: Начало
+      window_end: Конец
+      screen: Экран
       fill_from: С
       fill_to: По
-      fill_shows: Выходов
-      fill_range: Заполнить диапазон
-      add_line: Добавить строку
       show_grid: Показать сетку
     line_fields:
       price_per_day_rubles: Цена за день, ₽

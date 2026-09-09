@@ -1,33 +1,41 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["cell", "fillFrom", "fillTo", "fillShows", "lineTemplate", "lines"]
-  static values = { hours: Object }
+  static targets = ["cell", "skipped", "showsPerHour", "windowStart", "windowEnd", "lineRow", "lines"]
 
-  fillRange(event) {
-    event.preventDefault()
-    const from = this.fillFromTarget.value
-    const to = this.fillToTarget.value
-    const shows = this.fillShowsTarget.value
-    if (!from || !to || shows === "") return
+  connect() {
+    this.recompute()
+  }
 
-    this.cellTargets.forEach((cell) => {
-      const date = cell.dataset.date
-      if (date >= from && date <= to) cell.value = shows
+  recompute() {
+    const rate = Number.parseInt(this.hasShowsPerHourTarget ? this.showsPerHourTarget.value : "", 10) || 0
+
+    this.lineRowTargets.forEach((row) => {
+      let hours = {}
+      try {
+        hours = JSON.parse(row.dataset.hours || "{}")
+      } catch (_error) {
+        hours = {}
+      }
+
+      row.querySelectorAll('[data-order-grid-target="cell"]').forEach((cell) => {
+        if (cell.dataset.skipped === "1" || cell.value === "0") return
+
+        const count = hours[cell.dataset.date] || 0
+        cell.value = rate * count
+      })
     })
   }
 
-  addLine(event) {
-    event.preventDefault()
-    if (!this.hasLineTemplateTarget || !this.hasLinesTarget) return
-
-    const html = this.lineTemplateTarget.innerHTML.replaceAll("NEW_LINE", `line-${Date.now()}`)
-    this.linesTarget.insertAdjacentHTML("beforeend", html)
-  }
-
-  disconnect() {
-    this.cellTargets.forEach((cell) => {
-      cell.dataset.filled = ""
-    })
+  cellChanged(event) {
+    const cell = event.target
+    const skipped = cell.closest("div")?.querySelector('[data-order-grid-target="skipped"]')
+    if (cell.value === "0") {
+      cell.dataset.skipped = "1"
+      if (skipped) skipped.value = "1"
+    } else {
+      cell.dataset.skipped = ""
+      if (skipped) skipped.value = "0"
+    }
   }
 }

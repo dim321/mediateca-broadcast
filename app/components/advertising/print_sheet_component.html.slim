@@ -28,13 +28,13 @@
       table.print-sheet__grid
         thead
           tr
-            th.print-sheet__group = AdvertisingOrderLine.human_attribute_name(:broadcast_point_group)
+            th.print-sheet__group = AdvertisingOrderLine.human_attribute_name(:screen)
             - block.dates.each do |date|
               th.print-sheet__day = date.day
         tbody
           - lines.each do |line|
             tr
-              td.print-sheet__group = line.broadcast_point_group.name
+              td.print-sheet__group = line.screen.name
               - block.dates.each do |date|
                 td.print-sheet__cell = cell_value(line, date)
           tr.print-sheet__totals-row
@@ -44,13 +44,13 @@
               - lines.each_with_index do |line, index|
                 - if index.positive?
                   | ;
-                = "#{line.broadcast_point_group.name} — #{line.total_shows}"
+                = "#{line.screen.name} — #{line.total_shows}"
               br
               span = "#{AdvertisingOrderLine.human_attribute_name(:price_per_day_cents)} / #{AdvertisingOrderLine.human_attribute_name(:total_sum_cents)}: "
               - lines.each_with_index do |line, index|
                 - if index.positive?
                   | ;
-                = "#{line.broadcast_point_group.name} — #{money_display(line.price_per_day_cents)} / #{money_display(line.total_sum_cents)}"
+                = "#{line.screen.name} — #{money_display(line.price_per_day_cents)} / #{money_display(line.total_sum_cents)}"
 
   footer.print-sheet__footer
     dl.print-sheet__summary

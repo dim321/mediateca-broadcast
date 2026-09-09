@@ -32,4 +32,57 @@ module AdvertisingOrdersHelper
   def order_screen_selected?(screen)
     Array(@selected_screen_ids).include?(screen.id)
   end
+
+  def order_clock_hhmm(value)
+    return if value.blank?
+    return value.strftime("%H:%M") if value.respond_to?(:strftime)
+
+    value.to_s[0, 5]
+  end
+
+  def order_screen_meta(screen)
+    return if screen.blank?
+
+    [ screen.location&.name, screen.station&.name ].compact.join(" · ")
+  end
+
+  def order_form_windows
+    @advertising_order.advertising_order_windows.filter_map do |window|
+      start_s = order_clock_hhmm(window.starts_at)
+      end_s = order_clock_hhmm(window.ends_at)
+      next if start_s.blank? || end_s.blank?
+
+      { start: start_s, end: end_s }
+    end
+  end
+
+  def order_form_time_zone
+    @advertising_order.organization&.time_zone || @form_organization&.time_zone || "UTC"
+  end
+
+  def order_screen_hours_json(screen)
+    windows = order_form_windows
+    windows = [ { start: "09:00", end: "12:00" } ] if windows.empty?
+    Array(@grid_dates).to_h do |date|
+      hours = Advertising::ScreenDayHours.call(
+        screen: screen,
+        date: date,
+        windows: windows,
+        time_zone: order_form_time_zone
+      ).hours
+      [ date.iso8601, hours ]
+    end
+  end
+
+  def order_line_field_locals(line, index)
+    screen = line.screen
+    {
+      line: line,
+      index: index,
+      screen_id: screen&.id || "NEW_SCREEN",
+      screen_name: screen&.name || t("advertising_orders.form.screen"),
+      screen_meta: order_screen_meta(screen),
+      hours_json: screen ? order_screen_hours_json(screen) : {}
+    }
+  end
 end

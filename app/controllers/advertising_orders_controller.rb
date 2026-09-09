@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class AdvertisingOrdersController < ApplicationController
+  include AdvertisingOrderGrid
+
   before_action :require_user
   before_action :set_advertising_order, only: %i[show edit update destroy activate cancel print replace_clip]
   before_action :load_form_collections, only: %i[new create edit update]
@@ -22,7 +24,6 @@ class AdvertisingOrdersController < ApplicationController
       placement_kind: :own_atmosphere
     )
     authorize @advertising_order
-    ensure_form_lines
     load_occupancy
   end
 
@@ -41,7 +42,8 @@ class AdvertisingOrdersController < ApplicationController
       created_by: Current.user,
       media_asset: asset,
       product_name: order_params[:product_name],
-      placement_kind: order_params[:placement_kind].presence || :own_atmosphere
+      placement_kind: order_params[:placement_kind].presence || :own_atmosphere,
+      shows_per_hour: order_header_shows_per_hour
     )
     persist_grid!(@advertising_order)
     redirect_to @advertising_order, notice: t(".created")
@@ -56,7 +58,6 @@ class AdvertisingOrdersController < ApplicationController
 
   def edit
     authorize @advertising_order
-    ensure_form_lines
     load_occupancy
   end
 
@@ -135,45 +136,21 @@ class AdvertisingOrdersController < ApplicationController
 
   def set_advertising_order
     @advertising_order = policy_scope(AdvertisingOrder)
-      .includes(advertising_order_lines: [ :broadcast_point_group, :advertising_order_line_days ])
+      .includes(advertising_order_lines: [ :screen, :advertising_order_line_days ])
       .find(params[:id])
   end
 
   def load_form_collections
     @media_assets = policy_scope(MediaAsset).ready.with_attached_file.order(created_at: :desc)
-    own_groups = policy_scope(BroadcastPointGroup).to_a
-    owner_groups = BroadcastPointGroup.commercial_eligible_groups_for(Current.user.organization).to_a
-    @broadcast_point_groups = (own_groups + owner_groups).uniq.sort_by(&:name)
     @grid_dates = grid_dates
-  end
-
-  def persist_grid!(order)
-    payload = lines_params
-    return if payload.empty?
-
-    order.advertising_order_lines.reset
-    Advertising::UpdateGrid.call(order: order, lines: payload)
-  end
-
-  def lines_params
-    raw = order_params[:lines]
-    list = raw.is_a?(ActionController::Parameters) || raw.is_a?(Hash) ? raw.values : Array(raw)
-    list.filter_map do |line|
-      group_id = line[:broadcast_point_group_id]
-      next if group_id.blank?
-
-      {
-        broadcast_point_group_id: group_id.to_i,
-        price_per_day_cents: line[:price_per_day_rubles].to_i * 100,
-        days: Array(line[:days]).map { |day| { date: day[:date], shows: day[:shows] } }
-      }
-    end
+    load_order_screens
   end
 
   def header_update_attrs
     {
       product_name: order_params[:product_name],
-      placement_kind: order_params[:placement_kind].presence || @advertising_order.placement_kind
+      placement_kind: order_params[:placement_kind].presence || @advertising_order.placement_kind,
+      shows_per_hour: order_header_shows_per_hour
     }.compact
   end
 
@@ -191,55 +168,8 @@ class AdvertisingOrdersController < ApplicationController
     end
   end
 
-  def find_placement_group
-    id = occupancy_group_id
-    policy_scope(BroadcastPointGroup).find_by(id: id) ||
-      BroadcastPointGroup.commercial_eligible_groups_for(Current.user.organization).find_by(id: id)
-  end
-
-  def occupancy_group_id
-    order_params[:broadcast_point_group_id].presence ||
-      @advertising_order&.advertising_order_lines&.first&.broadcast_point_group_id
-  end
-
-  def load_occupancy
-    group = find_placement_group
-    @occupied_slots = if group
-      Airtime::OccupancyPresenter.call(broadcast_point_group: group)
-    else
-      []
-    end
-  end
-
-  def grid_dates
-    from = parse_grid_date(params[:grid_from]) || order_grid_bounds&.begin || Date.current.beginning_of_month
-    to = parse_grid_date(params[:grid_to]) || order_grid_bounds&.end || Date.current.end_of_month
-    from, to = to, from if from > to
-    (from..to).to_a
-  end
-
-  def order_grid_bounds
-    dates = @advertising_order&.advertising_order_lines&.flat_map do |line|
-      line.advertising_order_line_days.map(&:date)
-    end&.compact
-    return if dates.blank?
-
-    dates.min..dates.max
-  end
-
-  def parse_grid_date(value)
-    Date.iso8601(value.to_s)
-  rescue ArgumentError, TypeError
-    nil
-  end
-
-  def ensure_form_lines
-    @advertising_order.advertising_order_lines.build if @advertising_order.advertising_order_lines.empty?
-  end
-
   def render_form_failure(template)
     load_form_collections
-    ensure_form_lines
     load_occupancy
     render template, status: :unprocessable_content
   end
@@ -249,8 +179,10 @@ class AdvertisingOrdersController < ApplicationController
       :product_name,
       :media_asset_id,
       :placement_kind,
-      :broadcast_point_group_id,
-      lines: [ :broadcast_point_group_id, :price_per_day_rubles, { days: [ :date, :shows ] } ]
+      :shows_per_hour,
+      windows: [ :starts_at, :ends_at ],
+      screen_ids: [],
+      lines: [ :screen_id, { days: [ :date, :shows, :skipped ] } ]
     )
   end
 end

@@ -35,11 +35,11 @@
               th
                 input.input.input-xs.input-bordered.w-full type='search' placeholder=t('advertising_orders.form.screen_picker.filter_portrait') data-order-screen-picker-target='filter' data-filter-key='portrait' data-action='input->order-screen-picker#filterRows'
               th
-                input.input.input-xs.input-bordered.w-full type='search' placeholder=t('advertising_orders.form.screen_picker.filter_hours') data-order-screen-picker-target='filter' data-filter-key='hours' data-action='input->order-screen-picker#filterRows'
+                input.input.input-xs.input-bordered.w-full type='search' placeholder=t('advertising_orders.form.screen_picker.filter_hours') data-order-screen-picker-target='filter' data-filter-key='hoursLabel' data-action='input->order-screen-picker#filterRows'
           tbody
             - @order_screens.each do |screen|
               - hours_label = order_screen_hours_label(screen)
-              tr data-order-screen-picker-target='row' data-location=screen.location&.name data-station=screen.station&.name data-tags=screen.tags.map(&:name).join(' ') data-portrait=screen.broadcast_portrait&.name data-hours=hours_label data-group-ids=screen.broadcast_point_groups.map(&:id).join(',')
+              tr data-order-screen-picker-target='row' data-screen-id=screen.id data-screen-name=screen.name data-screen-meta="#{[screen.location&.name, screen.station&.name].compact.join(' · ')}" data-hours=(order_screen_hours_json(screen).to_json) data-location=screen.location&.name data-station=screen.station&.name data-tags=screen.tags.map(&:name).join(' ') data-portrait=screen.broadcast_portrait&.name data-hours-label=hours_label
                 td
                   = check_box_tag 'advertising_order[screen_ids][]',
                       screen.id,

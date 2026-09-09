@@ -67,6 +67,13 @@ module AdvertisingNetwork
     end
   end
 
+  def advertising_order_grid_lines(screen:, dates:, shows: 36)
+    [ {
+      screen_id: screen.id,
+      days: Array(dates).map { |date| { date: date, shows: shows } }
+    } ]
+  end
+
   def create_group_with_hours!(organization:, hours: WEEKLY_HOURS, **group_attrs)
     location = create(:location, operating_hours: hours)
     station = create(:station, location: location)

@@ -1,0 +1,16 @@
+.flex.flex-wrap.items-end.gap-3 data-order-windows-target='row'
+  div
+    label.block.text-xs.font-medium = t('advertising_orders.form.window_start')
+    = text_field_tag "advertising_order[windows][][starts_at]",
+        starts_at,
+        placeholder: '09:00',
+        class: 'input input-bordered input-sm w-28',
+        data: { order_windows_target: 'startsAt', order_grid_target: 'windowStart', action: 'input->order-grid#recompute' }
+  div
+    label.block.text-xs.font-medium = t('advertising_orders.form.window_end')
+    = text_field_tag "advertising_order[windows][][ends_at]",
+        ends_at,
+        placeholder: '12:00',
+        class: 'input input-bordered input-sm w-28',
+        data: { order_windows_target: 'endsAt', order_grid_target: 'windowEnd', action: 'input->order-grid#recompute' }
+  button.btn.btn-ghost.btn-sm type='button' data-action='order-windows#remove' = t('advertising_orders.form.remove_window')

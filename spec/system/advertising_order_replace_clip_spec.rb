@@ -31,11 +31,7 @@ RSpec.describe "Advertising order clip replacement", type: :system do
     )
     Advertising::UpdateGrid.call(
       order: order,
-      lines: [ {
-        broadcast_point_group_id: group.id,
-        price_per_day_cents: 1_000,
-        days: [ { date: date, shows: 36 } ]
-      } ]
+      lines: advertising_order_grid_lines(screen: group.screens.first, dates: [ date ])
     )
     Advertising::ActivateOrder.call(order: order)
     order.reload

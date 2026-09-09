@@ -13,18 +13,24 @@ RSpec.describe "Admin advertising orders", type: :request do
   let(:asset) { create(:media_asset, :ready, :with_png_file, organization: client, duration_seconds: 10) }
   let(:group) { create_group_with_hours!(organization: client) }
 
-  def order_params(organization_id: client.id, group_id: group.id, shows: 36, price_rubles: 34_020, dates: [ "2026-06-03" ], **header)
+  def order_screen
+    group.screens.first
+  end
+
+  def order_params(organization_id: client.id, screen: order_screen, dates: [ "2026-06-03" ], shows_per_hour: 3, **header)
     {
       advertising_order: {
         organization_id: organization_id,
         product_name: "Triumph",
         media_asset_id: asset.id,
         placement_kind: "own_atmosphere",
+        shows_per_hour: shows_per_hour,
+        windows: [ { starts_at: "09:00", ends_at: "12:00" } ],
+        screen_ids: [ screen.id ],
         lines: {
           "0" => {
-            broadcast_point_group_id: group_id,
-            price_per_day_rubles: price_rubles,
-            days: dates.map { |date| { date: date, shows: shows } }
+            screen_id: screen.id,
+            days: dates.map { |date| { date: date, shows: 9 } }
           }
         }
       }.merge(header)
@@ -64,11 +70,7 @@ RSpec.describe "Admin advertising orders", type: :request do
       )
       Advertising::UpdateGrid.call(
         order: order,
-        lines: [ {
-          broadcast_point_group_id: group.id,
-          price_per_day_cents: 1_000,
-          days: [ { date: Date.new(2026, 6, 3), shows: 36 } ]
-        } ]
+        lines: advertising_order_grid_lines(screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
       )
       Advertising::ActivateOrder.call(order: order)
 
@@ -108,6 +110,10 @@ RSpec.describe "Admin advertising orders", type: :request do
       expect(picker_at).to be < grid_at
       expect(body).to include("order-screen-picker")
       expect(body).to include('name="advertising_order[screen_ids][]"')
+      expect(body).to include('name="advertising_order[shows_per_hour]"')
+      expect(body).to include("advertising_order[windows]")
+      expect(body).to include(I18n.t("advertising_orders.form.add_window"))
+      expect(body).not_to include("broadcast_point_group_id")
     end
 
     it "lists fleet screens and screens of other organizations" do
@@ -168,11 +174,7 @@ RSpec.describe "Admin advertising orders", type: :request do
       )
       Advertising::UpdateGrid.call(
         order: order,
-        lines: [ {
-          broadcast_point_group_id: group.id,
-          price_per_day_cents: 1_000,
-          days: [ { date: Date.new(2026, 6, 3), shows: 36 } ]
-        } ]
+        lines: advertising_order_grid_lines(screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
       )
 
       patch admin_advertising_order_path(order), params: order_params(coefficient_percent: 99, discount_rubles: 50)

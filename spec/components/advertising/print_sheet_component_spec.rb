@@ -18,11 +18,7 @@ RSpec.describe Advertising::PrintSheetComponent, type: :component do
     )
     Advertising::UpdateGrid.call(
       order: order,
-      lines: [ {
-        broadcast_point_group_id: group.id,
-        price_per_day_cents: 34_020_00,
-        days: dates.map { |date| { date: date, shows: shows } }
-      } ]
+      lines: advertising_order_grid_lines(screen: group.screens.first, dates: dates, shows: shows)
     )
     order.reload
   end
