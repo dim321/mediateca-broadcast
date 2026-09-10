@@ -9,6 +9,7 @@ export default class extends Controller {
 
   recompute() {
     const rate = Number.parseInt(this.hasShowsPerHourTarget ? this.showsPerHourTarget.value : "", 10) || 0
+    const windows = this.currentWindows()
 
     this.lineRowTargets.forEach((row) => {
       let hours = {}
@@ -21,8 +22,8 @@ export default class extends Controller {
       row.querySelectorAll('[data-order-grid-target="cell"]').forEach((cell) => {
         if (cell.dataset.skipped === "1" || cell.value === "0") return
 
-        const count = hours[cell.dataset.date] || 0
-        cell.value = rate * count
+        const openHours = hours[cell.dataset.date] || []
+        cell.value = rate * this.coveredHourCount(openHours, windows)
       })
       this.updateRowTotal(row)
     })
@@ -31,7 +32,7 @@ export default class extends Controller {
 
   cellChanged(event) {
     const cell = event.target
-        const skipped = cell.parentElement?.querySelector('[data-order-grid-target="skipped"]')
+    const skipped = cell.parentElement?.querySelector('[data-order-grid-target="skipped"]')
     if (cell.value === "0") {
       cell.dataset.skipped = "1"
       if (skipped) skipped.value = "1"
@@ -61,5 +62,35 @@ export default class extends Controller {
       return acc + (Number.parseInt(total?.value, 10) || 0)
     }, 0)
     this.grandTotalTarget.value = String(sum)
+  }
+
+  currentWindows() {
+    return Array.from(this.element.querySelectorAll("[data-order-windows-target='row']")).flatMap((row) => {
+      const start = this.parseClock(row.querySelector("[data-order-grid-target='windowStart']")?.value)
+      const end = this.parseClock(row.querySelector("[data-order-grid-target='windowEnd']")?.value)
+      if (start == null || end == null || start >= end) return []
+
+      return [[start, end]]
+    })
+  }
+
+  parseClock(value) {
+    const match = String(value || "").trim().match(/^(\d{1,2}):(\d{2})/)
+    if (!match) return null
+
+    const hours = Number.parseInt(match[1], 10)
+    const minutes = Number.parseInt(match[2], 10)
+    if (hours > 23 || minutes > 59) return null
+
+    return hours * 60 + minutes
+  }
+
+  coveredHourCount(openHours, windows) {
+    const hours = Array.isArray(openHours) ? openHours : []
+    return hours.filter((hour) => {
+      const hourStart = Number(hour) * 60
+      const hourEnd = hourStart + 60
+      return windows.some(([start, end]) => start < hourEnd && end > hourStart)
+    }).length
   }
 }

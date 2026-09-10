@@ -16,7 +16,7 @@ tr.border-b.border-base-200.hover:bg-base-200 data-order-grid-target='lineRow' d
       = number_field_tag "advertising_order[lines][#{index}][days][][shows]",
           shows_value,
           min: 0,
-          class: 'input input-bordered input-xs w-10 min-w-10 text-center',
+          class: 'input input-bordered input-xs w-14 min-w-14 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
           data: { order_grid_target: 'cell', date: date.iso8601, action: 'input->order-grid#cellChanged' }
   td.p-1.text-center
     = number_field_tag nil,

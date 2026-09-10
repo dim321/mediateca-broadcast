@@ -173,6 +173,14 @@ RSpec.describe "AdvertisingOrders", type: :request do
       expect(response.body).not_to include("broadcast_point_group_id")
     end
 
+    it "defaults the first day window to 08:00–23:00" do
+      get new_advertising_order_path
+
+      list = Nokogiri::HTML(response.body).at_css("[data-order-windows-target='list']")
+      expect(list.at_css("[data-order-grid-target='windowStart']")["value"]).to eq("08:00")
+      expect(list.at_css("[data-order-grid-target='windowEnd']")["value"]).to eq("23:00")
+    end
+
     it "does not render coefficient or discount fields" do
       get new_advertising_order_path
 
@@ -191,6 +199,18 @@ RSpec.describe "AdvertisingOrders", type: :request do
       expect(to["value"]).to eq("05.06.2026")
     end
 
+    it "adds a calendar picker to С/По without changing the submitted date format" do
+      get new_advertising_order_path, params: { grid_from: "2026-06-03", grid_to: "2026-06-05" }
+
+      html = Nokogiri::HTML(response.body)
+      pickers = html.css("[data-order-grid-date-target='picker']")
+      expect(html.at_css("[data-controller='order-grid-date']")).to be_present
+      expect(pickers.map { |node| node["type"] }.uniq).to eq([ "date" ])
+      expect(pickers.map { |node| node["name"] }).to all(be_blank)
+      expect(pickers.map { |node| node["value"] }).to contain_exactly("2026-06-03", "2026-06-05")
+      expect(visible_grid_date_input("grid_from")["value"]).to eq("03.06.2026")
+    end
+
     it "accepts dotted С/По dates when showing the grid" do
       get new_advertising_order_path, params: { grid_from: "03.06.2026", grid_to: "05.06.2026" }
 
@@ -206,6 +226,16 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
       expect(AdvertisingOrder.human_attribute_name(:media_asset_id)).to eq("Ролик")
       expect(response.body).to include("Ролик")
+    end
+
+    it "embeds every open clock hour so extra windows can be applied in the browser" do
+      screen = order_screen
+      get new_advertising_order_path, params: { grid_from: "2026-06-03", grid_to: "2026-06-03" }
+
+      html = Nokogiri::HTML(response.body)
+      row = html.at_css("[data-order-screen-picker-target='row'][data-screen-id='#{screen.id}']")
+      hours = JSON.parse(row["data-hours"])
+      expect(hours.fetch("2026-06-03")).to eq((9..20).to_a)
     end
   end
 
@@ -233,6 +263,19 @@ RSpec.describe "AdvertisingOrders", type: :request do
       expect(row.at_css("[data-order-screen-picker-target='screenName']")).to be_present
       expect(row.at_css("[data-order-grid-target='total']")["value"]).to eq("18")
       expect(html.at_css("[data-order-grid-target='grandTotal']")["value"]).to eq("18")
+    end
+
+    it "gives day show cells enough width for two-digit values" do
+      order = Advertising::CreateOrder.call(
+        organization: organization, created_by: user, media_asset: asset, product_name: "Triumph"
+      )
+      fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3) ], shows: 9)
+
+      get edit_advertising_order_path(order), params: { grid_from: "2026-06-03", grid_to: "2026-06-03" }
+
+      cell = Nokogiri::HTML(response.body).at_css("[data-order-grid-target='cell']")
+      expect(cell["class"]).to include("w-14")
+      expect(cell["class"]).to include("min-w-14")
     end
 
     it "shows the month once in the grid header instead of each screen row" do

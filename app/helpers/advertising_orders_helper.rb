@@ -14,13 +14,35 @@ module AdvertisingOrdersHelper
   end
 
   def order_grid_date_field_tag(name, date, html_class:)
-    text_field_tag(
-      name,
-      order_grid_date_value(date),
-      class: html_class,
-      placeholder: t("advertising_orders.form.date_placeholder"),
-      autocomplete: "off"
-    )
+    content_tag(:div, class: "relative", data: { controller: "order-grid-date" }) do
+      safe_join([
+        text_field_tag(
+          name,
+          order_grid_date_value(date),
+          class: "#{html_class} pr-10",
+          placeholder: t("advertising_orders.form.date_placeholder"),
+          autocomplete: "off",
+          data: {
+            order_grid_date_target: "display",
+            action: "change->order-grid-date#syncFromDisplay"
+          }
+        ),
+        content_tag(:span, class: "pointer-events-none absolute inset-y-0 right-0 flex w-9 items-center justify-center") do
+          order_grid_calendar_icon
+        end,
+        tag.input(
+          type: "date",
+          value: date&.iso8601,
+          class: "absolute inset-y-0 right-0 w-9 cursor-pointer opacity-0",
+          tabindex: -1,
+          aria: { label: t("advertising_orders.form.pick_date") },
+          data: {
+            order_grid_date_target: "picker",
+            action: "change->order-grid-date#syncFromPicker"
+          }
+        )
+      ])
+    end
   end
 
   def advertising_order_price_rubles(line)
@@ -58,30 +80,17 @@ module AdvertisingOrdersHelper
     screen&.location&.name
   end
 
-  def order_form_windows
-    @advertising_order.advertising_order_windows.filter_map do |window|
-      start_s = order_clock_hhmm(window.starts_at)
-      end_s = order_clock_hhmm(window.ends_at)
-      next if start_s.blank? || end_s.blank?
-
-      { start: start_s, end: end_s }
-    end
-  end
-
   def order_form_time_zone
     @advertising_order.organization&.time_zone || @form_organization&.time_zone || "UTC"
   end
 
   def order_screen_hours_json(screen)
-    windows = order_form_windows
-    windows = [ { start: "09:00", end: "12:00" } ] if windows.empty?
     Array(@grid_dates).to_h do |date|
-      hours = Advertising::ScreenDayHours.call(
+      hours = Advertising::ScreenDayHours.open_clock_hours(
         screen: screen,
         date: date,
-        windows: windows,
         time_zone: order_form_time_zone
-      ).hours
+      )
       [ date.iso8601, hours ]
     end
   end
@@ -97,5 +106,25 @@ module AdvertisingOrdersHelper
       hours_json: screen ? order_screen_hours_json(screen) : {},
       shows_total: line.total_shows
     }
+  end
+
+  private
+
+  def order_grid_calendar_icon
+    tag.svg(
+      xmlns: "http://www.w3.org/2000/svg",
+      fill: "none",
+      viewBox: "0 0 24 24",
+      stroke: "currentColor",
+      class: "h-4 w-4 opacity-60",
+      "aria-hidden": true
+    ) do
+      tag.path(
+        "stroke-linecap": "round",
+        "stroke-linejoin": "round",
+        "stroke-width": "1.5",
+        d: "M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5A2.25 2.25 0 0 1 5.25 5.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"
+      )
+    end
   end
 end

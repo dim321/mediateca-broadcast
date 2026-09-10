@@ -676,6 +676,7 @@ en:
       fill_from: From
       fill_to: To
       date_placeholder: dd.mm.yyyy
+      pick_date: Pick a date
       show_grid: Show grid
       grand_total_shows: Grand total
     line_fields:

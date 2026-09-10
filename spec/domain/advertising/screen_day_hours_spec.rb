@@ -37,4 +37,19 @@ RSpec.describe Advertising::ScreenDayHours do
     expect(out.hours).to eq(0)
     expect(out.ranges).to eq([])
   end
+
+  it "counts hours from several windows without double-counting overlap" do
+    out = result([
+      { start: "09:00", end: "12:00" },
+      { start: "16:00", end: "21:00" }
+    ])
+    expect(out.hours).to eq(8)
+  end
+
+  describe ".open_clock_hours" do
+    it "lists every clock hour the screen is open that day" do
+      hours = described_class.open_clock_hours(screen: screen.reload, date: date, time_zone: zone)
+      expect(hours).to eq((9..20).to_a)
+    end
+  end
 end

@@ -15,15 +15,22 @@ module Advertising
       Result.new(hours: counted_hours, ranges: intersecting_ranges)
     end
 
+    def self.open_clock_hours(screen:, date:, time_zone:)
+      zone = Time.find_zone!(time_zone)
+      hours = screen.effective_operating_hours
+      (0..23).select do |hour|
+        local = zone.local(date.year, date.month, date.day, hour, 0, 0)
+        Location::OperatingHours.minutes_in_hour(hours, local).positive?
+      end
+    end
+
     private
 
     attr_reader :screen, :date, :windows, :time_zone
 
     def counted_hours
-      (0..23).count do |hour|
+      self.class.open_clock_hours(screen: screen, date: date, time_zone: time_zone).count do |hour|
         local = zone.local(date.year, date.month, date.day, hour, 0, 0)
-        next false unless Location::OperatingHours.minutes_in_hour(screen_hours, local).positive?
-
         Location::OperatingHours.minutes_in_hour(order_hours_hash, local).positive?
       end
     end

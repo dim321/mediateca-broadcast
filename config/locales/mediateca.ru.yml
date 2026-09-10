@@ -682,6 +682,7 @@ ru:
       fill_from: С
       fill_to: По
       date_placeholder: дд.мм.гггг
+      pick_date: Выбрать дату
       show_grid: Показать сетку
       grand_total_shows: Всего
     line_fields:
