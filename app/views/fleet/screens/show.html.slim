@@ -1,0 +1,25 @@
+- content_for :title, @screen.name
+- time_zone = Current.user.organization.time_zone
+
+.mx-auto.w-full.max-w-6xl
+  = render 'shared/page_header', title: @screen.name
+
+  p.text-sm.text-base-content/60.mb-4 = @screen.station.name
+
+  - if @media_plans.any?
+    .grid.gap-3
+      - @media_plans.each do |plan|
+        .card.bg-base-100.border.border-base-300.shadow-sm
+          .card-body.gap-1
+            p.font-medium = plan.rotation.name
+            p.text-sm.text-base-content/60 = plan.broadcast_point_group.name
+            p.text-sm.text-base-content/60
+              = l(plan.starts_at.in_time_zone(time_zone), format: :short)
+              |  —
+              = l(plan.ends_at.in_time_zone(time_zone), format: :short)
+  - else
+    .card.bg-base-100.border.border-base-300.shadow-sm
+      .card-body
+        p.text-base-content/60 = t('.empty')
+
+  = link_to t('.back'), fleet_screens_path, class: 'link link-hover text-sm mt-4 inline-block'

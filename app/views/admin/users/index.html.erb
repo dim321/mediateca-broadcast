@@ -1,0 +1,78 @@
+<% content_for :title, t("admin.nav.users") %>
+<div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <h1 class="text-2xl font-semibold text-gray-900"><%= t("admin.nav.users") %></h1>
+  <%= link_to t("admin.crud.new"), new_admin_user_path, class: admin_primary_button_class %>
+</div>
+<%= search_form_for @q, url: admin_users_path, html: { method: :get, class: "mb-4" } do |f| %>
+  <% if params[:q].is_a?(ActionController::Parameters) %>
+    <% Array(params.dig(:q, :s)).each do |sort| %><%= hidden_field_tag "q[s]", sort %><% end %>
+  <% end %>
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+    <div class="relative max-w-sm flex-1">
+      <%= f.label :email_or_first_name_or_last_name_cont, t("admin.crud.search"), class: "sr-only" %>
+      <%= f.search_field :email_or_first_name_or_last_name_cont, class: admin_input_class, placeholder: t("admin.users.search_placeholder") %>
+    </div>
+    <div class="w-full sm:w-48">
+      <%= f.label :status_eq, User.human_attribute_name(:status), class: "sr-only" %>
+      <%= f.select :status_eq, admin_enum_options(User, :status), { include_blank: t("admin.users.any_status") }, class: admin_select_class %>
+    </div>
+    <div class="flex gap-2">
+      <%= f.submit t("admin.crud.search_submit"), class: admin_primary_button_class %>
+      <% if params[:q].is_a?(ActionController::Parameters) && (params.dig(:q, :email_or_first_name_or_last_name_cont).present? || params.dig(:q, :status_eq).present?) %>
+        <%= link_to t("admin.crud.clear_search"), admin_users_path, class: admin_secondary_button_class %>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+<% if @users.empty? && params[:q].blank? %>
+  <%= render "admin/shared/empty_state", title: t("admin.crud.empty.title"), description: t("admin.crud.empty.description"), action_path: new_admin_user_path, action_label: t("admin.crud.new") %>
+<% elsif @users.empty? %>
+  <%= render "admin/shared/empty_state", title: t("admin.crud.empty.search_title"), description: t("admin.crud.empty.search_description"), action_path: admin_users_path, action_label: t("admin.crud.clear_search") %>
+<% else %>
+  <div class="relative overflow-x-auto shadow-md sm:rounded-lg bg-white">
+    <table class="w-full text-sm text-left text-gray-500">
+      <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+        <tr>
+          <th scope="col" class="px-6 py-3"><%= t("admin.users.name") %></th>
+          <th scope="col" class="px-6 py-3"><%= sort_link @q, :email %></th>
+          <th scope="col" class="px-6 py-3"><%= Organization.model_name.human %></th>
+          <th scope="col" class="px-6 py-3"><%= sort_link @q, :role %></th>
+          <th scope="col" class="px-6 py-3"><%= sort_link @q, :status %></th>
+          <th scope="col" class="px-6 py-3"><span class="sr-only"><%= t("admin.chrome.actions") %></span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @users.each do |user| %>
+          <tr class="border-b hover:bg-gray-50 <%= user.blocked? ? "bg-red-50 text-red-800" : "bg-white" %>">
+            <th scope="row" class="px-6 py-4 font-medium <%= user.blocked? ? "text-red-900" : "text-gray-900" %> whitespace-nowrap">
+              <div class="flex items-center gap-3">
+                <% if user.avatar.attached? %>
+                  <%= image_tag user.avatar, class: "w-8 h-8 rounded-full object-cover", alt: user.display_name %>
+                <% else %>
+                  <span class="w-8 h-8 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs font-medium"><%= user.display_name.to_s.first.upcase %></span>
+                <% end %>
+                <%= link_to user.display_name, admin_user_path(user), class: user.blocked? ? "text-red-800 hover:underline" : "text-blue-700 hover:underline" %>
+              </div>
+            </th>
+            <td class="px-6 py-4"><%= user.email %></td>
+            <td class="px-6 py-4"><%= admin_link_to_record(user.organization) %></td>
+            <td class="px-6 py-4"><%= admin_enum_label(user, :role) %></td>
+            <td class="px-6 py-4">
+              <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset <%= user.blocked? ? "bg-red-100 text-red-800 ring-red-600/20" : "bg-green-50 text-green-700 ring-green-600/20" %>">
+                <%= admin_enum_label(user, :status) %>
+              </span>
+            </td>
+            <td class="px-6 py-4 text-right whitespace-nowrap">
+              <%= link_to t("admin.chrome.show"), admin_user_path(user), class: "font-medium text-blue-700 hover:underline me-3" %>
+              <%= link_to t("admin.chrome.edit"), edit_admin_user_path(user), class: "font-medium text-blue-700 hover:underline" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4">
+      <span class="text-sm text-gray-500"><%= t("admin.chrome.page_entries", count: @users.total_count) %></span>
+      <%= paginate @users, theme: "admin" %>
+    </div>
+  </div>
+<% end %>

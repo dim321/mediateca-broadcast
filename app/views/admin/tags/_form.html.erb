@@ -1,0 +1,21 @@
+<%= form_with model: [ :admin, tag ], class: "max-w-xl bg-white border border-gray-200 rounded-lg p-6" do |f| %>
+  <% if tag.errors.any? %>
+    <div role="alert" class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">
+      <ul class="list-disc ms-4">
+        <% tag.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="mb-5">
+    <%= f.label :name, class: admin_label_class %>
+    <%= f.text_field :name, class: "#{admin_input_class} #{'border-red-500' if tag.errors[:name].any?}", required: true %>
+  </div>
+
+  <div class="flex flex-wrap gap-3">
+    <%= f.submit class: admin_primary_button_class %>
+    <%= link_to t("admin.chrome.cancel"), admin_tags_path, class: admin_secondary_button_class %>
+  </div>
+<% end %>

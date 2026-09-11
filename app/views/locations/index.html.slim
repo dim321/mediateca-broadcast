@@ -1,0 +1,18 @@
+h1.text-2xl.font-semibold.mb-4 = t('.title')
+
+- if @locations.any?
+  .overflow-x-auto
+    table.table
+      thead
+        tr
+          th = Location.human_attribute_name(:name)
+          th = t('.hours_status')
+          th
+      tbody
+        - @locations.each do |location|
+          tr
+            td = location.name
+            td = location.operating_hours_configured? ? t('.hours_set') : t('.hours_missing')
+            td = link_to t('.edit'), edit_location_path(location), class: 'btn btn-ghost btn-sm'
+- else
+  p.text-base-content/60 = t('.empty')

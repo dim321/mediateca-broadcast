@@ -1,0 +1,57 @@
+# frozen_string_literal: true
+
+module Admin
+  class <%= controller_class_name %>Controller < Admin::BaseController
+    def index
+      @q = <%= class_name %>.ransack(ransack_params)
+      @q.sorts = "<%= searchable_attribute %> asc" if @q.sorts.empty?
+      @<%= plural_table_name %> = @q.result.page(params[:page]).per(25)
+    end
+
+    def show
+      @<%= singular_table_name %> = <%= class_name %>.find(params[:id])
+    end
+
+    def new
+      @<%= singular_table_name %> = <%= class_name %>.new
+    end
+
+    def create
+      @<%= singular_table_name %> = <%= class_name %>.new(<%= singular_table_name %>_params)
+      if @<%= singular_table_name %>.save
+        redirect_to <%= show_route_helper %>_path(@<%= singular_table_name %>), notice: t("admin.<%= plural_table_name %>.created"), status: :see_other
+      else
+        render :new, status: :unprocessable_content
+      end
+    end
+
+    def edit
+      @<%= singular_table_name %> = <%= class_name %>.find(params[:id])
+    end
+
+    def update
+      @<%= singular_table_name %> = <%= class_name %>.find(params[:id])
+      if @<%= singular_table_name %>.update(<%= singular_table_name %>_params)
+        redirect_to <%= show_route_helper %>_path(@<%= singular_table_name %>), notice: t("admin.<%= plural_table_name %>.updated"), status: :see_other
+      else
+        render :edit, status: :unprocessable_content
+      end
+    end
+
+    def destroy
+      @<%= singular_table_name %> = <%= class_name %>.find(params[:id])
+      @<%= singular_table_name %>.destroy!
+      redirect_to <%= index_route_helper %>_path, notice: t("admin.<%= plural_table_name %>.destroyed"), status: :see_other
+    end
+
+    private
+
+    def <%= singular_table_name %>_params
+      params.expect(<%= singular_table_name %>: [ <%= permitted_params %> ])
+    end
+
+    def ransack_params
+      params[:q].is_a?(ActionController::Parameters) ? params[:q] : {}
+    end
+  end
+end

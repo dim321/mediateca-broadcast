@@ -1,0 +1,39 @@
+- content_for :title, @broadcast_point_group.name
+
+.mx-auto.w-full.max-w-6xl.space-y-6
+  .flex.flex-col.sm:flex-row.sm:items-center.sm:justify-between.gap-4
+    h1.text-2xl.font-semibold.tracking-tight = @broadcast_point_group.name
+    .flex.flex-wrap.gap-2
+      = link_to t('.edit'), edit_owned_broadcast_point_group_path(@broadcast_point_group), class: 'btn btn-primary btn-sm'
+      = link_to t('.back'), owned_broadcast_point_groups_path, class: 'btn btn-ghost btn-sm'
+
+  - if @broadcast_point_group.commercial_quota_configured?
+    p.text-sm.text-base-content/60
+      = t('.quota_summary', percent: @broadcast_point_group.commercial_quota_percent, period: @broadcast_point_group.commercial_quota_period)
+
+  section.space-y-3
+    h2.text-lg.font-semibold = t('.members_heading')
+    - if @members.any?
+      ul.list.bg-base-100.border.border-base-300.rounded-box.shadow-sm
+        - @members.each do |screen|
+          li.list-row.items-center
+            div
+              span.font-medium = screen.name
+              p.text-sm.text-base-content/60 = screen.station.name
+            = button_to t('.remove'), remove_member_owned_broadcast_point_group_path(@broadcast_point_group), method: :delete, params: { screen_id: screen.id }, class: 'btn btn-ghost btn-xs text-error', form: { data: { turbo_confirm: t('.remove_confirm') } }
+    - else
+      p.text-base-content/60 = t('.no_members')
+
+  section.space-y-3
+    h2.text-lg.font-semibold = t('.add_heading')
+    - if @available_screens.any?
+      = form_with url: add_screens_owned_broadcast_point_group_path(@broadcast_point_group), method: :post, class: 'card bg-base-100 border border-base-300 shadow-sm' do
+        .card-body.gap-3
+          .flex.flex-wrap.gap-3
+            - @available_screens.each do |screen|
+              label.flex.items-center.gap-2.text-sm.cursor-pointer
+                = check_box_tag 'screen_ids[]', screen.id, false, id: "add_owned_screen_#{screen.id}", class: 'checkbox checkbox-sm'
+                span = "#{screen.name} (#{screen.station.name})"
+          = submit_tag t('.add_selected'), class: 'btn btn-primary btn-sm w-fit'
+    - else
+      p.text-base-content/60 = t('.no_screens_to_add')

@@ -1,0 +1,39 @@
+<% content_for :title, t("admin.crud.edit") %>
+<div class="mb-4">
+  <h1 class="text-2xl font-semibold text-gray-900"><%= t("admin.crud.edit") %> · <%= t("admin.nav.media_assets") %></h1>
+</div>
+<%= form_with model: [ :admin, @media_asset ], class: "max-w-xl bg-white border border-gray-200 rounded-lg p-6" do |f| %>
+  <%= render "admin/shared/form_errors", record: @media_asset %>
+  <div class="mb-5">
+    <%= f.label :organization_id, class: admin_label_class %>
+    <%= f.collection_select :organization_id, Organization.order(:name), :id, :name, {}, class: admin_select_class %>
+  </div>
+  <div class="mb-5">
+    <%= f.label :uploaded_by_id, class: admin_label_class %>
+    <%= f.collection_select :uploaded_by_id, User.order(:email), :id, :email, { include_blank: true }, class: admin_select_class %>
+  </div>
+  <div class="mb-5">
+    <%= f.label :content_kind, class: admin_label_class %>
+    <%= f.select :content_kind, admin_enum_options(MediaAsset, :content_kind), {}, class: admin_select_class %>
+  </div>
+  <div class="mb-5">
+    <%= f.label :content_type, class: admin_label_class %>
+    <%= f.select :content_type, admin_enum_options(MediaAsset, :content_type), {}, class: admin_select_class %>
+  </div>
+  <div class="mb-5">
+    <%= f.label :visibility, class: admin_label_class %>
+    <%= f.select :visibility, admin_enum_options(MediaAsset, :visibility), {}, class: admin_select_class %>
+  </div>
+  <div class="mb-5">
+    <%= f.label :processing_status, class: admin_label_class %>
+    <%= f.select :processing_status, admin_enum_options(MediaAsset, :processing_status), {}, class: admin_select_class %>
+  </div>
+  <div class="mb-5">
+    <%= f.label :duration_seconds, class: admin_label_class %>
+    <%= f.number_field :duration_seconds, class: admin_input_class %>
+  </div>
+  <div class="flex flex-wrap gap-3">
+    <%= f.submit class: admin_primary_button_class %>
+    <%= link_to t("admin.chrome.cancel"), admin_media_asset_path(@media_asset), class: admin_secondary_button_class %>
+  </div>
+<% end %>

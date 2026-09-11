@@ -3,10 +3,16 @@
 class ProcessMediaMetadataJob < ApplicationJob
   queue_as :default
 
+  class MissingFile < StandardError; end
+
   def perform(media_asset_id)
     media_asset = MediaAsset.find_by(id: media_asset_id)
     return if media_asset.blank?
-    return unless media_asset.file.attached?
+
+    unless media_asset.file.attached?
+      handle_failure(media_asset_id, MissingFile.new("MediaAsset #{media_asset_id} has no attached file"))
+      return
+    end
 
     media_asset.update!(processing_status: :processing)
 
@@ -17,16 +23,20 @@ class ProcessMediaMetadataJob < ApplicationJob
       media_asset.reload
 
       attrs = {
-        processing_status: :ready,
         duration_seconds: result.duration_seconds,
         metadata: media_asset.metadata.merge(result.metadata)
       }
       if result.refined_content_kind.present?
         attrs[:content_kind] = result.refined_content_kind
       end
+      kind = attrs.fetch(:content_kind, media_asset.content_kind).to_s
+      attrs[:processing_status] = kind == MediaAsset.content_kinds[:video] ? :processing : :ready
       media_asset.update!(attrs)
+      MediaTranscodeJob.perform_later(media_asset.id) if media_asset.video?
     end
   rescue StandardError => e
+    raise if Media::StorageErrors.network?(e)
+
     handle_failure(media_asset_id, e)
   end
 

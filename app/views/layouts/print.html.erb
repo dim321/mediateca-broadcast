@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="<%= I18n.locale %>">
+  <head>
+    <title><%= content_for(:title) || t("advertising.print_sheet.title") %></title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "print", media: "all" %>
+    <%= yield :head %>
+  </head>
+  <body class="print-body">
+    <div class="print-toolbar no-print">
+      <button type="button" class="print-button" onclick="window.print()"><%= t("advertising.print_sheet.print_button") %></button>
+    </div>
+    <%= yield %>
+  </body>
+</html>

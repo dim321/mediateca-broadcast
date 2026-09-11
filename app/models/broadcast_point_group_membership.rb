@@ -1,0 +1,73 @@
+# frozen_string_literal: true
+
+# == Schema Information
+#
+# Table name: broadcast_point_group_memberships
+#
+#  id                       :bigint           not null, primary key
+#  created_at               :datetime         not null
+#  updated_at               :datetime         not null
+#  broadcast_point_group_id :bigint           not null
+#  screen_id                :bigint           not null
+#
+# Indexes
+#
+#  idx_on_broadcast_point_group_id_7614dd11c4            (broadcast_point_group_id)
+#  index_broadcast_point_group_memberships_on_screen_id  (screen_id)
+#  index_broadcast_point_group_memberships_unique        (broadcast_point_group_id,screen_id) UNIQUE
+#
+# Foreign Keys
+#
+#  fk_rails_...  (broadcast_point_group_id => broadcast_point_groups.id) ON DELETE => cascade
+#  fk_rails_...  (screen_id => screens.id)
+#
+class BroadcastPointGroupMembership < ApplicationRecord
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[id created_at updated_at broadcast_point_group_id screen_id]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    %w[broadcast_point_group screen]
+  end
+
+  belongs_to :broadcast_point_group
+  belongs_to :screen
+
+  validates :screen_id, uniqueness: { scope: :broadcast_point_group_id }
+  validate :no_media_plan_overlap_for_screen
+  validate :compatible_with_group_commercial_quota
+
+  private
+
+  def no_media_plan_overlap_for_screen
+    return if screen.blank? || broadcast_point_group.blank?
+
+    broadcast_point_group.media_plans.find_each do |media_plan|
+      conflicts = Scheduling::MediaPlanConflictDetector.call(
+        starts_at: media_plan.starts_at,
+        ends_at: media_plan.ends_at,
+        screen_ids: [ screen.id ],
+        organization_id: broadcast_point_group.organization_id,
+        exclude_media_plan: media_plan
+      )
+      if conflicts.any?
+        errors.add(:screen, :overlaps_existing_media_plan)
+        break
+      end
+    end
+  end
+
+  def compatible_with_group_commercial_quota
+    return if screen.blank? || broadcast_point_group.blank?
+    return unless broadcast_point_group.commercial_quota_assigned?
+
+    unless screen.owner_organization_id == broadcast_point_group.organization_id
+      errors.add(:screen, :quota_requires_owner_match)
+      return
+    end
+
+    return if screen.location.operating_hours_configured?
+
+    errors.add(:screen, :quota_requires_operating_hours)
+  end
+end

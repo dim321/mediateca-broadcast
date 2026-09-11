@@ -1,0 +1,79 @@
+<% content_for :title, t("admin.broadcast_portraits.index.title") %>
+
+<div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <h1 class="text-2xl font-semibold text-gray-900"><%= t("admin.broadcast_portraits.index.title") %></h1>
+  <%= link_to t("admin.broadcast_portraits.new"), new_admin_broadcast_portrait_path, class: admin_primary_button_class %>
+</div>
+
+<%= search_form_for @q, url: admin_broadcast_portraits_path, html: { method: :get, class: "mb-4" } do |f| %>
+  <% if params[:q].is_a?(ActionController::Parameters) %>
+    <% Array(params.dig(:q, :s)).each do |sort| %>
+      <%= hidden_field_tag "q[s]", sort %>
+    <% end %>
+  <% end %>
+  <label for="q_name_cont" class="sr-only"><%= t("admin.broadcast_portraits.search") %></label>
+  <div class="relative max-w-sm">
+    <%= f.search_field :name_cont,
+          id: "q_name_cont",
+          class: admin_input_class,
+          placeholder: t("admin.broadcast_portraits.search") %>
+  </div>
+  <div class="mt-2 flex gap-2">
+    <%= f.submit t("admin.broadcast_portraits.search_submit"), class: admin_primary_button_class %>
+    <% if params[:q].is_a?(ActionController::Parameters) && params.dig(:q, :name_cont).present? %>
+      <%= link_to t("admin.broadcast_portraits.clear_search"), admin_broadcast_portraits_path, class: admin_secondary_button_class %>
+    <% end %>
+  </div>
+<% end %>
+
+<% if @broadcast_portraits.empty? && params[:q].blank? %>
+  <%= render "admin/shared/empty_state",
+        title: t("admin.broadcast_portraits.empty.title"),
+        description: t("admin.broadcast_portraits.empty.description"),
+        action_path: new_admin_broadcast_portrait_path,
+        action_label: t("admin.broadcast_portraits.new") %>
+<% elsif @broadcast_portraits.empty? %>
+  <%= render "admin/shared/empty_state",
+        title: t("admin.broadcast_portraits.empty.search_title"),
+        description: t("admin.broadcast_portraits.empty.search_description"),
+        action_path: admin_broadcast_portraits_path,
+        action_label: t("admin.broadcast_portraits.clear_search") %>
+<% else %>
+  <div class="relative overflow-x-auto shadow-md sm:rounded-lg bg-white">
+    <table class="w-full text-sm text-left text-gray-500">
+      <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+        <tr>
+          <th scope="col" class="px-6 py-3"><%= sort_link @q, :name %></th>
+          <th scope="col" class="px-6 py-3"><%= t("admin.broadcast_portraits.template") %></th>
+          <th scope="col" class="px-6 py-3"><%= BroadcastPortrait.human_attribute_name(:is_default) %></th>
+          <th scope="col" class="px-6 py-3"><span class="sr-only"><%= t("admin.chrome.actions") %></span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @broadcast_portraits.each do |portrait| %>
+          <tr class="bg-white border-b hover:bg-gray-50">
+            <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+              <%= link_to portrait.name, admin_broadcast_portrait_path(portrait), class: "text-blue-700 hover:underline" %>
+            </th>
+            <td class="px-6 py-4">
+              <% if portrait.screen %>
+                <%= admin_link_to_record(portrait.screen) %>
+              <% else %>
+                <%= t("admin.broadcast_portraits.template") %>
+              <% end %>
+            </td>
+            <td class="px-6 py-4"><%= admin_boolean(portrait.is_default) %></td>
+            <td class="px-6 py-4 text-right whitespace-nowrap">
+              <%= link_to t("admin.chrome.show"), admin_broadcast_portrait_path(portrait), class: "font-medium text-blue-700 hover:underline me-3" %>
+              <%= link_to t("admin.chrome.edit"), edit_admin_broadcast_portrait_path(portrait), class: "font-medium text-blue-700 hover:underline" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4">
+      <span class="text-sm text-gray-500"><%= t("admin.chrome.page_entries", count: @broadcast_portraits.total_count) %></span>
+      <%= paginate @broadcast_portraits, theme: "admin" %>
+    </div>
+  </div>
+<% end %>

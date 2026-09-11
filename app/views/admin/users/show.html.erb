@@ -1,0 +1,91 @@
+<% content_for :title, @user.display_name %>
+<div class="mb-6 overflow-hidden bg-white border border-gray-200 rounded-lg shadow-sm">
+  <div class="h-32 bg-gradient-to-r from-blue-600 to-blue-400"></div>
+  <div class="px-6 pb-6">
+    <div class="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between -mt-12">
+      <div class="flex items-end gap-4">
+        <% if @user.avatar.attached? %>
+          <%= image_tag @user.avatar, class: "w-24 h-24 rounded-full object-cover ring-4 ring-white", alt: @user.display_name %>
+        <% else %>
+          <span class="w-24 h-24 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-3xl font-semibold ring-4 ring-white">
+            <%= @user.display_name.to_s.first.upcase %>
+          </span>
+        <% end %>
+        <div class="pb-1">
+          <h1 class="text-2xl font-semibold text-gray-900"><%= @user.display_name %></h1>
+          <p class="text-sm text-gray-500"><%= @user.email %></p>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-3 pb-1">
+        <%= link_to t("admin.chrome.edit"), edit_admin_user_path(@user), class: admin_primary_button_class %>
+        <%= link_to t("admin.chrome.back"), admin_users_path, class: admin_secondary_button_class %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-2">
+  <div class="bg-white border border-gray-200 rounded-lg p-6">
+    <h2 class="mb-4 text-lg font-semibold text-gray-900"><%= t("admin.users.profile_section") %></h2>
+    <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= User.human_attribute_name(:first_name) %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= @user.first_name.presence || t("admin.crud.none") %></dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= User.human_attribute_name(:last_name) %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= @user.last_name.presence || t("admin.crud.none") %></dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= User.human_attribute_name(:job_title) %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= @user.job_title.presence || t("admin.crud.none") %></dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= User.human_attribute_name(:phone) %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= @user.phone.presence || t("admin.crud.none") %></dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= User.human_attribute_name(:telegram) %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= @user.telegram.presence || t("admin.crud.none") %></dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= User.human_attribute_name(:location) %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= @user.location.presence || t("admin.crud.none") %></dd>
+      </div>
+    </dl>
+  </div>
+
+  <div class="bg-white border border-gray-200 rounded-lg p-6">
+    <h2 class="mb-4 text-lg font-semibold text-gray-900"><%= t("admin.users.account_section") %></h2>
+    <dl class="grid grid-cols-1 gap-4">
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= User.human_attribute_name(:email) %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= @user.email %></dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= User.human_attribute_name(:organization) %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@user.organization) %></dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= User.human_attribute_name(:role) %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@user, :role) %></dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= User.human_attribute_name(:status) %></dt>
+        <dd class="mt-1">
+          <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset <%= @user.blocked? ? "bg-red-100 text-red-800 ring-red-600/20" : "bg-green-50 text-green-700 ring-green-600/20" %>">
+            <%= admin_enum_label(@user, :status) %>
+          </span>
+        </dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= User.human_attribute_name(:created_at) %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= l(@user.created_at, format: :long) %></dd>
+      </div>
+    </dl>
+  </div>
+</div>
+
+<div class="mt-6">
+  <%= button_to t("admin.chrome.destroy"), admin_user_path(@user), method: :delete, data: { turbo_confirm: t("admin.crud.destroy_confirm") }, class: admin_danger_button_class %>
+</div>

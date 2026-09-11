@@ -2,7 +2,9 @@
 # Usage:
 #   docker compose up --build
 #   docker compose run --rm web bin/rails console
-#   docker compose run --rm web bin/rspec
+#   docker compose exec -e RAILS_ENV=test web bundle exec rspec
+#   # Важно: сервис web по умолчанию RAILS_ENV=development — для тестов всегда
+#   # передавайте RAILS_ENV=test (иначе rspec попадёт в development DB + host check).
 #
 # App: http://localhost:3000
 # Postgres: localhost:5432 (user/password: postgres/postgres)

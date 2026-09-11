@@ -1,0 +1,19 @@
+<%= form_with model: [:admin, broadcast_point_group], class: "max-w-xl bg-white border border-gray-200 rounded-lg p-6" do |f| %>
+  <%= render "admin/shared/form_errors", record: broadcast_point_group %>
+  <div class="mb-5"><%= f.label :name, class: admin_label_class %><%= f.text_field :name, class: admin_input_class, required: true %></div>
+  <div class="mb-5"><%= f.label :organization_id, class: admin_label_class %><%= f.collection_select :organization_id, Organization.order(:name), :id, :name, { include_blank: true }, class: admin_select_class %></div>
+  <div class="mb-5"><%= f.label :commercial_quota_percent, class: admin_label_class %><%= f.number_field :commercial_quota_percent, class: admin_input_class %></div>
+  <div class="mb-5"><%= f.label :commercial_quota_period, class: admin_label_class %><%= f.select :commercial_quota_period, admin_enum_options(BroadcastPointGroup, :commercial_quota_period), { include_blank: true }, class: admin_select_class %></div>
+  <div class="mb-5">
+    <%= f.label :screen_ids, Screen.model_name.human(count: 2), class: admin_label_class %>
+    <div class="space-y-2 max-h-64 overflow-y-auto">
+      <%= f.collection_check_boxes :screen_ids, Screen.includes(:station).order(:name), :id, :name do |b| %>
+        <label class="flex items-center gap-2 text-sm text-gray-900"><%= b.check_box class: admin_checkbox_class %><%= b.text %></label>
+      <% end %>
+    </div>
+  </div>
+  <div class="flex flex-wrap gap-3">
+    <%= f.submit class: admin_primary_button_class %>
+    <%= link_to t("admin.chrome.cancel"), admin_broadcast_point_groups_path, class: admin_secondary_button_class %>
+  </div>
+<% end %>

@@ -21,8 +21,11 @@ Rails.application.configure do
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.asset_host = "http://assets.example.com"
 
-  # Blobs: local disk by default; set ACTIVE_STORAGE_SERVICE=amazon and AWS_* env for S3/R2.
-  config.active_storage.service = ENV.fetch("ACTIVE_STORAGE_SERVICE", "local").to_sym
+  # rustfs is on a private LAN; proxy through Rails so agents/browsers never hit 192.168.1.14.
+  config.active_storage.service = ENV.fetch("ACTIVE_STORAGE_SERVICE", "rustfs").to_sym
+  config.active_storage.resolve_model_to_route = :rails_storage_proxy
+  config.active_storage.service_urls_expire_in = 15.minutes
+  config.active_storage.variant_processor = :vips
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
   # config.assume_ssl = true

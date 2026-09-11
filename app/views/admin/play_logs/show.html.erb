@@ -1,0 +1,16 @@
+<% content_for :title, "#{PlayLog.model_name.human} ##{@play_log.id}" %>
+<div class="mb-4"><h1 class="text-2xl font-semibold text-gray-900"><%= PlayLog.model_name.human %> #<%= @play_log.id %></h1></div>
+<div class="bg-white border border-gray-200 rounded-lg p-6 max-w-xl">
+  <dl class="grid grid-cols-1 gap-4">
+    <div><dt class="text-sm font-medium text-gray-500"><%= Organization.model_name.human %></dt><dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@play_log.organization) %></dd></div>
+    <div><dt class="text-sm font-medium text-gray-500"><%= Screen.model_name.human %></dt><dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@play_log.screen) %></dd></div>
+    <div><dt class="text-sm font-medium text-gray-500"><%= MediaAsset.model_name.human %></dt><dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@play_log.media_asset) %></dd></div>
+    <div><dt class="text-sm font-medium text-gray-500"><%= PlayLog.human_attribute_name(:source) %></dt><dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@play_log, :source) %></dd></div>
+    <div><dt class="text-sm font-medium text-gray-500"><%= PlayLog.human_attribute_name(:started_at) %></dt><dd class="mt-1 text-sm text-gray-900"><%= l(@play_log.started_at, format: :long) %></dd></div>
+  </dl>
+</div>
+<div class="mt-6 flex flex-wrap gap-3">
+  <%= link_to t("admin.chrome.edit"), edit_admin_play_log_path(@play_log), class: admin_primary_button_class %>
+  <%= link_to t("admin.chrome.back"), admin_play_logs_path, class: admin_secondary_button_class %>
+  <%= button_to t("admin.chrome.destroy"), admin_play_log_path(@play_log), method: :delete, data: { turbo_confirm: t("admin.crud.destroy_confirm") }, class: admin_danger_button_class %>
+</div>

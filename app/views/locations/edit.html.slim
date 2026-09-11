@@ -1,0 +1,21 @@
+h1.text-2xl.font-semibold.mb-4 = t('.title', name: @location.name)
+
+= form_with model: @location, class: 'space-y-4 max-w-xl' do |f|
+  - if @location.errors.any?
+    ul.text-sm.text-error.list-disc.pl-5
+      - @location.errors.full_messages.each do |message|
+        li = message
+  p.text-sm.text-base-content/60 = t('.hint')
+  - Location::OperatingHours::DAY_KEYS.each do |day|
+    - window = Array(@location.operating_hours[day]).first || {}
+    .grid.grid-cols-3.gap-2.items-end
+      div.font-medium.pt-2 = t(".days.#{day}")
+      div
+        label.block.text-xs = t('.start')
+        input.input.input-bordered.w-full.mt-1 type="time" name="location[operating_hours][#{day}][][start]" value=window['start']
+      div
+        label.block.text-xs = t('.end')
+        input.input.input-bordered.w-full.mt-1 type="time" name="location[operating_hours][#{day}][][end]" value=window['end']
+  .flex.gap-3
+    = f.submit class: 'btn btn-primary btn-sm'
+    = link_to t('.cancel'), locations_path, class: 'btn btn-ghost btn-sm'

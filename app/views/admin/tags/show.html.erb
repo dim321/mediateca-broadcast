@@ -1,0 +1,35 @@
+<% content_for :title, @tag.name %>
+
+<div class="mb-4">
+  <h1 class="text-2xl font-semibold text-gray-900"><%= @tag.name %></h1>
+</div>
+
+<div class="bg-white border border-gray-200 rounded-lg p-6 max-w-xl">
+  <dl class="grid grid-cols-1 gap-4">
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Tag.human_attribute_name(:name) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @tag.name %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= t("admin.tags.screens_count") %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @tag.screens.count %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Tag.human_attribute_name(:created_at) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= l(@tag.created_at, format: :long) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Tag.human_attribute_name(:updated_at) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= l(@tag.updated_at, format: :long) %></dd>
+    </div>
+  </dl>
+</div>
+
+<div class="mt-6 flex flex-wrap gap-3">
+  <%= link_to t("admin.chrome.edit"), edit_admin_tag_path(@tag), class: admin_primary_button_class %>
+  <%= link_to t("admin.chrome.back"), admin_tags_path, class: admin_secondary_button_class %>
+  <%= button_to t("admin.chrome.destroy"), admin_tag_path(@tag),
+        method: :delete,
+        data: { turbo_confirm: t("admin.tags.destroy_confirm") },
+        class: admin_danger_button_class %>
+</div>

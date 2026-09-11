@@ -1,0 +1,11 @@
+<%= form_with model: [ :admin, business_sphere ], class: "max-w-xl bg-white border border-gray-200 rounded-lg p-6" do |f| %>
+  <%= render "admin/shared/form_errors", record: business_sphere %>
+  <div class="mb-5">
+    <%= f.label :name, class: admin_label_class %>
+    <%= f.text_field :name, class: "#{admin_input_class} #{'border-red-500' if business_sphere.errors[:name].any?}", required: true %>
+  </div>
+  <div class="flex flex-wrap gap-3">
+    <%= f.submit class: admin_primary_button_class %>
+    <%= link_to t("admin.chrome.cancel"), admin_directory_business_spheres_path, class: admin_secondary_button_class %>
+  </div>
+<% end %>

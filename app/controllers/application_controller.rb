@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::Base
   include CurrentOrganization
+  include LocaleSwitching
   include Pundit::Authorization
 
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
@@ -21,7 +22,7 @@ class ApplicationController < ActionController::Base
   end
 
   def user_not_authorized
-    flash[:alert] = I18n.t("pundit.not_authorized", default: "You are not authorized to perform this action.")
+    flash[:alert] = I18n.t("pundit.not_authorized")
     redirect_back(fallback_location: rails_health_check_path)
   end
 end

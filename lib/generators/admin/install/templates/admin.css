@@ -1,0 +1,9 @@
+@import "tailwindcss" source(none);
+@plugin "flowbite/plugin";
+
+@source "../../../node_modules/flowbite";
+@source "../../views/layouts/admin/operator.html.erb";
+@source "../../views/admin/**/*.erb";
+@source "../../javascript/admin.js";
+@source "../../javascript/admin/**/*.js";
+@source "../../views/kaminari/admin/**/*.erb";

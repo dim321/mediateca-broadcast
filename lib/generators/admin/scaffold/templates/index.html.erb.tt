@@ -1,0 +1,81 @@
+<%% content_for :title, t("admin.<%= plural_table_name %>.index.title") %>
+
+<div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <h1 class="text-2xl font-semibold text-gray-900"><%%= t("admin.<%= plural_table_name %>.index.title") %></h1>
+  <%%= link_to t("admin.<%= plural_table_name %>.new"), new_<%= show_route_helper %>_path, class: admin_primary_button_class %>
+</div>
+
+<%%= search_form_for @q, url: <%= index_route_helper %>_path, html: { method: :get, class: "mb-4" } do |f| %>
+  <%% if params[:q].is_a?(ActionController::Parameters) %>
+    <%% Array(params.dig(:q, :s)).each do |sort| %>
+      <%%= hidden_field_tag "q[s]", sort %>
+    <%% end %>
+  <%% end %>
+  <label for="q_<%= searchable_attribute %>_cont" class="sr-only"><%%= t("admin.<%= plural_table_name %>.search") %></label>
+  <div class="relative max-w-sm">
+    <%%= f.search_field :<%= searchable_attribute %>_cont,
+          id: "q_<%= searchable_attribute %>_cont",
+          class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5",
+          placeholder: t("admin.<%= plural_table_name %>.search") %>
+  </div>
+  <div class="mt-2 flex gap-2">
+    <%%= f.submit t("admin.<%= plural_table_name %>.search_submit"), class: admin_primary_button_class %>
+    <%% if params[:q].is_a?(ActionController::Parameters) && params.dig(:q, :<%= searchable_attribute %>_cont).present? %>
+      <%%= link_to t("admin.<%= plural_table_name %>.clear_search"), <%= index_route_helper %>_path, class: admin_secondary_button_class %>
+    <%% end %>
+  </div>
+<%% end %>
+
+<%% if @<%= plural_table_name %>.empty? && params[:q].blank? %>
+  <%%= render "admin/shared/empty_state",
+        title: t("admin.<%= plural_table_name %>.empty.title"),
+        description: t("admin.<%= plural_table_name %>.empty.description"),
+        action_path: new_<%= show_route_helper %>_path,
+        action_label: t("admin.<%= plural_table_name %>.new") %>
+<%% elsif @<%= plural_table_name %>.empty? %>
+  <%%= render "admin/shared/empty_state",
+        title: t("admin.<%= plural_table_name %>.empty.search_title"),
+        description: t("admin.<%= plural_table_name %>.empty.search_description"),
+        action_path: <%= index_route_helper %>_path,
+        action_label: t("admin.<%= plural_table_name %>.clear_search") %>
+<%% else %>
+  <div class="relative overflow-x-auto shadow-md sm:rounded-lg bg-white">
+    <table class="w-full text-sm text-left text-gray-500">
+      <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+        <tr>
+<% form_attributes.each do |attribute| -%>
+          <th scope="col" class="px-6 py-3">
+            <%%= sort_link @q, :<%= attribute.name %> %>
+          </th>
+<% end -%>
+          <th scope="col" class="px-6 py-3">
+            <span class="sr-only"><%%= t("admin.chrome.actions") %></span>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <%% @<%= plural_table_name %>.each do |<%= singular_table_name %>| %>
+          <tr class="bg-white border-b hover:bg-gray-50">
+<% form_attributes.each_with_index do |attribute, index| -%>
+<% if index.zero? -%>
+            <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+              <%%= link_to <%= singular_table_name %>.<%= attribute.name %>, <%= show_route_helper %>_path(<%= singular_table_name %>), class: "text-blue-700 hover:underline" %>
+            </th>
+<% else -%>
+            <td class="px-6 py-4"><%%= <%= singular_table_name %>.<%= attribute.name %> %></td>
+<% end -%>
+<% end -%>
+            <td class="px-6 py-4 text-right whitespace-nowrap">
+              <%%= link_to t("admin.chrome.show"), <%= show_route_helper %>_path(<%= singular_table_name %>), class: "font-medium text-blue-700 hover:underline me-3" %>
+              <%%= link_to t("admin.chrome.edit"), edit_<%= show_route_helper %>_path(<%= singular_table_name %>), class: "font-medium text-blue-700 hover:underline" %>
+            </td>
+          </tr>
+        <%% end %>
+      </tbody>
+    </table>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4">
+      <span class="text-sm text-gray-500"><%%= t("admin.chrome.page_entries", count: @<%= plural_table_name %>.total_count) %></span>
+      <%%= paginate @<%= plural_table_name %>, theme: "admin" %>
+    </div>
+  </div>
+<%% end %>

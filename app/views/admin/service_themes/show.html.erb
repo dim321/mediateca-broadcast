@@ -1,0 +1,98 @@
+<% content_for :title, @service_theme.name %>
+<% content_for :head do %>
+  <%= turbo_stream_from @service_theme.organization, :media_library %>
+  <% if @service_theme.processing_clips? %>
+    <meta http-equiv="refresh" content="2">
+  <% end %>
+<% end %>
+
+<div class="mb-4">
+  <h1 class="text-2xl font-semibold text-gray-900"><%= @service_theme.name %></h1>
+</div>
+
+<div class="bg-white border border-gray-200 rounded-lg p-6 max-w-xl">
+  <dl class="grid grid-cols-1 gap-4">
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= ServiceTheme.human_attribute_name(:name) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @service_theme.name %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= t("admin.service_themes.portraits_count") %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @service_theme.broadcast_portraits.count %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= ServiceTheme.human_attribute_name(:created_at) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= l(@service_theme.created_at, format: :long) %></dd>
+    </div>
+  </dl>
+</div>
+
+<div class="mt-8 max-w-5xl space-y-8">
+  <h2 class="text-lg font-semibold text-gray-900"><%= t("admin.service_themes.folders") %></h2>
+  <% ServiceTheme::ROTATION_ROLES.each do |role, kind| %>
+    <% rotation = @service_theme.rotation_for(role) %>
+    <section class="bg-white border border-gray-200 rounded-lg p-6">
+      <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 class="text-base font-semibold text-gray-900"><%= t("enums.broadcast_portrait_block.kind.#{kind}") %></h3>
+          <p class="text-sm text-gray-500"><%= rotation.name %></p>
+        </div>
+        <%= form_with url: admin_service_theme_clips_path(@service_theme),
+              multipart: true,
+              class: "flex flex-col gap-2 sm:flex-row sm:items-end" do %>
+          <%= hidden_field_tag :role, role, id: "clip_role_#{role}" %>
+          <%= hidden_field_tag "clip[content_type]", "service", id: "clip_content_type_#{role}" %>
+          <%= hidden_field_tag "clip[visibility]", "network", id: "clip_visibility_#{role}" %>
+          <div>
+            <label for="clip_file_<%= role %>" class="<%= admin_label_class %>"><%= t("admin.service_themes.upload") %></label>
+            <%= file_field_tag "clip[file]",
+                  id: "clip_file_#{role}",
+                  required: true,
+                  accept: "video/mp4,video/webm,video/mpeg,.mpg,.mpeg,image/*,audio/*",
+                  class: "block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none" %>
+          </div>
+          <%= submit_tag t("admin.service_themes.upload_submit"), class: admin_primary_button_class %>
+        <% end %>
+      </div>
+
+      <% items = rotation.ordered_items %>
+      <% if items.empty? %>
+        <p class="text-sm text-gray-500"><%= t("admin.service_themes.folder_empty") %></p>
+      <% else %>
+        <div class="relative overflow-x-auto">
+          <table class="w-full text-sm text-left text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+              <tr>
+                <th scope="col" class="px-4 py-3"><%= t("admin.service_themes.clip_file") %></th>
+                <th scope="col" class="px-4 py-3"><%= MediaAsset.human_attribute_name(:processing_status) %></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% items.each do |item| %>
+                <tr class="bg-white border-b">
+                  <td class="px-4 py-3">
+                    <%= link_to admin_attachment_name(item.media_asset.file),
+                          admin_media_asset_path(item.media_asset),
+                          class: "text-blue-700 hover:underline" %>
+                  </td>
+                  <td class="px-4 py-3" id="<%= dom_id(item.media_asset, :processing_status) %>">
+                    <%= admin_enum_label(item.media_asset, :processing_status) %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+    </section>
+  <% end %>
+</div>
+
+<div class="mt-6 flex flex-wrap gap-3">
+  <%= link_to t("admin.chrome.edit"), edit_admin_service_theme_path(@service_theme), class: admin_primary_button_class %>
+  <%= link_to t("admin.chrome.back"), admin_service_themes_path, class: admin_secondary_button_class %>
+  <%= button_to t("admin.chrome.destroy"), admin_service_theme_path(@service_theme),
+        method: :delete,
+        data: { turbo_confirm: t("admin.service_themes.destroy_confirm") },
+        class: admin_danger_button_class %>
+</div>

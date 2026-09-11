@@ -5,9 +5,11 @@ class CreateOrganizationsUsers < ActiveRecord::Migration[8.1]
     create_table :organizations do |t|
       t.string :name, null: false
       t.string :time_zone, null: false, default: 'UTC'
+      t.string :kind, null: false, default: 'client'
 
       t.timestamps
     end
+    add_index :organizations, :kind
 
     create_table :users do |t|
       t.references :organization, null: false, foreign_key: true

@@ -1,0 +1,57 @@
+<% content_for :title, t("admin.nav.media_assets") %>
+<div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <h1 class="text-2xl font-semibold text-gray-900"><%= t("admin.nav.media_assets") %></h1>
+</div>
+<%= search_form_for @q, url: admin_media_assets_path, html: { method: :get, class: "mb-4" } do |f| %>
+  <% if params[:q].is_a?(ActionController::Parameters) %>
+    <% Array(params.dig(:q, :s)).each do |sort| %><%= hidden_field_tag "q[s]", sort %><% end %>
+  <% end %>
+  <div class="relative max-w-sm">
+    <%= f.search_field :content_kind_eq, class: admin_input_class, placeholder: t("admin.crud.search") %>
+  </div>
+  <div class="mt-2 flex gap-2">
+    <%= f.submit t("admin.crud.search_submit"), class: admin_primary_button_class %>
+    <% if params[:q].is_a?(ActionController::Parameters) && params.dig(:q, :content_kind_eq).present? %>
+      <%= link_to t("admin.crud.clear_search"), admin_media_assets_path, class: admin_secondary_button_class %>
+    <% end %>
+  </div>
+<% end %>
+<% if @media_assets.empty? && params[:q].blank? %>
+  <%= render "admin/shared/empty_state", title: t("admin.crud.empty.title"), description: t("admin.crud.empty.description") %>
+<% elsif @media_assets.empty? %>
+  <%= render "admin/shared/empty_state", title: t("admin.crud.empty.search_title"), description: t("admin.crud.empty.search_description"), action_path: admin_media_assets_path, action_label: t("admin.crud.clear_search") %>
+<% else %>
+  <div class="relative overflow-x-auto shadow-md sm:rounded-lg bg-white">
+    <table class="w-full text-sm text-left text-gray-500">
+      <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+        <tr>
+          <th scope="col" class="px-6 py-3"><%= MediaAsset.human_attribute_name(:file) %></th>
+          <th scope="col" class="px-6 py-3"><%= Organization.model_name.human %></th>
+          <th scope="col" class="px-6 py-3"><%= sort_link @q, :content_kind %></th>
+          <th scope="col" class="px-6 py-3"><%= sort_link @q, :processing_status %></th>
+          <th scope="col" class="px-6 py-3"><span class="sr-only"><%= t("admin.chrome.actions") %></span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @media_assets.each do |asset| %>
+          <tr class="bg-white border-b hover:bg-gray-50">
+            <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+              <%= link_to admin_attachment_name(asset.file), admin_media_asset_path(asset), class: "text-blue-700 hover:underline" %>
+            </th>
+            <td class="px-6 py-4"><%= admin_link_to_record(asset.organization) %></td>
+            <td class="px-6 py-4"><%= admin_enum_label(asset, :content_kind) %></td>
+            <td class="px-6 py-4"><%= admin_enum_label(asset, :processing_status) %></td>
+            <td class="px-6 py-4 text-right whitespace-nowrap">
+              <%= link_to t("admin.chrome.show"), admin_media_asset_path(asset), class: "font-medium text-blue-700 hover:underline me-3" %>
+              <%= link_to t("admin.chrome.edit"), edit_admin_media_asset_path(asset), class: "font-medium text-blue-700 hover:underline" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4">
+      <span class="text-sm text-gray-500"><%= t("admin.chrome.page_entries", count: @media_assets.total_count) %></span>
+      <%= paginate @media_assets, theme: "admin" %>
+    </div>
+  </div>
+<% end %>

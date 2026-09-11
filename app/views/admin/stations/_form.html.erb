@@ -1,0 +1,19 @@
+<%= form_with model: [:admin, station], class: "max-w-xl bg-white border border-gray-200 rounded-lg p-6" do |f| %>
+  <%= render "admin/shared/form_errors", record: station %>
+  <div class="mb-5">
+    <%= f.label :location_id, class: admin_label_class %>
+    <%= f.collection_select :location_id, Location.order(:name), :id, :name, { include_blank: true }, class: admin_select_class %>
+  </div>
+  <div class="mb-5">
+    <%= f.label :name, class: admin_label_class %>
+    <%= f.text_field :name, class: admin_input_class, required: true %>
+  </div>
+  <div class="mb-5">
+    <%= f.label :offline_cache_hours, class: admin_label_class %>
+    <%= f.number_field :offline_cache_hours, class: admin_input_class %>
+  </div>
+  <div class="flex flex-wrap gap-3">
+    <%= f.submit class: admin_primary_button_class %>
+    <%= link_to t("admin.chrome.cancel"), admin_stations_path, class: admin_secondary_button_class %>
+  </div>
+<% end %>

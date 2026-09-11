@@ -1,0 +1,27 @@
+tr.border-b.border-base-200.hover:bg-base-200 data-order-grid-target='lineRow' data-order-screen-picker-target='gridRow' data-screen-id=screen_id data-hours=(hours_json.to_json)
+  td.whitespace-nowrap.px-4.py-2
+    = hidden_field_tag "advertising_order[lines][#{index}][screen_id]", screen_id, data: { order_screen_picker_target: 'screenId' }
+    span.font-medium data-order-screen-picker-target='screenName' = screen_name
+    span.text-xs.text-base-content/60
+      |  
+      span data-order-screen-picker-target='screenMeta' = screen_meta
+  - Array(@grid_dates).each do |date|
+    - day = advertising_order_day_for(line, date)
+    - skipped = day.blank? && line.persisted?
+    - shows_value = day&.shows
+    - weekend = date.saturday? || date.sunday?
+    td.p-1.text-center class=(weekend ? 'bg-base-200' : nil)
+      = hidden_field_tag "advertising_order[lines][#{index}][days][][date]", date.iso8601
+      = hidden_field_tag "advertising_order[lines][#{index}][days][][skipped]", skipped ? '1' : '0', data: { order_grid_target: 'skipped' }
+      = number_field_tag "advertising_order[lines][#{index}][days][][shows]",
+          shows_value,
+          min: 0,
+          class: 'input input-bordered input-xs w-14 min-w-14 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
+          data: { order_grid_target: 'cell', date: date.iso8601, action: 'input->order-grid#cellChanged' }
+  td.p-1.text-center
+    = number_field_tag nil,
+        shows_total,
+        readonly: true,
+        tabindex: -1,
+        class: 'input input-bordered input-xs w-16 text-center',
+        data: { order_grid_target: 'total' }

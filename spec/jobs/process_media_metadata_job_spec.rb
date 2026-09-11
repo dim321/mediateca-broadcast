@@ -41,4 +41,50 @@ RSpec.describe ProcessMediaMetadataJob, type: :job do
     expect(asset).to be_failed
     expect(asset.metadata["error"]).to eq("boom")
   end
+
+  it "marks failed when the attached file is missing" do
+    allow(described_class).to receive(:perform_later)
+    asset = create(:media_asset, :with_png_file, organization: organization, uploaded_by: user)
+    asset.file.purge
+
+    described_class.perform_now(asset.id)
+
+    expect(asset.reload).to be_failed
+    expect(asset.metadata["error_class"]).to eq("ProcessMediaMetadataJob::MissingFile")
+  end
+
+  it "does not mark the asset failed on the first storage timeout" do
+    asset = create(:media_asset, :with_png_file, organization: organization, uploaded_by: user)
+    clear_enqueued_jobs
+    allow(MediaAsset).to receive(:find_by).with(id: asset.id).and_return(asset)
+    allow(asset.file.blob).to receive(:open).and_raise(
+      Errno::ETIMEDOUT, "user specified timeout for 192.168.1.14:9010"
+    )
+
+    expect { described_class.perform_now(asset.id) }.to have_enqueued_job(described_class)
+    expect(asset.reload).not_to be_failed
+  end
+
+  it "queues video transcoding after metadata extraction" do
+    allow(described_class).to receive(:perform_later)
+    asset = build(:media_asset, organization: organization, uploaded_by: user)
+    asset.file.attach(
+      io: StringIO.new("source video"),
+      filename: "source.mp4",
+      content_type: "video/mp4"
+    )
+    asset.save!
+    result = Media::MetadataExtractor::Result.new(
+      duration_seconds: 30,
+      metadata: { "probe" => "ok" },
+      refined_content_kind: "video"
+    )
+    allow(Media::MetadataExtractor).to receive(:call).and_return(result)
+    allow(Media::PreviewGenerator).to receive(:call)
+
+    expect { described_class.perform_now(asset.id) }
+      .to have_enqueued_job(MediaTranscodeJob).with(asset.id)
+
+    expect(asset.reload).to be_processing
+  end
 end

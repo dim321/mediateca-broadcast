@@ -1,0 +1,7 @@
+<div id="flash">
+  <% flash.each do |type, message| %>
+    <div role="alert" class="<%= admin_flash_class(type) %>">
+      <%= message %>
+    </div>
+  <% end %>
+</div>

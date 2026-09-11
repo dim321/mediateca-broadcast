@@ -1,0 +1,52 @@
+<% content_for :title, "#{MediaPlan.model_name.human} ##{@media_plan.id}" %>
+<div class="mb-4">
+  <h1 class="text-2xl font-semibold text-gray-900"><%= MediaPlan.model_name.human %> #<%= @media_plan.id %></h1>
+</div>
+<div class="mb-4 flex flex-wrap gap-3">
+  <%= link_to t("admin.media_plans.cancel"),
+        cancel_admin_media_plan_path(@media_plan),
+        data: { turbo_method: :delete, turbo_confirm: t("admin.media_plans.cancel_confirm") },
+        class: admin_danger_button_class %>
+  <%= link_to t("admin.media_plans.reschedule"),
+        reschedule_admin_media_plan_path(@media_plan),
+        class: admin_primary_button_class %>
+</div>
+<div class="bg-white border border-gray-200 rounded-lg p-6 max-w-xl">
+  <dl class="grid grid-cols-1 gap-4">
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Organization.model_name.human %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@media_plan.organization) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= BroadcastPointGroup.model_name.human %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@media_plan.broadcast_point_group) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Rotation.model_name.human %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@media_plan.rotation) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= MediaPlan.human_attribute_name(:placement_kind) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@media_plan, :placement_kind) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= MediaPlan.human_attribute_name(:status) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@media_plan, :status) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= MediaPlan.human_attribute_name(:starts_at) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= l(@media_plan.starts_at, format: :long) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= MediaPlan.human_attribute_name(:ends_at) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= l(@media_plan.ends_at, format: :long) %></dd>
+    </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= MediaPlan.human_attribute_name(:shows_per_hour) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @media_plan.shows_per_hour || t("admin.crud.none") %></dd>
+    </div>
+  </dl>
+</div>
+<div class="mt-6">
+  <%= link_to t("admin.chrome.back"), admin_media_plans_path, class: admin_secondary_button_class %>
+</div>

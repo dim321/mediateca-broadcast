@@ -10,8 +10,11 @@ AllCops:
 RSpec/MultipleExpectations:
   Max: 8
 
+RSpec/MultipleMemoizedHelpers:
+  Max: 10
+
 RSpec/ExampleLength:
-  Max: 20
+  Max: 40
 
 RSpec/AnyInstance:
   Enabled: false

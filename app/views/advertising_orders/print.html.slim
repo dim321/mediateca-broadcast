@@ -1,0 +1,2 @@
+- content_for :title, t('.title', product: @advertising_order.product_name)
+= render Advertising::PrintSheetComponent.new(order: @advertising_order)

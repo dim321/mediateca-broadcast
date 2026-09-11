@@ -1,0 +1,5 @@
+<% content_for :title, t("admin.crud.new") %>
+<div class="mb-4">
+  <h1 class="text-2xl font-semibold text-gray-900"><%= t("admin.crud.new") %> · <%= t("admin.nav.users") %></h1>
+</div>
+<%= render "form", user: @user %>

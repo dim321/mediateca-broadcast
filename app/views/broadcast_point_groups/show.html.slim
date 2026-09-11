@@ -1,0 +1,48 @@
+- content_for :title, @broadcast_point_group.name
+
+.flex.flex-col.gap-6.w-full.max-w-6xl
+  .flex.flex-col.sm:flex-row.sm:items-center.sm:justify-between.gap-4
+    h1.text-2xl.font-bold = @broadcast_point_group.name
+    .flex.flex-wrap.gap-3
+      = link_to t('.edit_name'), edit_broadcast_point_group_path(@broadcast_point_group), class: 'text-blue-600 underline text-sm'
+      = link_to t('.back'), broadcast_point_groups_path, class: 'text-blue-600 underline text-sm'
+
+  h2.text-lg.font-semibold = t('.members_heading')
+  - if @members.any?
+    ul.list-none.space-y-2
+      - @members.each do |screen|
+        li.border.rounded.p-3.bg-white.flex.items-center.justify-between.gap-2
+          div
+            span.font-medium = screen.name
+            p.text-sm.text-gray-600 = t('.screen_station', station: screen.station.name)
+          = button_to t('.remove'), remove_member_broadcast_point_group_path(@broadcast_point_group), method: :delete, params: { screen_id: screen.id }, class: 'text-sm text-red-600 underline shrink-0', form: { data: { turbo_confirm: t('.remove_confirm') } }
+  - else
+    p.text-gray-600 = t('.no_members')
+
+  h2.text-lg.font-semibold = t('.add_heading')
+  - if @catalog_tags.any?
+    = form_with url: broadcast_point_group_path(@broadcast_point_group), method: :get, class: 'border rounded-lg p-4 bg-gray-50 space-y-3' do
+      p.text-sm.text-gray-700 = t('.filter_by_tags')
+      .flex.flex-wrap.gap-3
+        - @catalog_tags.each do |tag|
+          label.flex.items-center.gap-2.text-sm
+            = check_box_tag 'tag_ids[]', tag.id, @selected_tag_ids.include?(tag.id), id: "tag_filter_#{tag.id}"
+            = tag.name
+      .flex.flex-wrap.gap-3
+        = submit_tag t('.apply_filter'), class: 'rounded bg-gray-800 text-white px-3 py-1.5 text-sm'
+        - if @selected_tag_ids.any?
+          = link_to t('.clear_filter'), broadcast_point_group_path(@broadcast_point_group), class: 'text-sm text-blue-600 underline py-1.5'
+
+  - if @available_screens.any?
+    = form_with url: add_screens_broadcast_point_group_path(@broadcast_point_group), method: :post, class: 'border rounded-lg p-4 bg-gray-50 space-y-3' do
+      .flex.flex-wrap.gap-3
+        - @available_screens.each do |screen|
+          label.flex.items-center.gap-2.text-sm
+            = check_box_tag 'screen_ids[]', screen.id, false, id: "add_screen_#{screen.id}"
+            span
+              = "#{screen.name} (#{screen.station.name})"
+              - if screen.tags.any?
+                span.text-gray-500 = " · #{screen.tags.map(&:name).join(', ')}"
+      = submit_tag t('.add_selected'), class: 'rounded bg-blue-600 text-white px-4 py-2 text-sm'
+  - else
+    p.text-gray-600.mt-2 = t('.no_screens_to_add')

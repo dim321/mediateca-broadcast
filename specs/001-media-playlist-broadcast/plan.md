@@ -4,6 +4,8 @@
 
 **Input**: Feature specification from `/specs/001-media-playlist-broadcast/spec.md`
 
+> **Примечание (2026-08-05):** gem **Avo** удалён из кодовой базы. Упоминания Avo / `/avo` / `app/avo` ниже — исторические; операторская админка будет заменена на **Administrate**.
+
 ## Summary
 
 Мультитенантный SaaS: загрузка рекламных медиа в кабинет организации,
@@ -12,14 +14,14 @@
 по времени (UTC + часовые пояса), выдача контента на ТВ-плееры по **Device API
 v1**. Технически: **Rails 8**, **Hotwire** (Slim + ViewComponent + Stimulus),
 **PostgreSQL 18**, **Active Storage**, фоновые джобы для метаданных и конвертации
-PDF/PPTX, **Pundit** + **Avo** для админки, деплой **Kamal**; плеер —
+PDF/PPTX, **Pundit** + **Avo** *(→ **Administrate**)* для админки, деплой **Kamal**; плеер —
 HTTPS + JSON + подписанные URL на blob.
 
 ## Technical Context
 
 **Language/Version**: Ruby 4.x  
 **Primary Dependencies**: Rails 8, Hotwire (Turbo + Stimulus), Slim, ViewComponent,
-Pundit, Avo, Active Storage, Active Job (Solid Queue или Sidekiq — зафиксировать
+Pundit, Avo *(→ Administrate)*, Active Storage, Active Job (Solid Queue или Sidekiq — зафиксировать
 при генерации приложения), ffmpeg/ffprobe в runtime обработки медиа  
 **Storage**: PostgreSQL 18 (OLTP); объекты медиа — Active Storage (local/S3/R2 в prod)  
 **Testing**: RSpec, FactoryBot, Capybara (системные сценарии Turbo), request specs
@@ -44,11 +46,11 @@ Pundit, Avo, Active Storage, Active Job (Solid Queue или Sidekiq — зафи
 - [x] TDD: для этой фичи тесты описаны в spec/EQ; при реализации — Red → Green → Refactor.
 - [x] DDD: контексты и сущности — в [data-model.md](./data-model.md); инварианты — в таблицах и разделе удалений.
 - [x] UI: Hotwire-first; Inertia не требуется (DnD через Stimulus + SortableJS).
-- [x] UI stack: кабинет — Slim + ViewComponent; админка — Avo.
+- [x] UI stack: кабинет — Slim + ViewComponent; админка — Avo *(→ Administrate)*.
 - [x] Runtime/Tooling: Devcontainer + PG 18 — при создании репозитория приложения.
 - [x] Delivery: Kamal + миграции с планом отката.
-- [x] Authorization: Pundit (+ тесты политик); Avo с теми же политиками.
-- [x] Admin: операторы/саппорт через Avo на модели тенанта.
+- [x] Authorization: Pundit (+ тесты политик); Avo *(→ Administrate)* с теми же политиками.
+- [x] Admin: операторы/саппорт через Avo *(→ Administrate)* на модели тенанта.
 - [x] Data: схема под PostgreSQL 18, индексы — см. data-model.
 
 ### После Phase 1 (дизайн и контракты)

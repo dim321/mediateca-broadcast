@@ -6,5 +6,5 @@ class ApplicationJob < ActiveJob::Base
 
   retry_on ActiveRecord::Deadlocked, wait: 1.second, attempts: 3
 
-  retry_on Net::OpenTimeout, Net::ReadTimeout, wait: :polynomially_longer, attempts: 5
+  retry_on(*Media::StorageErrors::NETWORK, wait: :polynomially_longer, attempts: 8)
 end
