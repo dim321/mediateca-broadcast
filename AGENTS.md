@@ -78,6 +78,8 @@ docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/path/to/spec.rb
 
 Always pass `RAILS_ENV=test` into the `web` container. The Compose default is development; omitting it points RSpec at the development DB. Do not run `bundle exec rspec` on the host.
 
+When the working branch is already pushed to GitHub and a PR exists, do not re-run Docker RSpec locally for that verification — CI/CD runs tests on the PR; analyze the CI check results instead. Local Docker RSpec is for pre-push development or when explicitly requested.
+
 RSpec + FactoryBot. Spec path mirrors `app/` (`app/domain/airtime/cancel.rb` → `spec/domain/airtime/cancel_spec.rb`).
 
 ## Conventions
