@@ -142,11 +142,13 @@ module AdminHelper
   def admin_record_label(record)
     return t("admin.crud.none") if record.nil?
 
-    record.try(:name).presence ||
+    record.try(:display_name).presence ||
+      record.try(:name).presence ||
       record.try(:email).presence ||
       record.try(:product_name).presence ||
       "#{record.model_name.human} ##{record.id}"
   end
+
 
   def admin_link_to_record(record)
     return t("admin.crud.none") if record.nil?

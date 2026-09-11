@@ -22,6 +22,17 @@ ru:
       locale: Язык
       locale_ru: RU
       locale_en: EN
+      my_account: Мой профиль
+  accounts:
+    show:
+      title: Мой профиль
+      subtitle: Имя, контакты и аватар. Email, роль и организация меняются только оператором.
+      avatar_hint: PNG, JPEG, GIF или WebP до 5 МБ
+      password_section: Смена пароля
+      password_hint: Оставьте пустым, если не хотите менять пароль.
+      submit: Сохранить
+    update:
+      updated: Профиль обновлён.
   operating_hours:
     unset: Не заданы
     short_days:
@@ -236,6 +247,7 @@ ru:
     create:
       signed_in: Вы успешно вошли.
       invalid_credentials: Неверный email или пароль.
+      account_blocked: Учётная запись заблокирована. Обратитесь к оператору.
     destroy:
       signed_out: Вы вышли из системы.
   pundit:
@@ -331,6 +343,11 @@ ru:
               unsupported_type: неподдерживаемый формат
               blank: необходимо выбрать
               too_large: должен быть не больше 1 ГиБ
+        user:
+          attributes:
+            avatar:
+              invalid_content_type: должен быть изображением (PNG, JPEG, GIF или WebP)
+              too_large: должен быть не больше 5 МБ
         rotation_item:
           attributes:
             media_asset:
@@ -462,9 +479,17 @@ ru:
         created_at: Создан
         updated_at: Обновлён
       user:
+        avatar: Аватар
         email: Email
+        first_name: Имя
+        job_title: Должность
+        last_name: Фамилия
+        location: Местоположение
         organization: Организация
+        phone: Телефон
         role: Роль
+        status: Статус
+        telegram: Telegram
       "directory/business_sphere":
         name: Название
       profile:
@@ -832,6 +857,13 @@ ru:
       regenerate_playlists: Пересобрать плейлисты
       template_blank: Шаблон по умолчанию
       template_keep: Не менять текущий
+    users:
+      account_section: Учётная запись
+      any_status: Любой статус
+      avatar_hint: PNG, JPEG, GIF или WebP до 5 МБ
+      name: Имя
+      profile_section: Профиль
+      search_placeholder: Email, имя или фамилия
     service_themes:
       clear_search: Сбросить поиск
       clips_count: Роликов
@@ -1010,6 +1042,9 @@ ru:
         manager: Менеджер
         accountant: Бухгалтер
         administrator: Администратор
+      status:
+        active: Активен
+        blocked: Заблокирован
   helpers:
     label:
       airtime_booking:
@@ -1139,13 +1174,21 @@ ru:
         screen_tags: Связи с экранами
         screens: Экраны
       user:
+        avatar: Аватар
         created_at: Создано
         updated_at: Обновлено
         email: Email
+        first_name: Имя
+        job_title: Должность
+        last_name: Фамилия
+        location: Местоположение
         organization: Организация
         password: Пароль
         password_confirmation: Подтверждение пароля
+        phone: Телефон
         role: Роль
+        status: Статус
+        telegram: Telegram
   advertising:
     system_rotation_name: "Заказ №%{number}"
     print_sheet:

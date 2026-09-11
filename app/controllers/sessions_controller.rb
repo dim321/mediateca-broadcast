@@ -10,8 +10,13 @@ class SessionsController < ApplicationController
   def create
     user = User.find_by(email: params[:email].to_s.strip.downcase)
     if user&.authenticate(params[:password])
-      session[:user_id] = user.id
-      redirect_to after_authentication_path(user), notice: t(".signed_in")
+      if user.blocked?
+        flash.now[:alert] = t(".account_blocked")
+        render :new, status: :unprocessable_entity
+      else
+        session[:user_id] = user.id
+        redirect_to after_authentication_path(user), notice: t(".signed_in")
+      end
     else
       flash.now[:alert] = t(".invalid_credentials")
       render :new, status: :unprocessable_entity
@@ -29,7 +34,7 @@ class SessionsController < ApplicationController
     return if session[:user_id].blank?
 
     user = User.find_by(id: session[:user_id])
-    redirect_to after_authentication_path(user) if user
+    redirect_to after_authentication_path(user) if user&.active?
   end
 
   def after_authentication_path(user)

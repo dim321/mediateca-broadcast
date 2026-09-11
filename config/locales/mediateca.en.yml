@@ -22,6 +22,17 @@ en:
       locale: Language
       locale_ru: RU
       locale_en: EN
+      my_account: My account
+  accounts:
+    show:
+      title: My account
+      subtitle: Name, contacts, and avatar. Email, role, and organization are managed by the operator.
+      avatar_hint: PNG, JPEG, GIF, or WebP up to 5 MB
+      password_section: Change password
+      password_hint: Leave blank to keep the current password.
+      submit: Save
+    update:
+      updated: Profile updated.
   operating_hours:
     unset: Not set
     short_days:
@@ -234,6 +245,7 @@ en:
     create:
       signed_in: Signed in successfully.
       invalid_credentials: Invalid email or password.
+      account_blocked: This account is blocked. Contact the operator.
     destroy:
       signed_out: Signed out.
   activerecord:
@@ -327,6 +339,11 @@ en:
               unsupported_type: is not a supported format
               blank: must be selected
               too_large: must be 1 GiB or smaller
+        user:
+          attributes:
+            avatar:
+              invalid_content_type: must be an image (PNG, JPEG, GIF, or WebP)
+              too_large: must be 5 MB or smaller
         rotation_item:
           attributes:
             media_asset:
@@ -458,9 +475,17 @@ en:
         created_at: Created at
         updated_at: Updated at
       user:
+        avatar: Avatar
         email: Email
+        first_name: First name
+        job_title: Job title
+        last_name: Last name
+        location: Location
         organization: Organization
+        phone: Phone
         role: Role
+        status: Status
+        telegram: Telegram
       "directory/business_sphere":
         name: Name
       profile:
@@ -822,6 +847,13 @@ en:
       regenerate_playlists: Regenerate playlists
       template_blank: Default template
       template_keep: Keep current
+    users:
+      account_section: Account
+      any_status: Any status
+      avatar_hint: PNG, JPEG, GIF, or WebP up to 5 MB
+      name: Name
+      profile_section: Profile
+      search_placeholder: Email, first or last name
     service_themes:
       clear_search: Clear search
       clips_count: Clips
@@ -1000,6 +1032,9 @@ en:
         manager: Manager
         accountant: Accountant
         administrator: Administrator
+      status:
+        active: Active
+        blocked: Blocked
   helpers:
     label:
       broadcast_point_group:
@@ -1134,13 +1169,21 @@ en:
         screens: Screens
       user:
         id: ID
+        avatar: Avatar
         created_at: Created at
         updated_at: Updated at
         email: Email
+        first_name: First name
+        job_title: Job title
+        last_name: Last name
+        location: Location
         organization: Organization
         password: Password
         password_confirmation: Password confirmation
+        phone: Phone
         role: Role
+        status: Status
+        telegram: Telegram
   advertising:
     system_rotation_name: "Order #%{number}"
     print_sheet:

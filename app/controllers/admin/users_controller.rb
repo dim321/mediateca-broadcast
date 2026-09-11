@@ -5,11 +5,11 @@ module Admin
     def index
       @q = User.ransack(ransack_params)
       @q.sorts = "email asc" if @q.sorts.empty?
-      @users = @q.result.includes(:organization).page(params[:page]).per(25)
+      @users = @q.result.includes(:organization).with_attached_avatar.page(params[:page]).per(25)
     end
 
     def show
-      @user = User.find(params[:id])
+      @user = User.with_attached_avatar.find(params[:id])
     end
 
     def new
@@ -26,11 +26,11 @@ module Admin
     end
 
     def edit
-      @user = User.find(params[:id])
+      @user = User.with_attached_avatar.find(params[:id])
     end
 
     def update
-      @user = User.find(params[:id])
+      @user = User.with_attached_avatar.find(params[:id])
       if @user.update(user_params)
         redirect_to admin_user_path(@user), notice: t("admin.crud.updated"), status: :see_other
       else
@@ -46,7 +46,11 @@ module Admin
     private
 
     def user_params
-      attrs = params.expect(user: [ :email, :organization_id, :role, :password, :password_confirmation ])
+      attrs = params.expect(user: [
+        :email, :organization_id, :role, :status,
+        :first_name, :last_name, :phone, :job_title, :telegram, :location, :avatar,
+        :password, :password_confirmation
+      ])
       attrs = attrs.except(:password, :password_confirmation) if attrs[:password].blank?
       attrs
     end

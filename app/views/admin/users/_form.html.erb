@@ -1,26 +1,73 @@
-<%= form_with model: [:admin, user], class: "max-w-xl bg-white border border-gray-200 rounded-lg p-6" do |f| %>
+<%= form_with model: [:admin, user], multipart: true, class: "max-w-3xl bg-white border border-gray-200 rounded-lg p-6" do |f| %>
   <%= render "admin/shared/form_errors", record: user %>
-  <div class="mb-5">
-    <%= f.label :email, class: admin_label_class %>
-    <%= f.email_field :email, class: admin_input_class, required: true %>
+
+  <div class="mb-6 flex items-center gap-4">
+    <% if user.avatar.attached? %>
+      <%= image_tag user.avatar, class: "w-20 h-20 rounded-full object-cover", alt: user.display_name %>
+    <% else %>
+      <span class="w-20 h-20 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-2xl font-semibold">
+        <%= user.display_name.to_s.first.upcase %>
+      </span>
+    <% end %>
+    <div class="flex-1">
+      <%= f.label :avatar, class: admin_label_class %>
+      <%= f.file_field :avatar, accept: "image/png,image/jpeg,image/gif,image/webp", class: "#{admin_input_class} cursor-pointer" %>
+      <p class="mt-1 text-xs text-gray-500"><%= t("admin.users.avatar_hint") %></p>
+    </div>
   </div>
-  <div class="mb-5">
-    <%= f.label :organization_id, class: admin_label_class %>
-    <%= f.collection_select :organization_id, Organization.order(:name), :id, :name, { include_blank: true }, class: admin_select_class %>
+
+  <div class="grid gap-5 sm:grid-cols-2">
+    <div>
+      <%= f.label :first_name, class: admin_label_class %>
+      <%= f.text_field :first_name, class: admin_input_class %>
+    </div>
+    <div>
+      <%= f.label :last_name, class: admin_label_class %>
+      <%= f.text_field :last_name, class: admin_input_class %>
+    </div>
+    <div class="sm:col-span-2">
+      <%= f.label :email, class: admin_label_class %>
+      <%= f.email_field :email, class: admin_input_class, required: true %>
+    </div>
+    <div>
+      <%= f.label :phone, class: admin_label_class %>
+      <%= f.telephone_field :phone, class: admin_input_class %>
+    </div>
+    <div>
+      <%= f.label :job_title, class: admin_label_class %>
+      <%= f.text_field :job_title, class: admin_input_class %>
+    </div>
+    <div>
+      <%= f.label :telegram, class: admin_label_class %>
+      <%= f.text_field :telegram, class: admin_input_class, placeholder: "@username" %>
+    </div>
+    <div>
+      <%= f.label :location, class: admin_label_class %>
+      <%= f.text_field :location, class: admin_input_class %>
+    </div>
+    <div>
+      <%= f.label :organization_id, class: admin_label_class %>
+      <%= f.collection_select :organization_id, Organization.order(:name), :id, :name, { include_blank: true }, class: admin_select_class %>
+    </div>
+    <div>
+      <%= f.label :role, class: admin_label_class %>
+      <%= f.select :role, admin_enum_options(User, :role), {}, class: admin_select_class %>
+    </div>
+    <div>
+      <%= f.label :status, class: admin_label_class %>
+      <%= f.select :status, admin_enum_options(User, :status), {}, class: admin_select_class %>
+    </div>
+    <div>
+      <%= f.label :password, class: admin_label_class %>
+      <%= f.password_field :password, class: admin_input_class, autocomplete: "new-password" %>
+    </div>
+    <div>
+      <%= f.label :password_confirmation, class: admin_label_class %>
+      <%= f.password_field :password_confirmation, class: admin_input_class, autocomplete: "new-password" %>
+    </div>
   </div>
-  <div class="mb-5">
-    <%= f.label :role, class: admin_label_class %>
-    <%= f.select :role, admin_enum_options(User, :role), {}, class: admin_select_class %>
-  </div>
-  <div class="mb-5">
-    <%= f.label :password, class: admin_label_class %>
-    <%= f.password_field :password, class: admin_input_class, autocomplete: "new-password" %>
-  </div>
-  <div class="mb-5">
-    <%= f.label :password_confirmation, class: admin_label_class %>
-    <%= f.password_field :password_confirmation, class: admin_input_class, autocomplete: "new-password" %>
-  </div>
-  <div class="flex flex-wrap gap-3">
+
+  <div class="mt-6 flex flex-wrap gap-3">
     <%= f.submit class: admin_primary_button_class %>
     <%= link_to t("admin.chrome.cancel"), admin_users_path, class: admin_secondary_button_class %>
   </div>

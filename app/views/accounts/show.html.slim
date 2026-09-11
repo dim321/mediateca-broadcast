@@ -1,0 +1,56 @@
+- content_for :title, t('.title')
+
+h1.text-2xl.font-semibold.mb-2 = t('.title')
+p.text-sm.text-base-content/60.mb-6 = t('.subtitle')
+
+= form_with model: @user, url: account_path, method: :patch, multipart: true, class: 'card bg-base-100 shadow-sm max-w-2xl' do |f|
+  .card-body.space-y-4
+    - if @user.errors.any?
+      .alert.alert-error
+        ul.list-disc.pl-5
+          - @user.errors.full_messages.each do |message|
+            li = message
+
+    .flex.flex-col.gap-4.sm:flex-row.sm:items-center
+      - if @user.avatar.attached?
+        = image_tag @user.avatar, class: 'w-20 h-20 rounded-full object-cover', alt: @user.display_name
+      - else
+        span.w-20.h-20.rounded-full.bg-base-300.text-base-content.flex.items-center.justify-center.text-2xl.font-semibold
+          = @user.display_name.to_s.first.upcase
+      fieldset.fieldset.flex-1
+        legend.fieldset-legend = User.human_attribute_name(:avatar)
+        = f.file_field :avatar, accept: 'image/png,image/jpeg,image/gif,image/webp', class: 'file-input file-input-bordered w-full'
+        p.label = t('.avatar_hint')
+
+    .grid.gap-4.sm:grid-cols-2
+      fieldset.fieldset
+        legend.fieldset-legend = User.human_attribute_name(:first_name)
+        = f.text_field :first_name, class: 'input input-bordered w-full'
+      fieldset.fieldset
+        legend.fieldset-legend = User.human_attribute_name(:last_name)
+        = f.text_field :last_name, class: 'input input-bordered w-full'
+      fieldset.fieldset
+        legend.fieldset-legend = User.human_attribute_name(:phone)
+        = f.telephone_field :phone, class: 'input input-bordered w-full'
+      fieldset.fieldset
+        legend.fieldset-legend = User.human_attribute_name(:job_title)
+        = f.text_field :job_title, class: 'input input-bordered w-full'
+      fieldset.fieldset
+        legend.fieldset-legend = User.human_attribute_name(:telegram)
+        = f.text_field :telegram, class: 'input input-bordered w-full', placeholder: '@username'
+      fieldset.fieldset
+        legend.fieldset-legend = User.human_attribute_name(:location)
+        = f.text_field :location, class: 'input input-bordered w-full'
+
+    .divider = t('.password_section')
+    p.text-sm.text-base-content/60 = t('.password_hint')
+    .grid.gap-4.sm:grid-cols-2
+      fieldset.fieldset
+        legend.fieldset-legend = User.human_attribute_name(:password)
+        = f.password_field :password, class: 'input input-bordered w-full', autocomplete: 'new-password'
+      fieldset.fieldset
+        legend.fieldset-legend = User.human_attribute_name(:password_confirmation)
+        = f.password_field :password_confirmation, class: 'input input-bordered w-full', autocomplete: 'new-password'
+
+    .card-actions.justify-end.pt-2
+      = f.submit t('.submit'), class: 'btn btn-primary'

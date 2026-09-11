@@ -6,8 +6,15 @@
 #
 #  id              :bigint           not null, primary key
 #  email           :string           not null
+#  first_name      :string
+#  job_title       :string
+#  last_name       :string
+#  location        :string
 #  password_digest :string           not null
+#  phone           :string
 #  role            :string           default("manager"), not null
+#  status          :string           default("active"), not null
+#  telegram        :string
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  organization_id :bigint           not null
@@ -17,6 +24,7 @@
 #  index_users_on_email            (email) UNIQUE
 #  index_users_on_organization_id  (organization_id)
 #  index_users_on_role             (role)
+#  index_users_on_status           (status)
 #
 # Foreign Keys
 #
@@ -28,6 +36,7 @@ FactoryBot.define do
     sequence(:email) { |n| "user#{n}@example.com" }
     password { 'password123456' }
     role { :manager }
+    status { :active }
 
     trait :manager do
       role { :manager }
@@ -39,6 +48,19 @@ FactoryBot.define do
 
     trait :administrator do
       role { :administrator }
+    end
+
+    trait :blocked do
+      status { :blocked }
+    end
+
+    trait :with_profile do
+      first_name { 'Ivan' }
+      last_name { 'Petrov' }
+      phone { '+79001234567' }
+      job_title { 'Manager' }
+      telegram { '@ivan' }
+      location { 'Moscow' }
     end
   end
 end

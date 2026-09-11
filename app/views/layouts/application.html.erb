@@ -50,7 +50,7 @@
                       method: :patch,
                       class: "btn btn-xs join-item #{I18n.locale == :en ? "btn-primary" : "btn-ghost"}" %>
               </div>
-              <span class="hidden text-sm text-base-content/70 sm:inline"><%= Current.user.email %></span>
+              <%= link_to Current.user.display_name, account_path, class: "hidden text-sm text-base-content/70 hover:text-base-content sm:inline" %>
               <%= button_to t("layouts.application.sign_out"), logout_path, method: :delete, class: "btn btn-ghost btn-sm" %>
             </div>
           </header>
