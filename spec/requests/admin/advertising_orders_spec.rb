@@ -103,13 +103,14 @@ RSpec.describe "Admin advertising orders", type: :request do
       grid_at = body.index(I18n.t("advertising_orders.form.grid"))
 
       expect(response).to have_http_status(:success)
-      expect(picker_at).to be_present
-      expect(picker_at).to be < grid_at
-      expect(body).to include("order-screen-picker")
-      expect(body).to include('name="advertising_order[screen_ids][]"')
-      expect(body).to include('name="advertising_order[shows_per_hour]"')
-      expect(body).to include("advertising_order[windows]")
-      expect(body).to include(I18n.t("advertising_orders.form.add_window"))
+      expect(picker_at).to be_present.and be < grid_at
+      expect(body).to include(
+        "order-screen-picker",
+        'name="advertising_order[screen_ids][]"',
+        'name="advertising_order[shows_per_hour]"',
+        "advertising_order[windows]",
+        I18n.t("advertising_orders.form.add_window")
+      )
       expect(body).not_to include("broadcast_point_group_id")
     end
 

@@ -118,14 +118,16 @@ RSpec.describe "AdvertisingOrders", type: :request do
       end.to change(AdvertisingOrder, :count).by(1)
 
       order = AdvertisingOrder.last
+      window = order.advertising_order_windows.sole
       expect(response).to redirect_to(advertising_order_path(order))
-      expect(order).to be_draft
-      expect(order.shows_per_hour).to eq(3)
-      expect(order.advertising_order_windows.sole.starts_at.strftime("%H:%M")).to eq("09:00")
-      expect(order.advertising_order_windows.sole.ends_at.strftime("%H:%M")).to eq("12:00")
-      expect(order.total_shows).to eq(18)
-      expect(order.total_sum_cents).to eq(0)
-      expect(order.created_by).to eq(user)
+      expect(order).to be_draft.and have_attributes(
+        shows_per_hour: 3,
+        total_shows: 18,
+        total_sum_cents: 0,
+        created_by: user
+      )
+      expect(window.starts_at.strftime("%H:%M")).to eq("09:00")
+      expect(window.ends_at.strftime("%H:%M")).to eq("12:00")
     end
 
     it "renders occupancy without foreign org ids" do

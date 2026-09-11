@@ -277,7 +277,7 @@ RSpec.describe "Admin screens", type: :request do
     end
   end
 
-  describe "GET /admin/screens/new" do
+  describe "GET /admin/screens/new with portrait template" do
     it "renders a portrait template select and preselects the default" do
       default = create(:broadcast_portrait, :default, name: "Grid")
       create(:broadcast_portrait, :template, name: "Night")
@@ -285,11 +285,13 @@ RSpec.describe "Admin screens", type: :request do
       get new_admin_screen_path
 
       expect(response).to have_http_status(:success)
-      expect(response.body).to include("screen_template_id")
-      expect(response.body).to include("Grid")
-      expect(response.body).to include("Night")
-      expect(response.body).to include(%(selected="selected" value="#{default.id}"))
-      expect(response.body).to include("screen_service_theme_id")
+      expect(response.body).to include(
+        "screen_template_id",
+        "Grid",
+        "Night",
+        %(selected="selected" value="#{default.id}"),
+        "screen_service_theme_id"
+      )
     end
   end
 end
