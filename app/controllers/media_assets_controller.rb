@@ -78,6 +78,6 @@ class MediaAssetsController < ApplicationController
       .with_attached_broadcast_file
       .order(created_at: :desc)
     flash.now[:alert] = t(".create_failed")
-    render :index, status: :unprocessable_entity
+    render :index, status: :unprocessable_content
   end
 end
