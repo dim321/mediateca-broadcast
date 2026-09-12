@@ -38,7 +38,8 @@ gem "thruster", require: false
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 gem "image_processing", "~> 2.1.0"
-gem "ruby-vips", "~> 2.0"
+# Soft dep of image_processing 2.x; FFI-loads libvips.so, so don't Bundler.require it.
+gem "ruby-vips", "~> 2.0", require: false
 # S3-compatible object storage (rustfs in production)
 gem "aws-sdk-s3", require: false
 

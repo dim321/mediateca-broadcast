@@ -36,6 +36,9 @@ jobs:
         with:
           bundler-cache: true
 
+      - name: Install libvips (ruby-vips / Active Storage)
+        run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends libvips
+
       - name: Scan for security vulnerabilities in JavaScript dependencies
         run: bin/importmap audit
 
@@ -105,8 +108,8 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
-      - name: Install ffmpeg (ffprobe for media processing specs)
-        run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Install ffmpeg and libvips (media processing)
+        run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends ffmpeg libvips
 
       - name: Build Tailwind CSS
         run: bin/rails tailwindcss:build
