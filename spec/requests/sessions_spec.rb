@@ -25,7 +25,7 @@ RSpec.describe "Sessions", type: :request do
 
       post login_path, params: { email: user.email, password: "wrong-password" }
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
 
     it "rejects a blocked user even with a valid password" do
@@ -33,7 +33,7 @@ RSpec.describe "Sessions", type: :request do
 
       post login_path, params: { email: user.email, password: "password123456" }
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       expect(response.body).to include(I18n.t("sessions.create.account_blocked"))
       expect(session[:user_id]).to be_blank
     end

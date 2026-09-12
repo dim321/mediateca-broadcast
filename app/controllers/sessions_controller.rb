@@ -12,14 +12,14 @@ class SessionsController < ApplicationController
     if user&.authenticate(params[:password])
       if user.blocked?
         flash.now[:alert] = t(".account_blocked")
-        render :new, status: :unprocessable_entity
+        render :new, status: :unprocessable_content
       else
         session[:user_id] = user.id
         redirect_to after_authentication_path(user), notice: t(".signed_in")
       end
     else
       flash.now[:alert] = t(".invalid_credentials")
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 

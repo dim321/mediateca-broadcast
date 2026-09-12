@@ -2,9 +2,9 @@
 ARG RUBY_VERSION=4.0.2
 FROM ghcr.io/rails/devcontainer/images/ruby:$RUBY_VERSION
 
-# ffmpeg/ffprobe for media metadata in development
+# ffmpeg/ffprobe for media metadata; libvips for ruby-vips / Active Storage
 RUN sudo apt-get update -qq && \
-    sudo apt-get install -y --no-install-recommends ffmpeg chromium && \
+    sudo apt-get install -y --no-install-recommends ffmpeg libvips chromium && \
     sudo rm -rf /var/lib/apt/lists/*
 
 ENV CHROMIUM_PATH=/usr/bin/chromium
