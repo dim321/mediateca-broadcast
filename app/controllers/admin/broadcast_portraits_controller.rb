@@ -85,6 +85,7 @@ module Admin
         :name, :max_commercial_in_row, :neutral_min_seconds, :is_default,
         block_frequencies_per_hour: []
       )
+      permitted[:block_frequencies_per_hour] = Array(permitted[:block_frequencies_per_hour]).map(&:to_i)
       permitted = permitted.except(:is_default) if @portrait&.screen_id.present?
       permitted
     end
