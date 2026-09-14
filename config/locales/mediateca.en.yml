@@ -696,6 +696,7 @@ en:
         filter_portrait: Broadcast portrait
         filter_hours: Operating hours
       shows_per_hour: Shows per hour
+      shows_per_hour_from_screens: Select screens first. Only frequencies shared by their portraits are available.
       windows: Day windows
       add_window: Add window
       remove_window: Remove

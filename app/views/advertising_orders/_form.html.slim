@@ -39,9 +39,19 @@
     div
       = f.label :placement_kind, class: 'block text-sm font-medium'
       = f.select :placement_kind, AdvertisingOrder.placement_kinds.keys.map { |kind| [t("enums.advertising_order.placement_kind.#{kind}"), kind] }, {}, class: 'select select-bordered w-full mt-1'
-    div
-      = f.label :shows_per_hour, t('.shows_per_hour'), class: 'block text-sm font-medium'
-      = f.number_field :shows_per_hour, min: 1, class: 'input input-bordered w-full mt-1', data: { order_grid_target: 'showsPerHour', action: 'input->order-grid#recompute' }
+  - if show_picker
+    = render 'advertising_orders/screen_picker'
+  - frequency_options = order_shows_per_hour_select_options(advertising_order)
+  div
+    = f.label :shows_per_hour, t('.shows_per_hour'), class: 'block text-sm font-medium'
+    = f.select :shows_per_hour,
+        options_for_select(frequency_options, advertising_order.shows_per_hour),
+        { include_blank: true },
+        class: 'select select-bordered w-full mt-1',
+        id: 'advertising_order_shows_per_hour',
+        disabled: frequency_options.empty?,
+        data: { order_grid_target: 'showsPerHour', order_screen_picker_target: 'showsPerHour', action: 'change->order-grid#recompute' }
+    p.text-sm.text-base-content/60.mt-1 = t('.shows_per_hour_from_screens')
   .card.bg-base-100.border.border-base-300
     .card-body.gap-3
       h2.card-title.text-base = t('.windows')
@@ -54,8 +64,6 @@
       template data-order-windows-target='template'
         = render 'advertising_orders/window_fields', starts_at: '09:00', ends_at: '12:00'
   = render 'media_plans/occupied_slots', occupied_slots: @occupied_slots || [], time_zone: time_zone
-  - if show_picker
-    = render 'advertising_orders/screen_picker'
   .card.bg-base-100.border.border-base-300
     .card-body.gap-3
       h2.card-title.text-base = t('.grid')

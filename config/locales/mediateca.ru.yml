@@ -702,6 +702,7 @@ ru:
         filter_portrait: Портрет эфира
         filter_hours: Часы работы
       shows_per_hour: Показов в час
+      shows_per_hour_from_screens: Сначала отметьте экраны. Доступны только общие частоты их портретов.
       windows: Интервалы показа
       add_window: Добавить интервал
       remove_window: Удалить

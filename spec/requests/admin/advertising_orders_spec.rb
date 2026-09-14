@@ -93,7 +93,8 @@ RSpec.describe "Admin advertising orders", type: :request do
       screen = create(:screen, station: station, name: "Экран витрины", owner_organization: client)
       create(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen)
       create(:screen_tag, screen: screen, tag: create(:tag, name: "витрина"))
-      create(:broadcast_portrait, :for_screen, screen: screen, name: "Цикл 4/час")
+      create(:broadcast_portrait, :for_screen, screen: screen, name: "Цикл 4/час",
+        block_frequencies_per_hour: [ 1, 2, 3, 4, 6 ])
       screen
     end
 
@@ -110,11 +111,13 @@ RSpec.describe "Admin advertising orders", type: :request do
       expect(picker_at).to be_present.and be < grid_at
       expect(body).to include(
         "order-screen-picker",
+        'data-order-screen-picker-target="showsPerHour"',
         'name="advertising_order[screen_ids][]"',
         'name="advertising_order[shows_per_hour]"',
         "advertising_order[windows]",
         I18n.t("advertising_orders.form.add_window")
       )
+      expect(body).not_to match(/input[^>]*name="advertising_order\[shows_per_hour\]"[^>]*type="number"/)
       expect(body).not_to include("broadcast_point_group_id")
     end
 

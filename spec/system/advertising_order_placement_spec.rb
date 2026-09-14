@@ -13,9 +13,13 @@ RSpec.describe "Advertising order placement", type: :system do
       screen.update!(name: "Витрина Триумф")
       screen.location.update!(name: "ТЦ Галерея")
       screen.station.update!(name: "Станция Невидимая")
-      next if screen.broadcast_portrait.present?
-
-      create(:broadcast_portrait, :for_screen, screen: screen, block_frequencies_per_hour: [ 1, 2, 3, 4, 6 ])
+      portrait = screen.broadcast_portrait
+      if portrait
+        freqs = Array(portrait.block_frequencies_per_hour)
+        portrait.update!(block_frequencies_per_hour: (freqs | [ 3 ]).sort) unless freqs.include?(3)
+      else
+        create(:broadcast_portrait, :for_screen, screen: screen, block_frequencies_per_hour: [ 1, 2, 3, 4, 6 ])
+      end
     end
   end
 
@@ -38,8 +42,8 @@ RSpec.describe "Advertising order placement", type: :system do
     visit new_advertising_order_path(grid_from: "2026-06-03", grid_to: "2026-06-05")
     fill_in AdvertisingOrder.human_attribute_name(:product_name), with: "Triumph"
     select "1x1.png", from: "advertising_order_media_asset_id"
-    fill_in I18n.t("advertising_orders.form.shows_per_hour"), with: "3"
     check "order_screen_#{screen.id}"
+    select "3", from: "advertising_order_shows_per_hour"
     expect(page).not_to have_field("advertising_order_lines_0_broadcast_point_group_id")
     expect(page).not_to have_field("advertising_order_lines_0_price_per_day_rubles")
     click_button I18n.t("advertising_orders.form.submit")
