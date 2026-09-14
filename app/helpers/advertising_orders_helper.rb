@@ -72,12 +72,7 @@ module AdvertisingOrdersHelper
   def order_shows_per_hour_select_options(advertising_order)
     screens = advertising_order.advertising_order_lines.filter_map(&:screen)
     screens = Array(@order_screens).select { |screen| order_screen_selected?(screen) } if screens.empty?
-    return Portraits::FrequencySet.intersection_for_screens(screens) if screens.any?
-
-    # rack_test / no-JS: keep catalog frequencies selectable until Stimulus filters to the checked rows.
-    Array(@order_screens).flat_map { |screen|
-      Array(screen.broadcast_portrait&.block_frequencies_per_hour)
-    }.uniq.sort
+    Portraits::FrequencySet.intersection_for_screens(screens)
   end
 
   def order_clock_hhmm(value)

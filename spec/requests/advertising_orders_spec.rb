@@ -183,6 +183,18 @@ RSpec.describe "AdvertisingOrders", type: :request do
       expect(response.body).not_to include("broadcast_point_group_id")
     end
 
+    it "renders shows_per_hour select disabled with blank only until screens are selected" do
+      order_screen
+      get new_advertising_order_path
+
+      select = Nokogiri::HTML(response.body).at_css("#advertising_order_shows_per_hour")
+      expect(select).to be_present
+      expect(select["disabled"]).to eq("disabled")
+      option_values = select.css("option").map { |option| option["value"] }
+      expect(option_values).to eq([ "" ])
+      expect(option_values.none? { |value| value.match?(/\A\d+\z/) }).to be(true)
+    end
+
     it "defaults the first day window to 08:00–23:00" do
       get new_advertising_order_path
 

@@ -31,7 +31,7 @@ RSpec.describe "Advertising order placement", type: :system do
   end
 
   # rubocop:disable RSpec/ExampleLength, RSpec/MultipleExpectations -- one end-to-end journey
-  it "lets a manager create a draft grid and activate it" do
+  it "lets a manager create a draft grid and activate it", :js do
     asset
     screen = named_screen
     sign_in_through_ui
