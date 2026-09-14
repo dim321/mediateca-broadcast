@@ -10,7 +10,11 @@ RSpec.describe "AdvertisingOrders", type: :request do
   let(:group) { create_group_with_hours!(organization: organization) }
 
   def order_screen
-    group.screens.first
+    group.screens.first.tap do |screen|
+      next if screen.broadcast_portrait.present?
+
+      create(:broadcast_portrait, :for_screen, screen: screen, block_frequencies_per_hour: [ 1, 2, 3, 4, 6 ])
+    end
   end
 
   def order_params(screen: order_screen, dates: [ "2026-06-03" ], shows_per_hour: 3, **header)

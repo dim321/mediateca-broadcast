@@ -402,6 +402,10 @@ en:
             rotation:
               wrong_organization: must belong to your organization
               must_be_system_managed: must be a system-managed order rotation
+            advertising_order_lines:
+              empty_frequency_intersection: selected screens have no common block frequency
+            shows_per_hour:
+              not_in_portrait_intersection: is not allowed for the selected screens
         advertising_order_line:
           attributes:
             broadcast_point_group:

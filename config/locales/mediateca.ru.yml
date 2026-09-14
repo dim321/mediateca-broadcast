@@ -406,6 +406,10 @@ ru:
             rotation:
               wrong_organization: должна принадлежать вашей организации
               must_be_system_managed: должна быть системной ротацией заказа
+            advertising_order_lines:
+              empty_frequency_intersection: у выбранных экранов нет общей частоты блока
+            shows_per_hour:
+              not_in_portrait_intersection: не входит в допустимые частоты выбранных экранов
         advertising_order_line:
           attributes:
             broadcast_point_group:

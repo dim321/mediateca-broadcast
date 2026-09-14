@@ -13,6 +13,9 @@ RSpec.describe "Advertising order placement", type: :system do
       screen.update!(name: "Витрина Триумф")
       screen.location.update!(name: "ТЦ Галерея")
       screen.station.update!(name: "Станция Невидимая")
+      next if screen.broadcast_portrait.present?
+
+      create(:broadcast_portrait, :for_screen, screen: screen, block_frequencies_per_hour: [ 1, 2, 3, 4, 6 ])
     end
   end
 
