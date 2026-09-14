@@ -4,17 +4,17 @@
 #
 # Table name: broadcast_portraits
 #
-#  id                       :bigint           not null, primary key
-#  block_frequency_per_hour :integer          not null
-#  is_default               :boolean          default(FALSE), not null
-#  kind                     :string           default("cyclic"), not null
-#  max_commercial_in_row    :integer          default(3), not null
-#  name                     :string           not null
-#  neutral_min_seconds      :integer          default(10), not null
-#  created_at               :datetime         not null
-#  updated_at               :datetime         not null
-#  screen_id                :bigint
-#  service_theme_id         :bigint
+#  id                         :bigint           not null, primary key
+#  block_frequencies_per_hour :integer          not null, is an Array
+#  is_default                 :boolean          default(FALSE), not null
+#  kind                       :string           default("cyclic"), not null
+#  max_commercial_in_row      :integer          default(3), not null
+#  name                       :string           not null
+#  neutral_min_seconds        :integer          default(10), not null
+#  created_at                 :datetime         not null
+#  updated_at                 :datetime         not null
+#  screen_id                  :bigint
+#  service_theme_id           :bigint
 #
 # Indexes
 #
@@ -32,7 +32,7 @@ FactoryBot.define do
   factory :broadcast_portrait do
     sequence(:name) { |n| "Portrait #{n}" }
     kind { "cyclic" }
-    block_frequency_per_hour { 4 }
+    block_frequencies_per_hour { [ 4 ] }
     max_commercial_in_row { 3 }
     neutral_min_seconds { 10 }
     is_default { false }

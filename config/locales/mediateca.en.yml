@@ -520,7 +520,7 @@ en:
         date: Date
         shows: Shows
       broadcast_portrait:
-        block_frequency_per_hour: Blocks per hour
+        block_frequencies_per_hour: Allowed blocks per hour
         is_default: Default template
         kind: Kind
         max_commercial_in_row: Max commercials in a row

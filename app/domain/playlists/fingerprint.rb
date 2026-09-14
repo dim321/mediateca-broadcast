@@ -75,7 +75,7 @@ module Playlists
       {
         id: portrait.id,
         updated_at: iso(portrait.updated_at),
-        block_frequency_per_hour: portrait.block_frequency_per_hour,
+        block_frequencies_per_hour: portrait.block_frequencies_per_hour,
         max_commercial_in_row: portrait.max_commercial_in_row,
         neutral_min_seconds: portrait.neutral_min_seconds,
         blocks: portrait.blocks.sort_by(&:position).map { |block| block_payload(block) }

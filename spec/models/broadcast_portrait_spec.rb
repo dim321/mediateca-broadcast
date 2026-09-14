@@ -6,17 +6,17 @@ require "rails_helper"
 #
 # Table name: broadcast_portraits
 #
-#  id                       :bigint           not null, primary key
-#  block_frequency_per_hour :integer          not null
-#  is_default               :boolean          default(FALSE), not null
-#  kind                     :string           default("cyclic"), not null
-#  max_commercial_in_row    :integer          default(3), not null
-#  name                     :string           not null
-#  neutral_min_seconds      :integer          default(10), not null
-#  created_at               :datetime         not null
-#  updated_at               :datetime         not null
-#  screen_id                :bigint
-#  service_theme_id         :bigint
+#  id                         :bigint           not null, primary key
+#  block_frequencies_per_hour :integer          not null, is an Array
+#  is_default                 :boolean          default(FALSE), not null
+#  kind                       :string           default("cyclic"), not null
+#  max_commercial_in_row      :integer          default(3), not null
+#  name                       :string           not null
+#  neutral_min_seconds        :integer          default(10), not null
+#  created_at                 :datetime         not null
+#  updated_at                 :datetime         not null
+#  screen_id                  :bigint
+#  service_theme_id           :bigint
 #
 # Indexes
 #
@@ -55,9 +55,31 @@ RSpec.describe BroadcastPortrait, type: :model do
       expect(portrait.errors[:kind]).to be_present
     end
 
-    it "rejects a frequency outside 1..60" do
-      expect(build(:broadcast_portrait, block_frequency_per_hour: 0)).not_to be_valid
-      expect(build(:broadcast_portrait, block_frequency_per_hour: 61)).not_to be_valid
+    it "normalizes frequencies to a unique sorted catalog subset" do
+      portrait = build(:broadcast_portrait, block_frequencies_per_hour: [ 6, 4, 4 ])
+
+      expect(portrait).to be_valid
+      expect(portrait.block_frequencies_per_hour).to eq([ 4, 6 ])
+    end
+
+    it "rejects an empty frequency set" do
+      portrait = build(:broadcast_portrait, block_frequencies_per_hour: [])
+
+      expect(portrait).not_to be_valid
+      expect(portrait.errors[:block_frequencies_per_hour]).to be_present
+    end
+
+    it "rejects a frequency outside the catalog" do
+      portrait = build(:broadcast_portrait, block_frequencies_per_hour: [ 4, 8 ])
+
+      expect(portrait).not_to be_valid
+      expect(portrait.errors[:block_frequencies_per_hour]).to be_present
+    end
+
+    it "maps legacy scalars onto the catalog (8 -> 6)" do
+      expect(described_class.catalog_value_for(4)).to eq(4)
+      expect(described_class.catalog_value_for(8)).to eq(6)
+      expect(described_class.catalog_value_for(0)).to eq(1)
     end
 
     it "rejects a non-positive max commercial in a row" do

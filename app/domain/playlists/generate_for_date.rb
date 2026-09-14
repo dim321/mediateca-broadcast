@@ -290,7 +290,7 @@ module Playlists
     def commercial_clip_count(plan, portrait)
       return 1 if plan.shows_per_hour.nil?
 
-      n = portrait.block_frequency_per_hour
+      n = portrait.hour_slot_count
       [ (plan.shows_per_hour.to_f / n).ceil.to_i, portrait.max_commercial_in_row ].min
     end
 
@@ -406,7 +406,7 @@ module Playlists
     end
 
     def build_slots(windows, portrait)
-      step = 3600 / portrait.block_frequency_per_hour
+      step = 3600 / portrait.hour_slot_count
       windows.flat_map do |window|
         slots = []
         t = window[:start]
