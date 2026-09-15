@@ -45,6 +45,7 @@
         <tr>
           <th scope="col" class="px-6 py-3"><%= sort_link @q, :name %></th>
           <th scope="col" class="px-6 py-3"><%= t("admin.broadcast_portraits.template") %></th>
+          <th scope="col" class="px-6 py-3"><%= BroadcastPortrait.human_attribute_name(:block_frequencies_per_hour) %></th>
           <th scope="col" class="px-6 py-3"><%= BroadcastPortrait.human_attribute_name(:is_default) %></th>
           <th scope="col" class="px-6 py-3"><span class="sr-only"><%= t("admin.chrome.actions") %></span></th>
         </tr>
@@ -62,6 +63,7 @@
                 <%= t("admin.broadcast_portraits.template") %>
               <% end %>
             </td>
+            <td class="px-6 py-4"><%= portrait.block_frequencies_per_hour.join(", ") %></td>
             <td class="px-6 py-4"><%= admin_boolean(portrait.is_default) %></td>
             <td class="px-6 py-4 text-right whitespace-nowrap">
               <%= link_to t("admin.chrome.show"), admin_broadcast_portrait_path(portrait), class: "font-medium text-blue-700 hover:underline me-3" %>

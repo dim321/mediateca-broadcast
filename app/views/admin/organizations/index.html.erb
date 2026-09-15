@@ -28,6 +28,8 @@
         <tr>
           <th scope="col" class="px-6 py-3"><%= sort_link @q, :name %></th>
           <th scope="col" class="px-6 py-3"><%= sort_link @q, :kind %></th>
+          <th scope="col" class="px-6 py-3"><%= t("admin.organizations.index.business_sphere") %></th>
+          <th scope="col" class="px-6 py-3"><%= t("admin.organizations.index.brand") %></th>
           <th scope="col" class="px-6 py-3"><span class="sr-only"><%= t("admin.chrome.actions") %></span></th>
         </tr>
       </thead>
@@ -38,6 +40,8 @@
               <%= link_to organization.name, admin_organization_path(organization), class: "text-blue-700 hover:underline" %>
             </th>
             <td class="px-6 py-4"><%= admin_enum_label(organization, :kind) %></td>
+            <td class="px-6 py-4"><%= organization.profile&.business_sphere&.name.presence || t("admin.crud.none") %></td>
+            <td class="px-6 py-4"><%= organization.profile&.brand.presence || t("admin.crud.none") %></td>
             <td class="px-6 py-4 text-right whitespace-nowrap">
               <%= link_to t("admin.chrome.show"), admin_organization_path(organization), class: "font-medium text-blue-700 hover:underline me-3" %>
               <%= link_to t("admin.chrome.edit"), edit_admin_organization_path(organization), class: "font-medium text-blue-700 hover:underline" %>

@@ -528,7 +528,7 @@ ru:
         date: Дата
         shows: Выходов
       broadcast_portrait:
-        block_frequencies_per_hour: Допустимые блоки в час
+        block_frequencies_per_hour: Количество показов в час
         is_default: Шаблон по умолчанию
         kind: Тип
         max_commercial_in_row: Максимум рекламы подряд
@@ -697,9 +697,8 @@ ru:
         select_all: Выбрать видимые
         hours: Часы работы
         filter_location: Локация
-        filter_station: Станция
         filter_tags: Теги
-        filter_portrait: Портрет эфира
+        filter_frequencies: Количество показов в час
         filter_hours: Часы работы
       shows_per_hour: Показов в час
       shows_per_hour_from_screens: Сначала отметьте экраны. Доступны только общие частоты их портретов.
@@ -818,6 +817,10 @@ ru:
       media_assets: Медиафайлы
       media_plans: Медиапланы
       organizations: Организации
+    organizations:
+      index:
+        brand: Бренд
+        business_sphere: Сфера деятельности
       play_logs: Журнал эфира
       rotation_items: Элементы ротаций
       rotations: Ротации

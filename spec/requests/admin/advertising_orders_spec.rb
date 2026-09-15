@@ -132,18 +132,28 @@ RSpec.describe "Admin advertising orders", type: :request do
       expect(response.body).to include(foreign.name)
     end
 
-    it "lists screens with location, station, tags, portrait, hours and column filters" do
+    it "lists screens with location, tags, portrait frequencies, hours and column filters" do
       screen = catalog_screen_on_group
 
       get new_admin_advertising_order_path, params: { organization_id: client.id }
 
-      expect(response.body).to include(screen.name)
-      expect(response.body).to include("ТЦ Галерея")
-      expect(response.body).to include("Касса 1")
-      expect(response.body).to include("витрина")
-      expect(response.body).to include("Цикл 4/час")
-      expect(response.body).to include("09:00")
+      table = Nokogiri::HTML(response.body).at_css("table.table")
+      expect(table).to be_present
+      text = table.text
+      headers = table.css("thead tr").first.css("th").map { |th| th.text.strip }
+
+      expect(text).to include(screen.name)
+      expect(text).to include("ТЦ Галерея")
+      expect(text).not_to include("Касса 1")
+      expect(text).to include("витрина")
+      expect(text).not_to include("Цикл 4/час")
+      expect(text).to include("1, 2, 3, 4, 6")
+      expect(text).to include("09:00")
+      expect(headers).to include(BroadcastPortrait.human_attribute_name(:block_frequencies_per_hour))
+      expect(headers).not_to include(Station.model_name.human)
+      expect(headers).not_to include(BroadcastPortrait.model_name.human)
       expect(response.body).to include(I18n.t("advertising_orders.form.screen_picker.filter_location"))
+      expect(response.body).to include(I18n.t("advertising_orders.form.screen_picker.filter_frequencies"))
       expect(response.body).to include(I18n.t("advertising_orders.form.screen_picker.filter_hours"))
     end
 

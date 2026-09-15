@@ -65,6 +65,10 @@ module AdvertisingOrdersHelper
       t("operating_hours.unset")
   end
 
+  def order_screen_frequencies_label(screen)
+    Array(screen&.broadcast_portrait&.block_frequencies_per_hour).join(", ").presence
+  end
+
   def order_screen_selected?(screen)
     Array(@selected_screen_ids).include?(screen.id)
   end

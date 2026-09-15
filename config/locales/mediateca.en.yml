@@ -691,9 +691,8 @@ en:
         select_all: Select visible
         hours: Operating hours
         filter_location: Location
-        filter_station: Station
         filter_tags: Tags
-        filter_portrait: Broadcast portrait
+        filter_frequencies: Allowed blocks per hour
         filter_hours: Operating hours
       shows_per_hour: Shows per hour
       shows_per_hour_from_screens: Select screens first. Only frequencies shared by their portraits are available.
@@ -808,6 +807,10 @@ en:
       media_assets: Media assets
       media_plans: Media plans
       organizations: Organizations
+    organizations:
+      index:
+        brand: Brand
+        business_sphere: Business sphere
       play_logs: Play logs
       rotation_items: Rotation items
       rotations: Rotations

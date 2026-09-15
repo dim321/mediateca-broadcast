@@ -20,10 +20,10 @@ export default class extends Controller {
       }
 
       row.querySelectorAll('[data-order-grid-target="cell"]').forEach((cell) => {
-        if (cell.dataset.skipped === "1" || cell.value === "0") return
+        if (this.cellSkipped(cell)) return
 
         const openHours = hours[cell.dataset.date] || []
-        cell.value = rate * this.coveredHourCount(openHours, windows)
+        cell.value = String(rate * this.coveredHourCount(openHours, windows))
       })
       this.updateRowTotal(row)
     })
@@ -43,6 +43,13 @@ export default class extends Controller {
     const row = cell.closest('[data-order-grid-target="lineRow"]')
     if (row) this.updateRowTotal(row)
     this.updateGrandTotal()
+  }
+
+  cellSkipped(cell) {
+    if (cell.dataset.skipped === "1") return true
+
+    const skipped = cell.parentElement?.querySelector('[data-order-grid-target="skipped"]')
+    return skipped?.value === "1"
   }
 
   updateRowTotal(row) {

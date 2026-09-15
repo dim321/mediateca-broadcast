@@ -5,7 +5,7 @@ module Admin
     def index
       @q = Organization.ransack(ransack_params)
       @q.sorts = "name asc" if @q.sorts.empty?
-      @organizations = @q.result.page(params[:page]).per(25)
+      @organizations = @q.result.includes(profile: :business_sphere).page(params[:page]).per(25)
     end
 
     def show

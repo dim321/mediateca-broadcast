@@ -60,7 +60,7 @@
         - windows = [AdvertisingOrderWindow.new(starts_at: '08:00', ends_at: '23:00')] if windows.empty?
         - windows.each do |window|
           = render 'advertising_orders/window_fields', starts_at: order_clock_hhmm(window.starts_at), ends_at: order_clock_hhmm(window.ends_at)
-      button.btn.btn-sm.btn-ghost type='button' data-action='order-windows#add order-grid#recompute' = t('.add_window')
+      button.btn.btn-sm.btn-ghost type='button' data-action='order-windows#add' = t('.add_window')
       template data-order-windows-target='template'
         = render 'advertising_orders/window_fields', starts_at: '09:00', ends_at: '12:00'
   = render 'media_plans/occupied_slots', occupied_slots: @occupied_slots || [], time_zone: time_zone

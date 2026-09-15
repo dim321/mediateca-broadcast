@@ -70,4 +70,49 @@ RSpec.describe "Advertising order placement", type: :system do
     expect(MediaPlan.active.count).to be >= 1
   end
   # rubocop:enable RSpec/ExampleLength, RSpec/MultipleExpectations
+
+  it "fills day cells from shows_per_hour × window ∩ open hours after screen selection", :js do
+    asset
+    screen = named_screen
+    sign_in_through_ui
+
+    visit new_advertising_order_path(grid_from: "2026-06-03", grid_to: "2026-06-03")
+    check "order_screen_#{screen.id}"
+    expect(page).to have_select("advertising_order_shows_per_hour", disabled: false)
+    select "3", from: "advertising_order_shows_per_hour"
+
+    within("[data-order-grid-target='lineRow']") do
+      # default window 08:00–23:00 ∩ open 09–20 → 12 hours × 3 shows = 36
+      expect(find("[data-order-grid-target='cell']").value).to eq("36")
+      expect(find("[data-order-grid-target='total']").value).to eq("36")
+    end
+    expect(find("[data-order-grid-target='grandTotal']").value).to eq("36")
+  end
+
+  it "recomputes day cells when windows are added and the default window is removed", :js do
+    asset
+    screen = named_screen
+    sign_in_through_ui
+
+    visit new_advertising_order_path(grid_from: "2026-06-03", grid_to: "2026-06-03")
+    check "order_screen_#{screen.id}"
+    expect(page).to have_select("advertising_order_shows_per_hour", disabled: false)
+    select "4", from: "advertising_order_shows_per_hour"
+
+    within("[data-order-grid-target='lineRow']") do
+      expect(find("[data-order-grid-target='cell']").value).to eq("48")
+    end
+
+    click_button I18n.t("advertising_orders.form.add_window")
+    within("[data-order-windows-target='list']") do
+      first("button", text: I18n.t("advertising_orders.form.remove_window")).click
+    end
+
+    within("[data-order-grid-target='lineRow']") do
+      # remaining template window 09:00–12:00 ∩ open hours → 3 hours × 4 shows = 12
+      expect(find("[data-order-grid-target='cell']").value).to eq("12")
+      expect(find("[data-order-grid-target='total']").value).to eq("12")
+    end
+    expect(find("[data-order-grid-target='grandTotal']").value).to eq("12")
+  end
 end
