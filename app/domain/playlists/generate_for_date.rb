@@ -113,12 +113,14 @@ module Playlists
       cycle_index = 0
       cycle = cycle_blocks(portrait)
       insertions = insertion_events(portrait)
-      slots = build_slots(windows, portrait)
-      day_bound_emissions(screen, portrait, windows, pickers) + slots.flat_map do |slot_start, slot_end|
+      slots = build_slots(windows, screen, portrait)
+      day_bound_emissions(screen, portrait, windows, pickers) + slots.flat_map do |slot_start, slot_end, index, count, covering|
         matching = insertions.select { |event| slot_start <= event[:at] && event[:at] < slot_end }.map { |event| event[:block] }
         if matching.any?
           cycle_index += 1 if cycle.any?
           matching.flat_map { |block| emit_insertion(block, screen, portrait, slot_start, pickers) }
+        elsif Playlists::HourGrid.catalog_frequencies(covering).any?
+          emit_beat_slot(screen, portrait, slot_start, index, count, covering, pickers)
         elsif cycle.empty?
           []
         else
@@ -174,13 +176,25 @@ module Playlists
       end
     end
 
-    def emit_mixed_commercial(plans, screen, portrait, slot_start, pickers)
+    def emit_beat_slot(screen, portrait, slot_start, index, slot_count, covering, pickers)
+      hitters = covering.select { |plan| Playlists::HourGrid.catalog_hit?(plan, index, slot_count) }
+      extras = covering.select do |plan|
+        plan.commercial? && plan.shows_per_hour.present? && !Playlists::HourGrid.catalog_frequency?(plan.shows_per_hour)
+      end
+      players = hitters + extras
+      return emit_commercial_fallback(screen, portrait, slot_start, pickers) if players.empty?
+
+      emit_mixed_commercial(players, screen, portrait, slot_start, pickers, clips_per_plan: 1)
+    end
+
+    def emit_mixed_commercial(plans, screen, portrait, slot_start, pickers, clips_per_plan: nil)
       remaining = portrait.max_commercial_in_row
       batches = []
       plans.each do |plan|
         break if remaining <= 0
 
-        count = [ commercial_clip_count(plan, portrait), remaining ].min
+        per_plan = clips_per_plan || commercial_clip_count(plan, portrait)
+        count = [ per_plan, remaining ].min
         next if count < 1
 
         clips = commercial_clips(plan, screen, pickers, count: count)
@@ -405,16 +419,27 @@ module Playlists
       end.sort_by { |window| window[:start] }
     end
 
-    def build_slots(windows, portrait)
-      step = 3600 / portrait.hour_slot_count
+    def build_slots(windows, screen, portrait)
       windows.flat_map do |window|
+        hour = window[:start].change(min: 0, sec: 0)
         slots = []
-        t = window[:start]
-        while t < window[:end]
-          slot_end = t + step
-          slot_end = window[:end] if slot_end > window[:end]
-          slots << [ t, slot_end ]
-          t = slot_end
+        while hour < window[:end]
+          hour_end = hour + 3600
+          covering = occupying_plans.select do |plan|
+            plan_covers_screen?(plan, screen) && plan.starts_at < hour_end && plan.ends_at > hour
+          end
+          count = Playlists::HourGrid.slot_count(portrait: portrait, occupying_plans: covering)
+          step = 3600 / count
+          count.times do |index|
+            slot_start = hour + (step * index)
+            slot_end = slot_start + step
+            next if slot_end <= window[:start] || slot_start >= window[:end]
+
+            clipped_start = slot_start < window[:start] ? window[:start] : slot_start
+            clipped_end = slot_end > window[:end] ? window[:end] : slot_end
+            slots << [ clipped_start, clipped_end, index, count, covering ]
+          end
+          hour = hour_end
         end
         slots
       end

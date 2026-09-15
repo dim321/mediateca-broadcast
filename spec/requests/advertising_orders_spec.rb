@@ -195,6 +195,26 @@ RSpec.describe "AdvertisingOrders", type: :request do
       expect(option_values.none? { |value| value.match?(/\A\d+\z/) }).to be(true)
     end
 
+    it "re-renders shows_per_hour options from portrait intersection when screen_ids are posted" do
+      screen = order_screen
+      post advertising_orders_path, params: {
+        grid_from: "2026-06-03",
+        grid_to: "2026-06-05",
+        advertising_order: {
+          product_name: "",
+          media_asset_id: asset.id,
+          screen_ids: [ screen.id ],
+          windows: [ { starts_at: "08:00", ends_at: "23:00" } ]
+        }
+      }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      select = Nokogiri::HTML(response.body).at_css("#advertising_order_shows_per_hour")
+      expect(select["disabled"]).to be_nil
+      option_values = select.css("option").map { |option| option["value"] }.reject(&:blank?)
+      expect(option_values).to eq(Portraits::FrequencySet.intersection_for_screens([ screen ]).map(&:to_s))
+    end
+
     it "defaults the first day window to 08:00–23:00" do
       get new_advertising_order_path
 
