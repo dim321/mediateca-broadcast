@@ -817,6 +817,9 @@ ru:
       media_assets: Медиафайлы
       media_plans: Медиапланы
       organizations: Организации
+      rotation_items: Элементы ротаций
+      rotations: Ротации
+      screens: Экраны
     organizations:
       index:
         brand: Бренд

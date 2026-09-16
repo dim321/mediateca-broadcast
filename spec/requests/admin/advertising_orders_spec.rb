@@ -164,15 +164,17 @@ RSpec.describe "Admin advertising orders", type: :request do
       clip = document.at_css("#advertising_order_media_asset_id")
       option = clip.at_css("option[value='#{asset.id}']")
 
-      expect(product).to be_present
-      expect(placement).to be_present
-      expect(clip).to be_present
+      expect([ product, placement, clip, option ]).to all(be_present)
       expect(product.parent.parent["class"]).to include("grid")
-      expect(product.parent.parent.text).to include(AdvertisingOrder.human_attribute_name(:product_name))
-      expect(product.parent.parent.text).to include(AdvertisingOrder.human_attribute_name(:placement_kind))
-      expect(option["data-duration"]).to eq("10")
-      expect(option["data-content-type"]).to eq(I18n.t("media_assets.index.content_types.own"))
-      expect(option["data-content-kind"]).to eq(I18n.t("media_assets.index.content_kinds.image"))
+      expect(product.parent.parent.text).to include(
+        AdvertisingOrder.human_attribute_name(:product_name),
+        AdvertisingOrder.human_attribute_name(:placement_kind)
+      )
+      expect(option.to_s).to include(
+        'data-duration="10"',
+        "data-content-type=\"#{I18n.t("media_assets.index.content_types.own")}\"",
+        "data-content-kind=\"#{I18n.t("media_assets.index.content_kinds.image")}\""
+      )
       expect(document.at_css("[data-order-media-asset-target='details']")).to be_present
     end
 
@@ -205,19 +207,15 @@ RSpec.describe "Admin advertising orders", type: :request do
       text = table.text
       headers = table.css("thead tr").first.css("th").map { |th| th.text.strip }
 
-      expect(text).to include(screen.name)
-      expect(text).to include("ТЦ Галерея")
-      expect(text).not_to include("Касса 1")
-      expect(text).to include("витрина")
-      expect(text).not_to include("Цикл 4/час")
-      expect(text).to include("1, 2, 3, 4, 6")
-      expect(text).to include("09:00")
+      expect(text).to include(screen.name, "ТЦ Галерея", "витрина", "1, 2, 3, 4, 6", "09:00")
+      expect(text).not_to include("Касса 1", "Цикл 4/час")
       expect(headers).to include(BroadcastPortrait.human_attribute_name(:block_frequencies_per_hour))
-      expect(headers).not_to include(Station.model_name.human)
-      expect(headers).not_to include(BroadcastPortrait.model_name.human)
-      expect(response.body).to include(I18n.t("advertising_orders.form.screen_picker.filter_location"))
-      expect(response.body).to include(I18n.t("advertising_orders.form.screen_picker.filter_frequencies"))
-      expect(response.body).to include(I18n.t("advertising_orders.form.screen_picker.filter_hours"))
+      expect(headers).not_to include(Station.model_name.human, BroadcastPortrait.model_name.human)
+      expect(response.body).to include(
+        I18n.t("advertising_orders.form.screen_picker.filter_location"),
+        I18n.t("advertising_orders.form.screen_picker.filter_frequencies"),
+        I18n.t("advertising_orders.form.screen_picker.filter_hours")
+      )
     end
 
     it "does not render coefficient or discount fields on the new form" do

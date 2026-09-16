@@ -807,6 +807,9 @@ en:
       media_assets: Media assets
       media_plans: Media plans
       organizations: Organizations
+      rotation_items: Rotation items
+      rotations: Rotations
+      screens: Screens
     organizations:
       index:
         brand: Brand

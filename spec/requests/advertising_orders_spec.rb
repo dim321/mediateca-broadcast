@@ -172,14 +172,16 @@ RSpec.describe "AdvertisingOrders", type: :request do
       get new_advertising_order_path
 
       expect(response).to have_http_status(:success)
-      expect(response.body).to include(I18n.t("advertising_orders.form.grid"))
-      expect(response.body).to include("order-screen-picker")
-      expect(response.body).to include('data-order-screen-picker-target="showsPerHour"')
-      expect(response.body).to include("advertising_order[screen_ids][]")
-      expect(response.body).to include('name="advertising_order[shows_per_hour]"')
+      expect(response.body).to include(
+        I18n.t("advertising_orders.form.grid"),
+        "order-screen-picker",
+        'data-order-screen-picker-target="showsPerHour"',
+        "advertising_order[screen_ids][]",
+        'name="advertising_order[shows_per_hour]"',
+        "advertising_order[windows]",
+        I18n.t("advertising_orders.form.add_window")
+      )
       expect(response.body).not_to match(/input[^>]*name="advertising_order\[shows_per_hour\]"[^>]*type="number"/)
-      expect(response.body).to include("advertising_order[windows]")
-      expect(response.body).to include(I18n.t("advertising_orders.form.add_window"))
       expect(response.body).not_to include("broadcast_point_group_id")
     end
 
