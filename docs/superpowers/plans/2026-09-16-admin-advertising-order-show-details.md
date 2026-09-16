@@ -4,7 +4,7 @@
 
 **Goal:** Display placement, media, and total-show details on the admin advertising-order show page.
 
-**Architecture:** Keep the admin show template declarative and add date-range/interval formatting to `AdvertisingOrdersHelper`. Use the existing order associations and enum translation helper; do not add queries or persistence changes.
+**Architecture:** Keep the admin show template declarative and add date-range/interval formatting to `AdvertisingOrdersHelper`. Render organization, author, order fields, placement summary, and media fields in one responsive Flowbite card. Use the existing order associations and enum translation helper; do not add queries or persistence changes.
 
 **Tech Stack:** Rails 8.1, ERB, Flowbite utility classes, RSpec request specs, Docker Compose.
 
@@ -90,13 +90,20 @@ end
 
 Use the existing `t("admin.crud.none")` translation for empty collections.
 
-- [ ] **Step 2: Render the requested detail rows**
+- [ ] **Step 2: Render one responsive details card**
 
-Add a second Flowbite card/definition list to the show template with translated
-labels for date ranges, day count, windows, media filename, duration, content
-type, content category, and total shows. Use `admin_attachment_name` and
-`admin_enum_label` for media fields and existing model human names where
-available.
+Replace the two existing cards with one card titled `Детали заказа`. Use
+responsive `grid-cols-1 md:grid-cols-2` rows:
+
+1. organization / author;
+2. product / business sphere;
+3. placement kind / status;
+4. date ranges / windows / day count / total shows;
+5. media filename / duration / content type / content category.
+
+Use `admin_attachment_name` and `admin_enum_label` for media fields and existing
+model human names where available. Put every label in the Russian and English
+`advertising_orders.show` locale sections.
 
 - [ ] **Step 3: Run focused specs and verify GREEN**
 
