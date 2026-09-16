@@ -167,7 +167,7 @@ module AdvertisingOrderGrid
   end
 
   def grid_dates
-    from = parse_grid_date(params[:grid_from]) || order_grid_bounds&.begin || Date.current.beginning_of_month
+    from = parse_grid_date(params[:grid_from]) || order_grid_bounds&.begin || Date.current.tomorrow
     to = parse_grid_date(params[:grid_to]) || order_grid_bounds&.end || Date.current.end_of_month
     from, to = to, from if from > to
     (from..to).to_a
