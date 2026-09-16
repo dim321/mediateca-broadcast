@@ -83,6 +83,8 @@ Expected: FAIL, потому что helper заголовка и отдельн�
 
 **Files:**
 - Modify: `app/helpers/advertising_orders_helper.rb`
+- Modify: `config/locales/mediateca.ru.yml`
+- Modify: `config/locales/mediateca.en.yml`
 
 - [ ] **Step 1: Реализовать форматирование названия месяца**
 
@@ -90,14 +92,14 @@ Expected: FAIL, потому что helper заголовка и отдельн�
 
 ```ruby
 def advertising_grid_month_label(month)
-  month_name = I18n.t("date.month_names")[month.month]
+  month_name = I18n.t("date.month_names_nominative")[month.month]
   "#{month_name.capitalize} #{month.year}"
 end
 ```
 
-Для английской локали `capitalize` не меняет корректный первый символ, а
-русская локаль получает `Сентябрь`, `Октябрь` и т.д. Использовать месяц как
-первый день месяца, который уже возвращает `advertising_grid_months`.
+Добавить `date.month_names_nominative` в русскую и английскую локали массивом
+из 13 элементов с `nil` на позиции 0. Использовать месяц как первый день
+месяца, который уже возвращает `advertising_grid_months`.
 
 - [ ] **Step 2: Сохранить хронологический порядок групп**
 
@@ -126,6 +128,7 @@ Expected: PASS.
 **Files:**
 - Create: `app/views/advertising_orders/_monthly_grid.html.slim`
 - Modify: `app/views/advertising_orders/_line_fields.html.slim`
+- Modify: `app/views/advertising_orders/_form.html.slim`
 
 - [ ] **Step 1: Создать partial месячной таблицы**
 
@@ -162,11 +165,12 @@ Partial должен принимать `month`, `dates`, `advertising_order`, `
 передать ему полный `@grid_dates`, чтобы добавляемая JS-строка могла работать
 с текущей формой.
 
-### Task 4: Переключить форму на месячные таблицы
+### Task 4: Переключить форму и Stimulus на месячные таблицы
 
 **Files:**
 - Modify: `app/views/advertising_orders/_form.html.slim`
 - Modify: `spec/requests/admin/advertising_orders_spec.rb`
+- Modify: `app/javascript/controllers/order_screen_picker_controller.js`
 
 - [ ] **Step 1: Заменить одну таблицу циклом месячных partials**
 
@@ -183,6 +187,8 @@ Partial должен принимать `month`, `dates`, `advertising_order`, `
 
 Легенду оставить один раз перед циклом. В каждый месячный partial передавать
 строки с индексами, вычисленными относительно полного списка экранов.
+Первой таблице сохранить id `order-airtime-grid` для совместимости с
+существующими селекторами, остальным таблицам дать id с годом и месяцем.
 
 - [ ] **Step 2: Сохранить единый общий итог**
 
@@ -201,7 +207,14 @@ Partial должен принимать `month`, `dates`, `advertising_order`, `
 - одинаковый `name="advertising_order[lines][0][days][][date]"` используется
   в обеих таблицах, поэтому сервер получает единый набор дней.
 
-- [ ] **Step 4: Запустить request specs**
+- [ ] **Step 4: Обновить динамическое добавление экранов**
+
+Заменить использование одиночных `rowTemplateTarget` и `gridLinesTarget` в
+`order_screen_picker_controller.js` на `rowTemplateTargets` и
+`gridLinesTargets`. При выборе нового экрана добавлять его строку в каждый
+месячный `tbody`, используя соответствующий месяцу шаблон.
+
+- [ ] **Step 5: Запустить request specs**
 
 Run:
 
@@ -215,8 +228,8 @@ Expected: PASS.
 ### Task 5: Проверить интеграцию Stimulus и весь набор тестов
 
 **Files:**
-- Modify: `app/javascript/controllers/order_grid_controller.js` only if a
-  failing integration test докажет необходимость изменения.
+- Modify: `app/javascript/controllers/order_screen_picker_controller.js`
+  (already covered in Task 4)
 
 - [ ] **Step 1: Проверить существующие JS targets**
 

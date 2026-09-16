@@ -5,7 +5,8 @@ tr.border-b.border-base-200.hover:bg-base-200 data-order-grid-target='lineRow' d
     span.text-xs.text-base-content/60
       |  
       span data-order-screen-picker-target='screenMeta' = screen_meta
-  - Array(@grid_dates).each do |date|
+  - grid_dates = local_assigns.fetch(:grid_dates) { @grid_dates }
+  - Array(grid_dates).each do |date|
     - day = advertising_order_day_for(line, date)
     - skipped = day.blank? && line.persisted?
     - shows_value = day&.shows

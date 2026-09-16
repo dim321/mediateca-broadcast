@@ -157,6 +157,22 @@ RSpec.describe "Admin advertising orders", type: :request do
       expect(body).not_to include("broadcast_point_group_id")
     end
 
+    it "renders a separate grid table for each month" do
+      get new_admin_advertising_order_path, params: {
+        organization_id: client.id,
+        grid_from: "2026-08-30",
+        grid_to: "2026-09-02"
+      }
+
+      tables = Nokogiri::HTML(response.body).css("table[id^='order-airtime-grid']")
+
+      expect(tables.size).to eq(2)
+      expect(tables.first.at_css("th[colspan]").text).to include("Август 2026")
+      expect(tables.first.css("thead tr").last.css("th").map(&:text)).to eq(%w[30 31])
+      expect(tables[1].at_css("th[colspan]").text).to include("Сентябрь 2026")
+      expect(tables[1].css("thead tr").last.css("th").map(&:text)).to eq(%w[1 2])
+    end
+
     it "places placement kind beside the product and exposes selected clip metadata" do
       asset
       get new_admin_advertising_order_path, params: { organization_id: client.id }

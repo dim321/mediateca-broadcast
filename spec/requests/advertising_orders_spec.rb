@@ -261,7 +261,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
       expect(visible_grid_date_input("grid_from")["value"]).to eq("03.06.2026")
       expect(visible_grid_date_input("grid_to")["value"]).to eq("05.06.2026")
-      month_label = I18n.l(Date.new(2026, 6, 1), format: "%B %Y")
+      month_label = "Июнь 2026"
       thead = Nokogiri::HTML(response.body).at_css("#order-airtime-grid thead")
       expect(thead.text).to include(month_label)
     end
@@ -332,7 +332,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
       get edit_advertising_order_path(order), params: { grid_from: "2026-06-03", grid_to: "2026-06-04" }
 
       html = Nokogiri::HTML(response.body)
-      month_label = I18n.l(Date.new(2026, 6, 1), format: "%B %Y")
+      month_label = "Июнь 2026"
       thead = html.at_css("#order-airtime-grid thead")
       row = html.at_css("[data-order-grid-target='lineRow']")
       expect(thead.text).to include(month_label)
