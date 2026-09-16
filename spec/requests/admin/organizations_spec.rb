@@ -9,6 +9,27 @@ RSpec.describe "Admin organizations profile", type: :request do
 
   before { sign_in_as(operator) }
 
+  it "shows profile brand and business sphere in the organizations list" do
+    organization = create(
+      :organization,
+      :client,
+      :with_profile,
+      name: "Триумф",
+      profile_brand: "Triumph",
+      profile_business_sphere: sphere
+    )
+    create(:organization, :client, name: "Без профиля")
+
+    get admin_organizations_path
+
+    expect(response).to have_http_status(:success)
+    expect(response.body).to include("Triumph", "Ритейл")
+    expect(response.body).to include(I18n.t("admin.organizations.index.brand"))
+    expect(response.body).to include(I18n.t("admin.organizations.index.business_sphere"))
+    expect(response.body).to include(I18n.t("admin.crud.none"))
+    expect(response.body).to include(organization.name)
+  end
+
   it "shows nested profile fields on the new organization form" do
     get new_admin_organization_path
 

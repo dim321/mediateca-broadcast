@@ -13,7 +13,7 @@ RSpec.describe "Admin broadcast portraits", type: :request do
     {
       name: "Default grid",
       kind: "cyclic",
-      block_frequency_per_hour: 4,
+      block_frequencies_per_hour: [ 4 ],
       max_commercial_in_row: 3,
       neutral_min_seconds: 10,
       is_default: true,
@@ -63,6 +63,14 @@ RSpec.describe "Admin broadcast portraits", type: :request do
       expect(response.body).not_to include(hidden.name)
     end
 
+    it "renders catalog frequency checkboxes instead of a 1..60 number field" do
+      get new_admin_broadcast_portrait_path
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include("broadcast_portrait[block_frequencies_per_hour][]")
+      expect(response.body).not_to include("block_frequency_per_hour")
+    end
+
     it "keeps a bound service theme selected when editing a screen portrait" do
       theme = create(:service_theme, organization: operator_org, name: "Салон красоты")
       screen = create(:screen)
@@ -76,9 +84,12 @@ RSpec.describe "Admin broadcast portraits", type: :request do
       expect(response.body).to include(%(value="#{theme.id}" selected))
     end
 
+    # rubocop:disable RSpec/MultipleExpectations -- also asserts catalog frequency set from the plan
     it "creates a default cyclic template with commercial and sequential filler blocks" do
       expect {
-        post admin_broadcast_portraits_path, params: { broadcast_portrait: portrait_attrs }
+        post admin_broadcast_portraits_path, params: {
+          broadcast_portrait: portrait_attrs(block_frequencies_per_hour: [ 4, 6 ])
+        }
       }.to change(BroadcastPortrait, :count).by(1)
 
       portrait = BroadcastPortrait.find_by!(name: "Default grid")
@@ -87,9 +98,11 @@ RSpec.describe "Admin broadcast portraits", type: :request do
       expect(portrait.screen_id).to be_nil
       expect(portrait.is_default).to be(true)
       expect(portrait.neutral_min_seconds).to eq(10)
+      expect(portrait.block_frequencies_per_hour).to eq([ 4, 6 ])
       expect(portrait.blocks.order(:position).map(&:kind)).to eq(%w[commercial filler])
       expect(portrait.blocks.find_by!(position: 2).pick_strategy).to eq("sequential")
     end
+    # rubocop:enable RSpec/MultipleExpectations
 
     it "rejects a second default template with 422 uniqueness error" do
       create(:broadcast_portrait, :default, name: "Already default")
@@ -123,7 +136,7 @@ RSpec.describe "Admin broadcast portraits", type: :request do
         patch admin_broadcast_portrait_path(portrait), params: {
           broadcast_portrait: {
             name: portrait.name,
-            block_frequency_per_hour: portrait.block_frequency_per_hour,
+            block_frequencies_per_hour: portrait.block_frequencies_per_hour,
             max_commercial_in_row: portrait.max_commercial_in_row,
             neutral_min_seconds: portrait.neutral_min_seconds,
             blocks: [
@@ -146,7 +159,7 @@ RSpec.describe "Admin broadcast portraits", type: :request do
       patch admin_broadcast_portrait_path(portrait), params: {
         broadcast_portrait: {
           name: portrait.name,
-          block_frequency_per_hour: portrait.block_frequency_per_hour,
+          block_frequencies_per_hour: portrait.block_frequencies_per_hour,
           max_commercial_in_row: portrait.max_commercial_in_row,
           neutral_min_seconds: portrait.neutral_min_seconds,
           blocks: [ { position: 1, kind: "commercial" } ]
@@ -190,7 +203,7 @@ RSpec.describe "Admin broadcast portraits", type: :request do
         patch admin_broadcast_portrait_path(portrait), params: {
           broadcast_portrait: {
             name: "Renamed screen grid",
-            block_frequency_per_hour: portrait.block_frequency_per_hour,
+            block_frequencies_per_hour: portrait.block_frequencies_per_hour,
             max_commercial_in_row: portrait.max_commercial_in_row,
             neutral_min_seconds: portrait.neutral_min_seconds
           }
@@ -207,7 +220,7 @@ RSpec.describe "Admin broadcast portraits", type: :request do
         patch admin_broadcast_portrait_path(portrait), params: {
           broadcast_portrait: {
             name: "Renamed template",
-            block_frequency_per_hour: portrait.block_frequency_per_hour,
+            block_frequencies_per_hour: portrait.block_frequencies_per_hour,
             max_commercial_in_row: portrait.max_commercial_in_row,
             neutral_min_seconds: portrait.neutral_min_seconds
           }
@@ -224,7 +237,7 @@ RSpec.describe "Admin broadcast portraits", type: :request do
         broadcast_portrait: {
           name: portrait.name,
           screen_id: other.id,
-          block_frequency_per_hour: portrait.block_frequency_per_hour,
+          block_frequencies_per_hour: portrait.block_frequencies_per_hour,
           max_commercial_in_row: portrait.max_commercial_in_row,
           neutral_min_seconds: portrait.neutral_min_seconds
         }

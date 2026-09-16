@@ -60,13 +60,35 @@ module AdvertisingOrdersHelper
     "#{name} (#{asset.duration_seconds}s)"
   end
 
+  def advertising_order_media_asset_option(asset)
+    [
+      asset.file.attached? ? asset.file.filename.to_s : asset.id.to_s,
+      asset.id,
+      {
+        "data-duration" => asset.duration_seconds,
+        "data-content-type" => t("media_assets.index.content_types.#{asset.content_type}"),
+        "data-content-kind" => t("media_assets.index.content_kinds.#{asset.content_kind}")
+      }
+    ]
+  end
+
   def order_screen_hours_label(screen)
     Location::OperatingHours.compact_label(screen.effective_operating_hours).presence ||
       t("operating_hours.unset")
   end
 
+  def order_screen_frequencies_label(screen)
+    Array(screen&.broadcast_portrait&.block_frequencies_per_hour).join(", ").presence
+  end
+
   def order_screen_selected?(screen)
     Array(@selected_screen_ids).include?(screen.id)
+  end
+
+  def order_shows_per_hour_select_options(advertising_order)
+    screens = advertising_order.advertising_order_lines.filter_map(&:screen)
+    screens = Array(@order_screens).select { |screen| order_screen_selected?(screen) } if screens.empty?
+    Portraits::FrequencySet.intersection_for_screens(screens)
   end
 
   def order_clock_hhmm(value)
@@ -106,6 +128,34 @@ module AdvertisingOrdersHelper
       hours_json: screen ? order_screen_hours_json(screen) : {},
       shows_total: line.total_shows
     }
+  end
+
+  def advertising_order_date_ranges(order)
+    dates = order.advertising_order_line_days.map(&:date).compact.uniq.sort
+    return t("admin.crud.none") if dates.empty?
+
+    dates.slice_when { |previous, current| current != previous + 1 }.map do |range|
+      first_date = range.first
+      last_date = range.last
+      first_label = first_date.strftime("%d.%m.%Y")
+      last_label = last_date.strftime("%d.%m.%Y")
+
+      first_date == last_date ? first_label : "#{first_label}–#{last_label}"
+    end.join(", ")
+  end
+
+  def advertising_order_day_count(order)
+    dates = order.advertising_order_line_days.map(&:date).compact.uniq
+    dates.empty? ? t("admin.crud.none") : dates.count
+  end
+
+  def advertising_order_windows_label(order)
+    windows = order.advertising_order_windows
+    return t("admin.crud.none") if windows.empty?
+
+    windows.map do |window|
+      "#{window.starts_at.strftime("%H:%M")}–#{window.ends_at.strftime("%H:%M")}"
+    end.join(", ")
   end
 
   private

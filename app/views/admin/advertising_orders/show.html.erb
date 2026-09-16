@@ -19,35 +19,74 @@
           class: admin_danger_button_class %>
   <% end %>
 </div>
-<div class="bg-white border border-gray-200 rounded-lg p-6 max-w-xl">
-  <dl class="grid grid-cols-1 gap-4">
-    <div>
-      <dt class="text-sm font-medium text-gray-500"><%= Organization.model_name.human %></dt>
-      <dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@advertising_order.organization) %></dd>
+<div id="advertising-order-details" class="mt-6 bg-white border border-gray-200 rounded-lg p-6 max-w-5xl">
+  <h2 class="mb-4 text-lg font-semibold text-gray-900"><%= t("admin.advertising_orders.show.details") %></h2>
+  <dl class="space-y-4">
+    <div class="grid gap-4 md:grid-cols-2">
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.organization") %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@advertising_order.organization) %></dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.author") %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@advertising_order.created_by) %></dd>
+      </div>
     </div>
-    <div>
-      <dt class="text-sm font-medium text-gray-500"><%= AdvertisingOrder.human_attribute_name(:product_name) %></dt>
-      <dd class="mt-1 text-sm text-gray-900"><%= @advertising_order.product_name %></dd>
+    <div class="grid gap-4 md:grid-cols-2">
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.product_name") %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= @advertising_order.product_name %></dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.business_sphere") %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= @advertising_order.business_sphere.presence || t("admin.crud.none") %></dd>
+      </div>
     </div>
-    <div>
-      <dt class="text-sm font-medium text-gray-500"><%= AdvertisingOrder.human_attribute_name(:status) %></dt>
-      <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@advertising_order, :status) %></dd>
+    <div class="grid gap-4 md:grid-cols-2">
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.placement_kind") %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@advertising_order, :placement_kind) %></dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.status") %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@advertising_order, :status) %></dd>
+      </div>
     </div>
-    <div>
-      <dt class="text-sm font-medium text-gray-500"><%= AdvertisingOrder.human_attribute_name(:placement_kind) %></dt>
-      <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@advertising_order, :placement_kind) %></dd>
+    <div class="grid gap-4 md:grid-cols-4">
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.date_ranges") %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= advertising_order_date_ranges(@advertising_order) %></dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.windows") %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= advertising_order_windows_label(@advertising_order) %></dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.day_count") %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= advertising_order_day_count(@advertising_order) %></dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.total_shows") %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= @advertising_order.total_shows %></dd>
+      </div>
     </div>
-    <div>
-      <dt class="text-sm font-medium text-gray-500"><%= AdvertisingOrder.human_attribute_name(:business_sphere) %></dt>
-      <dd class="mt-1 text-sm text-gray-900"><%= @advertising_order.business_sphere.presence || t("admin.crud.none") %></dd>
-    </div>
-    <div>
-      <dt class="text-sm font-medium text-gray-500"><%= AdvertisingOrder.human_attribute_name(:created_by) %></dt>
-      <dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@advertising_order.created_by) %></dd>
-    </div>
-    <div>
-      <dt class="text-sm font-medium text-gray-500"><%= MediaAsset.model_name.human %></dt>
-      <dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@advertising_order.media_asset) %></dd>
+    <div class="grid gap-4 md:grid-cols-4">
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.media_filename") %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= admin_attachment_name(@advertising_order.media_asset.file) %></dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.media_duration") %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= @advertising_order.media_asset.duration_seconds || t("admin.crud.none") %></dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.content_type") %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@advertising_order.media_asset, :content_type) %></dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.content_kind") %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@advertising_order.media_asset, :content_kind) %></dd>
+      </div>
     </div>
   </dl>
 </div>

@@ -402,6 +402,10 @@ en:
             rotation:
               wrong_organization: must belong to your organization
               must_be_system_managed: must be a system-managed order rotation
+            advertising_order_lines:
+              empty_frequency_intersection: selected screens have no common block frequency
+            shows_per_hour:
+              not_in_portrait_intersection: is not allowed for the selected screens
         advertising_order_line:
           attributes:
             broadcast_point_group:
@@ -520,7 +524,7 @@ en:
         date: Date
         shows: Shows
       broadcast_portrait:
-        block_frequency_per_hour: Blocks per hour
+        block_frequencies_per_hour: Allowed blocks per hour
         is_default: Default template
         kind: Kind
         max_commercial_in_row: Max commercials in a row
@@ -687,11 +691,11 @@ en:
         select_all: Select visible
         hours: Operating hours
         filter_location: Location
-        filter_station: Station
         filter_tags: Tags
-        filter_portrait: Broadcast portrait
+        filter_frequencies: Allowed blocks per hour
         filter_hours: Operating hours
       shows_per_hour: Shows per hour
+      shows_per_hour_from_screens: Select screens first. Only frequencies shared by their portraits are available.
       windows: Day windows
       add_window: Add window
       remove_window: Remove
@@ -803,6 +807,13 @@ en:
       media_assets: Media assets
       media_plans: Media plans
       organizations: Organizations
+      rotation_items: Rotation items
+      rotations: Rotations
+      screens: Screens
+    organizations:
+      index:
+        brand: Brand
+        business_sphere: Business sphere
       play_logs: Play logs
       rotation_items: Rotation items
       rotations: Rotations
@@ -905,6 +916,22 @@ en:
       cancel: Cancel order
       cancel_confirm: Cancel this order and free occupied airtime?
       cancelled: Order cancelled.
+      show:
+        details: Order details
+        organization: Organization
+        author: Order author
+        product_name: Product
+        business_sphere: Business sphere
+        placement_kind: Placement type
+        status: Status
+        date_ranges: Placement dates
+        day_count: Number of days
+        windows: Time windows
+        media_filename: Media filename
+        media_duration: Duration, sec
+        content_type: Content type
+        content_kind: Content category
+        total_shows: Total impressions
       edit: Edit grid
       edit_title: Edit order
       new_title: New order on behalf of a client
@@ -1203,3 +1230,4 @@ en:
     errors:
       clip_not_ready: clip is not broadcast-ready
       order_not_active: clip can be replaced only on an active order
+      order_not_draft: clip can be replaced only on a draft order

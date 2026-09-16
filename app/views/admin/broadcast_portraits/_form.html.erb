@@ -6,10 +6,21 @@
     <%= f.text_field :name, class: admin_input_class, required: true %>
   </div>
 
-  <div class="mb-5">
-    <%= f.label :block_frequency_per_hour, class: admin_label_class %>
-    <%= f.number_field :block_frequency_per_hour, min: 1, max: 60, class: admin_input_class, required: true %>
-  </div>
+  <fieldset class="mb-5">
+    <legend class="<%= admin_label_class %>"><%= f.label :block_frequencies_per_hour %></legend>
+    <div class="mt-2 flex flex-wrap gap-4">
+      <% BroadcastPortrait::BLOCK_FREQUENCIES_PER_HOUR.each do |frequency| %>
+        <label class="flex items-center gap-2 text-sm text-gray-900">
+          <%= check_box_tag 'broadcast_portrait[block_frequencies_per_hour][]',
+                frequency,
+                Array(portrait.block_frequencies_per_hour).include?(frequency),
+                class: admin_checkbox_class,
+                id: "broadcast_portrait_block_frequencies_per_hour_#{frequency}" %>
+          <%= frequency %>
+        </label>
+      <% end %>
+    </div>
+  </fieldset>
 
   <div class="mb-5">
     <%= f.label :max_commercial_in_row, class: admin_label_class %>

@@ -1,12 +1,13 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["row", "filter", "selectAll", "count", "rowTemplate", "gridLines", "gridRow"]
+  static targets = ["row", "filter", "selectAll", "count", "rowTemplate", "gridLines", "gridRow", "showsPerHour"]
 
   connect() {
     this.filterRows()
     this.syncCount()
     this.syncGridRows()
+    this.syncFrequencyOptions()
   }
 
   filterRows() {
@@ -28,12 +29,14 @@ export default class extends Controller {
     })
     this.syncCount()
     this.syncGridRows()
+    this.syncFrequencyOptions()
   }
 
   selectionChanged() {
     this.syncCount()
     this.syncSelectAll()
     this.syncGridRows()
+    this.syncFrequencyOptions()
   }
 
   filterEntries() {
@@ -101,5 +104,42 @@ export default class extends Controller {
     if (name) name.textContent = pickerRow.dataset.screenName || ""
     const meta = row.querySelector("[data-order-screen-picker-target='screenMeta']")
     if (meta) meta.textContent = pickerRow.dataset.screenMeta || ""
+  }
+
+  syncFrequencyOptions() {
+    if (!this.hasShowsPerHourTarget) return
+
+    const selected = this.rowTargets.filter((row) => this.rowCheckbox(row)?.checked)
+    const select = this.showsPerHourTarget
+    const previous = select.value
+
+    let options = []
+    if (selected.length > 0) {
+      const sets = selected.map((row) => {
+        try {
+          return JSON.parse(row.dataset.frequencies || "[]")
+        } catch (_error) {
+          return []
+        }
+      })
+      options = sets.reduce((acc, set) => acc.filter((item) => set.includes(item)))
+      options.sort((a, b) => a - b)
+    }
+
+    select.innerHTML = ""
+    const blank = document.createElement("option")
+    blank.value = ""
+    select.append(blank)
+    options.forEach((value) => {
+      const option = document.createElement("option")
+      option.value = String(value)
+      option.textContent = String(value)
+      select.append(option)
+    })
+
+    const keep = options.map(String).includes(previous) ? previous : ""
+    select.value = keep
+    select.disabled = options.length === 0
+    this.dispatch("recompute", { prefix: "order-grid" })
   }
 }

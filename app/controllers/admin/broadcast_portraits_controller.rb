@@ -17,7 +17,7 @@ module Admin
     def new
       @portrait = BroadcastPortrait.new(
         kind: "cyclic",
-        block_frequency_per_hour: 4,
+        block_frequencies_per_hour: [ 4 ],
         max_commercial_in_row: 3,
         neutral_min_seconds: 10
       )
@@ -82,8 +82,10 @@ module Admin
 
     def portrait_header_params
       permitted = params.require(:broadcast_portrait).permit(
-        :name, :block_frequency_per_hour, :max_commercial_in_row, :neutral_min_seconds, :is_default
+        :name, :max_commercial_in_row, :neutral_min_seconds, :is_default,
+        block_frequencies_per_hour: []
       )
+      permitted[:block_frequencies_per_hour] = Array(permitted[:block_frequencies_per_hour]).map(&:to_i)
       permitted = permitted.except(:is_default) if @portrait&.screen_id.present?
       permitted
     end

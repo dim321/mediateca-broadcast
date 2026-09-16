@@ -11,6 +11,9 @@ module AdvertisingOrderGrid
     payload = computed_lines_payload(order)
     return if payload.empty?
 
+    screens = form_screen_ids.filter_map { |id| Screen.find_by(id: id) }
+    Advertising::AssertShowsPerHour.call(order: order, screens: screens)
+
     order.advertising_order_lines.reset
     Advertising::UpdateGrid.call(order: order, lines: payload)
   end
