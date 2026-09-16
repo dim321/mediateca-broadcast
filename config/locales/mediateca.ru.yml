@@ -923,6 +923,22 @@ ru:
       cancel: Отменить заказ
       cancel_confirm: Отменить этот заказ и освободить занятый эфир?
       cancelled: Заказ отменён.
+      show:
+        details: Детали заказа
+        organization: Организация
+        author: Автор заказа
+        product_name: Продукт
+        business_sphere: Сфера деятельности
+        placement_kind: Тип размещения
+        status: Статус
+        date_ranges: Даты размещения
+        day_count: Количество дней
+        windows: Временные интервалы
+        media_filename: Имя медиафайла
+        media_duration: Длительность, с
+        content_type: Тип контента
+        content_kind: Категория контента
+        total_shows: Общее количество показов
       edit: Изменить сетку
       edit_title: Редактирование заказа
       new_title: Новый заказ от имени клиента

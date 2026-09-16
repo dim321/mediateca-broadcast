@@ -913,6 +913,22 @@ en:
       cancel: Cancel order
       cancel_confirm: Cancel this order and free occupied airtime?
       cancelled: Order cancelled.
+      show:
+        details: Order details
+        organization: Organization
+        author: Order author
+        product_name: Product
+        business_sphere: Business sphere
+        placement_kind: Placement type
+        status: Status
+        date_ranges: Placement dates
+        day_count: Number of days
+        windows: Time windows
+        media_filename: Media filename
+        media_duration: Duration, sec
+        content_type: Content type
+        content_kind: Content category
+        total_shows: Total impressions
       edit: Edit grid
       edit_title: Edit order
       new_title: New order on behalf of a client

@@ -104,7 +104,13 @@ module Admin
     private
 
     def find_order
-      AdvertisingOrder.includes(advertising_order_lines: [ :screen, :advertising_order_line_days ]).find(params[:id])
+      AdvertisingOrder.includes(
+        :organization,
+        :created_by,
+        :advertising_order_windows,
+        advertising_order_lines: [ :screen, :advertising_order_line_days ],
+        media_asset: [ { file_attachment: :blob } ]
+      ).find(params[:id])
     end
 
     def selected_organization

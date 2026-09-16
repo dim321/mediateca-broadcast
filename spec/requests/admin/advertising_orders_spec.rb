@@ -87,6 +87,39 @@ RSpec.describe "Admin advertising orders", type: :request do
       expect(order.reload).to be_cancelled
     end
 
+    it "shows placement and media details on the order page" do
+      order = Advertising::CreateOrder.call(
+        organization: client, created_by: client_user, media_asset: asset, product_name: "Triumph"
+      )
+      fill_order_grid!(
+        order,
+        screen: order_screen,
+        dates: [ Date.new(2026, 6, 1), Date.new(2026, 6, 2), Date.new(2026, 6, 4) ],
+        shows: 9
+      )
+
+      get admin_advertising_order_path(order)
+
+      expect(response).to have_http_status(:success)
+      details = Nokogiri::HTML(response.body).at_css("#advertising-order-details")
+
+      expect(details).to be_present
+      expect(details.css("h2").text).to include(I18n.t("admin.advertising_orders.show.details"))
+      expect(details.text).to include(
+        I18n.t("admin.advertising_orders.show.organization"),
+        I18n.t("admin.advertising_orders.show.author"),
+        I18n.t("admin.advertising_orders.show.business_sphere"),
+        "01.06.2026–02.06.2026, 04.06.2026",
+        "09:00–12:00",
+        "3",
+        asset.file.filename.to_s,
+        "10",
+        I18n.t("enums.media_asset.content_kind.image"),
+        I18n.t("enums.media_asset.content_type.own"),
+        order.total_shows.to_s
+      )
+    end
+
     def catalog_screen_on_group
       location = create(:location, name: "ТЦ Галерея", operating_hours: AdvertisingNetwork::WEEKLY_HOURS)
       station = create(:station, location: location, name: "Касса 1")

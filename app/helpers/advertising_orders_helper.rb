@@ -130,6 +130,34 @@ module AdvertisingOrdersHelper
     }
   end
 
+  def advertising_order_date_ranges(order)
+    dates = order.advertising_order_line_days.map(&:date).compact.uniq.sort
+    return t("admin.crud.none") if dates.empty?
+
+    dates.slice_when { |previous, current| current != previous + 1 }.map do |range|
+      first_date = range.first
+      last_date = range.last
+      first_label = first_date.strftime("%d.%m.%Y")
+      last_label = last_date.strftime("%d.%m.%Y")
+
+      first_date == last_date ? first_label : "#{first_label}–#{last_label}"
+    end.join(", ")
+  end
+
+  def advertising_order_day_count(order)
+    dates = order.advertising_order_line_days.map(&:date).compact.uniq
+    dates.empty? ? t("admin.crud.none") : dates.count
+  end
+
+  def advertising_order_windows_label(order)
+    windows = order.advertising_order_windows
+    return t("admin.crud.none") if windows.empty?
+
+    windows.map do |window|
+      "#{window.starts_at.strftime("%H:%M")}–#{window.ends_at.strftime("%H:%M")}"
+    end.join(", ")
+  end
+
   private
 
   def order_grid_calendar_icon
