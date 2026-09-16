@@ -1211,3 +1211,4 @@ en:
     errors:
       clip_not_ready: clip is not broadcast-ready
       order_not_active: clip can be replaced only on an active order
+      order_not_draft: clip can be replaced only on a draft order

@@ -4,7 +4,7 @@
 
 **Goal:** Allow operators to replace the media asset of a draft advertising order from the admin edit form.
 
-**Architecture:** Reuse the existing media-asset select and metadata Stimulus controller from the new-order form. Extend the admin update flow only for draft orders, selecting assets from the order organization’s ready catalog; keep the existing grid persistence path unchanged.
+**Architecture:** Reuse the existing media-asset select and metadata Stimulus controller from the new-order form. Extend the admin update flow only for draft orders, selecting assets from the order organization’s ready catalog. A domain service updates both the order and its system rotation item in one transaction; the existing grid persistence path remains unchanged.
 
 **Tech Stack:** Rails 8.1, Slim, Hotwire Stimulus, RSpec request specs, Docker Compose.
 
@@ -21,6 +21,7 @@
 ### Task 1: Add failing request coverage
 
 **Files:**
+- Create: `spec/domain/advertising/replace_draft_clip_spec.rb`
 - Modify: `spec/requests/admin/advertising_orders_spec.rb`
 
 - [ ] **Step 1: Add examples for the draft edit form and update behavior**
@@ -60,7 +61,8 @@ end
 Also add request examples proving that a foreign organization asset, a non-ready
 asset, and an active order cannot change the order’s media asset. Assert the
 response is unprocessable for invalid draft input, and assert the edit response
-does not contain the media-asset field for an active order.
+does not contain the media-asset field for an active order. The domain spec must
+also verify the system rotation item receives the replacement asset and duration.
 
 - [ ] **Step 2: Run the focused request spec and verify RED**
 
@@ -76,6 +78,7 @@ select and `update` does not persist `media_asset_id`.
 ### Task 2: Implement draft-only media replacement
 
 **Files:**
+- Create: `app/domain/advertising/replace_draft_clip.rb`
 - Modify: `app/controllers/admin/advertising_orders_controller.rb`
 - Modify: `app/views/advertising_orders/_form.html.slim`
 
@@ -86,20 +89,30 @@ record”. Keep the existing `order-media-asset` controller and metadata targets
 This preserves the current new-order behavior and gives edit forms the same
 catalog UI.
 
-- [ ] **Step 2: Load and validate the selected asset server-side**
+- [ ] **Step 2: Add the draft replacement domain service**
+
+Implement `Advertising::ReplaceDraftClip.call(order:, media_asset:)`. Require a
+draft order, verify the asset is ready and belongs to the order organization,
+then use `AdvertisingOrder.transaction` to update the order’s `media_asset`,
+`clip_title`, and `duration_seconds`, plus `order.rotation.rotation_items.sole`
+with the replacement asset and duration. Raise `Advertising::Error` with the
+existing localized messages when the order or asset is invalid.
+
+- [ ] **Step 3: Load, validate, and call the service server-side**
 
 Keep `@media_assets` scoped to `@form_organization.media_assets.ready.with_attached_file`.
-Add `media_asset_id` to update attributes only when `@advertising_order.draft?`.
-Resolve the submitted ID through that scoped organization relation; reject an
-invalid ID with a model error and render the edit form with status
+Resolve the submitted ID through that scoped organization relation. For a draft
+with a submitted replacement, call `Advertising::ReplaceDraftClip`; otherwise
+preserve the existing header and grid update flow. Convert invalid replacement
+errors into an edit-form validation error and render with status
 `unprocessable_content`.
 
-- [ ] **Step 3: Run the focused request spec and verify GREEN**
+- [ ] **Step 4: Run the focused request and domain specs and verify GREEN**
 
 Run:
 
 ```bash
-docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/requests/admin/advertising_orders_spec.rb
+docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/domain/advertising/replace_draft_clip_spec.rb spec/requests/admin/advertising_orders_spec.rb
 ```
 
 Expected: all examples in the request spec pass, including the new draft-only

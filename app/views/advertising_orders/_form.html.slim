@@ -28,17 +28,32 @@
     div
       = f.label :product_name, class: 'block text-sm font-medium'
       = f.text_field :product_name, class: 'input input-bordered w-full mt-1'
-    - if advertising_order.new_record?
-      div
-        = f.label :media_asset_id, class: 'block text-sm font-medium'
-        = f.select :media_asset_id,
-            options_for_select(@media_assets.map { |asset| [asset.file.attached? ? asset.file.filename.to_s : asset.id.to_s, asset.id] }, advertising_order.media_asset_id),
-            { include_blank: true },
-            class: 'select select-bordered w-full mt-1',
-            id: 'advertising_order_media_asset_id'
     div
       = f.label :placement_kind, class: 'block text-sm font-medium'
       = f.select :placement_kind, AdvertisingOrder.placement_kinds.keys.map { |kind| [t("enums.advertising_order.placement_kind.#{kind}"), kind] }, {}, class: 'select select-bordered w-full mt-1'
+    - if advertising_order.new_record? || advertising_order.draft?
+      div.md:col-span-2.grid.gap-4.md:grid-cols-2 data-controller='order-media-asset'
+        div
+          = f.label :media_asset_id, class: 'block text-sm font-medium'
+          = f.select :media_asset_id,
+              options_for_select(@media_assets.map { |asset| advertising_order_media_asset_option(asset) }, advertising_order.media_asset_id),
+              { include_blank: true },
+              class: 'select select-bordered w-full mt-1',
+              id: 'advertising_order_media_asset_id',
+              data: { order_media_asset_target: 'select', action: 'change->order-media-asset#update' }
+        div.hidden data-order-media-asset-target='details'
+          dl.grid.gap-2.sm:grid-cols-3.text-sm.mt-1
+            div
+              dt.text-base-content/60 = t('media_assets.index.columns.duration')
+              dd.font-medium
+                span data-order-media-asset-target='duration'
+                |  с
+            div
+              dt.text-base-content/60 = t('media_assets.index.columns.content_type')
+              dd.font-medium data-order-media-asset-target='contentType'
+            div
+              dt.text-base-content/60 = t('media_assets.index.columns.media_kind')
+              dd.font-medium data-order-media-asset-target='contentKind'
   - if show_picker
     = render 'advertising_orders/screen_picker'
   - frequency_options = order_shows_per_hour_select_options(advertising_order)

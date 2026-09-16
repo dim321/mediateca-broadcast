@@ -60,6 +60,18 @@ module AdvertisingOrdersHelper
     "#{name} (#{asset.duration_seconds}s)"
   end
 
+  def advertising_order_media_asset_option(asset)
+    [
+      asset.file.attached? ? asset.file.filename.to_s : asset.id.to_s,
+      asset.id,
+      {
+        "data-duration" => asset.duration_seconds,
+        "data-content-type" => t("media_assets.index.content_types.#{asset.content_type}"),
+        "data-content-kind" => t("media_assets.index.content_kinds.#{asset.content_kind}")
+      }
+    ]
+  end
+
   def order_screen_hours_label(screen)
     Location::OperatingHours.compact_label(screen.effective_operating_hours).presence ||
       t("operating_hours.unset")
