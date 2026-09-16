@@ -43,7 +43,8 @@ class AdvertisingOrdersController < ApplicationController
       media_asset: asset,
       product_name: order_params[:product_name],
       placement_kind: order_params[:placement_kind].presence || :own_atmosphere,
-      shows_per_hour: order_header_shows_per_hour
+      shows_per_hour: order_header_shows_per_hour,
+      distribution_strategy: order_params[:distribution_strategy].presence || :linear
     )
     persist_grid!(@advertising_order)
     redirect_to @advertising_order, notice: t(".created")
@@ -150,7 +151,8 @@ class AdvertisingOrdersController < ApplicationController
     {
       product_name: order_params[:product_name],
       placement_kind: order_params[:placement_kind].presence || @advertising_order.placement_kind,
-      shows_per_hour: order_header_shows_per_hour
+      shows_per_hour: order_header_shows_per_hour,
+      distribution_strategy: order_params[:distribution_strategy].presence || @advertising_order.distribution_strategy
     }.compact
   end
 
@@ -180,6 +182,7 @@ class AdvertisingOrdersController < ApplicationController
       :media_asset_id,
       :placement_kind,
       :shows_per_hour,
+      :distribution_strategy,
       windows: [ :starts_at, :ends_at ],
       screen_ids: [],
       lines: [ :screen_id, { days: [ :date, :shows, :skipped ] } ]

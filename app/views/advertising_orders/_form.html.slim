@@ -78,10 +78,27 @@
       button.btn.btn-sm.btn-ghost type='button' data-action='order-windows#add' = t('.add_window')
       template data-order-windows-target='template'
         = render 'advertising_orders/window_fields', starts_at: '09:00', ends_at: '12:00'
+  .card.bg-base-100.border.border-base-300
+    .card-body.gap-3
+      h2.card-title.text-base = t('.distribution_strategy')
+      .grid.gap-2.sm:grid-cols-2.lg:grid-cols-3
+        - AdvertisingOrder.distribution_strategies.each_key do |strategy|
+          label.flex.items-center.gap-2.cursor-pointer
+            = f.radio_button :distribution_strategy, strategy,
+                class: 'radio radio-sm',
+                data: { order_grid_target: 'distributionStrategy', action: 'change->order-grid#recompute' }
+            span = t(".distribution_strategies.#{strategy}")
   = render 'media_plans/occupied_slots', occupied_slots: @occupied_slots || [], time_zone: time_zone
   .card.bg-base-100.border.border-base-300
     .card-body.gap-3
       h2.card-title.text-base = t('.grid')
+      .flex.flex-wrap.gap-4.text-xs.text-base-content/70
+        span.inline-flex.items-center.gap-2
+          span.h-3.w-3.rounded-sm.bg-success/30.border.border-success/40
+          = t('.grid_legend.with_shows')
+        span.inline-flex.items-center.gap-2
+          span.h-3.w-3.rounded-sm.bg-base-200.border.border-base-300
+          = t('.grid_legend.without_shows')
       .overflow-x-auto.rounded-box.border.border-base-300.shadow-sm
         table#order-airtime-grid.table.table-sm.table-pin-rows.table-pin-cols.w-full
           thead

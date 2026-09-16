@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["cell", "skipped", "showsPerHour", "windowStart", "windowEnd", "lineRow", "lines", "total", "grandTotal"]
+  static targets = ["cell", "skipped", "showsPerHour", "distributionStrategy", "windowStart", "windowEnd", "lineRow", "lines", "total", "grandTotal"]
 
   connect() {
     this.recompute()
@@ -20,10 +20,15 @@ export default class extends Controller {
       }
 
       row.querySelectorAll('[data-order-grid-target="cell"]').forEach((cell) => {
-        if (this.cellSkipped(cell)) return
+        if (this.cellSkipped(cell)) {
+          this.updateCellAppearance(cell)
+          return
+        }
 
         const openHours = hours[cell.dataset.date] || []
-        cell.value = String(rate * this.coveredHourCount(openHours, windows))
+        const baseShows = rate * this.coveredHourCount(openHours, windows)
+        cell.value = String(this.distributedShows(baseShows, cell.dataset.date, this.lineRowTargets.indexOf(row)))
+        this.updateCellAppearance(cell)
       })
       this.updateRowTotal(row)
     })
@@ -40,6 +45,7 @@ export default class extends Controller {
       cell.dataset.skipped = ""
       if (skipped) skipped.value = "0"
     }
+    this.updateCellAppearance(cell)
     const row = cell.closest('[data-order-grid-target="lineRow"]')
     if (row) this.updateRowTotal(row)
     this.updateGrandTotal()
@@ -99,5 +105,52 @@ export default class extends Controller {
       const hourEnd = hourStart + 60
       return windows.some(([start, end]) => start < hourEnd && end > hourStart)
     }).length
+  }
+
+  updateCellAppearance(cell) {
+    const hasShows = (Number.parseInt(cell.value, 10) || 0) > 0
+    cell.classList.toggle("bg-success/15", hasShows)
+    cell.classList.toggle("border-success/40", hasShows)
+    cell.classList.toggle("bg-base-200", !hasShows)
+    cell.classList.toggle("border-base-300", !hasShows)
+  }
+
+  distributedShows(baseShows, dateValue, screenIndex) {
+    const strategy = this.hasDistributionStrategyTarget
+      ? this.distributionStrategyTargets.find((target) => target.checked)?.value || "linear"
+      : "linear"
+    const date = this.parseDate(dateValue)
+
+    if (!date) return baseShows
+    if (strategy === "weekdays" && this.weekend(date)) return 0
+    if (strategy === "weekends" && !this.weekend(date)) return 0
+    if (strategy === "even_days" && date.getUTCDate() % 2 !== 0) return 0
+    if (strategy === "odd_days" && date.getUTCDate() % 2 === 0) return 0
+    if (strategy !== "chess") return baseShows
+
+    const firstDate = this.firstGridDate()
+    const dayOffset = firstDate ? Math.round((date - firstDate) / 86_400_000) : 0
+    const screenCount = this.lineRowTargets.length
+    const firstHalfSize = Math.ceil(screenCount / 2)
+    const firstHalfDay = dayOffset % 2 === 0
+    const inFirstHalf = screenIndex < firstHalfSize
+
+    return firstHalfDay === inFirstHalf ? baseShows : 0
+  }
+
+  firstGridDate() {
+    const date = this.element.querySelector('[data-order-grid-target="cell"]')?.dataset.date
+    return this.parseDate(date)
+  }
+
+  parseDate(value) {
+    if (!value) return null
+
+    const [year, month, day] = value.split("-").map(Number)
+    return new Date(Date.UTC(year, month - 1, day))
+  }
+
+  weekend(date) {
+    return date.getUTCDay() === 0 || date.getUTCDay() === 6
   }
 }
