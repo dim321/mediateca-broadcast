@@ -8,6 +8,7 @@ export default class extends Controller {
     this.syncCount()
     this.syncGridRows()
     this.syncFrequencyOptions()
+    this.dispatchWindowRecompute()
   }
 
   filterRows() {
@@ -30,6 +31,7 @@ export default class extends Controller {
     this.syncCount()
     this.syncGridRows()
     this.syncFrequencyOptions()
+    this.dispatchWindowRecompute()
   }
 
   selectionChanged() {
@@ -37,6 +39,11 @@ export default class extends Controller {
     this.syncSelectAll()
     this.syncGridRows()
     this.syncFrequencyOptions()
+    this.dispatchWindowRecompute()
+  }
+
+  dispatchWindowRecompute() {
+    this.dispatch("recompute", { prefix: "order-screen-picker" })
   }
 
   filterEntries() {

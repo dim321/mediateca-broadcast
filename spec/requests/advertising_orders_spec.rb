@@ -223,6 +223,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
       list = Nokogiri::HTML(response.body).at_css("[data-order-windows-target='list']")
       expect(list.at_css("[data-order-grid-target='windowStart']")["value"]).to eq("08:00")
       expect(list.at_css("[data-order-grid-target='windowEnd']")["value"]).to eq("23:00")
+      expect(list.at_css("[data-order-windows-automatic='true']")).to be_present
     end
 
     it "does not render coefficient or discount fields" do
