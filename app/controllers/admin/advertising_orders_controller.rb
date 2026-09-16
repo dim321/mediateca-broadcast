@@ -20,7 +20,7 @@ module Admin
       @form_organization = selected_organization
       @advertising_order = AdvertisingOrder.new(
         organization: @form_organization,
-        placement_kind: :own_atmosphere
+        placement_kind: :commercial
       )
       prepare_form
     end
@@ -63,12 +63,19 @@ module Admin
     def update
       @advertising_order = find_order
       @form_organization = @advertising_order.organization
-      @advertising_order.update!(header_update_attrs)
-      persist_grid!(@advertising_order)
+      replacement = draft_media_asset
+      AdvertisingOrder.transaction do
+        @advertising_order.update!(header_update_attrs)
+        Advertising::ReplaceDraftClip.call(order: @advertising_order, media_asset: replacement) if replacement
+        persist_grid!(@advertising_order)
+      end
       redirect_to admin_advertising_order_path(@advertising_order), notice: t("advertising_orders.update.updated")
     rescue Advertising::InvalidGrid => e
       @advertising_order = e.order
       @form_organization = @advertising_order.organization
+      render_form_failure(:edit)
+    rescue Advertising::Error => e
+      @advertising_order.errors.add(:media_asset, e.message)
       render_form_failure(:edit)
     rescue ActiveRecord::RecordInvalid
       render_form_failure(:edit)
@@ -97,7 +104,13 @@ module Admin
     private
 
     def find_order
-      AdvertisingOrder.includes(advertising_order_lines: [ :screen, :advertising_order_line_days ]).find(params[:id])
+      AdvertisingOrder.includes(
+        :organization,
+        :created_by,
+        :advertising_order_windows,
+        advertising_order_lines: [ :screen, :advertising_order_line_days ],
+        media_asset: [ { file_attachment: :blob } ]
+      ).find(params[:id])
     end
 
     def selected_organization
@@ -129,6 +142,16 @@ module Admin
       return if @form_organization.blank?
 
       @form_organization.media_assets.find_by(id: order_params[:media_asset_id])
+    end
+
+    def draft_media_asset
+      return unless @advertising_order.draft? && order_params[:media_asset_id].present?
+
+      @form_organization.media_assets.ready.with_attached_file.find_by(
+        id: order_params[:media_asset_id]
+      ).tap do |asset|
+        raise Advertising::Error, I18n.t("advertising.errors.clip_not_ready") unless asset
+      end
     end
 
     def prepare_form

@@ -120,8 +120,8 @@ RSpec.describe Playlists::GenerateForDate do
     org = create(:organization, :client)
     filler = create_clip_rotation!(organization: org)
     ads = create_clip_rotation!(organization: org, count: 4)
-    create_cyclic_portrait!(station, filler_rotation: filler, max_commercial_in_row: 3)
-    occupy_with_clips!(screen: screen, organization: org, rotation: ads,
+    create_cyclic_portrait!(station, filler_rotation: filler, frequencies: [ 2, 4 ], max_commercial_in_row: 3)
+    occupy_order_claim!(screen: screen, organization: org, rotation: ads,
       starts_at: local_slot(9), ends_at: local_slot(21), shows_per_hour: 2)
 
     kinds = generate!(station).playlist.items.sort_by(&:offset_seconds)
@@ -132,6 +132,36 @@ RSpec.describe Playlists::GenerateForDate do
 
     expect(commercial_hour).to eq(2)
     expect(max_run).to be <= 3
+  end
+
+  it "places catalog order claims on LCM beats (4 and 6 -> 12 slots)" do
+    station = create_playlist_station!
+    screen = create(:screen, station: station)
+    filler = create_clip_rotation!(organization: create(:organization, :client))
+    create_cyclic_portrait!(station, filler_rotation: filler, frequencies: [ 4, 6, 12 ])
+
+    first_org = create(:organization, :client)
+    second_org = create(:organization, :client)
+    four_plan = occupy_order_claim!(
+      screen: screen, organization: first_org,
+      rotation: create_clip_rotation!(organization: first_org),
+      starts_at: local_slot(9), ends_at: local_slot(10), shows_per_hour: 4
+    )
+    six_plan = occupy_order_claim!(
+      screen: screen, organization: second_org,
+      rotation: create_clip_rotation!(organization: second_org),
+      starts_at: local_slot(9), ends_at: local_slot(10), shows_per_hour: 6
+    )
+
+    hour = generate!(station).playlist.items.sort_by(&:offset_seconds).select do |item|
+      item.offset_seconds < 3600 && item_screen_ids(item).include?(screen.id)
+    end
+    media = hour.select(&:media_plan?)
+    filler_offsets = hour.select(&:filler?).map(&:offset_seconds)
+
+    expect(media.count { |item| item.media_plan_id == four_plan.id }).to eq(4)
+    expect(media.count { |item| item.media_plan_id == six_plan.id }).to eq(6)
+    expect(filler_offsets).to include(300, 1500, 2100, 3300)
   end
 
   it "mixes clips from two overlapping commercial order claims on the same screen" do
@@ -190,7 +220,7 @@ RSpec.describe Playlists::GenerateForDate do
     )
 
     first_slot = generate!(station).playlist.items.sort_by(&:offset_seconds).select do |item|
-      item.offset_seconds < 900 && item_screen_ids(item).include?(screen.id)
+      item.offset_seconds < 1200 && item_screen_ids(item).include?(screen.id)
     end
     kinds = first_slot.map(&:source_kind)
 

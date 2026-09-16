@@ -13,6 +13,19 @@ RSpec.describe AdvertisingOrdersHelper, type: :helper do
     end
   end
 
+  describe "#order_screen_frequencies_label" do
+    it "joins portrait block frequencies for the screen picker" do
+      screen = create(:screen)
+      create(:broadcast_portrait, :for_screen, screen: screen, block_frequencies_per_hour: [ 1, 3, 6 ])
+
+      expect(helper.order_screen_frequencies_label(screen)).to eq("1, 3, 6")
+    end
+
+    it "returns blank when the screen has no portrait" do
+      expect(helper.order_screen_frequencies_label(create(:screen))).to be_blank
+    end
+  end
+
   describe "#order_grid_date_value" do
     it "formats dates as dd.mm.yyyy" do
       expect(helper.order_grid_date_value(Date.new(2026, 6, 3))).to eq("03.06.2026")

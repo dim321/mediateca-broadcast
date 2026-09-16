@@ -33,7 +33,7 @@ module Portraits
         portrait = screen.create_broadcast_portrait!(
           name: source.name,
           kind: source.kind,
-          block_frequency_per_hour: source.block_frequency_per_hour,
+          block_frequencies_per_hour: source.block_frequencies_per_hour,
           max_commercial_in_row: source.max_commercial_in_row,
           neutral_min_seconds: source.neutral_min_seconds,
           is_default: false,

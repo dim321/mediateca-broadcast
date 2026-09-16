@@ -25,8 +25,8 @@
       </dd>
     </div>
     <div>
-      <dt class="text-sm font-medium text-gray-500"><%= BroadcastPortrait.human_attribute_name(:block_frequency_per_hour) %></dt>
-      <dd class="mt-1 text-sm text-gray-900"><%= @portrait.block_frequency_per_hour %></dd>
+      <dt class="text-sm font-medium text-gray-500"><%= BroadcastPortrait.human_attribute_name(:block_frequencies_per_hour) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= Array(@portrait.block_frequencies_per_hour).join(', ') %></dd>
     </div>
     <div>
       <dt class="text-sm font-medium text-gray-500"><%= BroadcastPortrait.human_attribute_name(:max_commercial_in_row) %></dt>

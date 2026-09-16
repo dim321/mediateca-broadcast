@@ -15,7 +15,7 @@ RSpec.describe Portraits::CopyTemplate do
   end
 
   it "copies the default template and its blocks onto the screen" do
-    template = create(:broadcast_portrait, :default, name: "Grid", block_frequency_per_hour: 6,
+    template = create(:broadcast_portrait, :default, name: "Grid", block_frequencies_per_hour: [ 6 ],
       max_commercial_in_row: 2, neutral_min_seconds: 10)
     create(:broadcast_portrait_block, :commercial, broadcast_portrait: template, position: 1)
     filler = create(:broadcast_portrait_block, :filler, broadcast_portrait: template, position: 2)
@@ -26,7 +26,7 @@ RSpec.describe Portraits::CopyTemplate do
     expect(portrait.screen).to eq(screen)
     expect(portrait.is_default).to be(false)
     expect(portrait.name).to eq("Grid")
-    expect(portrait.block_frequency_per_hour).to eq(6)
+    expect(portrait.block_frequencies_per_hour).to eq([ 6 ])
     expect(portrait.max_commercial_in_row).to eq(2)
     expect(portrait.blocks.order(:position).map(&:kind)).to eq(%w[commercial filler])
     expect(portrait.blocks.find_by!(position: 2).rotation).to eq(filler.rotation)
@@ -51,13 +51,13 @@ RSpec.describe Portraits::CopyTemplate do
 
   it "copies a specific template even when another is the default" do
     create(:broadcast_portrait, :default, name: "Default grid")
-    chosen = create(:broadcast_portrait, :template, name: "Lobby grid", block_frequency_per_hour: 8)
+    chosen = create(:broadcast_portrait, :template, name: "Lobby grid", block_frequencies_per_hour: [ 10 ])
     create(:broadcast_portrait_block, :commercial, broadcast_portrait: chosen, position: 1)
 
     portrait = described_class.call(screen: screen, template: chosen)
 
     expect(portrait.name).to eq("Lobby grid")
-    expect(portrait.block_frequency_per_hour).to eq(8)
+    expect(portrait.block_frequencies_per_hour).to eq([ 10 ])
     expect(portrait.blocks.map(&:kind)).to eq(%w[commercial])
   end
 

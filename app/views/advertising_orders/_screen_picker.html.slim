@@ -19,9 +19,8 @@
                 input.checkbox.checkbox-sm type='checkbox' aria-label=t('advertising_orders.form.screen_picker.select_all') data-order-screen-picker-target='selectAll' data-action='order-screen-picker#toggleAll'
               th = Screen.human_attribute_name(:name)
               th = Location.model_name.human
-              th = Station.model_name.human
               th = Tag.model_name.human(count: 2)
-              th = BroadcastPortrait.model_name.human
+              th = BroadcastPortrait.human_attribute_name(:block_frequencies_per_hour)
               th = t('advertising_orders.form.screen_picker.hours')
             tr
               th
@@ -29,17 +28,16 @@
               th
                 input.input.input-xs.input-bordered.w-full type='search' placeholder=t('advertising_orders.form.screen_picker.filter_location') data-order-screen-picker-target='filter' data-filter-key='location' data-action='input->order-screen-picker#filterRows'
               th
-                input.input.input-xs.input-bordered.w-full type='search' placeholder=t('advertising_orders.form.screen_picker.filter_station') data-order-screen-picker-target='filter' data-filter-key='station' data-action='input->order-screen-picker#filterRows'
-              th
                 input.input.input-xs.input-bordered.w-full type='search' placeholder=t('advertising_orders.form.screen_picker.filter_tags') data-order-screen-picker-target='filter' data-filter-key='tags' data-action='input->order-screen-picker#filterRows'
               th
-                input.input.input-xs.input-bordered.w-full type='search' placeholder=t('advertising_orders.form.screen_picker.filter_portrait') data-order-screen-picker-target='filter' data-filter-key='portrait' data-action='input->order-screen-picker#filterRows'
+                input.input.input-xs.input-bordered.w-full type='search' placeholder=t('advertising_orders.form.screen_picker.filter_frequencies') data-order-screen-picker-target='filter' data-filter-key='frequenciesLabel' data-action='input->order-screen-picker#filterRows'
               th
                 input.input.input-xs.input-bordered.w-full type='search' placeholder=t('advertising_orders.form.screen_picker.filter_hours') data-order-screen-picker-target='filter' data-filter-key='hoursLabel' data-action='input->order-screen-picker#filterRows'
           tbody
             - @order_screens.each do |screen|
               - hours_label = order_screen_hours_label(screen)
-              tr data-order-screen-picker-target='row' data-screen-id=screen.id data-screen-name=screen.name data-screen-meta=order_screen_meta(screen) data-hours=(order_screen_hours_json(screen).to_json) data-location=screen.location&.name data-station=screen.station&.name data-tags=screen.tags.map(&:name).join(' ') data-portrait=screen.broadcast_portrait&.name data-hours-label=hours_label
+              - frequencies_label = order_screen_frequencies_label(screen)
+              tr data-order-screen-picker-target='row' data-screen-id=screen.id data-screen-name=screen.name data-screen-meta=order_screen_meta(screen) data-hours=(order_screen_hours_json(screen).to_json) data-frequencies=(Array(screen.broadcast_portrait&.block_frequencies_per_hour).to_json) data-location=screen.location&.name data-tags=screen.tags.map(&:name).join(' ') data-frequencies-label=frequencies_label data-hours-label=hours_label
                 td
                   = check_box_tag 'advertising_order[screen_ids][]',
                       screen.id,
@@ -49,7 +47,6 @@
                       data: { action: 'order-screen-picker#selectionChanged' }
                 td.font-medium = screen.name
                 td = screen.location&.name
-                td = screen.station&.name
                 td = screen.tags.map(&:name).presence&.join(', ')
-                td = screen.broadcast_portrait&.name
+                td.whitespace-nowrap = frequencies_label
                 td.whitespace-nowrap = hours_label

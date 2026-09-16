@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_11_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_14_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -164,7 +164,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_120000) do
   end
 
   create_table "broadcast_portraits", force: :cascade do |t|
-    t.integer "block_frequency_per_hour", null: false
+    t.integer "block_frequencies_per_hour", null: false, array: true
     t.datetime "created_at", null: false
     t.boolean "is_default", default: false, null: false
     t.string "kind", default: "cyclic", null: false
@@ -178,7 +178,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_120000) do
     t.index ["screen_id"], name: "index_broadcast_portraits_on_screen_id"
     t.index ["screen_id"], name: "index_broadcast_portraits_on_screen_id_unique", unique: true, where: "(screen_id IS NOT NULL)"
     t.index ["service_theme_id"], name: "index_broadcast_portraits_on_service_theme_id"
-    t.check_constraint "block_frequency_per_hour >= 1 AND block_frequency_per_hour <= 60", name: "broadcast_portraits_block_frequency_per_hour_range"
+    t.check_constraint "block_frequencies_per_hour <@ ARRAY[1, 2, 3, 4, 5, 6, 10, 12, 20]", name: "broadcast_portraits_block_frequencies_catalog"
+    t.check_constraint "cardinality(block_frequencies_per_hour) >= 1", name: "broadcast_portraits_block_frequencies_present"
     t.check_constraint "max_commercial_in_row > 0", name: "broadcast_portraits_max_commercial_in_row_positive"
     t.check_constraint "neutral_min_seconds = ANY (ARRAY[5, 10])", name: "broadcast_portraits_neutral_min_seconds_allowed"
   end
