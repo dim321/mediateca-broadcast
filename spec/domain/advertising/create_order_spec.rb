@@ -69,4 +69,10 @@ RSpec.describe Advertising::CreateOrder do
 
     expect(order.shows_per_hour).to eq(3)
   end
+
+  it "stores the distribution strategy on the draft" do
+    order = create_order!(distribution_strategy: :chess)
+
+    expect(order).to be_chess
+  end
 end

@@ -703,6 +703,14 @@ ru:
       shows_per_hour: Показов в час
       shows_per_hour_from_screens: Сначала отметьте экраны. Доступны только общие частоты их портретов.
       windows: Интервалы показа
+      distribution_strategy: Особенности распределения
+      distribution_strategies:
+        linear: Линейное (без приколов)
+        chess: Шахматное
+        weekdays: Будние дни
+        weekends: Выходные дни
+        even_days: Четные дни
+        odd_days: Нечетные дни
       add_window: Добавить интервал
       remove_window: Удалить
       window_start: Начало
@@ -714,6 +722,9 @@ ru:
       pick_date: Выбрать дату
       show_grid: Показать сетку
       grand_total_shows: Всего
+      grid_legend:
+        with_shows: Есть показы
+        without_shows: Нет показов
     line_fields:
       price_per_day_rubles: Цена за день, ₽
       total_shows: Итого
@@ -937,6 +948,8 @@ ru:
         date_ranges: Даты размещения
         day_count: Количество дней
         windows: Временные интервалы
+        shows_per_hour: Количество показов в час
+        daily_shows: Суммарное количество показов в день
         media_filename: Имя медиафайла
         media_duration: Длительность, с
         content_type: Тип контента

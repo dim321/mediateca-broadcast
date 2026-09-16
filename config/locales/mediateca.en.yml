@@ -697,6 +697,14 @@ en:
       shows_per_hour: Shows per hour
       shows_per_hour_from_screens: Select screens first. Only frequencies shared by their portraits are available.
       windows: Day windows
+      distribution_strategy: Distribution pattern
+      distribution_strategies:
+        linear: Linear
+        chess: Chess
+        weekdays: Weekdays
+        weekends: Weekends
+        even_days: Even days
+        odd_days: Odd days
       add_window: Add window
       remove_window: Remove
       window_start: Start
@@ -708,6 +716,9 @@ en:
       pick_date: Pick a date
       show_grid: Show grid
       grand_total_shows: Grand total
+      grid_legend:
+        with_shows: Has shows
+        without_shows: No shows
     line_fields:
       price_per_day_rubles: Price per day, ₽
       total_shows: Total
@@ -927,6 +938,8 @@ en:
         date_ranges: Placement dates
         day_count: Number of days
         windows: Time windows
+        shows_per_hour: Shows per hour
+        daily_shows: Total shows per day
         media_filename: Media filename
         media_duration: Duration, sec
         content_type: Content type

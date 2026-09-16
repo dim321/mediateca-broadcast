@@ -52,14 +52,10 @@
         <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@advertising_order, :status) %></dd>
       </div>
     </div>
-    <div class="grid gap-4 md:grid-cols-4">
+    <div class="grid gap-4 md:grid-cols-3">
       <div>
         <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.date_ranges") %></dt>
         <dd class="mt-1 text-sm text-gray-900"><%= advertising_order_date_ranges(@advertising_order) %></dd>
-      </div>
-      <div>
-        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.windows") %></dt>
-        <dd class="mt-1 text-sm text-gray-900"><%= advertising_order_windows_label(@advertising_order) %></dd>
       </div>
       <div>
         <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.day_count") %></dt>
@@ -68,6 +64,20 @@
       <div>
         <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.total_shows") %></dt>
         <dd class="mt-1 text-sm text-gray-900"><%= @advertising_order.total_shows %></dd>
+      </div>
+    </div>
+    <div class="grid gap-4 md:grid-cols-3">
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.windows") %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= advertising_order_windows_label(@advertising_order) %></dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.shows_per_hour") %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= @advertising_order.shows_per_hour || t("admin.crud.none") %></dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.daily_shows") %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= advertising_order_daily_shows_label(@advertising_order) %></dd>
       </div>
     </div>
     <div class="grid gap-4 md:grid-cols-4">

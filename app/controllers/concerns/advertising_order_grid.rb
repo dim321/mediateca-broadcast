@@ -31,7 +31,8 @@ module AdvertisingOrderGrid
 
   def computed_lines_payload(order)
     skipped = skipped_dates_by_screen
-    form_screen_ids.filter_map do |screen_id|
+    screen_ids = form_screen_ids
+    screen_ids.filter_map.with_index do |screen_id, screen_index|
       screen = Screen.find_by(id: screen_id)
       next unless screen
 
@@ -45,11 +46,39 @@ module AdvertisingOrderGrid
             windows: order.advertising_order_windows,
             time_zone: order.organization.time_zone
           ).hours
-          { date: date, shows: order.shows_per_hour.to_i * hours }
+          { date: date, shows: distributed_shows(order, date, screen_index, screen_ids.size,
+            order.shows_per_hour.to_i * hours) }
         end
       end
       { screen_id: screen_id, days: days }
     end
+  end
+
+  def distributed_shows(order, date, screen_index, screen_count, shows)
+    case order.distribution_strategy
+    when "weekdays"
+      weekend?(date) ? 0 : shows
+    when "weekends"
+      weekend?(date) ? shows : 0
+    when "even_days"
+      date.day.even? ? shows : 0
+    when "odd_days"
+      date.day.odd? ? shows : 0
+    when "chess"
+      first_half_day = chess_day_offset(date).even?
+      in_first_half = screen_index < (screen_count / 2.0).ceil
+      first_half_day == in_first_half ? shows : 0
+    else
+      shows
+    end
+  end
+
+  def weekend?(date)
+    date.saturday? || date.sunday?
+  end
+
+  def chess_day_offset(date)
+    (date - Array(@grid_dates).first).to_i
   end
 
   def form_screen_ids

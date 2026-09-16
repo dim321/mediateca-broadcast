@@ -10,6 +10,7 @@
 #  coefficient_percent :integer          default(0), not null
 #  discount_cents      :integer          default(0), not null
 #  document_version    :integer          default(1), not null
+#  distribution_strategy :string         default("linear"), not null
 #  duration_seconds    :integer
 #  placement_kind      :string           default("own_atmosphere"), not null
 #  product_name        :string           not null
@@ -41,7 +42,7 @@
 #
 class AdvertisingOrder < ApplicationRecord
   def self.ransackable_attributes(_auth_object = nil)
-    %w[id business_sphere clip_title coefficient_percent discount_cents document_version duration_seconds placement_kind product_name shows_per_hour status total_shows total_sum_cents created_at updated_at created_by_user_id media_asset_id organization_id rotation_id]
+    %w[id business_sphere clip_title coefficient_percent discount_cents document_version distribution_strategy duration_seconds placement_kind product_name shows_per_hour status total_shows total_sum_cents created_at updated_at created_by_user_id media_asset_id organization_id rotation_id]
   end
 
   def self.ransackable_associations(_auth_object = nil)
@@ -71,6 +72,15 @@ class AdvertisingOrder < ApplicationRecord
     own_atmosphere: "own_atmosphere",
     commercial: "commercial"
   }, default: :own_atmosphere
+
+  enum :distribution_strategy, {
+    linear: "linear",
+    odd_days: "odd_days",
+    weekdays: "weekdays",
+    chess: "chess",
+    even_days: "even_days",
+    weekends: "weekends"
+  }, default: :linear, validate: true
 
   validates :product_name, presence: true
   validates :shows_per_hour, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
