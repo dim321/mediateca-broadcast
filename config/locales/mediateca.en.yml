@@ -938,6 +938,8 @@ en:
         date_ranges: Placement dates
         day_count: Number of days
         windows: Time windows
+        shows_per_hour: Shows per hour
+        daily_shows: Total shows per day
         media_filename: Media filename
         media_duration: Duration, sec
         content_type: Content type
