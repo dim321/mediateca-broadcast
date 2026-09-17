@@ -144,11 +144,12 @@ RSpec.describe BroadcastPortraitBlock, type: :model do
       expect(with_theme.rotation).to eq(with_theme.service_theme.welcome_rotation)
     end
 
-    it "rejects time_of_day on welcome and close blocks" do
-      block = build(:broadcast_portrait_block, :service_welcome, time_of_day: "09:00")
+    it "allows optional time_of_day on welcome and close blocks" do
+      with_time = build(:broadcast_portrait_block, :service_welcome, time_of_day: "09:00")
+      without_time = build(:broadcast_portrait_block, :service_close)
 
-      expect(block).not_to be_valid
-      expect(block.errors[:time_of_day]).to be_present
+      expect(with_time).to be_valid
+      expect(without_time).to be_valid
     end
   end
 end

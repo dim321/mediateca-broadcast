@@ -102,7 +102,6 @@ class BroadcastPortraitBlock < ApplicationRecord
       errors.add(:service_theme_id, :blank) if service_theme.blank? && rotation.blank?
       errors.add(:rotation_id, :blank) if rotation.blank?
       errors.add(:pick_strategy, :blank) if pick_strategy.blank?
-      errors.add(:time_of_day, :present) if time_of_day.present?
     when "filler"
       reject_service_theme
       errors.add(:rotation_id, :blank) if rotation.blank?
