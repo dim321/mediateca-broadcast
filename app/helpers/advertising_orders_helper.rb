@@ -77,6 +77,15 @@ module AdvertisingOrdersHelper
     ]
   end
 
+  def order_form_selected_media_assets(advertising_order)
+    advertising_order.rotation&.ordered_items&.filter_map(&:media_asset) || []
+  end
+
+  def order_form_available_media_assets(advertising_order, media_assets)
+    selected_ids = order_form_selected_media_assets(advertising_order).map(&:id)
+    Array(media_assets).reject { |asset| selected_ids.include?(asset.id) }
+  end
+
   def order_screen_hours_label(screen)
     Location::OperatingHours.compact_label(screen.effective_operating_hours).presence ||
       t("operating_hours.unset")

@@ -715,6 +715,12 @@ ru:
         filter_tags: Теги
         filter_frequencies: Количество показов в час
         filter_hours: Часы работы
+      clips: Ролики
+      clips_cycling_hint: Ролики по очереди заполняют слоты в часе; при меньшем числе роликов, чем показов в час, список повторяется с начала.
+      add_clip: Добавить ролик
+      remove_clip: Удалить
+      move_up: Вверх
+      move_down: Вниз
       shows_per_hour: Показов в час
       shows_per_hour_from_screens: Сначала отметьте экраны. Доступны только общие частоты их портретов.
       windows: Интервалы показа

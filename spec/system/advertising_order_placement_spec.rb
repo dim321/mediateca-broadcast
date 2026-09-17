@@ -31,7 +31,7 @@ RSpec.describe "Advertising order placement", type: :system do
   end
 
   # rubocop:disable RSpec/ExampleLength, RSpec/MultipleExpectations -- one end-to-end journey
-  it "lets a manager create a draft grid and activate it" do
+  it "lets a manager create a draft grid and activate it", :js do
     asset
     screen = named_screen
     sign_in_through_ui
@@ -40,7 +40,8 @@ RSpec.describe "Advertising order placement", type: :system do
     click_link I18n.t("advertising_orders.index.new_order")
 
     visit new_advertising_order_path(grid_from: "2026-06-03", grid_to: "2026-06-05")
-    select "1x1.png", from: "advertising_order_media_asset_id"
+    select "1x1.png (10s)", from: "advertising_order_available_media_asset"
+    click_button I18n.t("advertising_orders.form.add_clip")
     check "order_screen_#{screen.id}"
     click_button I18n.t("advertising_orders.form.submit")
     expect(page).to have_content(AdvertisingOrder.human_attribute_name(:product_name))

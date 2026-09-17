@@ -709,6 +709,12 @@ en:
         filter_tags: Tags
         filter_frequencies: Allowed blocks per hour
         filter_hours: Operating hours
+      clips: Clips
+      clips_cycling_hint: Clips rotate through hourly slots; when there are fewer clips than shows per hour, the list cycles from the start.
+      add_clip: Add clip
+      remove_clip: Remove
+      move_up: Up
+      move_down: Down
       shows_per_hour: Shows per hour
       shows_per_hour_from_screens: Select screens first. Only frequencies shared by their portraits are available.
       windows: Day windows
