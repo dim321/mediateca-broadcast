@@ -6,7 +6,12 @@ module AdvertisingOrdersHelper
   end
 
   def advertising_grid_months(dates)
-    Array(dates).group_by { |date| Date.new(date.year, date.month, 1) }
+    Array(dates).group_by { |date| Date.new(date.year, date.month, 1) }.sort.to_h
+  end
+
+  def advertising_grid_month_label(month)
+    month_name = I18n.t("date.month_names_nominative")[month.month]
+    "#{month_name.capitalize} #{month.year}"
   end
 
   def order_grid_date_value(date)

@@ -4,7 +4,8 @@
 - show_picker = local_assigns.fetch(:show_screen_picker, false)
 - stimulus_controllers = ['order-grid', 'order-windows']
 - stimulus_controllers << 'order-screen-picker' if show_picker
-= form_with model: advertising_order, url: local_assigns[:form_url], class: 'space-y-6', data: { controller: stimulus_controllers.join(' '), action: 'order-grid:recompute->order-grid#recompute' } do |f|
+- form_data = { controller: stimulus_controllers.join(' '), action: 'order-grid:recompute->order-grid#recompute order-screen-picker:recompute->order-windows#updateAutomaticWindow' }
+= form_with model: advertising_order, url: local_assigns[:form_url], class: 'space-y-6', data: form_data do |f|
   = hidden_field_tag :grid_from, @grid_dates.first
   = hidden_field_tag :grid_to, @grid_dates.last
   - if local_assigns[:organization_id].present?
@@ -74,10 +75,13 @@
         - windows = advertising_order.advertising_order_windows
         - windows = [AdvertisingOrderWindow.new(starts_at: '08:00', ends_at: '23:00')] if windows.empty?
         - windows.each do |window|
-          = render 'advertising_orders/window_fields', starts_at: order_clock_hhmm(window.starts_at), ends_at: order_clock_hhmm(window.ends_at)
+          = render 'advertising_orders/window_fields',
+              starts_at: order_clock_hhmm(window.starts_at),
+              ends_at: order_clock_hhmm(window.ends_at),
+              automatic: advertising_order.new_record? && windows.one?
       button.btn.btn-sm.btn-ghost type='button' data-action='order-windows#add' = t('.add_window')
       template data-order-windows-target='template'
-        = render 'advertising_orders/window_fields', starts_at: '09:00', ends_at: '12:00'
+        = render 'advertising_orders/window_fields', starts_at: '09:00', ends_at: '12:00', automatic: false
   .card.bg-base-100.border.border-base-300
     .card-body.gap-3
       h2.card-title.text-base = t('.distribution_strategy')
@@ -99,36 +103,17 @@
         span.inline-flex.items-center.gap-2
           span.h-3.w-3.rounded-sm.bg-base-200.border.border-base-300
           = t('.grid_legend.without_shows')
-      .overflow-x-auto.rounded-box.border.border-base-300.shadow-sm
-        table#order-airtime-grid.table.table-sm.table-pin-rows.table-pin-cols.w-full
-          thead
-            tr.bg-base-200.text-xs.text-base-content/70
-              th.align-bottom.whitespace-nowrap.px-4 rowspan='2' = t('.screen')
-              - advertising_grid_months(@grid_dates).each do |month, dates|
-                th.text-center.font-medium.normal-case.text-base-content colspan=dates.size = l(month, format: '%B %Y')
-              th.align-bottom.text-center.whitespace-nowrap.px-2 rowspan='2' = t('advertising_orders.line_fields.total_shows')
-            tr.bg-base-200.text-xs.text-base-content/70
-              - Array(@grid_dates).each do |date|
-                - weekend = date.saturday? || date.sunday?
-                th.text-center.font-normal.w-14 class=(weekend ? 'bg-base-300' : nil) = date.day
-          tbody data-order-grid-target='lines' data-order-screen-picker-target='gridLines'
-            - advertising_order.advertising_order_lines.select(&:screen_id).each_with_index do |line, index|
-              = render 'advertising_orders/line_fields', **order_line_field_locals(line, index)
-          tfoot
-            tr.bg-base-200.border-t.border-base-300
-              td.font-medium.px-4 = t('.grand_total_shows')
-              - dates_count = Array(@grid_dates).size
-              - if dates_count.positive?
-                td colspan=dates_count
-              td.p-1.text-center
-                = number_field_tag nil,
-                    advertising_order.total_shows,
-                    readonly: true,
-                    tabindex: -1,
-                    class: 'input input-bordered input-xs w-16 text-center',
-                    data: { order_grid_target: 'grandTotal' }
-      template data-order-screen-picker-target='rowTemplate'
-        = render 'advertising_orders/line_fields', **order_line_field_locals(AdvertisingOrderLine.new, 'NEW_LINE')
+      - grid_months = advertising_grid_months(@grid_dates)
+      - grid_rows = advertising_order.advertising_order_lines.select(&:screen_id)
+      - grid_months.each_with_index do |(month, dates), index|
+        .overflow-x-auto.rounded-box.border.border-base-300.shadow-sm.mb-4
+          = render 'advertising_orders/monthly_grid',
+              month: month,
+              dates: dates,
+              rows: grid_rows,
+              advertising_order: advertising_order,
+              grid_id: index.zero? ? 'order-airtime-grid' : "order-airtime-grid-#{month.strftime('%Y-%m')}",
+              show_grand_total: index == grid_months.size - 1
   .flex.gap-3
     = f.submit t('.submit'), class: 'btn btn-primary btn-sm'
     = link_to t('.cancel'), cancel_url, class: 'btn btn-ghost btn-sm'
