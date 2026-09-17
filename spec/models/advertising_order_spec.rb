@@ -6,25 +6,26 @@ require "rails_helper"
 #
 # Table name: advertising_orders
 #
-#  id                  :bigint           not null, primary key
-#  business_sphere     :string
-#  clip_title          :string
-#  coefficient_percent :integer          default(0), not null
-#  discount_cents      :integer          default(0), not null
-#  document_version    :integer          default(1), not null
-#  duration_seconds    :integer
-#  placement_kind      :string           default("own_atmosphere"), not null
-#  product_name        :string           not null
-#  shows_per_hour      :integer
-#  status              :string           default("draft"), not null
-#  total_shows         :integer          default(0), not null
-#  total_sum_cents     :integer          default(0), not null
-#  created_at          :datetime         not null
-#  updated_at          :datetime         not null
-#  created_by_user_id  :bigint           not null
-#  media_asset_id      :bigint           not null
-#  organization_id     :bigint           not null
-#  rotation_id         :bigint           not null
+#  id                    :bigint           not null, primary key
+#  business_sphere       :string
+#  clip_title            :string
+#  coefficient_percent   :integer          default(0), not null
+#  discount_cents        :integer          default(0), not null
+#  distribution_strategy :string           default("linear"), not null
+#  document_version      :integer          default(1), not null
+#  duration_seconds      :integer
+#  placement_kind        :string           default("own_atmosphere"), not null
+#  product_name          :string           not null
+#  shows_per_hour        :integer
+#  status                :string           default("draft"), not null
+#  total_shows           :integer          default(0), not null
+#  total_sum_cents       :integer          default(0), not null
+#  created_at            :datetime         not null
+#  updated_at            :datetime         not null
+#  created_by_user_id    :bigint           not null
+#  media_asset_id        :bigint
+#  organization_id       :bigint           not null
+#  rotation_id           :bigint           not null
 #
 # Indexes
 #
@@ -78,6 +79,11 @@ RSpec.describe AdvertisingOrder, type: :model do
       order.rotation = create(:rotation, organization: order.organization, system_managed: false)
       expect(order).not_to be_valid
       expect(order.errors[:rotation]).to be_present
+    end
+
+    it "allows nil media_asset when rotation carries clips" do
+      order = build(:advertising_order, media_asset: nil)
+      expect(order).to be_valid
     end
   end
 

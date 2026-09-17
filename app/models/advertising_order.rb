@@ -4,26 +4,26 @@
 #
 # Table name: advertising_orders
 #
-#  id                  :bigint           not null, primary key
-#  business_sphere     :string
-#  clip_title          :string
-#  coefficient_percent :integer          default(0), not null
-#  discount_cents      :integer          default(0), not null
-#  document_version    :integer          default(1), not null
-#  distribution_strategy :string         default("linear"), not null
-#  duration_seconds    :integer
-#  placement_kind      :string           default("own_atmosphere"), not null
-#  product_name        :string           not null
-#  shows_per_hour      :integer
-#  status              :string           default("draft"), not null
-#  total_shows         :integer          default(0), not null
-#  total_sum_cents     :integer          default(0), not null
-#  created_at          :datetime         not null
-#  updated_at          :datetime         not null
-#  created_by_user_id  :bigint           not null
-#  media_asset_id      :bigint           not null
-#  organization_id     :bigint           not null
-#  rotation_id         :bigint           not null
+#  id                    :bigint           not null, primary key
+#  business_sphere       :string
+#  clip_title            :string
+#  coefficient_percent   :integer          default(0), not null
+#  discount_cents        :integer          default(0), not null
+#  distribution_strategy :string           default("linear"), not null
+#  document_version      :integer          default(1), not null
+#  duration_seconds      :integer
+#  placement_kind        :string           default("own_atmosphere"), not null
+#  product_name          :string           not null
+#  shows_per_hour        :integer
+#  status                :string           default("draft"), not null
+#  total_shows           :integer          default(0), not null
+#  total_sum_cents       :integer          default(0), not null
+#  created_at            :datetime         not null
+#  updated_at            :datetime         not null
+#  created_by_user_id    :bigint           not null
+#  media_asset_id        :bigint
+#  organization_id       :bigint           not null
+#  rotation_id           :bigint           not null
 #
 # Indexes
 #
@@ -52,7 +52,7 @@ class AdvertisingOrder < ApplicationRecord
   belongs_to :organization
   belongs_to :created_by, class_name: "User", foreign_key: :created_by_user_id,
     inverse_of: :created_advertising_orders
-  belongs_to :media_asset
+  belongs_to :media_asset, optional: true
   belongs_to :rotation
 
   has_many :advertising_order_lines, dependent: :destroy
