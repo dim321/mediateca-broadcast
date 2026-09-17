@@ -41,7 +41,7 @@ module CommercialQuota
       n = plan.shows_per_hour.to_i
       return 0 if n < 1
 
-      n * CycleDuration.call(rotation: plan.rotation)
+      HourlyShowsDuration.call(rotation: plan.rotation, shows_per_hour: n)
     end
   end
 end
