@@ -48,11 +48,11 @@ RSpec.describe "Advertising order clip replacement", type: :system do
       click_link I18n.t("advertising_orders.show.replace_clip")
       expect(page).to have_content(I18n.t("advertising_orders.replace_clip.duration_warning"))
 
-      within("[data-order-media-assets-target='list']") do
-        find(:button, I18n.t("advertising_orders.form.remove_clip")).click
-      end
       select "triumph-v2.png (15s)", from: "advertising_order_available_media_asset"
       click_button I18n.t("advertising_orders.form.add_clip")
+      within("[data-order-media-assets-target='list']") do
+        find(:button, I18n.t("advertising_orders.form.remove_clip"), match: :first).click
+      end
       click_button I18n.t("advertising_orders.replace_clip.submit")
 
       expect(page).to have_content(I18n.t("advertising_orders.replace_clip.replaced"))

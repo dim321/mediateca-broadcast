@@ -51,6 +51,16 @@ RSpec.describe Advertising::UpdateOrderClips do
     expect(order.rotation.ordered_items.map(&:display_duration_seconds)).to eq([ 12, 14 ])
   end
 
+  it "does not enqueue regen when enqueue_regen is false" do
+    activate!
+
+    expect {
+      described_class.call(order: order, media_assets: [ clip_b ], enqueue_regen: false)
+    }.not_to have_enqueued_job(Playlists::GenerateForDateJob)
+
+    expect(order.reload.document_version).to eq(2)
+  end
+
   it "syncs clips on an active order, bumps document_version, and enqueues regen" do
     travel_to Time.utc(2026, 9, 2, 12, 0, 0) do
       fill_order_grid!(order, screen: group.screens.first, dates: [ Date.new(2026, 9, 3) ])

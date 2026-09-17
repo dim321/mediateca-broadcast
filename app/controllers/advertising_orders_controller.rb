@@ -68,13 +68,19 @@ class AdvertisingOrdersController < ApplicationController
 
   def update
     authorize @advertising_order
+    clip_media_assets = find_media_assets if clip_ids_submitted?
     AdvertisingOrder.transaction do
       @advertising_order.update!(header_update_attrs)
-      if clip_ids_submitted?
-        Advertising::UpdateOrderClips.call(order: @advertising_order, media_assets: find_media_assets)
+      if clip_media_assets
+        Advertising::UpdateOrderClips.call(
+          order: @advertising_order,
+          media_assets: clip_media_assets,
+          enqueue_regen: false
+        )
       end
       persist_grid!(@advertising_order)
     end
+    Advertising::UpdateOrderClips.enqueue_regen_for(@advertising_order) if clip_media_assets && @advertising_order.active?
     redirect_to @advertising_order, notice: t(".updated")
   rescue Advertising::InvalidGrid => e
     @advertising_order = e.order

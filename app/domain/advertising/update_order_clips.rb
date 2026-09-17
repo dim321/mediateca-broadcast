@@ -4,9 +4,14 @@ module Advertising
   class UpdateOrderClips < BaseService
     include ValidatesMediaAssets
 
-    def initialize(order:, media_assets:)
+    def initialize(order:, media_assets:, enqueue_regen: true)
       @order = order
       @media_assets = Array(media_assets)
+      @enqueue_regen = enqueue_regen
+    end
+
+    def self.enqueue_regen_for(order)
+      order.rotation.media_plans.active.find_each { |plan| Playlists::EnqueueRegen.from_plan(plan) }
     end
 
     def call
@@ -18,7 +23,7 @@ module Advertising
         update_order!
       end
 
-      enqueue_regen if order.active?
+      self.class.enqueue_regen_for(order) if @enqueue_regen && order.active?
       order
     end
 
@@ -58,8 +63,5 @@ module Advertising
       attrs[:duration_seconds] = first.duration_seconds
     end
 
-    def enqueue_regen
-      order.rotation.media_plans.active.find_each { |plan| Playlists::EnqueueRegen.from_plan(plan) }
-    end
   end
 end

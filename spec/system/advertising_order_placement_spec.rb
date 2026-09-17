@@ -30,6 +30,26 @@ RSpec.describe "Advertising order placement", type: :system do
     click_button I18n.t("sessions.new.submit")
   end
 
+  it "activates a prepared draft order without JavaScript" do
+    asset
+    screen = named_screen
+    order = Advertising::CreateOrder.call(
+      organization: organization,
+      created_by: user,
+      media_assets: [ asset ],
+      product_name: "Triumph"
+    )
+    fill_order_grid!(order, screen: screen, dates: [ Date.new(2026, 6, 3) ])
+    sign_in_through_ui
+
+    visit advertising_order_path(order)
+    click_button I18n.t("advertising_orders.show.activate")
+
+    expect(page).to have_content(I18n.t("advertising_orders.activate.activated"))
+    expect(order.reload).to be_active
+    expect(MediaPlan.active.count).to be >= 1
+  end
+
   # rubocop:disable RSpec/ExampleLength, RSpec/MultipleExpectations -- one end-to-end journey
   it "lets a manager create a draft grid and activate it", :js do
     asset

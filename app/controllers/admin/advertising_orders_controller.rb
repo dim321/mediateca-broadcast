@@ -49,6 +49,10 @@ module Admin
       @advertising_order = e.order
       @form_organization = @advertising_order.organization
       render_form_failure(:edit)
+    rescue Advertising::Error => e
+      @advertising_order ||= AdvertisingOrder.new(organization: @form_organization)
+      @advertising_order.errors.add(:media_asset, e.message)
+      render_form_failure(:new)
     rescue ActiveRecord::RecordInvalid => e
       @advertising_order = e.record if e.record.is_a?(AdvertisingOrder)
       @advertising_order ||= AdvertisingOrder.new(organization: @form_organization)
@@ -64,13 +68,19 @@ module Admin
     def update
       @advertising_order = find_order
       @form_organization = @advertising_order.organization
+      clip_media_assets = find_media_assets if clip_ids_submitted?
       AdvertisingOrder.transaction do
         @advertising_order.update!(header_update_attrs)
-        if clip_ids_submitted?
-          Advertising::UpdateOrderClips.call(order: @advertising_order, media_assets: find_media_assets)
+        if clip_media_assets
+          Advertising::UpdateOrderClips.call(
+            order: @advertising_order,
+            media_assets: clip_media_assets,
+            enqueue_regen: false
+          )
         end
         persist_grid!(@advertising_order)
       end
+      Advertising::UpdateOrderClips.enqueue_regen_for(@advertising_order) if clip_media_assets && @advertising_order.active?
       redirect_to admin_advertising_order_path(@advertising_order), notice: t("advertising_orders.update.updated")
     rescue Advertising::InvalidGrid => e
       @advertising_order = e.order
