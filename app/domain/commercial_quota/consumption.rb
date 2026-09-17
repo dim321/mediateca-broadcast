@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module CommercialQuota
-  # Sum of N × cycle duration for active commercial plans overlapping the hour on the group.
+  # Sum of HourlyShowsDuration per active commercial plan overlapping the hour on the group.
+  # Each plan's N hourly shows cycles its ordered clip catalog (position modulo catalog size).
   # Soft MVP: no screen-timeline overlap accounting (R13).
   class Consumption < ServiceObject
     def initialize(group:, hour_start:, exclude_plan: nil, include_plan: nil)

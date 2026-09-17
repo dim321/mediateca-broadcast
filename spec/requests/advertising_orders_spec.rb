@@ -656,7 +656,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
       sign_in_as(user)
       order = active_order
       replacement = clip_named("triumph-v2.png", duration: 15)
-      Advertising::ReplaceClip.call(order: order, media_asset: replacement)
+      Advertising::UpdateOrderClips.call(order: order, media_assets: [ replacement ])
 
       get print_advertising_order_path(order)
 

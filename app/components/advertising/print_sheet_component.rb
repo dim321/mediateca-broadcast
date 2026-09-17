@@ -37,12 +37,6 @@ module Advertising
       "#{sign}#{percent}%"
     end
 
-    def duration_label
-      return dash if order.duration_seconds.blank?
-
-      I18n.t("advertising.print_sheet.duration_seconds", count: order.duration_seconds)
-    end
-
     def windows_label
       windows = order.advertising_order_windows.sort_by(&:starts_at)
       return dash if windows.empty?
