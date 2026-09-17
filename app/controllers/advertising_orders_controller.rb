@@ -51,6 +51,10 @@ class AdvertisingOrdersController < ApplicationController
   rescue Advertising::InvalidGrid => e
     @advertising_order = e.order
     render_form_failure(:edit)
+  rescue Advertising::Error => e
+    @advertising_order ||= policy_scope(AdvertisingOrder).new(organization: Current.user.organization)
+    @advertising_order.errors.add(:media_asset, e.message)
+    render_form_failure(:new)
   rescue ActiveRecord::RecordInvalid => e
     @advertising_order = e.record if e.record.is_a?(AdvertisingOrder)
     @advertising_order ||= policy_scope(AdvertisingOrder).new(organization: Current.user.organization)

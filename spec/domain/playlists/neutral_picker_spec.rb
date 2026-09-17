@@ -66,4 +66,21 @@ RSpec.describe Playlists::NeutralPicker do
 
     expect(pick.fetch(:duration_seconds)).to eq(5)
   end
+
+  it "cycles a multi-clip catalog in order" do
+    rotation = create_clip_rotation!(organization: organization, count: 3, duration: 10)
+    assets = rotation.ordered_items.map(&:media_asset)
+    instance = picker(strategy: "ordered", rotation: rotation)
+
+    expect(instance.take(3).map { |pick| pick.fetch(:media_asset) }).to eq(assets)
+  end
+
+  it "continues the cursor across successive take calls" do
+    rotation = create_clip_rotation!(organization: organization, count: 3, duration: 10)
+    assets = rotation.ordered_items.map(&:media_asset)
+    instance = picker(strategy: "ordered", rotation: rotation)
+
+    expect(instance.take(2).map { |pick| pick.fetch(:media_asset) }).to eq(assets.first(2))
+    expect(instance.take(1).sole.fetch(:media_asset)).to eq(assets[2])
+  end
 end
