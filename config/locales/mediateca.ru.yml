@@ -785,6 +785,7 @@ ru:
     replace_clip:
       title: Замена ролика
       current_clip: Текущий ролик
+      current_clips: Текущие ролики
       duration_warning: Если хронометраж нового ролика отличается, изменятся цикл ротации и числитель коммерческой квоты.
       submit: Подтвердить замену
       confirm: Заменить ролик в активном заказе? Слоты эфира не пересоздаются.
@@ -974,6 +975,7 @@ ru:
         daily_shows: Суммарное количество показов в день
         media_filename: Имя медиафайла
         media_duration: Длительность, с
+        clips: Ролики
         content_type: Тип контента
         content_kind: Категория контента
         total_shows: Общее количество показов
@@ -1257,6 +1259,7 @@ ru:
       title: Заказ на размещение
       document_version: "Версия документа: %{version}"
       dash: "—"
+      clips: Ролики
       duration_seconds:
         one: "%{count} сек"
         few: "%{count} сек"

@@ -145,7 +145,10 @@ class AdvertisingOrdersController < ApplicationController
 
   def set_advertising_order
     @advertising_order = policy_scope(AdvertisingOrder)
-      .includes(advertising_order_lines: [ :screen, :advertising_order_line_days ])
+      .includes(
+        { rotation: { rotation_items: { media_asset: { file_attachment: :blob } } } },
+        advertising_order_lines: [ :screen, :advertising_order_line_days ]
+      )
       .find(params[:id])
   end
 
@@ -166,15 +169,13 @@ class AdvertisingOrdersController < ApplicationController
 
   def find_replacement_media_assets
     ids = Array(params[:media_asset_ids]).map(&:presence).compact
+    ids = Array(order_params[:media_asset_ids]).map(&:presence).compact if ids.empty?
     ids = [ params[:media_asset_id].presence ].compact if ids.empty?
     find_ordered_media_assets(ids)
   end
 
   def load_replacement_assets
-    current_id = @advertising_order.primary_media_asset&.id
-    @media_assets = media_assets_ready_scope.with_attached_file.order(created_at: :desc).select do |asset|
-      asset.id != current_id && asset.broadcast_ready?
-    end
+    @media_assets = media_assets_ready_scope.with_attached_file.order(created_at: :desc)
   end
 
   def media_assets_ready_scope

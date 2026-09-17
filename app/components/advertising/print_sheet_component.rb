@@ -3,6 +3,7 @@
 module Advertising
   class PrintSheetComponent < ViewComponent::Base
     include ApplicationHelper
+    include AdvertisingOrdersHelper
 
     def initialize(order:)
       @order = order

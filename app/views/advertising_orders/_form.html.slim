@@ -33,22 +33,10 @@
       = f.label :placement_kind, class: 'block text-sm font-medium'
       = f.select :placement_kind, AdvertisingOrder.placement_kinds.keys.map { |kind| [t("enums.advertising_order.placement_kind.#{kind}"), kind] }, {}, class: 'select select-bordered w-full mt-1'
     - if advertising_order.new_record? || advertising_order.draft? || advertising_order.active?
-      - selected_assets = order_form_selected_media_assets(advertising_order)
-      - available_assets = order_form_available_media_assets(advertising_order, @media_assets)
-      div.md:col-span-2 data-controller='order-media-assets'
-        label.block.text-sm.font-medium for='advertising_order_available_media_asset' = t('.clips')
-        p.text-sm.text-base-content/60.mt-1 = t('.clips_cycling_hint')
-        .space-y-2.mt-2 data-order-media-assets-target='list'
-          - selected_assets.each do |asset|
-            = render 'advertising_orders/media_asset_row', asset: asset
-        .flex.flex-wrap.items-end.gap-2.mt-3
-          select.select.select-bordered.select-sm.w-full.max-w-md#advertising_order_available_media_asset data-order-media-assets-target='availableSelect'
-            option value=''
-            - available_assets.each do |asset|
-              option value=asset.id = advertising_clip_option_label(asset)
-          button.btn.btn-sm.btn-outline type='button' data-action='order-media-assets#add' = t('.add_clip')
-        template data-order-media-assets-target='template'
-          = render 'advertising_orders/media_asset_row', asset: nil
+      div.md:col-span-2
+        = render 'advertising_orders/clips_editor',
+            selected_assets: order_form_selected_media_assets(advertising_order),
+            available_assets: order_form_available_media_assets(advertising_order, @media_assets)
   - if show_picker
     = render 'advertising_orders/screen_picker'
   - frequency_options = order_shows_per_hour_select_options(advertising_order)

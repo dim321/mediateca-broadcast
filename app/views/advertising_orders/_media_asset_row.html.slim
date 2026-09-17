@@ -1,7 +1,8 @@
 - asset = local_assigns[:asset]
+- field_name = local_assigns.fetch(:field_name, 'advertising_order[media_asset_ids][]')
 - label = asset ? advertising_clip_option_label(asset) : ""
 .flex.flex-wrap.items-center.gap-2.rounded-box.border.border-base-300.bg-base-100.p-2 data-order-media-assets-target='row' data-label=label
-  = hidden_field_tag 'advertising_order[media_asset_ids][]', asset&.id, id: nil, data: { order_media_assets_target: 'input' }
+  = hidden_field_tag field_name, asset&.id, id: nil, data: { order_media_assets_target: 'input' }
   span.flex-1.text-sm data-order-media-assets-target='label' = label
   .join.join-horizontal
     button.btn.btn-ghost.btn-xs.join-item type='button' data-action='order-media-assets#moveUp' aria-label=t('advertising_orders.form.move_up') ↑

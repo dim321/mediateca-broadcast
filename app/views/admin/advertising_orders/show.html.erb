@@ -80,23 +80,49 @@
         <dd class="mt-1 text-sm text-gray-900"><%= advertising_order_daily_shows_label(@advertising_order) %></dd>
       </div>
     </div>
-    <div class="grid gap-4 md:grid-cols-4">
-      <div>
-        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.media_filename") %></dt>
-        <dd class="mt-1 text-sm text-gray-900"><%= admin_attachment_name(@advertising_order.primary_media_asset.file) %></dd>
-      </div>
-      <div>
-        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.media_duration") %></dt>
-        <dd class="mt-1 text-sm text-gray-900"><%= @advertising_order.primary_media_asset.duration_seconds || t("admin.crud.none") %></dd>
-      </div>
-      <div>
-        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.content_type") %></dt>
-        <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@advertising_order.primary_media_asset, :content_type) %></dd>
-      </div>
-      <div>
-        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.content_kind") %></dt>
-        <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@advertising_order.primary_media_asset, :content_kind) %></dd>
-      </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.clips") %></dt>
+      <dd class="mt-1 text-sm text-gray-900">
+        <% rows = order_clip_rows(@advertising_order) %>
+        <% if rows.empty? %>
+          <%= t("admin.crud.none") %>
+        <% else %>
+          <div class="relative overflow-x-auto">
+            <table class="w-full text-sm text-left text-gray-500">
+              <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-4 py-3"><%= t("admin.advertising_orders.show.media_filename") %></th>
+                  <th scope="col" class="px-4 py-3"><%= t("admin.advertising_orders.show.media_duration") %></th>
+                  <th scope="col" class="px-4 py-3"><%= t("admin.advertising_orders.show.content_type") %></th>
+                  <th scope="col" class="px-4 py-3"><%= t("admin.advertising_orders.show.content_kind") %></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% rows.each do |row| %>
+                  <tr class="bg-white border-b">
+                    <td class="px-4 py-3 text-gray-900">
+                      <% if row.media_asset %>
+                        <%= link_to row.title,
+                              admin_media_asset_path(row.media_asset),
+                              class: "text-blue-700 hover:underline" %>
+                      <% else %>
+                        <%= row.title %>
+                      <% end %>
+                    </td>
+                    <td class="px-4 py-3"><%= row.duration_seconds || t("admin.crud.none") %></td>
+                    <td class="px-4 py-3">
+                      <%= row.media_asset ? admin_enum_label(row.media_asset, :content_type) : t("admin.crud.none") %>
+                    </td>
+                    <td class="px-4 py-3">
+                      <%= row.media_asset ? admin_enum_label(row.media_asset, :content_kind) : t("admin.crud.none") %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% end %>
+      </dd>
     </div>
   </dl>
 </div>
