@@ -40,7 +40,7 @@ class AdvertisingOrdersController < ApplicationController
     @advertising_order = Advertising::CreateOrder.call(
       organization: Current.user.organization,
       created_by: Current.user,
-      media_asset: asset,
+      media_assets: [ asset ],
       product_name: order_params[:product_name],
       placement_kind: order_params[:placement_kind].presence || :own_atmosphere,
       shows_per_hour: order_header_shows_per_hour,

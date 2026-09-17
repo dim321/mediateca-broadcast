@@ -14,7 +14,7 @@ RSpec.describe Advertising::CreateOrder do
     described_class.call(
       organization: organization,
       created_by: user,
-      media_asset: media_asset,
+      media_assets: [ media_asset ],
       product_name: "Triumph",
       **attrs
     )
@@ -30,14 +30,39 @@ RSpec.describe Advertising::CreateOrder do
     expect(order.business_sphere).to eq("Retail")
   end
 
-  it "snapshots the clip and builds a system-managed singleton rotation" do
+  it "builds a system-managed rotation from media assets without a legacy FK" do
     order = create_order!
 
-    expect(order.duration_seconds).to eq(10)
-    expect(order.clip_title).to be_present
+    expect(order.media_asset_id).to be_nil
     expect(order.rotation).to be_system_managed
     expect(order.rotation.organization).to eq(organization)
     expect(order.rotation.ordered_items.map(&:media_asset)).to eq([ media_asset ])
+  end
+
+  it "creates ordered rotation items for each media asset" do
+    a = create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 10)
+    b = create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 12)
+    c = create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 14)
+
+    order = Advertising::CreateOrder.call(
+      organization: organization,
+      created_by: user,
+      media_assets: [ a, b, c ],
+      product_name: "Multi",
+      shows_per_hour: 3
+    )
+
+    expect(order.media_asset_id).to be_nil
+    expect(order.rotation.ordered_items.map(&:media_asset)).to eq([ a, b, c ])
+    expect(order.rotation.ordered_items.map(&:display_duration_seconds)).to eq([ 10, 12, 14 ])
+  end
+
+  it "rejects an empty media_assets list" do
+    expect {
+      Advertising::CreateOrder.call(
+        organization: organization, created_by: user, media_assets: [], product_name: "X"
+      )
+    }.to raise_error(Advertising::Error)
   end
 
   it "names the system rotation after the order number" do

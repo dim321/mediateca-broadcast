@@ -13,7 +13,7 @@ RSpec.describe Advertising::ReplaceClip do
     Advertising::CreateOrder.call(
       organization: organization,
       created_by: user,
-      media_asset: original,
+      media_assets: [ original ],
       product_name: "Triumph"
     )
   end
@@ -80,7 +80,7 @@ RSpec.describe Advertising::ReplaceClip do
     end.to raise_error(Advertising::Error, I18n.t("advertising.errors.clip_not_ready"))
 
     expect(order.reload.document_version).to eq(1)
-    expect(order.media_asset).to eq(original)
+    expect(order.rotation.ordered_items.sole.media_asset).to eq(original)
   end
 
   it "rejects a ready video that has no broadcast file" do

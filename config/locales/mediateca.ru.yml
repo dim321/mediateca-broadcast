@@ -1264,6 +1264,7 @@ ru:
       client_signature: Подпись заказчика
       print_button: Печать
     errors:
+      clips_required: укажите хотя бы один ролик
       clip_not_ready: ролик не готов к эфиру
       order_not_active: заменить ролик можно только в активном заказе
       order_not_draft: заменить ролик можно только в черновике

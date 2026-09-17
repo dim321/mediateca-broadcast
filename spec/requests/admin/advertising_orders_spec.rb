@@ -58,7 +58,7 @@ RSpec.describe "Admin advertising orders", type: :request do
 
     it "lists orders from client organizations" do
       order = Advertising::CreateOrder.call(
-        organization: client, created_by: client_user, media_asset: asset, product_name: "Triumph"
+        organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
       )
 
       get admin_advertising_orders_path
@@ -70,7 +70,7 @@ RSpec.describe "Admin advertising orders", type: :request do
 
     it "shows an order and lets the operator cancel it" do
       order = Advertising::CreateOrder.call(
-        organization: client, created_by: client_user, media_asset: asset, product_name: "Triumph"
+        organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
       )
       fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
       Advertising::ActivateOrder.call(order: order)
@@ -89,7 +89,7 @@ RSpec.describe "Admin advertising orders", type: :request do
 
     it "shows placement and media details on the order page" do
       order = Advertising::CreateOrder.call(
-        organization: client, created_by: client_user, media_asset: asset, product_name: "Triumph"
+        organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
       )
       fill_order_grid!(
         order,
@@ -291,7 +291,7 @@ RSpec.describe "Admin advertising orders", type: :request do
       order = Advertising::CreateOrder.call(
         organization: client,
         created_by: client_user,
-        media_asset: asset,
+        media_assets: [ asset ],
         product_name: "Triumph",
         coefficient_percent: 15,
         discount_cents: 1_000
@@ -310,7 +310,7 @@ RSpec.describe "Admin advertising orders", type: :request do
     it "shows ready media assets on a draft order edit form" do
       replacement = create(:media_asset, :ready, :with_png_file, organization: client)
       order = Advertising::CreateOrder.call(
-        organization: client, created_by: client_user, media_asset: asset, product_name: "Triumph"
+        organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
       )
 
       get edit_admin_advertising_order_path(order)
@@ -323,7 +323,7 @@ RSpec.describe "Admin advertising orders", type: :request do
     it "replaces the draft media asset and preserves its grid" do
       replacement = create(:media_asset, :ready, :with_png_file, organization: client, duration_seconds: 15)
       order = Advertising::CreateOrder.call(
-        organization: client, created_by: client_user, media_asset: asset, product_name: "Triumph"
+        organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
       )
       fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
       original_line_ids = order.advertising_order_lines.pluck(:id)
@@ -339,13 +339,13 @@ RSpec.describe "Admin advertising orders", type: :request do
     it "rejects a media asset outside the order organization" do
       foreign_asset = create(:media_asset, :ready, :with_png_file, organization: operator_org)
       order = Advertising::CreateOrder.call(
-        organization: client, created_by: client_user, media_asset: asset, product_name: "Triumph"
+        organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
       )
 
       patch admin_advertising_order_path(order), params: order_params(media_asset_id: foreign_asset.id)
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(order.reload.media_asset).to eq(asset)
+      expect(order.reload.rotation.ordered_items.sole.media_asset).to eq(asset)
     end
 
     it "rejects a media asset that is not ready" do
@@ -356,19 +356,19 @@ RSpec.describe "Admin advertising orders", type: :request do
         processing_status: :processing
       )
       order = Advertising::CreateOrder.call(
-        organization: client, created_by: client_user, media_asset: asset, product_name: "Triumph"
+        organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
       )
 
       patch admin_advertising_order_path(order), params: order_params(media_asset_id: pending_asset.id)
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(order.reload.media_asset).to eq(asset)
+      expect(order.reload.rotation.ordered_items.sole.media_asset).to eq(asset)
     end
 
     it "does not expose or replace media on an active order" do
       replacement = create(:media_asset, :ready, :with_png_file, organization: client)
       order = Advertising::CreateOrder.call(
-        organization: client, created_by: client_user, media_asset: asset, product_name: "Triumph"
+        organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
       )
       fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
       Advertising::ActivateOrder.call(order: order)
@@ -379,7 +379,7 @@ RSpec.describe "Admin advertising orders", type: :request do
       patch admin_advertising_order_path(order), params: order_params(media_asset_id: replacement.id)
 
       expect(response).to redirect_to(admin_advertising_order_path(order))
-      expect(order.reload.media_asset).to eq(asset)
+      expect(order.reload.rotation.ordered_items.sole.media_asset).to eq(asset)
     end
 
     it "lets an operator create an order for a client (AE11)" do
@@ -392,7 +392,7 @@ RSpec.describe "Admin advertising orders", type: :request do
       expect(order.organization).to eq(client)
       expect(order.created_by).to eq(operator)
       expect(order.business_sphere).to eq("Ритейл")
-      expect(order.media_asset).to eq(asset)
+      expect(order.rotation.ordered_items.sole.media_asset).to eq(asset)
       expect(order).to be_draft
     end
 

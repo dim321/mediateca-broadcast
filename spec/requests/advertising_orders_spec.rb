@@ -38,7 +38,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
   def active_order
     order = Advertising::CreateOrder.call(
-      organization: organization, created_by: user, media_asset: asset, product_name: "Triumph"
+      organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph"
     )
     fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
     Advertising::ActivateOrder.call(order: order)
@@ -57,7 +57,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
       order = Advertising::CreateOrder.call(
         organization: organization,
         created_by: user,
-        media_asset: asset,
+        media_assets: [ asset ],
         product_name: "Triumph"
       )
 
@@ -72,10 +72,10 @@ RSpec.describe "AdvertisingOrders", type: :request do
     it "filters by status" do
       sign_in_as(user)
       draft = Advertising::CreateOrder.call(
-        organization: organization, created_by: user, media_asset: asset, product_name: "DraftOnly"
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "DraftOnly"
       )
       active = Advertising::CreateOrder.call(
-        organization: organization, created_by: user, media_asset: asset, product_name: "ActiveOnly"
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "ActiveOnly"
       )
       active.update!(status: :active)
 
@@ -91,7 +91,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
       Advertising::CreateOrder.call(
         organization: other,
         created_by: create(:user, :manager, organization: other),
-        media_asset: create(:media_asset, :ready, :with_png_file, organization: other),
+        media_assets: [ create(:media_asset, :ready, :with_png_file, organization: other) ],
         product_name: "ForeignOrderXYZ"
       )
 
@@ -103,7 +103,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
     it "lets the accountant read the list (AE10)" do
       sign_in_as(accountant)
       Advertising::CreateOrder.call(
-        organization: organization, created_by: user, media_asset: asset, product_name: "Triumph"
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph"
       )
 
       get advertising_orders_path
@@ -293,7 +293,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
       screen.location.update!(name: "ТЦ Галерея")
       screen.station.update!(name: "Станция Невидимая")
       order = Advertising::CreateOrder.call(
-        organization: organization, created_by: user, media_asset: asset, product_name: "Triumph"
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph"
       )
       fill_order_grid!(order, screen: screen, dates: [ Date.new(2026, 6, 3), Date.new(2026, 6, 4) ], shows: 9)
 
@@ -312,7 +312,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
     it "gives day show cells enough width for two-digit values" do
       order = Advertising::CreateOrder.call(
-        organization: organization, created_by: user, media_asset: asset, product_name: "Triumph"
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph"
       )
       fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3) ], shows: 9)
 
@@ -325,7 +325,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
     it "shows the month once in the grid header instead of each screen row" do
       order = Advertising::CreateOrder.call(
-        organization: organization, created_by: user, media_asset: asset, product_name: "Triumph"
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph"
       )
       fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3), Date.new(2026, 6, 4) ], shows: 9)
 
@@ -346,7 +346,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
     it "updates the draft grid and totals" do
       order = Advertising::CreateOrder.call(
-        organization: organization, created_by: user, media_asset: asset, product_name: "Triumph"
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph"
       )
       Advertising::UpdateGrid.call(
         order: order,
@@ -364,7 +364,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
       order = Advertising::CreateOrder.call(
         organization: organization,
         created_by: user,
-        media_asset: asset,
+        media_assets: [ asset ],
         product_name: "Triumph",
         coefficient_percent: 15,
         discount_cents: 1_000
@@ -395,7 +395,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
     it "denies activate" do
       order = Advertising::CreateOrder.call(
-        organization: organization, created_by: user, media_asset: asset, product_name: "Triumph"
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph"
       )
 
       post activate_advertising_order_path(order)
@@ -406,7 +406,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
     it "allows print" do
       order = Advertising::CreateOrder.call(
-        organization: organization, created_by: user, media_asset: asset, product_name: "Triumph"
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph"
       )
 
       get print_advertising_order_path(order)
@@ -422,7 +422,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
       order = Advertising::CreateOrder.call(
         organization: organization,
         created_by: user,
-        media_asset: asset,
+        media_assets: [ asset ],
         product_name: "Triumph",
         discount_cents: 1_000_00
       )
@@ -461,7 +461,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
     def draft_with_days(dates:, shows: 9)
       order = Advertising::CreateOrder.call(
-        organization: organization, created_by: user, media_asset: asset, product_name: "Triumph"
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph"
       )
       fill_order_grid!(order, screen: order_screen, dates: dates, shows: shows)
       order
@@ -509,7 +509,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
       order = Advertising::CreateOrder.call(
         organization: organization,
         created_by: user,
-        media_asset: long_clip,
+        media_assets: [ long_clip ],
         product_name: "Triumph",
         placement_kind: :commercial
       )
@@ -592,7 +592,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
       expect(response).to have_http_status(:unprocessable_content)
       expect(order.reload.document_version).to eq(1)
-      expect(order.media_asset).to eq(asset)
+      expect(order.rotation.ordered_items.sole.media_asset).to eq(asset)
     end
 
     it "denies the accountant (AE10)" do
@@ -612,7 +612,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
     it "cancels active slots and keeps document totals (AE8)" do
       order = Advertising::CreateOrder.call(
-        organization: organization, created_by: user, media_asset: asset, product_name: "Triumph"
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph"
       )
       fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
       Advertising::ActivateOrder.call(order: order)
@@ -632,7 +632,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
     it "destroys a draft and its system rotation" do
       order = Advertising::CreateOrder.call(
-        organization: organization, created_by: user, media_asset: asset, product_name: "Triumph"
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph"
       )
       rotation_id = order.rotation_id
 

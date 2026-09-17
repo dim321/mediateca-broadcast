@@ -96,6 +96,10 @@ class AdvertisingOrder < ApplicationRecord
   before_validation :snapshot_clip_from_media_asset
   before_validation :snapshot_business_sphere_from_profile, on: :create
 
+  def primary_media_asset
+    media_asset || rotation&.ordered_items&.first&.media_asset
+  end
+
   private
 
   def snapshot_clip_from_media_asset

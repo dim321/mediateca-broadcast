@@ -26,7 +26,7 @@ RSpec.describe "Advertising order clip replacement", type: :system do
     order = Advertising::CreateOrder.call(
       organization: organization,
       created_by: user,
-      media_asset: original,
+      media_assets: [ original ],
       product_name: "Triumph"
     )
     fill_order_grid!(order, screen: group.screens.first, dates: [ date ])

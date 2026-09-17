@@ -17,7 +17,7 @@ RSpec.describe Advertising::ReplaceDraftClip do
     Advertising::CreateOrder.call(
       organization: organization,
       created_by: user,
-      media_asset: original,
+      media_assets: [ original ],
       product_name: "Triumph"
     )
   end

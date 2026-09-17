@@ -8,7 +8,7 @@ RSpec.describe Advertising::CancelOrder do
     Advertising::CreateOrder.call(
       organization: organization,
       created_by: create(:user, :manager, organization: organization),
-      media_asset: create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 10),
+      media_assets: [ create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 10) ],
       product_name: "Triumph",
       discount_cents: 5_000
     )
@@ -68,7 +68,7 @@ RSpec.describe Advertising::CancelOrder do
   end
 
   it "cancels remaining active slots even if the rotation is no longer broadcast-ready" do
-    order.media_asset.update_column(:processing_status, "processing")
+    order.rotation.ordered_items.sole.media_asset.update_column(:processing_status, "processing")
 
     expect { described_class.call(order: order) }.not_to raise_error
     expect(order.reload).to be_cancelled

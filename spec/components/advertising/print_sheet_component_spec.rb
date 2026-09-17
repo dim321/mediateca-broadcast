@@ -12,7 +12,7 @@ RSpec.describe Advertising::PrintSheetComponent, type: :component do
     order = Advertising::CreateOrder.call(
       organization: organization,
       created_by: user,
-      media_asset: asset,
+      media_assets: [ asset ],
       product_name: "Triumph",
       discount_cents: discount_cents
     )
