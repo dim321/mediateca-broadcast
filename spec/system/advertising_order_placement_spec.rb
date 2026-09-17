@@ -160,4 +160,37 @@ RSpec.describe "Advertising order placement", type: :system do
     end
     expect(find("[data-order-grid-target='grandTotal']").value).to eq("12")
   end
+
+  it "splits chess distribution independently inside each month", :js do
+    asset
+    first_screen = named_screen
+    second_screen = create(:screen, station: first_screen.station, name: "Витрина 2")
+    create(:broadcast_point_group_membership, broadcast_point_group: group, screen: second_screen)
+    create(:broadcast_portrait, :for_screen, screen: second_screen, block_frequencies_per_hour: [ 1, 2, 3, 4, 6 ])
+    sign_in_through_ui
+
+    visit new_advertising_order_path(grid_from: "2026-09-29", grid_to: "2026-10-02")
+    check "order_screen_#{first_screen.id}"
+    check "order_screen_#{second_screen.id}"
+    select "3", from: "advertising_order_shows_per_hour"
+    choose I18n.t("advertising_orders.form.distribution_strategies.chess")
+
+    {
+      "order-airtime-grid" => {
+        first_screen.id => [ "30", "0" ],
+        second_screen.id => [ "0", "30" ]
+      },
+      "order-airtime-grid-2026-10" => {
+        first_screen.id => [ "30", "0" ],
+        second_screen.id => [ "0", "30" ]
+      }
+    }.each do |table_id, expected_values|
+      within("##{table_id}") do
+        expected_values.each do |screen_id, values|
+          row = find("[data-screen-id='#{screen_id}']")
+          expect(row.all("[data-order-grid-target='cell']").map(&:value)).to eq(values)
+        end
+      end
+    end
+  end
 end

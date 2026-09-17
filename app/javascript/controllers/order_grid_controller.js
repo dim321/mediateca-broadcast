@@ -27,7 +27,13 @@ export default class extends Controller {
 
         const openHours = hours[cell.dataset.date] || []
         const baseShows = rate * this.coveredHourCount(openHours, windows)
-        cell.value = String(this.distributedShows(baseShows, cell.dataset.date, this.lineRowTargets.indexOf(row)))
+        const { screenIndex, screenCount } = this.screenPosition(row)
+        cell.value = String(this.distributedShows(
+          baseShows,
+          cell.dataset.date,
+          screenIndex,
+          screenCount
+        ))
         this.updateCellAppearance(cell)
       })
       this.updateRowTotal(row)
@@ -115,7 +121,7 @@ export default class extends Controller {
     cell.classList.toggle("border-base-300", !hasShows)
   }
 
-  distributedShows(baseShows, dateValue, screenIndex) {
+  distributedShows(baseShows, dateValue, screenIndex, screenCount) {
     const strategy = this.hasDistributionStrategyTarget
       ? this.distributionStrategyTargets.find((target) => target.checked)?.value || "linear"
       : "linear"
@@ -129,11 +135,21 @@ export default class extends Controller {
     if (strategy !== "chess") return baseShows
 
     const firstHalfDay = date.getUTCDate() % 2 !== 0
-    const screenCount = this.lineRowTargets.length
     const firstHalfSize = Math.ceil(screenCount / 2)
     const inFirstHalf = screenIndex < firstHalfSize
 
     return firstHalfDay === inFirstHalf ? baseShows : 0
+  }
+
+  screenPosition(row) {
+    const rows = Array.from(
+      row.closest("table")?.querySelectorAll('[data-order-grid-target="lineRow"]') || []
+    )
+
+    return {
+      screenIndex: rows.indexOf(row),
+      screenCount: rows.length
+    }
   }
 
   parseDate(value) {
