@@ -10,11 +10,11 @@ RSpec.describe Advertising::CreateOrder do
     create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 10)
   end
 
-  def create_order!(**attrs)
+  def create_order!(media_assets: [ media_asset ], **attrs)
     described_class.call(
       organization: organization,
       created_by: user,
-      media_assets: [ media_asset ],
+      media_assets: media_assets,
       product_name: "Triumph",
       **attrs
     )
@@ -62,7 +62,35 @@ RSpec.describe Advertising::CreateOrder do
       Advertising::CreateOrder.call(
         organization: organization, created_by: user, media_assets: [], product_name: "X"
       )
-    }.to raise_error(Advertising::Error)
+    }.to raise_error(Advertising::Error, I18n.t("advertising.errors.clips_required"))
+  end
+
+  it "rejects duplicate media assets" do
+    expect {
+      create_order!(media_assets: [ media_asset, media_asset ])
+    }.to raise_error(Advertising::Error, I18n.t("advertising.errors.clips_duplicate"))
+  end
+
+  it "rejects a clip from another organization" do
+    foreign = create(:media_asset, :ready, :with_png_file, duration_seconds: 10)
+
+    expect {
+      create_order!(media_assets: [ foreign ])
+    }.to raise_error(Advertising::Error, I18n.t("advertising.errors.clip_foreign"))
+  end
+
+  it "rejects a clip that is not broadcast-ready" do
+    pending_clip = create(
+      :media_asset,
+      :with_png_file,
+      organization: organization,
+      duration_seconds: 10,
+      processing_status: "processing"
+    )
+
+    expect {
+      create_order!(media_assets: [ pending_clip ])
+    }.to raise_error(Advertising::Error, I18n.t("advertising.errors.clip_not_ready"))
   end
 
   it "names the system rotation after the order number" do

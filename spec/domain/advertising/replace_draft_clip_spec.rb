@@ -22,17 +22,23 @@ RSpec.describe Advertising::ReplaceDraftClip do
     )
   end
 
-  it "replaces the order and system rotation clip" do
+  it "delegates to UpdateOrderClips and syncs the system rotation clip" do
     described_class.call(order: order, media_asset: replacement)
 
-    expect(order.reload).to have_attributes(
-      media_asset: replacement,
-      clip_title: "replacement.png",
-      duration_seconds: 15
-    )
+    expect(order.reload).to have_attributes(media_asset_id: nil)
     expect(order.rotation.ordered_items.sole).to have_attributes(
       media_asset: replacement,
       display_duration_seconds: 15
     )
+  end
+
+  it "rejects replacement on an active order" do
+    group = create_group_with_hours!(organization: organization)
+    fill_order_grid!(order, screen: group.screens.first, dates: [ Date.new(2026, 6, 3) ])
+    Advertising::ActivateOrder.call(order: order)
+
+    expect do
+      described_class.call(order: order, media_asset: replacement)
+    end.to raise_error(Advertising::Error, I18n.t("advertising.errors.order_not_draft"))
   end
 end

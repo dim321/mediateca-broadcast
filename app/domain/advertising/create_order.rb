@@ -2,6 +2,7 @@
 
 module Advertising
   class CreateOrder < BaseService
+    include ValidatesMediaAssets
     def initialize(
       organization:,
       created_by:,
@@ -25,7 +26,7 @@ module Advertising
     end
 
     def call
-      raise Error, I18n.t("advertising.errors.clips_required") if media_assets.empty?
+      validate_media_assets!(media_assets, organization: organization)
 
       AdvertisingOrder.transaction do
         rotation = organization.rotations.create!(
