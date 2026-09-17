@@ -62,10 +62,9 @@ related_components:
 | `filler` | Нейтралка: ротация + `pick_strategy`; учитывается `neutral_min_seconds` |
 | `insertion` | Точечная вставка: ротация + обязательный `time_of_day` |
 | `service_header_start` / `service_header_end` | Обёртка рекламного пакета |
-| `service_welcome` | Приветствие у открытия окон работы |
-| `service_close` | Завершение у закрытия окон работы |
+| `service_welcome` / `service_close` | Приветствие / завершение дня: без `time_of_day` — open/close окон работы; с временем — замена слота как у `insertion`, `source_kind` остаётся `service` |
 
-Сервисные блоки часто из `ServiceTheme` (на портрете или на блоке) — см. `operator-service-theme-on-screen.md`. Welcome/close и insertions не входят в циклический beat (`cycle_blocks`); welcome/close эмитятся как day-bound.
+Сервисные блоки часто из `ServiceTheme` (на портрете или на блоке) — см. `operator-service-theme-on-screen.md`. Welcome/close без времени и insertions/timed welcome/close не входят в циклический beat (`cycle_blocks`); untimed welcome/close эмитятся как day-bound.
 
 ## Portrait-level knobs
 
