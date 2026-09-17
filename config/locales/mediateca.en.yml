@@ -868,6 +868,7 @@ en:
       search: Search by name
       search_submit: Search
       template: Template
+      time_of_day_hint: Leave blank for start or end of the operating day. Set a time to replace that slot (like an insertion).
     screens:
       edit_portrait: Edit broadcast portrait
       template_blank: Default template

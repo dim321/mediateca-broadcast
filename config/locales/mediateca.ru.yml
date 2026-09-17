@@ -878,6 +878,7 @@ ru:
       search: Поиск по названию
       search_submit: Найти
       template: Шаблон
+      time_of_day_hint: Пусто — в начале или конце рабочего дня. Задано — замена слота в это время (как вставка).
     screens:
       edit_portrait: Изменить портрет эфира
       template_blank: Шаблон по умолчанию

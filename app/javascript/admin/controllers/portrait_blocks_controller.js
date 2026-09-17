@@ -6,8 +6,8 @@ const FIELD_VISIBILITY = {
   insertion: { rotation: true, theme: false, pick: true, time: true },
   service_header_start: { rotation: false, theme: true, pick: true, time: false },
   service_header_end: { rotation: false, theme: true, pick: true, time: false },
-  service_welcome: { rotation: false, theme: true, pick: true, time: false },
-  service_close: { rotation: false, theme: true, pick: true, time: false }
+  service_welcome: { rotation: false, theme: true, pick: true, time: true },
+  service_close: { rotation: false, theme: true, pick: true, time: true }
 }
 
 export default class extends Controller {
