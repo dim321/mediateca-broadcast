@@ -43,6 +43,9 @@
   <div data-portrait-blocks-field="time">
     <label class="<%= admin_label_class %>"><%= BroadcastPortraitBlock.human_attribute_name(:time_of_day) %></label>
     <input type="time" name="broadcast_portrait[blocks][][time_of_day]" value="<%= block.time_of_day&.strftime("%H:%M") %>" class="<%= admin_input_class %>" data-portrait-blocks-time>
+    <p class="mt-1 text-xs text-gray-500" data-portrait-blocks-time-hint>
+      <%= t("admin.broadcast_portraits.time_of_day_hint") %>
+    </p>
   </div>
 
   <div class="flex flex-wrap items-end gap-2 md:col-span-6">

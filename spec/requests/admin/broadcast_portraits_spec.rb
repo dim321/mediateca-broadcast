@@ -24,6 +24,27 @@ RSpec.describe "Admin broadcast portraits", type: :request do
     }.merge(overrides)
   end
 
+  def patch_portrait_with_welcome(portrait, theme, time_of_day:)
+    patch admin_broadcast_portrait_path(portrait), params: {
+      broadcast_portrait: {
+        name: portrait.name,
+        block_frequencies_per_hour: portrait.block_frequencies_per_hour,
+        max_commercial_in_row: portrait.max_commercial_in_row,
+        neutral_min_seconds: portrait.neutral_min_seconds,
+        blocks: [
+          { position: 1, kind: "commercial" },
+          {
+            position: 2,
+            kind: "service_welcome",
+            service_theme_id: theme.id,
+            pick_strategy: "sequential",
+            time_of_day: time_of_day
+          }
+        ]
+      }
+    }
+  end
+
   describe "authentication" do
     it "redirects guests to login" do
       get admin_broadcast_portraits_path
@@ -193,6 +214,20 @@ RSpec.describe "Admin broadcast portraits", type: :request do
         rotation: theme.welcome_rotation,
         pick_strategy: "random"
       )
+    end
+
+    it "persists optional time_of_day on welcome and clears it when blank" do
+      screen = create(:screen)
+      portrait = create(:broadcast_portrait, :for_screen, screen: screen)
+      theme = create(:service_theme, organization: operator_org)
+      create(:broadcast_portrait_block, :commercial, broadcast_portrait: portrait, position: 1)
+
+      patch_portrait_with_welcome(portrait, theme, time_of_day: "12:30")
+      welcome = portrait.reload.blocks.find_by!(kind: "service_welcome")
+      expect(welcome.time_of_day.strftime("%H:%M")).to eq("12:30")
+
+      patch_portrait_with_welcome(portrait, theme, time_of_day: "")
+      expect(portrait.reload.blocks.find_by!(kind: "service_welcome").time_of_day).to be_nil
     end
 
     it "enqueues regen when a screen portrait header is saved without blocks" do

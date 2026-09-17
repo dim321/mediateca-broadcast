@@ -542,4 +542,84 @@ RSpec.describe Playlists::GenerateForDate do
     expect(welcome_item.offset_seconds).to eq(0)
     expect(item_screen_ids(welcome_item)).to eq([ screen.id ])
   end
+
+  it "lets a timed welcome replace the noon slot with source_kind service" do
+    station = create_playlist_station!
+    screen = create(:screen, station: station)
+    org = create(:organization, :client)
+    filler = create_clip_rotation!(organization: org)
+    welcome = create_clip_rotation!(organization: org)
+    create_cyclic_portrait!(
+      station,
+      filler_rotation: filler,
+      welcome_rotation: welcome,
+      welcome_time: "12:00"
+    )
+    occupy_with_clips!(
+      screen: screen,
+      organization: org,
+      rotation: create_clip_rotation!(organization: org),
+      starts_at: local_slot(9),
+      ends_at: local_slot(21)
+    )
+
+    playlist = generate!(station).playlist
+    noon = 3.hours.to_i
+    quarter = noon + 15.minutes.to_i
+
+    expect(source_kinds_at(playlist, noon)).to eq(%w[service])
+    expect(items_at(playlist, noon).first.media_asset_id).to eq(welcome.ordered_items.first.media_asset_id)
+    expect(source_kinds_at(playlist, quarter)).to eq(%w[filler])
+    expect(playlist.items.none? { |item| item.service? && item.offset_seconds.zero? }).to be(true)
+  end
+
+  it "emits both untimed day-bound welcome and a timed welcome on the same portrait" do
+    station = create_playlist_station!
+    screen = create(:screen, station: station)
+    org = create(:organization, :client)
+    filler = create_clip_rotation!(organization: org)
+    welcome_open = create_clip_rotation!(organization: org)
+    welcome_noon = create_clip_rotation!(organization: org)
+    create_cyclic_portrait!(station, filler_rotation: filler, welcome_rotation: welcome_open)
+
+    portrait = screen.reload.broadcast_portrait
+    create(
+      :broadcast_portrait_block,
+      :service_welcome,
+      broadcast_portrait: portrait,
+      position: portrait.blocks.maximum(:position).to_i + 1,
+      rotation: welcome_noon,
+      pick_strategy: "sequential",
+      time_of_day: "12:00"
+    )
+
+    playlist = generate!(station).playlist
+    open_id = welcome_open.ordered_items.first.media_asset_id
+    noon_id = welcome_noon.ordered_items.first.media_asset_id
+
+    open_item = playlist.items.find { |item| item.service? && item.media_asset_id == open_id }
+    noon_item = playlist.items.find { |item| item.service? && item.media_asset_id == noon_id }
+
+    expect(open_item.offset_seconds).to eq(0)
+    expect(noon_item.offset_seconds).to eq(3.hours.to_i)
+    expect(noon_item.source_kind).to eq("service")
+  end
+
+  it "skips a spring-forward timed welcome like insertion (AE8 mirror)" do
+    org = create(:organization, :client)
+    filler = create_clip_rotation!(organization: org)
+    welcome = create_clip_rotation!(organization: org)
+    spring_station = create_playlist_station!(time_zone: "Europe/Berlin", hours: PlaylistGeneration::BERLIN_SUN_HOURS)
+    create(:screen, station: spring_station)
+    create_cyclic_portrait!(
+      spring_station,
+      filler_rotation: filler,
+      welcome_rotation: welcome,
+      welcome_time: "02:30"
+    )
+
+    spring = generate!(spring_station, Date.new(2026, 3, 29)).playlist
+
+    expect(spring.items.count(&:service?)).to eq(0)
+  end
 end
