@@ -21,7 +21,7 @@ module PlaylistGeneration
 
   def create_cyclic_portrait!(station, filler_rotation:, frequencies: [ 4 ], frequency: nil,
     max_commercial_in_row: 3, insertion_time: nil, insertion_rotation: nil, header_start_rotation: nil,
-    header_end_rotation: nil, welcome_rotation: nil, close_rotation: nil)
+    header_end_rotation: nil, welcome_rotation: nil, close_rotation: nil, welcome_time: nil, close_time: nil)
     freqs = frequency ? [ frequency ] : frequencies
     screens = station.screens.sort_by(&:id)
     screens = [ create(:screen, station: station) ] if screens.empty?
@@ -36,7 +36,9 @@ module PlaylistGeneration
         header_start_rotation: header_start_rotation,
         header_end_rotation: header_end_rotation,
         welcome_rotation: welcome_rotation,
-        close_rotation: close_rotation
+        close_rotation: close_rotation,
+        welcome_time: welcome_time,
+        close_time: close_time
       )
     end
     portraits.first
@@ -44,7 +46,7 @@ module PlaylistGeneration
 
   def build_cyclic_portrait_for_screen!(screen, filler_rotation:, frequencies:, max_commercial_in_row:,
     insertion_time:, insertion_rotation:, header_start_rotation:, header_end_rotation:,
-    welcome_rotation: nil, close_rotation: nil)
+    welcome_rotation: nil, close_rotation: nil, welcome_time: nil, close_time: nil)
     portrait = create(
       :broadcast_portrait,
       :for_screen,
@@ -82,13 +84,25 @@ module PlaylistGeneration
     end
     if welcome_rotation
       position += 1
-      create(:broadcast_portrait_block, :service_welcome, broadcast_portrait: portrait,
-        position: position, rotation: welcome_rotation, pick_strategy: "sequential")
+      attrs = {
+        broadcast_portrait: portrait,
+        position: position,
+        rotation: welcome_rotation,
+        pick_strategy: "sequential"
+      }
+      attrs[:time_of_day] = welcome_time if welcome_time
+      create(:broadcast_portrait_block, :service_welcome, **attrs)
     end
     if close_rotation
       position += 1
-      create(:broadcast_portrait_block, :service_close, broadcast_portrait: portrait,
-        position: position, rotation: close_rotation, pick_strategy: "sequential")
+      attrs = {
+        broadcast_portrait: portrait,
+        position: position,
+        rotation: close_rotation,
+        pick_strategy: "sequential"
+      }
+      attrs[:time_of_day] = close_time if close_time
+      create(:broadcast_portrait_block, :service_close, **attrs)
     end
     portrait
   end

@@ -112,13 +112,16 @@ module Playlists
       pickers = {}
       cycle_index = 0
       cycle = cycle_blocks(portrait)
-      insertions = insertion_events(portrait)
+      timed = timed_slot_events(portrait)
       slots = build_slots(windows, screen, portrait)
       day_bound_emissions(screen, portrait, windows, pickers) + slots.flat_map do |slot_start, slot_end, index, count, covering|
-        matching = insertions.select { |event| slot_start <= event[:at] && event[:at] < slot_end }.map { |event| event[:block] }
+        matching = timed
+          .select { |event| slot_start <= event[:at] && event[:at] < slot_end }
+          .map { |event| event[:block] }
+          .sort_by(&:position)
         if matching.any?
           cycle_index += 1 if cycle.any?
-          matching.flat_map { |block| emit_insertion(block, screen, portrait, slot_start, pickers) }
+          matching.flat_map { |block| emit_timed_slot_block(block, screen, portrait, slot_start, pickers) }
         elsif Playlists::HourGrid.catalog_frequencies(covering).any?
           emit_beat_slot(screen, portrait, slot_start, index, count, covering, pickers)
         elsif cycle.empty?
@@ -128,6 +131,18 @@ module Playlists
           cycle_index += 1
           emit_cycle_block(block, screen, portrait, slot_start, pickers)
         end
+      end
+    end
+
+    def emit_timed_slot_block(block, screen, portrait, slot_start, pickers)
+      if block.insertion?
+        emit_insertion(block, screen, portrait, slot_start, pickers)
+      else
+        pick = take_from_block(block, screen, pickers, min_seconds: nil)
+        return [ emission(pick, screen, slot_start, "service") ] if pick
+
+        warn_once("service timed block #{block.kind} has no eligible clips")
+        []
       end
     end
 
@@ -364,8 +379,10 @@ module Playlists
       @occupying_plans ||= Fingerprint.occupying_plans(station: station, for_date: for_date)
     end
 
-    def insertion_events(portrait)
-      portrait.blocks.select(&:insertion?).filter_map do |block|
+    def timed_slot_events(portrait)
+      portrait.blocks.sort_by(&:position).filter_map do |block|
+        next unless timed_slot_block?(block)
+
         tod = block.time_of_day
         next unless tod
 
@@ -374,6 +391,13 @@ module Playlists
 
         { block: block, at: at }
       end
+    end
+
+    def timed_slot_block?(block)
+      return true if block.insertion?
+      return false unless block.service_welcome? || block.service_close?
+
+      block.time_of_day.present?
     end
 
     def cycle_blocks(portrait)
@@ -386,7 +410,7 @@ module Playlists
       open_at = windows.first[:start]
       close_at = windows.last[:end]
       emissions = []
-      header_blocks(portrait, "service_welcome").each do |block|
+      header_blocks(portrait, "service_welcome").reject { |block| block.time_of_day.present? }.each do |block|
         pick = take_from_block(block, screen, pickers, min_seconds: nil)
         if pick
           emissions << emission(pick, screen, open_at, "service")
@@ -394,7 +418,7 @@ module Playlists
           warn_once("service welcome has no eligible clips")
         end
       end
-      header_blocks(portrait, "service_close").each do |block|
+      header_blocks(portrait, "service_close").reject { |block| block.time_of_day.present? }.each do |block|
         pick = take_from_block(block, screen, pickers, min_seconds: nil)
         if pick
           emissions << emission(pick, screen, close_at, "service")
