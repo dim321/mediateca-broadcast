@@ -331,7 +331,7 @@ RSpec.describe "Admin advertising orders", type: :request do
       patch admin_advertising_order_path(order), params: order_params(media_asset_id: replacement.id)
 
       expect(response).to redirect_to(admin_advertising_order_path(order))
-      expect(order.reload.media_asset).to eq(replacement)
+      expect(order.reload.primary_media_asset).to eq(replacement)
       expect(order.advertising_order_lines.pluck(:id)).to eq(original_line_ids)
       expect(order.rotation.ordered_items.sole.media_asset).to eq(replacement)
     end

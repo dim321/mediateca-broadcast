@@ -45,8 +45,17 @@ module Advertising
 
     def update_order!
       attrs = { media_asset_id: nil }
+      snapshot_clip_metadata!(attrs)
       attrs[:document_version] = order.document_version + 1 if order.active?
       order.update!(attrs)
+    end
+
+    def snapshot_clip_metadata!(attrs)
+      first = media_assets.first
+      return unless first
+
+      attrs[:clip_title] = first.file.filename.to_s if first.file.attached?
+      attrs[:duration_seconds] = first.duration_seconds
     end
 
     def enqueue_regen

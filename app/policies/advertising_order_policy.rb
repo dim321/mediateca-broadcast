@@ -15,7 +15,9 @@ class AdvertisingOrderPolicy < ApplicationPolicy
 
   def cancel? = client_mutator? && operator_or_in_organization? && !record.cancelled? && !record.completed?
 
-  def replace_clip? = client_mutator? && operator_or_in_organization? && record.active?
+  def update_clips? = client_mutator? && operator_or_in_organization? && (record.draft? || record.active?)
+
+  def replace_clip? = update_clips? && record.active?
 
   def destroy? = client_mutator? && operator_or_in_organization? && record.draft?
 

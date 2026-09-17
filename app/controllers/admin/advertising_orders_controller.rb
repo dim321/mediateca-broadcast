@@ -27,8 +27,8 @@ module Admin
 
     def create
       @form_organization = selected_organization
-      asset = find_media_asset
-      unless asset
+      media_assets = find_media_assets
+      if media_assets.empty?
         @advertising_order = AdvertisingOrder.new(organization: @form_organization)
         @advertising_order.errors.add(:media_asset, :blank)
         return render_form_failure(:new)
@@ -37,7 +37,7 @@ module Admin
       @advertising_order = Advertising::CreateOrder.call(
         organization: @form_organization,
         created_by: Current.user,
-        media_assets: [ asset ],
+        media_assets: media_assets,
         product_name: order_params[:product_name],
         placement_kind: order_params[:placement_kind].presence || :own_atmosphere,
         shows_per_hour: order_header_shows_per_hour,
@@ -64,10 +64,11 @@ module Admin
     def update
       @advertising_order = find_order
       @form_organization = @advertising_order.organization
-      replacement = draft_media_asset
       AdvertisingOrder.transaction do
         @advertising_order.update!(header_update_attrs)
-        Advertising::ReplaceDraftClip.call(order: @advertising_order, media_asset: replacement) if replacement
+        if clip_ids_submitted?
+          Advertising::UpdateOrderClips.call(order: @advertising_order, media_assets: find_media_assets)
+        end
         persist_grid!(@advertising_order)
       end
       redirect_to admin_advertising_order_path(@advertising_order), notice: t("advertising_orders.update.updated")
@@ -140,20 +141,12 @@ module Admin
       }.compact
     end
 
-    def find_media_asset
-      return if @form_organization.blank?
-
-      @form_organization.media_assets.find_by(id: order_params[:media_asset_id])
+    def media_assets_ready_scope
+      @form_organization.media_assets.ready
     end
 
-    def draft_media_asset
-      return unless @advertising_order.draft? && order_params[:media_asset_id].present?
-
-      @form_organization.media_assets.ready.with_attached_file.find_by(
-        id: order_params[:media_asset_id]
-      ).tap do |asset|
-        raise Advertising::Error, I18n.t("advertising.errors.clip_not_ready") unless asset
-      end
+    def media_assets_organization
+      @form_organization
     end
 
     def prepare_form
@@ -171,6 +164,7 @@ module Admin
         :organization_id,
         :product_name,
         :media_asset_id,
+        { media_asset_ids: [] },
         :placement_kind,
         :shows_per_hour,
         :distribution_strategy,

@@ -557,7 +557,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
       expect(response).to redirect_to(advertising_order_path(order))
       follow_redirect!
       expect(order.reload.document_version).to eq(2)
-      expect(order.media_asset).to eq(replacement)
+      expect(order.primary_media_asset).to eq(replacement)
       expect(order.clip_title).to eq("triumph-v2.png")
       expect(order.media_plans.order(:id).pluck(:id)).to eq(plan_ids)
       expect(response.body).to include(I18n.t("advertising_orders.replace_clip.replaced"))

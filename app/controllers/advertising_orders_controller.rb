@@ -31,8 +31,8 @@ class AdvertisingOrdersController < ApplicationController
     @advertising_order = policy_scope(AdvertisingOrder).new(organization: Current.user.organization)
     authorize @advertising_order
 
-    asset = find_media_asset
-    unless asset
+    media_assets = find_media_assets
+    if media_assets.empty?
       @advertising_order.errors.add(:media_asset, :blank)
       return render_form_failure(:new)
     end
@@ -40,7 +40,7 @@ class AdvertisingOrdersController < ApplicationController
     @advertising_order = Advertising::CreateOrder.call(
       organization: Current.user.organization,
       created_by: Current.user,
-      media_assets: [ asset ],
+      media_assets: media_assets,
       product_name: order_params[:product_name],
       placement_kind: order_params[:placement_kind].presence || :own_atmosphere,
       shows_per_hour: order_header_shows_per_hour,
@@ -64,11 +64,19 @@ class AdvertisingOrdersController < ApplicationController
 
   def update
     authorize @advertising_order
-    @advertising_order.update!(header_update_attrs)
-    persist_grid!(@advertising_order)
+    AdvertisingOrder.transaction do
+      @advertising_order.update!(header_update_attrs)
+      if clip_ids_submitted?
+        Advertising::UpdateOrderClips.call(order: @advertising_order, media_assets: find_media_assets)
+      end
+      persist_grid!(@advertising_order)
+    end
     redirect_to @advertising_order, notice: t(".updated")
   rescue Advertising::InvalidGrid => e
     @advertising_order = e.order
+    render_form_failure(:edit)
+  rescue Advertising::Error => e
+    @advertising_order.errors.add(:media_asset, e.message)
     render_form_failure(:edit)
   rescue ActiveRecord::RecordInvalid
     render_form_failure(:edit)
@@ -114,13 +122,13 @@ class AdvertisingOrdersController < ApplicationController
 
     return if request.get? || request.head?
 
-    asset = find_replacement_asset
-    unless asset
+    media_assets = find_replacement_media_assets
+    if media_assets.empty?
       @advertising_order.errors.add(:media_asset, :blank)
       return render :replace_clip, status: :unprocessable_content
     end
 
-    Advertising::ReplaceClip.call(order: @advertising_order, media_asset: asset)
+    Advertising::UpdateOrderClips.call(order: @advertising_order, media_assets: media_assets)
     redirect_to advertising_order_path(@advertising_order), notice: t(".replaced")
   rescue Advertising::Error => e
     flash.now[:alert] = e.message
@@ -156,18 +164,25 @@ class AdvertisingOrdersController < ApplicationController
     }.compact
   end
 
-  def find_media_asset
-    policy_scope(MediaAsset).find_by(id: order_params[:media_asset_id])
-  end
-
-  def find_replacement_asset
-    policy_scope(MediaAsset).find_by(id: params[:media_asset_id])
+  def find_replacement_media_assets
+    ids = Array(params[:media_asset_ids]).map(&:presence).compact
+    ids = [ params[:media_asset_id].presence ].compact if ids.empty?
+    find_ordered_media_assets(ids)
   end
 
   def load_replacement_assets
-    @media_assets = policy_scope(MediaAsset).ready.with_attached_file.order(created_at: :desc).select do |asset|
-      asset.id != @advertising_order.media_asset_id && asset.broadcast_ready?
+    current_id = @advertising_order.primary_media_asset&.id
+    @media_assets = media_assets_ready_scope.with_attached_file.order(created_at: :desc).select do |asset|
+      asset.id != current_id && asset.broadcast_ready?
     end
+  end
+
+  def media_assets_ready_scope
+    policy_scope(MediaAsset).ready
+  end
+
+  def media_assets_organization
+    Current.user.organization
   end
 
   def render_form_failure(template)
@@ -180,6 +195,7 @@ class AdvertisingOrdersController < ApplicationController
     @order_params ||= params.fetch(:advertising_order, {}).permit(
       :product_name,
       :media_asset_id,
+      { media_asset_ids: [] },
       :placement_kind,
       :shows_per_hour,
       :distribution_strategy,
