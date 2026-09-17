@@ -173,6 +173,35 @@ RSpec.describe "Admin advertising orders", type: :request do
       expect(tables[1].css("thead tr").last.css("th").map(&:text)).to eq(%w[1 2])
     end
 
+    it "resets chess distribution at the start of each month" do
+      first_screen = order_screen
+      second_screen = create(:screen, station: first_screen.station, name: "Витрина 2")
+      create(:broadcast_portrait, :for_screen, screen: second_screen, block_frequencies_per_hour: [ 1, 2, 3, 4, 6 ])
+      dates = [ "2026-08-31", "2026-09-01", "2026-09-02" ]
+      screens = [ first_screen, second_screen ]
+      lines = screens.each_with_index.to_h do |screen, index|
+        [ index.to_s, { screen_id: screen.id, days: dates.map { |date| { date: date, shows: 9 } } } ]
+      end
+      params = order_params(dates: dates, distribution_strategy: "chess")
+      params[:advertising_order][:screen_ids] = screens.map(&:id)
+      params[:advertising_order][:lines] = lines
+
+      post admin_advertising_orders_path, params: params
+
+      order = AdvertisingOrder.last
+      expect(order).to be_chess
+      expect(response).to redirect_to(admin_advertising_order_path(order))
+      first_days = order.advertising_order_lines.find_by(screen: first_screen).advertising_order_line_days
+      second_days = order.advertising_order_lines.find_by(screen: second_screen).advertising_order_line_days
+      expect(first_days.index_by(&:date).transform_values(&:shows)).to eq(
+        Date.new(2026, 8, 31) => 9,
+        Date.new(2026, 9, 1) => 9
+      )
+      expect(second_days.index_by(&:date).transform_values(&:shows)).to eq(
+        Date.new(2026, 9, 2) => 9
+      )
+    end
+
     it "places placement kind beside the product and exposes selected clip metadata" do
       asset
       get new_admin_advertising_order_path, params: { organization_id: client.id }

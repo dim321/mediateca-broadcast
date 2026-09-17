@@ -128,19 +128,12 @@ export default class extends Controller {
     if (strategy === "odd_days" && date.getUTCDate() % 2 === 0) return 0
     if (strategy !== "chess") return baseShows
 
-    const firstDate = this.firstGridDate()
-    const dayOffset = firstDate ? Math.round((date - firstDate) / 86_400_000) : 0
+    const firstHalfDay = date.getUTCDate() % 2 !== 0
     const screenCount = this.lineRowTargets.length
     const firstHalfSize = Math.ceil(screenCount / 2)
-    const firstHalfDay = dayOffset % 2 === 0
     const inFirstHalf = screenIndex < firstHalfSize
 
     return firstHalfDay === inFirstHalf ? baseShows : 0
-  }
-
-  firstGridDate() {
-    const date = this.element.querySelector('[data-order-grid-target="cell"]')?.dataset.date
-    return this.parseDate(date)
   }
 
   parseDate(value) {
