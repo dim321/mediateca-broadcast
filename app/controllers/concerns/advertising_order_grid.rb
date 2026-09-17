@@ -65,7 +65,7 @@ module AdvertisingOrderGrid
     when "odd_days"
       date.day.odd? ? shows : 0
     when "chess"
-      first_half_day = chess_day_offset(date).even?
+      first_half_day = date.day.odd?
       in_first_half = screen_index < (screen_count / 2.0).ceil
       first_half_day == in_first_half ? shows : 0
     else
@@ -75,10 +75,6 @@ module AdvertisingOrderGrid
 
   def weekend?(date)
     date.saturday? || date.sunday?
-  end
-
-  def chess_day_offset(date)
-    (date - Array(@grid_dates).first).to_i
   end
 
   def form_screen_ids
@@ -167,7 +163,7 @@ module AdvertisingOrderGrid
   end
 
   def grid_dates
-    from = parse_grid_date(params[:grid_from]) || order_grid_bounds&.begin || Date.current.beginning_of_month
+    from = parse_grid_date(params[:grid_from]) || order_grid_bounds&.begin || Date.current.tomorrow
     to = parse_grid_date(params[:grid_to]) || order_grid_bounds&.end || Date.current.end_of_month
     from, to = to, from if from > to
     (from..to).to_a

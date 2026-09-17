@@ -1,0 +1,36 @@
+- rows = local_assigns.fetch(:rows)
+- month = local_assigns.fetch(:month)
+- dates = local_assigns.fetch(:dates)
+- show_grand_total = local_assigns.fetch(:show_grand_total, false)
+- grid_id = local_assigns.fetch(:grid_id) { "order-airtime-grid-#{month.strftime('%Y-%m')}" }
+
+table id=grid_id class="table table-sm table-pin-rows table-pin-cols w-full"
+  thead
+    tr.bg-base-200.text-xs.text-base-content/70
+      th.align-bottom.whitespace-nowrap.px-4 rowspan='2' = t('advertising_orders.form.screen')
+      th.text-center.font-medium.normal-case.text-base-content colspan=dates.size = advertising_grid_month_label(month)
+      th.align-bottom.text-center.whitespace-nowrap.px-2 rowspan='2' = t('advertising_orders.line_fields.total_shows')
+    tr.bg-base-200.text-xs.text-base-content/70
+      - dates.each do |date|
+        - weekend = date.saturday? || date.sunday?
+        th.text-center.font-normal.w-14 class=(weekend ? 'bg-base-300' : nil) = date.day
+  tbody data-order-grid-target='lines' data-order-screen-picker-target='gridLines'
+    - rows.each_with_index do |line, index|
+      = render 'advertising_orders/line_fields',
+          **order_line_field_locals(line, index).merge(grid_dates: dates)
+  - if show_grand_total
+    tfoot
+      tr.bg-base-200.border-t.border-base-300
+        td.font-medium.px-4 = t('advertising_orders.form.grand_total_shows')
+        td colspan=dates.size
+        td.p-1.text-center
+          = number_field_tag nil,
+              advertising_order.total_shows,
+              readonly: true,
+              tabindex: -1,
+              class: 'input input-bordered input-xs w-16 text-center',
+              data: { order_grid_target: 'grandTotal' }
+
+template data-order-screen-picker-target='rowTemplate'
+  = render 'advertising_orders/line_fields',
+      **order_line_field_locals(AdvertisingOrderLine.new, 'NEW_LINE').merge(grid_dates: dates)

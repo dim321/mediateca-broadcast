@@ -32,6 +32,25 @@ RSpec.describe AdvertisingOrdersHelper, type: :helper do
     end
   end
 
+  describe "#advertising_grid_months" do
+    it "groups dates in chronological month blocks" do
+      dates = (Date.new(2026, 8, 30)..Date.new(2026, 9, 2)).to_a
+
+      expect(helper.advertising_grid_months(dates)).to eq(
+        Date.new(2026, 8, 1) => dates.first(2),
+        Date.new(2026, 9, 1) => dates.last(2)
+      )
+    end
+  end
+
+  describe "#advertising_grid_month_label" do
+    it "uses nominative Russian month names with a capital letter" do
+      I18n.with_locale(:ru) do
+        expect(helper.advertising_grid_month_label(Date.new(2026, 9, 1))).to eq("Сентябрь 2026")
+      end
+    end
+  end
+
   describe "#order_grid_date_field_tag" do
     it "keeps a dd.mm.yyyy text field and offers a nameless native date picker" do
       html = Nokogiri::HTML.fragment(

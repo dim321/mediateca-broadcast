@@ -1,6 +1,21 @@
 # frozen_string_literal: true
 
 en:
+  date:
+    month_names_nominative:
+      - ~
+      - January
+      - February
+      - March
+      - April
+      - May
+      - June
+      - July
+      - August
+      - September
+      - October
+      - November
+      - December
   layouts:
     application:
       brand: Mediateca

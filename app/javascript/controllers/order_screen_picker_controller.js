@@ -8,6 +8,7 @@ export default class extends Controller {
     this.syncCount()
     this.syncGridRows()
     this.syncFrequencyOptions()
+    this.dispatchWindowRecompute()
   }
 
   filterRows() {
@@ -30,6 +31,7 @@ export default class extends Controller {
     this.syncCount()
     this.syncGridRows()
     this.syncFrequencyOptions()
+    this.dispatchWindowRecompute()
   }
 
   selectionChanged() {
@@ -37,6 +39,11 @@ export default class extends Controller {
     this.syncSelectAll()
     this.syncGridRows()
     this.syncFrequencyOptions()
+    this.dispatchWindowRecompute()
+  }
+
+  dispatchWindowRecompute() {
+    this.dispatch("recompute", { prefix: "order-screen-picker" })
   }
 
   filterEntries() {
@@ -80,7 +87,7 @@ export default class extends Controller {
     selectedRows.forEach((pickerRow) => {
       const id = this.rowCheckbox(pickerRow).value
       if (this.gridRowTargets.some((row) => String(row.dataset.screenId) === id)) return
-      this.appendGridRow(pickerRow, id)
+      this.appendGridRows(pickerRow, id)
     })
 
     this.dispatch("recompute", { prefix: "order-grid" })
@@ -88,12 +95,21 @@ export default class extends Controller {
     grid.dispatchEvent(new Event("input", { bubbles: true }))
   }
 
-  appendGridRow(pickerRow, screenId) {
-    const html = this.rowTemplateTarget.innerHTML
+  appendGridRows(pickerRow, screenId) {
+    this.rowTemplateTargets.forEach((template, index) => {
+      const gridLines = this.gridLinesTargets[index]
+      if (!gridLines) return
+
+      this.appendGridRow(pickerRow, screenId, template, gridLines)
+    })
+  }
+
+  appendGridRow(pickerRow, screenId, template, gridLines) {
+    const html = template.innerHTML
       .replaceAll("NEW_LINE", `screen-${screenId}`)
       .replaceAll("NEW_SCREEN", screenId)
-    this.gridLinesTarget.insertAdjacentHTML("beforeend", html)
-    const row = this.gridLinesTarget.lastElementChild
+    gridLines.insertAdjacentHTML("beforeend", html)
+    const row = gridLines.lastElementChild
     if (!row) return
 
     row.dataset.screenId = screenId

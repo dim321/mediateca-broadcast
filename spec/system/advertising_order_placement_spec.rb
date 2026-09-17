@@ -89,6 +89,51 @@ RSpec.describe "Advertising order placement", type: :system do
     expect(find("[data-order-grid-target='grandTotal']").value).to eq("36")
   end
 
+  it "sets the automatic window to the common hours of selected screens", :js do
+    asset
+    first_screen = named_screen
+    second_screen = create(:screen, station: first_screen.station).tap do |screen|
+      hours = Location::OperatingHours::DAY_KEYS.index_with do
+        [ { "start" => "10:00", "end" => "20:00" } ]
+      end
+      screen.update!(inherit_operating_hours_from_location: false, operating_hours: hours)
+    end
+    sign_in_through_ui
+
+    visit new_advertising_order_path(grid_from: "2026-06-03", grid_to: "2026-06-03")
+    check "order_screen_#{first_screen.id}"
+    check "order_screen_#{second_screen.id}"
+
+    row = find("[data-order-windows-target='row']")
+    expect(row.find("[data-order-windows-target='startsAt']").value).to eq("10:00")
+    expect(row.find("[data-order-windows-target='endsAt']").value).to eq("20:00")
+  end
+
+  it "preserves manually edited and added windows when screens change", :js do
+    asset
+    first_screen = named_screen
+    second_screen = create(:screen, station: first_screen.station)
+    sign_in_through_ui
+
+    visit new_advertising_order_path(grid_from: "2026-06-03", grid_to: "2026-06-03")
+    check "order_screen_#{first_screen.id}"
+
+    first_row = find("[data-order-windows-target='row']")
+    first_row.find("[data-order-windows-target='startsAt']").set("11:00")
+    first_row.find("[data-order-windows-target='endsAt']").set("12:00")
+    click_button I18n.t("advertising_orders.form.add_window")
+
+    rows = all("[data-order-windows-target='row']")
+    rows.last.find("[data-order-windows-target='startsAt']").set("14:00")
+    rows.last.find("[data-order-windows-target='endsAt']").set("15:00")
+    check "order_screen_#{second_screen.id}"
+
+    expect(rows.first.find("[data-order-windows-target='startsAt']").value).to eq("11:00")
+    expect(rows.first.find("[data-order-windows-target='endsAt']").value).to eq("12:00")
+    expect(rows.last.find("[data-order-windows-target='startsAt']").value).to eq("14:00")
+    expect(rows.last.find("[data-order-windows-target='endsAt']").value).to eq("15:00")
+  end
+
   it "recomputes day cells when windows are added and the default window is removed", :js do
     asset
     screen = named_screen
@@ -114,5 +159,38 @@ RSpec.describe "Advertising order placement", type: :system do
       expect(find("[data-order-grid-target='total']").value).to eq("12")
     end
     expect(find("[data-order-grid-target='grandTotal']").value).to eq("12")
+  end
+
+  it "splits chess distribution independently inside each month", :js do
+    asset
+    first_screen = named_screen
+    second_screen = create(:screen, station: first_screen.station, name: "Витрина 2")
+    create(:broadcast_point_group_membership, broadcast_point_group: group, screen: second_screen)
+    create(:broadcast_portrait, :for_screen, screen: second_screen, block_frequencies_per_hour: [ 1, 2, 3, 4, 6 ])
+    sign_in_through_ui
+
+    visit new_advertising_order_path(grid_from: "2026-09-29", grid_to: "2026-10-02")
+    check "order_screen_#{first_screen.id}"
+    check "order_screen_#{second_screen.id}"
+    select "3", from: "advertising_order_shows_per_hour"
+    choose I18n.t("advertising_orders.form.distribution_strategies.chess")
+
+    {
+      "order-airtime-grid" => {
+        first_screen.id => [ "30", "0" ],
+        second_screen.id => [ "0", "30" ]
+      },
+      "order-airtime-grid-2026-10" => {
+        first_screen.id => [ "30", "0" ],
+        second_screen.id => [ "0", "30" ]
+      }
+    }.each do |table_id, expected_values|
+      within("##{table_id}") do
+        expected_values.each do |screen_id, values|
+          row = find("[data-screen-id='#{screen_id}']")
+          expect(row.all("[data-order-grid-target='cell']").map(&:value)).to eq(values)
+        end
+      end
+    end
   end
 end
