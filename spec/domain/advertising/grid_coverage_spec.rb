@@ -8,7 +8,7 @@ RSpec.describe Advertising::GridCoverage do
     Advertising::CreateOrder.call(
       organization: organization,
       created_by: create(:user, :manager, organization: organization),
-      media_asset: create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 10),
+      media_assets: [ create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 10) ],
       product_name: "Triumph"
     )
   end

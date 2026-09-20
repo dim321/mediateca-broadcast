@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe "Admin advertising orders", type: :request do
+  include ActiveJob::TestHelper
+  include ActiveSupport::Testing::TimeHelpers
   include AdvertisingNetwork
 
   let(:operator_org) { create(:organization, :operator) }
@@ -58,7 +60,7 @@ RSpec.describe "Admin advertising orders", type: :request do
 
     it "lists orders from client organizations" do
       order = Advertising::CreateOrder.call(
-        organization: client, created_by: client_user, media_asset: asset, product_name: "Triumph"
+        organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
       )
 
       get admin_advertising_orders_path
@@ -70,7 +72,7 @@ RSpec.describe "Admin advertising orders", type: :request do
 
     it "shows an order and lets the operator cancel it" do
       order = Advertising::CreateOrder.call(
-        organization: client, created_by: client_user, media_asset: asset, product_name: "Triumph"
+        organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
       )
       fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
       Advertising::ActivateOrder.call(order: order)
@@ -89,7 +91,7 @@ RSpec.describe "Admin advertising orders", type: :request do
 
     it "shows placement and media details on the order page" do
       order = Advertising::CreateOrder.call(
-        organization: client, created_by: client_user, media_asset: asset, product_name: "Triumph"
+        organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
       )
       fill_order_grid!(
         order,
@@ -202,28 +204,22 @@ RSpec.describe "Admin advertising orders", type: :request do
       )
     end
 
-    it "places placement kind beside the product and exposes selected clip metadata" do
+    it "places placement kind beside the product and exposes the multi-clip editor" do
       asset
       get new_admin_advertising_order_path, params: { organization_id: client.id }
 
       document = Nokogiri::HTML(response.body)
       product = document.at_css("#advertising_order_product_name")
       placement = document.at_css("#advertising_order_placement_kind")
-      clip = document.at_css("#advertising_order_media_asset_id")
-      option = clip.at_css("option[value='#{asset.id}']")
+      available = document.at_css("#advertising_order_available_media_asset")
+      option = available.at_css("option[value='#{asset.id}']")
 
-      expect([ product, placement, clip, option ]).to all(be_present)
+      expect([ product, placement, available, option ]).to all(be_present)
       expect(product.parent.parent["class"]).to include("grid")
-      expect(product.parent.parent.text).to include(
-        AdvertisingOrder.human_attribute_name(:product_name),
-        AdvertisingOrder.human_attribute_name(:placement_kind)
-      )
-      expect(option.to_s).to include(
-        'data-duration="10"',
-        "data-content-type=\"#{I18n.t("media_assets.index.content_types.own")}\"",
-        "data-content-kind=\"#{I18n.t("media_assets.index.content_kinds.image")}\""
-      )
-      expect(document.at_css("[data-order-media-asset-target='details']")).to be_present
+      expect(document.at_css("[data-controller='order-media-assets']")).to be_present
+      expect(document.css('[data-order-media-assets-target="list"] input[name="advertising_order[media_asset_ids][]"]')).to be_empty
+      expect(document.text).to include(I18n.t("advertising_orders.form.clips"))
+      expect(document.text).to include(I18n.t("advertising_orders.form.clips_cycling_hint"))
     end
 
     it "defaults new orders to commercial placement" do
@@ -291,7 +287,7 @@ RSpec.describe "Admin advertising orders", type: :request do
       order = Advertising::CreateOrder.call(
         organization: client,
         created_by: client_user,
-        media_asset: asset,
+        media_assets: [ asset ],
         product_name: "Triumph",
         coefficient_percent: 15,
         discount_cents: 1_000
@@ -310,28 +306,28 @@ RSpec.describe "Admin advertising orders", type: :request do
     it "shows ready media assets on a draft order edit form" do
       replacement = create(:media_asset, :ready, :with_png_file, organization: client)
       order = Advertising::CreateOrder.call(
-        organization: client, created_by: client_user, media_asset: asset, product_name: "Triumph"
+        organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
       )
 
       get edit_admin_advertising_order_path(order)
 
       expect(response).to have_http_status(:success)
-      expect(response.body).to include('name="advertising_order[media_asset_id]"')
+      expect(response.body).to include('name="advertising_order[media_asset_ids][]"')
       expect(response.body).to include(replacement.file.filename.to_s)
     end
 
     it "replaces the draft media asset and preserves its grid" do
       replacement = create(:media_asset, :ready, :with_png_file, organization: client, duration_seconds: 15)
       order = Advertising::CreateOrder.call(
-        organization: client, created_by: client_user, media_asset: asset, product_name: "Triumph"
+        organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
       )
       fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
       original_line_ids = order.advertising_order_lines.pluck(:id)
 
-      patch admin_advertising_order_path(order), params: order_params(media_asset_id: replacement.id)
+      patch admin_advertising_order_path(order), params: order_params(media_asset_ids: [ replacement.id ])
 
       expect(response).to redirect_to(admin_advertising_order_path(order))
-      expect(order.reload.media_asset).to eq(replacement)
+      expect(order.reload.primary_media_asset).to eq(replacement)
       expect(order.advertising_order_lines.pluck(:id)).to eq(original_line_ids)
       expect(order.rotation.ordered_items.sole.media_asset).to eq(replacement)
     end
@@ -339,13 +335,13 @@ RSpec.describe "Admin advertising orders", type: :request do
     it "rejects a media asset outside the order organization" do
       foreign_asset = create(:media_asset, :ready, :with_png_file, organization: operator_org)
       order = Advertising::CreateOrder.call(
-        organization: client, created_by: client_user, media_asset: asset, product_name: "Triumph"
+        organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
       )
 
-      patch admin_advertising_order_path(order), params: order_params(media_asset_id: foreign_asset.id)
+      patch admin_advertising_order_path(order), params: order_params(media_asset_ids: [ foreign_asset.id ])
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(order.reload.media_asset).to eq(asset)
+      expect(order.reload.rotation.ordered_items.sole.media_asset).to eq(asset)
     end
 
     it "rejects a media asset that is not ready" do
@@ -356,30 +352,38 @@ RSpec.describe "Admin advertising orders", type: :request do
         processing_status: :processing
       )
       order = Advertising::CreateOrder.call(
-        organization: client, created_by: client_user, media_asset: asset, product_name: "Triumph"
+        organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
       )
 
-      patch admin_advertising_order_path(order), params: order_params(media_asset_id: pending_asset.id)
+      patch admin_advertising_order_path(order), params: order_params(media_asset_ids: [ pending_asset.id ])
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(order.reload.media_asset).to eq(asset)
+      expect(order.reload.rotation.ordered_items.sole.media_asset).to eq(asset)
     end
 
-    it "does not expose or replace media on an active order" do
-      replacement = create(:media_asset, :ready, :with_png_file, organization: client)
-      order = Advertising::CreateOrder.call(
-        organization: client, created_by: client_user, media_asset: asset, product_name: "Triumph"
-      )
-      fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
-      Advertising::ActivateOrder.call(order: order)
+    it "exposes the clip editor on an active order and replaces clips" do
+      travel_to Time.utc(2026, 9, 2, 10, 0, 0) do
+        replacement = create(:media_asset, :ready, :with_png_file, organization: client)
+        order = Advertising::CreateOrder.call(
+          organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
+        )
+        fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 9, 3) ])
+        Advertising::ActivateOrder.call(order: order)
+        station_id = order_screen.station_id
 
-      get edit_admin_advertising_order_path(order)
-      expect(response.body).not_to include('name="advertising_order[media_asset_id]"')
+        get edit_admin_advertising_order_path(order)
+        expect(response.body).to include('name="advertising_order[media_asset_ids][]"')
 
-      patch admin_advertising_order_path(order), params: order_params(media_asset_id: replacement.id)
+        expect {
+          patch admin_advertising_order_path(order), params: order_params(
+            media_asset_ids: [ replacement.id ],
+            dates: [ "2026-09-03" ]
+          )
+        }.to have_enqueued_job(Playlists::GenerateForDateJob).with(station_id, "2026-09-03")
 
-      expect(response).to redirect_to(admin_advertising_order_path(order))
-      expect(order.reload.media_asset).to eq(asset)
+        expect(response).to redirect_to(admin_advertising_order_path(order))
+        expect(order.reload.rotation.ordered_items.sole.media_asset).to eq(replacement)
+      end
     end
 
     it "lets an operator create an order for a client (AE11)" do
@@ -392,8 +396,36 @@ RSpec.describe "Admin advertising orders", type: :request do
       expect(order.organization).to eq(client)
       expect(order.created_by).to eq(operator)
       expect(order.business_sphere).to eq("Ритейл")
-      expect(order.media_asset).to eq(asset)
+      expect(order.rotation.ordered_items.sole.media_asset).to eq(asset)
       expect(order).to be_draft
+    end
+
+    it "rejects create with a foreign clip" do
+      foreign = create(:media_asset, :ready, :with_png_file, organization: operator_org)
+
+      expect {
+        post admin_advertising_orders_path, params: order_params(media_asset_ids: [ foreign.id ])
+      }.not_to change(AdvertisingOrder, :count)
+
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
+    it "rejects create with duplicate clips" do
+      expect {
+        post admin_advertising_orders_path, params: order_params(media_asset_ids: [ asset.id, asset.id ])
+      }.not_to change(AdvertisingOrder, :count)
+
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
+    it "rejects create with a not-ready clip" do
+      pending_asset = create(:media_asset, :with_png_file, organization: client, processing_status: :processing)
+
+      expect {
+        post admin_advertising_orders_path, params: order_params(media_asset_ids: [ pending_asset.id ])
+      }.not_to change(AdvertisingOrder, :count)
+
+      expect(response).to have_http_status(:unprocessable_content)
     end
 
     it "lets the operator activate that order and the client see it in the cabinet (AE11)" do

@@ -6,7 +6,8 @@
   = render 'shared/page_header', title: @advertising_order.product_name
   .flex.flex-wrap.gap-2.text-sm.text-base-content/70
     span = t("enums.advertising_order.status.#{@advertising_order.status}")
-    span = @advertising_order.clip_title
+    - order_clip_rows(@advertising_order).each do |row|
+      span = order_clip_row_label(row)
     span = money_display(@advertising_order.total_sum_cents)
     span = t('.total_shows', count: @advertising_order.total_shows)
     span = t('.document_version', version: @advertising_order.document_version)

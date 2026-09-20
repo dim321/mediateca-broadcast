@@ -114,6 +114,65 @@ RSpec.describe Playlists::GenerateForDate do
     expect(offsets_a.max).to be > offsets_b.max
   end
 
+  def commercial_asset_ids_in_hour(playlist, screen, hour_index:)
+    start = hour_index * 3600
+    finish = start + 3600
+    playlist.items.select(&:media_plan?)
+      .select { |item| item.offset_seconds >= start && item.offset_seconds < finish }
+      .select { |item| item_screen_ids(item).include?(screen.id) }
+      .sort_by(&:offset_seconds)
+      .map(&:media_asset_id)
+  end
+
+  it "cycles order-claim clips across commercial hours (3/hour → ABC, 2/hour → AB then C)" do
+    station = create_playlist_station!
+    screen = create(:screen, station: station)
+    org = create(:organization, :client)
+    filler = create_clip_rotation!(organization: org)
+    ads = create_clip_rotation!(organization: org, count: 3)
+
+    create_cyclic_portrait!(station, filler_rotation: filler, frequencies: [ 3 ])
+    occupy_order_claim!(
+      screen: screen, organization: org, rotation: ads,
+      starts_at: local_slot(9), ends_at: local_slot(21), shows_per_hour: 3
+    )
+
+    picker = Playlists::NeutralPicker.new(
+      rotation: ads,
+      strategy: "sequential",
+      station: station,
+      for_date: PlaylistGeneration::WEDNESDAY,
+      min_seconds: nil
+    )
+    expected_three = picker.take(3).map { |pick| pick.fetch(:media_asset).id }
+
+    playlist = generate!(station).playlist
+    expect(commercial_asset_ids_in_hour(playlist, screen, hour_index: 0)).to eq(expected_three)
+
+    station = create_playlist_station!
+    screen = create(:screen, station: station)
+    ads = create_clip_rotation!(organization: org, count: 3)
+    create_cyclic_portrait!(station, filler_rotation: filler, frequencies: [ 2 ])
+    occupy_order_claim!(
+      screen: screen, organization: org, rotation: ads,
+      starts_at: local_slot(9), ends_at: local_slot(21), shows_per_hour: 2
+    )
+
+    picker = Playlists::NeutralPicker.new(
+      rotation: ads,
+      strategy: "sequential",
+      station: station,
+      for_date: PlaylistGeneration::WEDNESDAY,
+      min_seconds: nil
+    )
+    expected_two = picker.take(2).map { |pick| pick.fetch(:media_asset).id }
+    expected_third = picker.take(1).sole.fetch(:media_asset).id
+
+    playlist = generate!(station).playlist
+    expect(commercial_asset_ids_in_hour(playlist, screen, hour_index: 0)).to eq(expected_two)
+    expect(commercial_asset_ids_in_hour(playlist, screen, hour_index: 1).first).to eq(expected_third)
+  end
+
   it "caps commercial clips by shows_per_hour and max_commercial_in_row (AE5)" do
     station = create_playlist_station!
     screen = create(:screen, station: station)

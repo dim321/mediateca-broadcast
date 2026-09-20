@@ -4,7 +4,7 @@ require "rails_helper"
 
 RSpec.describe Advertising::UpdateGrid do
   let(:organization) { create(:organization, :client) }
-  let(:order) { Advertising::CreateOrder.call(organization: organization, created_by: user, media_asset: asset, product_name: "Triumph") }
+  let(:order) { Advertising::CreateOrder.call(organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph") }
   let(:user) { create(:user, :manager, organization: organization) }
   let(:asset) { create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 10) }
   let(:screen) do

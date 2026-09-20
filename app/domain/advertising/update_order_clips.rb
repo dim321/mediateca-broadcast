@@ -1,0 +1,66 @@
+# frozen_string_literal: true
+
+module Advertising
+  class UpdateOrderClips < BaseService
+    include ValidatesMediaAssets
+
+    def initialize(order:, media_assets:, enqueue_regen: true)
+      @order = order
+      @media_assets = Array(media_assets)
+      @enqueue_regen = enqueue_regen
+    end
+
+    def self.enqueue_regen_for(order)
+      order.rotation.media_plans.active.find_each { |plan| Playlists::EnqueueRegen.from_plan(plan) }
+    end
+
+    def call
+      validate_order_status!
+      validate_media_assets!(media_assets, organization: order.organization)
+
+      AdvertisingOrder.transaction do
+        sync_rotation_items
+        update_order!
+      end
+
+      self.class.enqueue_regen_for(order) if @enqueue_regen && order.active?
+      order
+    end
+
+    private
+
+    attr_reader :order, :media_assets
+
+    def validate_order_status!
+      return if order.draft? || order.active?
+
+      raise Error, I18n.t("advertising.errors.order_clips_not_editable")
+    end
+
+    def sync_rotation_items
+      rotation = order.rotation
+      rotation.rotation_items.destroy_all
+      media_assets.each do |asset|
+        rotation.rotation_items.create!(
+          media_asset: asset,
+          display_duration_seconds: asset.duration_seconds
+        )
+      end
+    end
+
+    def update_order!
+      attrs = { media_asset_id: nil }
+      snapshot_clip_metadata!(attrs)
+      attrs[:document_version] = order.document_version + 1 if order.active?
+      order.update!(attrs)
+    end
+
+    def snapshot_clip_metadata!(attrs)
+      first = media_assets.first
+      return unless first
+
+      attrs[:clip_title] = first.file.filename.to_s if first.file.attached?
+      attrs[:duration_seconds] = first.duration_seconds
+    end
+  end
+end

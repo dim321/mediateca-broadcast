@@ -13,11 +13,14 @@
         dt = AdvertisingOrder.human_attribute_name(:product_name)
         dd = order.product_name
       div
-        dt = AdvertisingOrder.human_attribute_name(:clip_title)
-        dd = order.clip_title.presence || dash
-      div
-        dt = AdvertisingOrder.human_attribute_name(:duration_seconds)
-        dd = duration_label
+        dt = t("advertising.print_sheet.clips")
+        dd
+          - clip_rows = order_clip_rows(order)
+          - if clip_rows.any?
+            - clip_rows.each do |row|
+              div = order_clip_row_label(row)
+          - else
+            = dash
       div
         dt = AdvertisingOrder.human_attribute_name(:shows_per_hour)
         dd = order.shows_per_hour.presence || dash

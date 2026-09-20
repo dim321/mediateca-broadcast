@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module AdvertisingOrdersHelper
+  OrderClipRow = Struct.new(:title, :duration_seconds, :media_asset, keyword_init: true)
+
   def advertising_order_day_for(line, date)
     line.advertising_order_line_days.detect { |day| day.date == date }
   end
@@ -61,8 +63,41 @@ module AdvertisingOrdersHelper
   end
 
   def advertising_clip_option_label(asset)
-    name = asset.file.attached? ? asset.file.filename.to_s : asset.id.to_s
+    name = advertising_clip_title(asset)
     "#{name} (#{asset.duration_seconds}s)"
+  end
+
+  def order_clip_rows(order)
+    items = order.rotation&.ordered_items
+    if items.present?
+      items.filter_map do |item|
+        asset = item.media_asset
+        next if asset.blank?
+
+        OrderClipRow.new(
+          title: advertising_clip_title(asset),
+          duration_seconds: item.display_duration_seconds || asset.duration_seconds,
+          media_asset: asset
+        )
+      end
+    elsif order.clip_title.present?
+      [ OrderClipRow.new(title: order.clip_title, duration_seconds: order.duration_seconds, media_asset: order.media_asset) ]
+    else
+      []
+    end
+  end
+
+  def order_clip_row_label(row)
+    duration = row.duration_seconds
+    return row.title if duration.blank?
+
+    "#{row.title} (#{duration}s)"
+  end
+
+  def advertising_clip_title(asset)
+    return asset.id.to_s if asset.blank?
+
+    asset.file.attached? ? asset.file.filename.to_s : asset.id.to_s
   end
 
   def advertising_order_media_asset_option(asset)
@@ -75,6 +110,15 @@ module AdvertisingOrdersHelper
         "data-content-kind" => t("media_assets.index.content_kinds.#{asset.content_kind}")
       }
     ]
+  end
+
+  def order_form_selected_media_assets(advertising_order)
+    advertising_order.rotation&.ordered_items&.filter_map(&:media_asset) || []
+  end
+
+  def order_form_available_media_assets(advertising_order, media_assets)
+    selected_ids = order_form_selected_media_assets(advertising_order).map(&:id)
+    Array(media_assets).reject { |asset| selected_ids.include?(asset.id) }
   end
 
   def order_screen_hours_label(screen)

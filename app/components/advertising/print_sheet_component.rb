@@ -3,6 +3,7 @@
 module Advertising
   class PrintSheetComponent < ViewComponent::Base
     include ApplicationHelper
+    include AdvertisingOrdersHelper
 
     def initialize(order:)
       @order = order
@@ -34,12 +35,6 @@ module Advertising
       percent = order.coefficient_percent.to_i
       sign = percent.positive? ? "+" : ""
       "#{sign}#{percent}%"
-    end
-
-    def duration_label
-      return dash if order.duration_seconds.blank?
-
-      I18n.t("advertising.print_sheet.duration_seconds", count: order.duration_seconds)
     end
 
     def windows_label

@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe "Advertising order clip replacement", type: :system do
+  include ActiveSupport::Testing::TimeHelpers
+
   let(:organization) { create(:organization, :client, name: "Triumph Org") }
   let(:user) { create(:user, :manager, organization: organization, email: "manager@triumph.test") }
   let(:original) { clip_named("triumph-v1.png", duration: 10) }
@@ -26,7 +28,7 @@ RSpec.describe "Advertising order clip replacement", type: :system do
     order = Advertising::CreateOrder.call(
       organization: organization,
       created_by: user,
-      media_asset: original,
+      media_assets: [ original ],
       product_name: "Triumph"
     )
     fill_order_grid!(order, screen: group.screens.first, dates: [ date ])
@@ -35,27 +37,33 @@ RSpec.describe "Advertising order clip replacement", type: :system do
   end
 
   # rubocop:disable RSpec/ExampleLength, RSpec/MultipleExpectations -- one end-to-end journey
-  it "replaces the clip so the station package plays the new one" do
-    replacement
-    order = activate_order_on!(Date.current)
-    plan_id = order.media_plans.sole.id
-    sign_in_through_ui
+  it "replaces the clip so the station package plays the new one", :js do
+    travel_to Time.utc(2026, 6, 3, 10, 0, 0) do
+      replacement
+      order = activate_order_on!(Date.new(2026, 6, 3))
+      plan_id = order.media_plans.sole.id
+      sign_in_through_ui
 
-    visit advertising_order_path(order)
-    click_link I18n.t("advertising_orders.show.replace_clip")
-    expect(page).to have_content(I18n.t("advertising_orders.replace_clip.duration_warning"))
+      visit advertising_order_path(order)
+      click_link I18n.t("advertising_orders.show.replace_clip")
+      expect(page).to have_content(I18n.t("advertising_orders.replace_clip.duration_warning"))
 
-    select "triumph-v2.png (15s)", from: "media_asset_id"
-    click_button I18n.t("advertising_orders.replace_clip.submit")
+      select "triumph-v2.png (15s)", from: "advertising_order_available_media_asset"
+      click_button I18n.t("advertising_orders.form.add_clip")
+      within("[data-order-media-assets-target='list']") do
+        find(:button, I18n.t("advertising_orders.form.remove_clip"), match: :first).click
+      end
+      click_button I18n.t("advertising_orders.replace_clip.submit")
 
-    expect(page).to have_content(I18n.t("advertising_orders.replace_clip.replaced"))
-    expect(page).to have_content(I18n.t("advertising_orders.show.document_version", version: 2))
-    expect(order.reload.document_version).to eq(2)
-    expect(order.media_plans.sole.id).to eq(plan_id)
+      expect(page).to have_content(I18n.t("advertising_orders.replace_clip.replaced"))
+      expect(page).to have_content(I18n.t("advertising_orders.show.document_version", version: 2))
+      expect(order.reload.document_version).to eq(2)
+      expect(order.media_plans.sole.id).to eq(plan_id)
 
-    package = Agent::PackageBuilder.call(station: group.screens.first.station, now: Time.current)
-    expect(package[:items].sole.dig(:rotation, :items).map { |item| item.dig(:media, :id) })
-      .to eq([ replacement.id ])
+      package = Agent::PackageBuilder.call(station: group.screens.first.station, now: Time.current)
+      expect(package[:items].sole.dig(:rotation, :items).map { |item| item.dig(:media, :id) })
+        .to eq([ replacement.id ])
+    end
   end
   # rubocop:enable RSpec/ExampleLength, RSpec/MultipleExpectations
 end

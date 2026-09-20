@@ -1,0 +1,19 @@
+- selected_assets = local_assigns.fetch(:selected_assets)
+- available_assets = local_assigns.fetch(:available_assets)
+- field_name = local_assigns.fetch(:field_name, 'advertising_order[media_asset_ids][]')
+- show_hint = local_assigns.fetch(:show_hint, true)
+div data-controller='order-media-assets'
+  label.block.text-sm.font-medium for='advertising_order_available_media_asset' = t('advertising_orders.form.clips')
+  - if show_hint
+    p.text-sm.text-base-content/60.mt-1 = t('advertising_orders.form.clips_cycling_hint')
+  .space-y-2.mt-2 data-order-media-assets-target='list'
+    - selected_assets.each do |asset|
+      = render 'advertising_orders/media_asset_row', asset: asset, field_name: field_name
+  .flex.flex-wrap.items-end.gap-2.mt-3
+    select.select.select-bordered.select-sm.w-full.max-w-md#advertising_order_available_media_asset data-order-media-assets-target='availableSelect'
+      option value=''
+      - available_assets.each do |asset|
+        option value=asset.id = advertising_clip_option_label(asset)
+    button.btn.btn-sm.btn-outline type='button' data-action='order-media-assets#add' = t('advertising_orders.form.add_clip')
+  template data-order-media-assets-target='template'
+    = render 'advertising_orders/media_asset_row', asset: nil, field_name: field_name
