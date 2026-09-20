@@ -13,6 +13,28 @@ RSpec.describe AdvertisingOrdersHelper, type: :helper do
     end
   end
 
+  describe "#order_screen_picker_filter_suggestions" do
+    it "collects unique location names, tag names and frequency values from picker screens" do
+      gallery = create(:location, name: "ТЦ Галерея")
+      atrium = create(:location, name: "Атриум")
+      first = create(:screen, station: create(:station, location: gallery))
+      second = create(:screen, station: create(:station, location: atrium))
+      showcase = create(:tag, name: "витрина")
+      hall = create(:tag, name: "холл")
+      create(:screen_tag, screen: first, tag: showcase)
+      create(:screen_tag, screen: first, tag: hall)
+      create(:screen_tag, screen: second, tag: hall)
+      create(:broadcast_portrait, :for_screen, screen: first, block_frequencies_per_hour: [ 1, 4, 6 ])
+      create(:broadcast_portrait, :for_screen, screen: second, block_frequencies_per_hour: [ 4, 12 ])
+
+      expect(helper.order_screen_picker_filter_suggestions([ first, second ])).to eq(
+        locations: [ "Атриум", "ТЦ Галерея" ],
+        tags: [ "витрина", "холл" ],
+        frequencies: [ 1, 4, 6, 12 ]
+      )
+    end
+  end
+
   describe "#order_screen_frequencies_label" do
     it "joins portrait block frequencies for the screen picker" do
       screen = create(:screen)

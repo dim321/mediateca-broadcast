@@ -29,7 +29,7 @@
 #  fk_rails_...  (service_theme_id => service_themes.id) ON DELETE => restrict
 #
 class BroadcastPortrait < ApplicationRecord
-  BLOCK_FREQUENCIES_PER_HOUR = [ 1, 2, 3, 4, 5, 6, 10, 12, 20 ].freeze
+  BLOCK_FREQUENCIES_PER_HOUR = [ 1, 2, 3, 4, 5, 6, 10, 12, 20 , 30].freeze
 
   def self.ransackable_attributes(_auth_object = nil)
     %w[id name kind max_commercial_in_row neutral_min_seconds is_default created_at updated_at screen_id service_theme_id]
@@ -57,7 +57,7 @@ class BroadcastPortrait < ApplicationRecord
   validates :kind, inclusion: { in: %w[cyclic] }
   validates :block_frequencies_per_hour, presence: true
   validates :max_commercial_in_row, numericality: { only_integer: true, greater_than: 0 }
-  validates :neutral_min_seconds, inclusion: { in: [ 5, 10 ] }
+  validates :neutral_min_seconds, inclusion: { in: [0, 5, 10 ] }
   validates :screen_id, uniqueness: true, allow_nil: true
   validates :is_default, uniqueness: { conditions: -> { where(screen_id: nil, is_default: true) } },
     if: -> { is_default? && screen_id.nil? }

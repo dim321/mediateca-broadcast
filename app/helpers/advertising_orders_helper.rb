@@ -130,6 +130,16 @@ module AdvertisingOrdersHelper
     Array(screen&.broadcast_portrait&.block_frequencies_per_hour).join(", ").presence
   end
 
+  def order_screen_picker_filter_suggestions(screens = @order_screens)
+    screens = Array(screens)
+
+    {
+      locations: screens.filter_map { |screen| screen.location&.name }.uniq.sort,
+      tags: screens.flat_map { |screen| screen.tags.map(&:name) }.uniq.sort,
+      frequencies: screens.flat_map { |screen| Array(screen.broadcast_portrait&.block_frequencies_per_hour) }.uniq.sort
+    }
+  end
+
   def order_screen_selected?(screen)
     Array(@selected_screen_ids).include?(screen.id)
   end
