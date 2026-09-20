@@ -62,6 +62,5 @@ module Advertising
       attrs[:clip_title] = first.file.filename.to_s if first.file.attached?
       attrs[:duration_seconds] = first.duration_seconds
     end
-
   end
 end

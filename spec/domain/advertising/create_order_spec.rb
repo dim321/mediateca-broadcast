@@ -44,7 +44,7 @@ RSpec.describe Advertising::CreateOrder do
     b = create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 12)
     c = create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 14)
 
-    order = Advertising::CreateOrder.call(
+    order = described_class.call(
       organization: organization,
       created_by: user,
       media_assets: [ a, b, c ],
@@ -59,7 +59,7 @@ RSpec.describe Advertising::CreateOrder do
 
   it "rejects an empty media_assets list" do
     expect {
-      Advertising::CreateOrder.call(
+      described_class.call(
         organization: organization, created_by: user, media_assets: [], product_name: "X"
       )
     }.to raise_error(Advertising::Error, I18n.t("advertising.errors.clips_required"))
