@@ -45,7 +45,7 @@
     = f.select :shows_per_hour,
         options_for_select(frequency_options, advertising_order.shows_per_hour),
         { include_blank: true },
-        class: 'select select-bordered w-full mt-1',
+        class: 'select select-bordered w-20 mt-1',
         id: 'advertising_order_shows_per_hour',
         disabled: frequency_options.empty?,
         data: { order_grid_target: 'showsPerHour', order_screen_picker_target: 'showsPerHour', action: 'change->order-grid#recompute' }

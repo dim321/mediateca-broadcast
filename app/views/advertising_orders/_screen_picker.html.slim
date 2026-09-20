@@ -11,6 +11,16 @@
     - if @order_screens.empty?
       p.text-sm.text-base-content/60 = t('advertising_orders.form.screen_picker.empty')
     - else
+      - suggestions = order_screen_picker_filter_suggestions
+      datalist#order-screen-filter-locations
+        - suggestions[:locations].each do |name|
+          option value=name
+      datalist#order-screen-filter-tags
+        - suggestions[:tags].each do |name|
+          option value=name
+      datalist#order-screen-filter-frequencies
+        - suggestions[:frequencies].each do |value|
+          option value=value
       .overflow-x-auto
         table.table.table-sm
           thead
@@ -26,11 +36,11 @@
               th
               th
               th
-                input.input.input-xs.input-bordered.w-full type='search' placeholder=t('advertising_orders.form.screen_picker.filter_location') data-order-screen-picker-target='filter' data-filter-key='location' data-action='input->order-screen-picker#filterRows'
+                input.input.input-xs.input-bordered.w-full type='search' list='order-screen-filter-locations' placeholder=t('advertising_orders.form.screen_picker.filter_location') data-order-screen-picker-target='filter' data-filter-key='location' data-action='input->order-screen-picker#filterRows'
               th
-                input.input.input-xs.input-bordered.w-full type='search' placeholder=t('advertising_orders.form.screen_picker.filter_tags') data-order-screen-picker-target='filter' data-filter-key='tags' data-action='input->order-screen-picker#filterRows'
+                input.input.input-xs.input-bordered.w-full type='search' list='order-screen-filter-tags' placeholder=t('advertising_orders.form.screen_picker.filter_tags') data-order-screen-picker-target='filter' data-filter-key='tags' data-action='input->order-screen-picker#filterRows'
               th
-                input.input.input-xs.input-bordered.w-full type='search' placeholder=t('advertising_orders.form.screen_picker.filter_frequencies') data-order-screen-picker-target='filter' data-filter-key='frequenciesLabel' data-action='input->order-screen-picker#filterRows'
+                input.input.input-xs.input-bordered.w-full type='search' list='order-screen-filter-frequencies' placeholder=t('advertising_orders.form.screen_picker.filter_frequencies') data-order-screen-picker-target='filter' data-filter-key='frequenciesLabel' data-action='input->order-screen-picker#filterRows'
               th
                 input.input.input-xs.input-bordered.w-full type='search' placeholder=t('advertising_orders.form.screen_picker.filter_hours') data-order-screen-picker-target='filter' data-filter-key='hoursLabel' data-action='input->order-screen-picker#filterRows'
           tbody
