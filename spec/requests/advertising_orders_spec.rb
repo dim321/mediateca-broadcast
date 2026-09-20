@@ -233,6 +233,10 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
       select = Nokogiri::HTML(response.body).at_css("#advertising_order_shows_per_hour")
       expect(select).to be_present
+
+      classes = select["class"].to_s.split
+      expect(classes).to include("w-20")
+      expect(classes).not_to include("w-full")
       expect(select["disabled"]).to eq("disabled")
       option_values = select.css("option").map { |option| option["value"] }
       expect(option_values).to eq([ "" ])

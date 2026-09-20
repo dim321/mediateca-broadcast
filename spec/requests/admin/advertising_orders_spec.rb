@@ -125,6 +125,10 @@ RSpec.describe "Admin advertising orders", type: :request do
       )
     end
 
+    def datalist_values(document, input)
+      document.css("##{input['list']} option").map { |option| option["value"] }
+    end
+
     def catalog_screen_on_group
       location = create(:location, name: "ТЦ Галерея", operating_hours: AdvertisingNetwork::WEEKLY_HOURS)
       station = create(:station, location: location, name: "Касса 1")
@@ -260,6 +264,21 @@ RSpec.describe "Admin advertising orders", type: :request do
         I18n.t("advertising_orders.form.screen_picker.filter_frequencies"),
         I18n.t("advertising_orders.form.screen_picker.filter_hours")
       )
+    end
+
+    it "offers datalist suggestions from picker rows for location, tags and frequencies" do
+      catalog_screen_on_group
+
+      get new_admin_advertising_order_path, params: { organization_id: client.id }
+
+      document = Nokogiri::HTML(response.body)
+      location_input = document.at_css("input[data-filter-key='location']")
+      tags_input = document.at_css("input[data-filter-key='tags']")
+      frequencies_input = document.at_css("input[data-filter-key='frequenciesLabel']")
+
+      expect(datalist_values(document, location_input)).to include("ТЦ Галерея")
+      expect(datalist_values(document, tags_input)).to include("витрина")
+      expect(datalist_values(document, frequencies_input)).to include("1", "2", "3", "4", "6")
     end
 
     it "does not render coefficient or discount fields on the new form" do
