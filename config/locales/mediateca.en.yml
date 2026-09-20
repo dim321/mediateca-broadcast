@@ -709,6 +709,12 @@ en:
         filter_tags: Tags
         filter_frequencies: Allowed blocks per hour
         filter_hours: Operating hours
+      clips: Clips
+      clips_cycling_hint: Clips rotate through hourly slots; when there are fewer clips than shows per hour, the list cycles from the start.
+      add_clip: Add clip
+      remove_clip: Remove
+      move_up: Up
+      move_down: Down
       shows_per_hour: Shows per hour
       shows_per_hour_from_screens: Select screens first. Only frequencies shared by their portraits are available.
       windows: Day windows
@@ -771,6 +777,7 @@ en:
     replace_clip:
       title: Replace clip
       current_clip: Current clip
+      current_clips: Current clips
       duration_warning: If the new clip has a different duration, the rotation cycle and commercial quota numerator will change.
       submit: Confirm replacement
       confirm: Replace the clip on this active order? Airtime slots will not be recreated.
@@ -958,6 +965,7 @@ en:
         daily_shows: Total shows per day
         media_filename: Media filename
         media_duration: Duration, sec
+        clips: Clips
         content_type: Content type
         content_kind: Content category
         total_shows: Total impressions
@@ -1246,6 +1254,7 @@ en:
       title: Placement order
       document_version: "Document version: %{version}"
       dash: "—"
+      clips: Clips
       duration_seconds:
         one: "%{count} sec"
         other: "%{count} sec"
@@ -1257,6 +1266,10 @@ en:
       client_signature: Client signature
       print_button: Print
     errors:
+      clips_required: at least one clip is required
+      clips_duplicate: each clip may appear only once
+      clip_foreign: clip must belong to the order organization
       clip_not_ready: clip is not broadcast-ready
+      order_clips_not_editable: clips can be updated only on draft or active orders
       order_not_active: clip can be replaced only on an active order
       order_not_draft: clip can be replaced only on a draft order

@@ -30,8 +30,28 @@ RSpec.describe "Advertising order placement", type: :system do
     click_button I18n.t("sessions.new.submit")
   end
 
+  it "activates a prepared draft order without JavaScript" do
+    asset
+    screen = named_screen
+    order = Advertising::CreateOrder.call(
+      organization: organization,
+      created_by: user,
+      media_assets: [ asset ],
+      product_name: "Triumph"
+    )
+    fill_order_grid!(order, screen: screen, dates: [ Date.new(2026, 6, 3) ])
+    sign_in_through_ui
+
+    visit advertising_order_path(order)
+    click_button I18n.t("advertising_orders.show.activate")
+
+    expect(page).to have_content(I18n.t("advertising_orders.activate.activated"))
+    expect(order.reload).to be_active
+    expect(MediaPlan.active.count).to be >= 1
+  end
+
   # rubocop:disable RSpec/ExampleLength, RSpec/MultipleExpectations -- one end-to-end journey
-  it "lets a manager create a draft grid and activate it" do
+  it "lets a manager create a draft grid and activate it", :js do
     asset
     screen = named_screen
     sign_in_through_ui
@@ -40,7 +60,8 @@ RSpec.describe "Advertising order placement", type: :system do
     click_link I18n.t("advertising_orders.index.new_order")
 
     visit new_advertising_order_path(grid_from: "2026-06-03", grid_to: "2026-06-05")
-    select "1x1.png", from: "advertising_order_media_asset_id"
+    select "1x1.png (10s)", from: "advertising_order_available_media_asset"
+    click_button I18n.t("advertising_orders.form.add_clip")
     check "order_screen_#{screen.id}"
     click_button I18n.t("advertising_orders.form.submit")
     expect(page).to have_content(AdvertisingOrder.human_attribute_name(:product_name))
@@ -159,6 +180,28 @@ RSpec.describe "Advertising order placement", type: :system do
       expect(find("[data-order-grid-target='total']").value).to eq("12")
     end
     expect(find("[data-order-grid-target='grandTotal']").value).to eq("12")
+  end
+
+  it "lets a manager add multiple clips before creating a draft", :js do
+    first_clip = asset
+    second_clip = create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 12)
+    second_clip.file.blob.update!(filename: "triumph-b.png")
+    screen = named_screen
+    sign_in_through_ui
+
+    visit new_advertising_order_path(grid_from: "2026-06-03", grid_to: "2026-06-03")
+    select "1x1.png (10s)", from: "advertising_order_available_media_asset"
+    click_button I18n.t("advertising_orders.form.add_clip")
+    select "triumph-b.png (12s)", from: "advertising_order_available_media_asset"
+    click_button I18n.t("advertising_orders.form.add_clip")
+    check "order_screen_#{screen.id}"
+    fill_in AdvertisingOrder.human_attribute_name(:product_name), with: "Triumph Duo"
+    select "3", from: "advertising_order_shows_per_hour"
+    click_button I18n.t("advertising_orders.form.submit")
+
+    expect(page).to have_content(I18n.t("advertising_orders.create.created"))
+    order = AdvertisingOrder.last
+    expect(order.rotation.ordered_items.map(&:media_asset)).to eq([ first_clip, second_clip ])
   end
 
   it "splits chess distribution independently inside each month", :js do

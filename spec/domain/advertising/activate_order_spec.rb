@@ -10,7 +10,7 @@ RSpec.describe Advertising::ActivateOrder do
     Advertising::CreateOrder.call(
       organization: organization,
       created_by: user,
-      media_asset: asset,
+      media_assets: [ asset ],
       product_name: "Triumph",
       shows_per_hour: 3
     )
@@ -27,7 +27,7 @@ RSpec.describe Advertising::ActivateOrder do
     other = Advertising::CreateOrder.call(
       organization: organization,
       created_by: user,
-      media_asset: asset,
+      media_assets: [ asset ],
       product_name: "Other",
       shows_per_hour: 3
     )
@@ -145,7 +145,7 @@ RSpec.describe Advertising::ActivateOrder do
     commercial = Advertising::CreateOrder.call(
       organization: organization,
       created_by: user,
-      media_asset: long_clip,
+      media_assets: [ long_clip ],
       product_name: "Triumph",
       placement_kind: :commercial,
       shows_per_hour: 3
@@ -190,7 +190,7 @@ RSpec.describe Advertising::ActivateOrder do
       other = Advertising::CreateOrder.call(
         organization: organization,
         created_by: user,
-        media_asset: asset,
+        media_assets: [ asset ],
         product_name: "Other",
         shows_per_hour: 3
       )

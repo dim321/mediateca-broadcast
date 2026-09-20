@@ -2,10 +2,11 @@
 
 module Advertising
   class CreateOrder < BaseService
+    include ValidatesMediaAssets
     def initialize(
       organization:,
       created_by:,
-      media_asset:,
+      media_assets:,
       product_name:,
       placement_kind: :own_atmosphere,
       shows_per_hour: nil,
@@ -15,7 +16,7 @@ module Advertising
     )
       @organization = organization
       @created_by = created_by
-      @media_asset = media_asset
+      @media_assets = Array(media_assets)
       @product_name = product_name
       @placement_kind = placement_kind
       @shows_per_hour = shows_per_hour
@@ -25,18 +26,22 @@ module Advertising
     end
 
     def call
+      validate_media_assets!(media_assets, organization: organization)
+
       AdvertisingOrder.transaction do
         rotation = organization.rotations.create!(
           name: "order-#{SecureRandom.uuid}",
           system_managed: true
         )
-        rotation.rotation_items.create!(
-          media_asset: media_asset,
-          display_duration_seconds: media_asset.duration_seconds
-        )
+        media_assets.each do |asset|
+          rotation.rotation_items.create!(
+            media_asset: asset,
+            display_duration_seconds: asset.duration_seconds
+          )
+        end
         order = organization.advertising_orders.create!(
           created_by: created_by,
-          media_asset: media_asset,
+          media_asset: nil,
           rotation: rotation,
           product_name: product_name,
           placement_kind: placement_kind,
@@ -52,7 +57,7 @@ module Advertising
 
     private
 
-    attr_reader :organization, :created_by, :media_asset, :product_name, :placement_kind,
+    attr_reader :organization, :created_by, :media_assets, :product_name, :placement_kind,
       :shows_per_hour, :distribution_strategy, :coefficient_percent, :discount_cents
   end
 end

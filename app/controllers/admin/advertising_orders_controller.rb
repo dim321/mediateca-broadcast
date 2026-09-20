@@ -27,8 +27,8 @@ module Admin
 
     def create
       @form_organization = selected_organization
-      asset = find_media_asset
-      unless asset
+      media_assets = find_media_assets
+      if media_assets.empty?
         @advertising_order = AdvertisingOrder.new(organization: @form_organization)
         @advertising_order.errors.add(:media_asset, :blank)
         return render_form_failure(:new)
@@ -37,7 +37,7 @@ module Admin
       @advertising_order = Advertising::CreateOrder.call(
         organization: @form_organization,
         created_by: Current.user,
-        media_asset: asset,
+        media_assets: media_assets,
         product_name: order_params[:product_name],
         placement_kind: order_params[:placement_kind].presence || :own_atmosphere,
         shows_per_hour: order_header_shows_per_hour,
@@ -49,6 +49,10 @@ module Admin
       @advertising_order = e.order
       @form_organization = @advertising_order.organization
       render_form_failure(:edit)
+    rescue Advertising::Error => e
+      @advertising_order ||= AdvertisingOrder.new(organization: @form_organization)
+      @advertising_order.errors.add(:media_asset, e.message)
+      render_form_failure(:new)
     rescue ActiveRecord::RecordInvalid => e
       @advertising_order = e.record if e.record.is_a?(AdvertisingOrder)
       @advertising_order ||= AdvertisingOrder.new(organization: @form_organization)
@@ -64,12 +68,19 @@ module Admin
     def update
       @advertising_order = find_order
       @form_organization = @advertising_order.organization
-      replacement = draft_media_asset
+      clip_media_assets = find_media_assets if clip_ids_submitted?
       AdvertisingOrder.transaction do
         @advertising_order.update!(header_update_attrs)
-        Advertising::ReplaceDraftClip.call(order: @advertising_order, media_asset: replacement) if replacement
+        if clip_media_assets
+          Advertising::UpdateOrderClips.call(
+            order: @advertising_order,
+            media_assets: clip_media_assets,
+            enqueue_regen: false
+          )
+        end
         persist_grid!(@advertising_order)
       end
+      Advertising::UpdateOrderClips.enqueue_regen_for(@advertising_order) if clip_media_assets && @advertising_order.active?
       redirect_to admin_advertising_order_path(@advertising_order), notice: t("advertising_orders.update.updated")
     rescue Advertising::InvalidGrid => e
       @advertising_order = e.order
@@ -109,6 +120,7 @@ module Admin
         :organization,
         :created_by,
         :advertising_order_windows,
+        { rotation: { rotation_items: { media_asset: { file_attachment: :blob } } } },
         advertising_order_lines: [ :screen, :advertising_order_line_days ],
         media_asset: [ { file_attachment: :blob } ]
       ).find(params[:id])
@@ -140,20 +152,12 @@ module Admin
       }.compact
     end
 
-    def find_media_asset
-      return if @form_organization.blank?
-
-      @form_organization.media_assets.find_by(id: order_params[:media_asset_id])
+    def media_assets_ready_scope
+      @form_organization.media_assets.ready
     end
 
-    def draft_media_asset
-      return unless @advertising_order.draft? && order_params[:media_asset_id].present?
-
-      @form_organization.media_assets.ready.with_attached_file.find_by(
-        id: order_params[:media_asset_id]
-      ).tap do |asset|
-        raise Advertising::Error, I18n.t("advertising.errors.clip_not_ready") unless asset
-      end
+    def media_assets_organization
+      @form_organization
     end
 
     def prepare_form
@@ -171,6 +175,7 @@ module Admin
         :organization_id,
         :product_name,
         :media_asset_id,
+        { media_asset_ids: [] },
         :placement_kind,
         :shows_per_hour,
         :distribution_strategy,

@@ -715,6 +715,12 @@ ru:
         filter_tags: Теги
         filter_frequencies: Количество показов в час
         filter_hours: Часы работы
+      clips: Ролики
+      clips_cycling_hint: Ролики по очереди заполняют слоты в часе; при меньшем числе роликов, чем показов в час, список повторяется с начала.
+      add_clip: Добавить ролик
+      remove_clip: Удалить
+      move_up: Вверх
+      move_down: Вниз
       shows_per_hour: Показов в час
       shows_per_hour_from_screens: Сначала отметьте экраны. Доступны только общие частоты их портретов.
       windows: Интервалы показа
@@ -779,6 +785,7 @@ ru:
     replace_clip:
       title: Замена ролика
       current_clip: Текущий ролик
+      current_clips: Текущие ролики
       duration_warning: Если хронометраж нового ролика отличается, изменятся цикл ротации и числитель коммерческой квоты.
       submit: Подтвердить замену
       confirm: Заменить ролик в активном заказе? Слоты эфира не пересоздаются.
@@ -968,6 +975,7 @@ ru:
         daily_shows: Суммарное количество показов в день
         media_filename: Имя медиафайла
         media_duration: Длительность, с
+        clips: Ролики
         content_type: Тип контента
         content_kind: Категория контента
         total_shows: Общее количество показов
@@ -1251,6 +1259,7 @@ ru:
       title: Заказ на размещение
       document_version: "Версия документа: %{version}"
       dash: "—"
+      clips: Ролики
       duration_seconds:
         one: "%{count} сек"
         few: "%{count} сек"
@@ -1264,6 +1273,10 @@ ru:
       client_signature: Подпись заказчика
       print_button: Печать
     errors:
+      clips_required: укажите хотя бы один ролик
+      clips_duplicate: каждый ролик может быть указан только один раз
+      clip_foreign: ролик должен принадлежать организации заказа
       clip_not_ready: ролик не готов к эфиру
+      order_clips_not_editable: ролики можно менять только в черновике или активном заказе
       order_not_active: заменить ролик можно только в активном заказе
       order_not_draft: заменить ролик можно только в черновике

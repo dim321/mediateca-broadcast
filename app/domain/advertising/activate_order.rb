@@ -11,7 +11,7 @@ module Advertising
     end
 
     def call
-      raise Error, I18n.t("advertising.errors.clip_not_ready") unless order.media_asset.reload.broadcast_ready?
+      raise Error, I18n.t("advertising.errors.clip_not_ready") unless clips_broadcast_ready?
 
       occupied = []
       conflicted = []
@@ -78,6 +78,11 @@ module Advertising
 
     def time_zone
       order.organization.time_zone
+    end
+
+    def clips_broadcast_ready?
+      items = order.rotation.rotation_items.includes(:media_asset)
+      items.any? && items.all? { |item| item.media_asset.reload.broadcast_ready? }
     end
   end
 end

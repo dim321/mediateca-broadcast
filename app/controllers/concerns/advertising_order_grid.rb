@@ -194,4 +194,39 @@ module AdvertisingOrderGrid
   def order_header_shows_per_hour
     order_params[:shows_per_hour].presence&.to_i
   end
+
+  def submitted_media_asset_ids
+    ids = Array(order_params[:media_asset_ids]).map(&:presence).compact
+    return ids if ids.any?
+
+    [ order_params[:media_asset_id].presence ].compact
+  end
+
+  def clip_ids_submitted?
+    ids = Array(order_params[:media_asset_ids]).map(&:presence).compact
+    return true if ids.any?
+
+    @advertising_order&.draft? && order_params[:media_asset_id].present?
+  end
+
+  def find_media_assets
+    find_ordered_media_assets(submitted_media_asset_ids)
+  end
+
+  def find_ordered_media_assets(ids)
+    ids = Array(ids).map(&:presence).compact
+    return [] if ids.empty?
+
+    assets_by_id = media_assets_ready_scope.where(id: ids).index_by { |asset| asset.id.to_s }
+    ids.map do |id|
+      assets_by_id[id.to_s] || resolve_missing_media_asset(id)
+    end
+  end
+
+  def resolve_missing_media_asset(id)
+    asset = media_assets_organization.media_assets.find_by(id: id)
+    raise Advertising::Error, I18n.t("advertising.errors.clip_not_ready") if asset
+
+    raise Advertising::Error, I18n.t("advertising.errors.clip_foreign")
+  end
 end
