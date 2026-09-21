@@ -221,7 +221,10 @@ RSpec.describe "AdvertisingOrders", type: :request do
         "advertising_order[screen_ids][]",
         'name="advertising_order[shows_per_hour]"',
         "advertising_order[windows]",
-        I18n.t("advertising_orders.form.add_window")
+        I18n.t("advertising_orders.form.add_window"),
+        "order-grid#startSelection",
+        "order-grid#selectionKeydown:capture",
+        I18n.t("advertising_orders.form.grid_legend.select_days")
       )
       expect(response.body).not_to match(/input[^>]*name="advertising_order\[shows_per_hour\]"[^>]*type="number"/)
       expect(response.body).not_to include("broadcast_point_group_id")
@@ -317,6 +320,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
       expect(response.body).to include(I18n.t("advertising_orders.form.clips"))
       expect(response.body).to include('data-controller="order-media-assets"')
+      expect(response.body).to include('name="advertising_order[media_asset_ids][]"')
       expect(response.body).not_to include('id="advertising_order_media_asset_id"')
     end
 

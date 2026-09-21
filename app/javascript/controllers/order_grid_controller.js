@@ -1,10 +1,91 @@
 import { Controller } from "@hotwired/stimulus"
 
+const SELECTED_CELL_CLASSES = ["ring-2", "ring-primary", "ring-inset"]
+const ZERO_SELECTION_KEYS = new Set(["0", "x", "X", " ", "Space", "Spacebar"])
+
 export default class extends Controller {
-  static targets = ["cell", "skipped", "showsPerHour", "distributionStrategy", "windowStart", "windowEnd", "lineRow", "lines", "total", "grandTotal"]
+  static targets = ["cell", "skipped", "showsPerHour", "distributionStrategy", "windowStart", "windowEnd", "lineRow", "lines", "total", "grandTotal", "marquee"]
+  static values = { selectionThreshold: { type: Number, default: 4 } }
+
+  initialize() {
+    this.selectedCells = new Set()
+    this.selectionSnapshot = new Set()
+  }
 
   connect() {
     this.recompute()
+  }
+
+  disconnect() {
+    this.clearClickGuard()
+    this.stopSelecting()
+    this.clearSelection()
+  }
+
+  cellTargetDisconnected(cell) {
+    this.selectedCells.delete(cell)
+    this.selectionSnapshot.delete(cell)
+  }
+
+  startSelection(event) {
+    if (!this.isPrimaryMouse(event)) return
+
+    const cell = this.cellFromEvent(event)
+    if (!cell) {
+      if (!event.shiftKey) this.clearSelection()
+      return
+    }
+
+    this.stopSelecting()
+    this.selecting = true
+    this.pointerId = event.pointerId
+    this.selectionOrigin = { x: event.clientX, y: event.clientY }
+    this.selectionAdditive = event.shiftKey
+    this.selectionSnapshot = this.selectionAdditive ? new Set(this.selectedCells) : new Set()
+    this.selectionDragged = false
+    this.selectionAnchor = cell
+    this.lastSelectionPoint = { x: event.clientX, y: event.clientY }
+    cell.focus({ preventScroll: true })
+  }
+
+  moveSelection(event) {
+    if (!this.selecting || event.pointerId !== this.pointerId) return
+
+    this.lastSelectionPoint = { x: event.clientX, y: event.clientY }
+    if (this.selectionFrame) return
+
+    this.selectionFrame = requestAnimationFrame(() => this.flushSelectionMove())
+  }
+
+  endSelection(event) {
+    if (!this.selecting || event.pointerId !== this.pointerId) return
+
+    this.flushSelectionMove()
+    if (!this.selectionDragged && this.selectionAnchor) {
+      if (this.selectionAdditive) this.toggleSelected(this.selectionAnchor)
+      else this.replaceSelection([ this.selectionAnchor ])
+    }
+    if (this.selectionDragged) this.suppressClickAfterDrag()
+    this.stopSelecting()
+  }
+
+  cancelSelection(event) {
+    if (!this.selecting) return
+    if (event && event.pointerId !== this.pointerId) return
+
+    this.replaceSelection([ ...this.selectionSnapshot ])
+    this.stopSelecting()
+  }
+
+  selectionKeydown(event) {
+    if (event.defaultPrevented || event.repeat) return
+    if (event.altKey || event.ctrlKey || event.metaKey) return
+    if (!this.isZeroSelectionKey(event)) return
+    if (this.selectedCells.size === 0) return
+    if (this.isTypingField(event.target)) return
+
+    event.preventDefault()
+    this.zeroSelectedCells()
   }
 
   recompute() {
@@ -161,5 +242,178 @@ export default class extends Controller {
 
   weekend(date) {
     return date.getUTCDay() === 0 || date.getUTCDay() === 6
+  }
+
+  flushSelectionMove() {
+    if (this.selectionFrame) {
+      cancelAnimationFrame(this.selectionFrame)
+      this.selectionFrame = null
+    }
+    if (!this.selecting || !this.lastSelectionPoint || !this.selectionOrigin) return
+
+    const { x, y } = this.lastSelectionPoint
+    if (!this.selectionDragged) {
+      const dx = x - this.selectionOrigin.x
+      const dy = y - this.selectionOrigin.y
+      if ((dx * dx) + (dy * dy) < this.selectionThresholdValue ** 2) return
+
+      this.selectionDragged = true
+      document.documentElement.classList.add("select-none")
+      window.getSelection()?.removeAllRanges()
+    }
+
+    this.updateMarquee(x, y)
+    this.applyRectSelection(x, y)
+  }
+
+  applyRectSelection(x, y) {
+    const cells = this.cellsInRect(this.selectionRect(x, y))
+    if (this.selectionAdditive) {
+      this.replaceSelection([ ...this.selectionSnapshot, ...cells ])
+    } else {
+      this.replaceSelection(cells)
+    }
+  }
+
+  toggleSelected(cell) {
+    const next = new Set(this.selectedCells)
+    if (next.has(cell)) next.delete(cell)
+    else next.add(cell)
+    this.replaceSelection([ ...next ])
+  }
+
+  replaceSelection(cells) {
+    const next = new Set(cells.filter((cell) => this.cellTargets.includes(cell)))
+
+    this.selectedCells.forEach((cell) => {
+      if (!next.has(cell)) this.setCellSelected(cell, false)
+    })
+    next.forEach((cell) => {
+      if (!this.selectedCells.has(cell)) this.setCellSelected(cell, true)
+    })
+    this.selectedCells = next
+  }
+
+  clearSelection() {
+    this.replaceSelection([])
+  }
+
+  setCellSelected(cell, selected) {
+    const container = cell.closest("td") || cell
+    SELECTED_CELL_CLASSES.forEach((name) => container.classList.toggle(name, selected))
+    if (selected) cell.setAttribute("aria-selected", "true")
+    else cell.removeAttribute("aria-selected")
+  }
+
+  zeroSelectedCells() {
+    this.selectedCells.forEach((cell) => {
+      cell.value = "0"
+      this.cellChanged({ target: cell })
+    })
+  }
+
+  cellsInRect(rect) {
+    return this.cellTargets.filter((cell) => {
+      if (cell.disabled) return false
+
+      const box = cell.getBoundingClientRect()
+      return box.width > 0 && box.height > 0 && this.rectsIntersect(rect, box)
+    })
+  }
+
+  selectionRect(x, y) {
+    return {
+      left: Math.min(this.selectionOrigin.x, x),
+      top: Math.min(this.selectionOrigin.y, y),
+      right: Math.max(this.selectionOrigin.x, x),
+      bottom: Math.max(this.selectionOrigin.y, y)
+    }
+  }
+
+  rectsIntersect(a, b) {
+    return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top
+  }
+
+  updateMarquee(x, y) {
+    if (!this.hasMarqueeTarget || !this.selectionOrigin) return
+
+    const rect = this.selectionRect(x, y)
+    this.marqueeTarget.style.left = `${rect.left}px`
+    this.marqueeTarget.style.top = `${rect.top}px`
+    this.marqueeTarget.style.width = `${Math.max(1, rect.right - rect.left)}px`
+    this.marqueeTarget.style.height = `${Math.max(1, rect.bottom - rect.top)}px`
+    this.marqueeTarget.classList.remove("hidden")
+  }
+
+  hideMarquee() {
+    if (!this.hasMarqueeTarget) return
+
+    this.marqueeTarget.classList.add("hidden")
+    this.marqueeTarget.style.width = "0px"
+    this.marqueeTarget.style.height = "0px"
+  }
+
+  stopSelecting() {
+    if (this.selectionFrame) {
+      cancelAnimationFrame(this.selectionFrame)
+      this.selectionFrame = null
+    }
+    document.documentElement.classList.remove("select-none")
+    this.hideMarquee()
+    this.selecting = false
+    this.selectionDragged = false
+    this.pointerId = null
+    this.selectionOrigin = null
+    this.selectionAnchor = null
+    this.lastSelectionPoint = null
+    this.selectionSnapshot = new Set()
+  }
+
+  suppressClickAfterDrag() {
+    if (this.clickGuard) return
+
+    this.clickGuard = (event) => {
+      event.preventDefault()
+      event.stopPropagation()
+      this.clearClickGuard()
+    }
+    document.addEventListener("click", this.clickGuard, { capture: true })
+  }
+
+  clearClickGuard() {
+    if (!this.clickGuard) return
+
+    document.removeEventListener("click", this.clickGuard, { capture: true })
+    this.clickGuard = null
+  }
+
+  cellFromEvent(event) {
+    const node = event.target
+    if (!(node instanceof Element)) return null
+
+    const cell = node.closest('[data-order-grid-target="cell"]')
+      || node.closest("td")?.querySelector('[data-order-grid-target="cell"]')
+    if (!cell || !this.cellTargets.includes(cell)) return null
+
+    return cell
+  }
+
+  isPrimaryMouse(event) {
+    return event.pointerType === "mouse" && event.button === 0 && event.isPrimary !== false
+  }
+
+  isZeroSelectionKey(event) {
+    return ZERO_SELECTION_KEYS.has(event.key) || event.code === "Space" || event.code === "Digit0" || event.code === "KeyX"
+  }
+
+  isTypingField(node) {
+    if (!(node instanceof HTMLElement)) return false
+    if (this.cellTargets.includes(node)) return false
+    if (node.isContentEditable) return true
+    if (node.tagName === "TEXTAREA") return true
+    if (node.tagName !== "INPUT") return false
+
+    const type = (node.type || "text").toLowerCase()
+    return [ "text", "search", "email", "password", "tel", "url", "date", "datetime-local", "time" ].includes(type)
   }
 }

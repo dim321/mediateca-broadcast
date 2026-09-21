@@ -740,6 +740,7 @@ en:
       grid_legend:
         with_shows: Has shows
         without_shows: No shows
+        select_days: Drag a box or Shift-click days, then press 0, X, or Space to clear shows
     line_fields:
       price_per_day_rubles: Price per day, ₽
       total_shows: Total

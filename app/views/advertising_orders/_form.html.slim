@@ -4,7 +4,7 @@
 - show_picker = local_assigns.fetch(:show_screen_picker, false)
 - stimulus_controllers = ['order-grid', 'order-windows']
 - stimulus_controllers << 'order-screen-picker' if show_picker
-- form_data = { controller: stimulus_controllers.join(' '), action: 'order-grid:recompute->order-grid#recompute order-screen-picker:recompute->order-windows#updateAutomaticWindow' }
+- form_data = { controller: stimulus_controllers.join(' '), action: 'order-grid:recompute->order-grid#recompute order-screen-picker:recompute->order-windows#updateAutomaticWindow pointerdown->order-grid#startSelection pointermove@window->order-grid#moveSelection pointerup@window->order-grid#endSelection pointercancel@window->order-grid#cancelSelection keydown@window->order-grid#selectionKeydown:capture' }
 = form_with model: advertising_order, url: local_assigns[:form_url], class: 'space-y-6', data: form_data do |f|
   = hidden_field_tag :grid_from, @grid_dates.first
   = hidden_field_tag :grid_to, @grid_dates.last
@@ -85,6 +85,7 @@
         span.inline-flex.items-center.gap-2
           span.h-3.w-3.rounded-sm.bg-base-200.border.border-base-300
           = t('.grid_legend.without_shows')
+        span = t('.grid_legend.select_days')
       - grid_months = advertising_grid_months(@grid_dates)
       - grid_rows = advertising_order.advertising_order_lines.select(&:screen_id)
       - grid_months.each_with_index do |(month, dates), index|
@@ -99,3 +100,4 @@
   .flex.gap-3
     = f.submit t('.submit'), class: 'btn btn-primary btn-sm'
     = link_to t('.cancel'), cancel_url, class: 'btn btn-ghost btn-sm'
+  .hidden.fixed.z-50.pointer-events-none.border.border-dashed.border-primary.bg-primary/20 aria-hidden='true' data-order-grid-target='marquee'
