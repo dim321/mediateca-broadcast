@@ -5,6 +5,15 @@ export default class extends Controller {
 
   connect() {
     this.refreshRemoveButtons()
+    this.form = this.element.closest("form")
+    if (this.form) {
+      this.boundEnsureClip = this.ensureClip.bind(this)
+      this.form.addEventListener("submit", this.boundEnsureClip, true)
+    }
+  }
+
+  disconnect() {
+    this.form?.removeEventListener("submit", this.boundEnsureClip, true)
   }
 
   add(event) {
@@ -12,6 +21,19 @@ export default class extends Controller {
     const option = this.availableSelectTarget.selectedOptions[0]
     if (!option?.value) return
 
+    this.appendClip(option)
+  }
+
+  ensureClip() {
+    if (this.inputTargets.some((input) => input.value)) return
+
+    const option = this.availableSelectTarget.selectedOptions[0]
+    if (!option?.value) return
+
+    this.appendClip(option)
+  }
+
+  appendClip(option) {
     const fragment = this.templateTarget.content.cloneNode(true)
     const row = fragment.querySelector("[data-order-media-assets-target='row']")
     const input = row.querySelector("[data-order-media-assets-target='input']")

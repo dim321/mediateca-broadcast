@@ -746,6 +746,7 @@ ru:
       grid_legend:
         with_shows: Есть показы
         without_shows: Нет показов
+        select_days: Выделите дни рамкой мыши или Shift+клик, затем 0 / X / пробел — обнулить показы
     line_fields:
       price_per_day_rubles: Цена за день, ₽
       total_shows: Итого

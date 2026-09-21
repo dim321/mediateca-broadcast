@@ -10,7 +10,7 @@ div data-controller='order-media-assets'
     - selected_assets.each do |asset|
       = render 'advertising_orders/media_asset_row', asset: asset, field_name: field_name
   .flex.flex-wrap.items-end.gap-2.mt-3
-    select.select.select-bordered.select-sm.w-full.max-w-md#advertising_order_available_media_asset data-order-media-assets-target='availableSelect'
+    select.select.select-bordered.select-sm.w-full.max-w-md#advertising_order_available_media_asset name=field_name data-order-media-assets-target='availableSelect'
       option value=''
       - available_assets.each do |asset|
         option value=asset.id = advertising_clip_option_label(asset)

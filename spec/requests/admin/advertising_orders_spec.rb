@@ -157,7 +157,10 @@ RSpec.describe "Admin advertising orders", type: :request do
         'name="advertising_order[screen_ids][]"',
         'name="advertising_order[shows_per_hour]"',
         "advertising_order[windows]",
-        I18n.t("advertising_orders.form.add_window")
+        I18n.t("advertising_orders.form.add_window"),
+        "order-grid#startSelection",
+        "order-grid#selectionKeydown:capture",
+        I18n.t("advertising_orders.form.grid_legend.select_days")
       )
       expect(body).not_to match(/input[^>]*name="advertising_order\[shows_per_hour\]"[^>]*type="number"/)
       expect(body).not_to include("broadcast_point_group_id")
@@ -221,6 +224,7 @@ RSpec.describe "Admin advertising orders", type: :request do
       expect([ product, placement, available, option ]).to all(be_present)
       expect(product.parent.parent["class"]).to include("grid")
       expect(document.at_css("[data-controller='order-media-assets']")).to be_present
+      expect(available["name"]).to eq("advertising_order[media_asset_ids][]")
       expect(document.css('[data-order-media-assets-target="list"] input[name="advertising_order[media_asset_ids][]"]')).to be_empty
       expect(document.text).to include(I18n.t("advertising_orders.form.clips"))
       expect(document.text).to include(I18n.t("advertising_orders.form.clips_cycling_hint"))
