@@ -462,6 +462,7 @@ ru:
         commercial_quota_period: Период квоты
         name: Название
       location:
+        address: Адрес
         name: Название
         operating_hours: Часы работы
         time_zone: Часовой пояс
@@ -768,7 +769,7 @@ ru:
       title: "Заказ — %{product}"
       document_version: "Версия документа: %{version}"
     create:
-      created: Заказ сохранён.
+      created: "Создан новый заказ (%{name}) в статусе черновик, для активации заказа требуется пройти модерацию траффик-менеджера"
     update:
       updated: Заказ обновлён.
     destroy:

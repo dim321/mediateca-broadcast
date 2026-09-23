@@ -5,6 +5,7 @@
 # Table name: locations
 #
 #  id              :bigint           not null, primary key
+#  address         :string           not null
 #  name            :string           not null
 #  operating_hours :jsonb            not null
 #  time_zone       :string           default("UTC"), not null
@@ -18,6 +19,7 @@
 FactoryBot.define do
   factory :location do
     sequence(:name) { |n| "Location #{n}" }
+    address { "ул. Ленина, 1" }
     time_zone { "UTC" }
   end
 end

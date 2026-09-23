@@ -130,7 +130,12 @@ RSpec.describe "Admin advertising orders", type: :request do
     end
 
     def catalog_screen_on_group
-      location = create(:location, name: "ТЦ Галерея", operating_hours: AdvertisingNetwork::WEEKLY_HOURS)
+      location = create(
+        :location,
+        name: "ТЦ Галерея",
+        address: "ул. Красной Армии, 10",
+        operating_hours: AdvertisingNetwork::WEEKLY_HOURS
+      )
       station = create(:station, location: location, name: "Касса 1")
       screen = create(:screen, station: station, name: "Экран витрины", owner_organization: client)
       create(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen)
@@ -259,10 +264,18 @@ RSpec.describe "Admin advertising orders", type: :request do
       text = table.text
       headers = table.css("thead tr").first.css("th").map { |th| th.text.strip }
 
-      expect(text).to include(screen.name, "ТЦ Галерея", "витрина", "1, 2, 3, 4, 6", "09:00")
-      expect(text).not_to include("Касса 1", "Цикл 4/час")
+      expect(text).to include("ТЦ Галерея", "ул. Красной Армии, 10", "витрина", "1, 2, 3, 4, 6", "09:00")
+      expect(text).not_to include(screen.name, "Касса 1", "Цикл 4/час")
+      expect(headers.values_at(1, 2)).to eq([
+        Location.model_name.human,
+        Location.human_attribute_name(:address)
+      ])
       expect(headers).to include(BroadcastPortrait.human_attribute_name(:block_frequencies_per_hour))
-      expect(headers).not_to include(Station.model_name.human, BroadcastPortrait.model_name.human)
+      expect(headers).not_to include(
+        Screen.human_attribute_name(:name),
+        Station.model_name.human,
+        BroadcastPortrait.model_name.human
+      )
       expect(response.body).to include(
         I18n.t("advertising_orders.form.screen_picker.filter_location"),
         I18n.t("advertising_orders.form.screen_picker.filter_frequencies"),

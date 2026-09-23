@@ -458,6 +458,7 @@ en:
         commercial_quota_period: Quota period
         name: Name
       location:
+        address: Address
         name: Name
         operating_hours: Operating hours
         time_zone: Time zone
@@ -762,7 +763,7 @@ en:
       title: "Order — %{product}"
       document_version: "Document version: %{version}"
     create:
-      created: Order saved.
+      created: "A new order (%{name}) was created as a draft. Traffic-manager moderation is required before the order can be activated."
     update:
       updated: Order updated.
     destroy:

@@ -47,7 +47,8 @@ class AdvertisingOrdersController < ApplicationController
       distribution_strategy: order_params[:distribution_strategy].presence || :linear
     )
     persist_grid!(@advertising_order)
-    redirect_to @advertising_order, notice: t(".created")
+    notify_draft_created(@advertising_order)
+    redirect_to @advertising_order, notice: t(".created", name: @advertising_order.product_name)
   rescue Advertising::InvalidGrid => e
     @advertising_order = e.order
     render_form_failure(:edit)
@@ -151,6 +152,12 @@ class AdvertisingOrdersController < ApplicationController
     return if Current.user
 
     redirect_to login_path, alert: t("media_assets.authentication_required")
+  end
+
+  def notify_draft_created(order)
+    return unless order.draft?
+
+    AdvertisingOrderMailer.draft_created(order).deliver_later
   end
 
   def set_advertising_order

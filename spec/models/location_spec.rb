@@ -7,6 +7,7 @@ require "rails_helper"
 # Table name: locations
 #
 #  id              :bigint           not null, primary key
+#  address         :string           not null
 #  name            :string           not null
 #  operating_hours :jsonb            not null
 #  time_zone       :string           default("UTC"), not null
@@ -18,6 +19,12 @@ require "rails_helper"
 #  index_locations_on_name  (name) UNIQUE
 #
 RSpec.describe Location, type: :model do
+  describe "address" do
+    it "requires an address" do
+      expect(build(:location, address: "")).not_to be_valid
+    end
+  end
+
   describe "time_zone" do
     it "requires time_zone" do
       expect(build(:location, time_zone: "")).not_to be_valid

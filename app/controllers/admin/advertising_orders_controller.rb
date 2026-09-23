@@ -44,7 +44,8 @@ module Admin
         distribution_strategy: order_params[:distribution_strategy].presence || :linear
       )
       persist_grid!(@advertising_order)
-      redirect_to admin_advertising_order_path(@advertising_order), notice: t("advertising_orders.create.created")
+      redirect_to admin_advertising_order_path(@advertising_order),
+        notice: t("advertising_orders.create.created", name: @advertising_order.product_name)
     rescue Advertising::InvalidGrid => e
       @advertising_order = e.order
       @form_organization = @advertising_order.organization
