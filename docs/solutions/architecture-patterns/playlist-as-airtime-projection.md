@@ -1,7 +1,7 @@
 ---
 title: Playlist as Airtime Projection
 date: 2026-09-02
-last_updated: 2026-09-04
+last_updated: 2026-09-22
 category: architecture-patterns
 module: playlists
 problem_type: architecture_pattern
@@ -176,6 +176,7 @@ Apply this guidance when:
 
 ## Related
 
+- How orders become the occupying plans this generator reads, and how several clients share an hour (beat grid): `docs/solutions/architecture-patterns/playlist-from-advertising-orders.md`
 - Slot pattern: `docs/solutions/architecture-patterns/media-plan-as-airtime-slot.md`
 - Plan: `docs/plans/2026-09-02-001-feat-broadcast-portrait-playlist-plan.md`
 - MVP1 rename Playlist → Rotation: `docs/plans/2026-08-01-001-feat-broadcast-hub-mvp1-plan.md`

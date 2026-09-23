@@ -42,6 +42,7 @@ Patterns:
 
 - `docs/solutions/architecture-patterns/media-plan-as-airtime-slot.md`
 - `docs/solutions/architecture-patterns/playlist-as-airtime-projection.md`
+- `docs/solutions/architecture-patterns/playlist-from-advertising-orders.md`
 
 ## Invariants
 
