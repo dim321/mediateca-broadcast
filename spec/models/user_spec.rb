@@ -100,6 +100,25 @@ RSpec.describe User, type: :model do
     end
   end
 
+  describe 'deleting a validator' do
+    it 'refuses to delete a user who validated a media asset' do
+      user = create(:user, :traffic_manager)
+      asset = create(
+        :media_asset,
+        :ready,
+        :with_png_file,
+        :content_validated,
+        organization: user.organization,
+        uploaded_by: user,
+        content_validated_by: user
+      )
+
+      expect { user.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
+      expect(described_class.exists?(user.id)).to be(true)
+      expect(asset.reload).to be_content_validated
+    end
+  end
+
   describe '#display_name' do
     it 'joins first and last name when present' do
       user = build(:user, first_name: 'Anna', last_name: 'Ivanova', email: 'anna@example.com')

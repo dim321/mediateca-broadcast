@@ -47,7 +47,7 @@ class MediaAsset < ApplicationRecord
 
   belongs_to :organization
   belongs_to :uploaded_by, class_name: "User", optional: true
-  belongs_to :content_validated_by, class_name: "User", optional: true
+  belongs_to :content_validated_by, class_name: "User", optional: true, inverse_of: :content_validated_media_assets
 
   has_many :rotation_items, dependent: :restrict_with_exception
   has_many :rotations, through: :rotation_items

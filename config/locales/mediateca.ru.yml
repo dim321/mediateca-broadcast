@@ -258,6 +258,7 @@ ru:
       download: Скачать исходник
       back: К библиотеке
       video_not_ready: Эфирный файл ещё не готов
+      not_ready: Файл ещё обрабатывается
     content_validation:
       mark: Содержимое проверено
       revoke: Снять отметку

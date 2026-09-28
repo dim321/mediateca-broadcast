@@ -25,6 +25,9 @@ RSpec.describe "Admin media assets", type: :request do
 
     expect(response).to have_http_status(:success)
     expect(response.body).to include("1x1.png")
+    expect(response.body).to include("<img")
+    expect(response.body).to include(I18n.t("media_assets.content_validation.not_validated"))
+    expect(response.body).not_to include("mark_content_validation")
   end
 
   it "renders a mpegts player for a ready video" do

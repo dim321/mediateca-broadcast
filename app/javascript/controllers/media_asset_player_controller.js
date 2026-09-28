@@ -1,11 +1,14 @@
 import { Controller } from "@hotwired/stimulus"
-import mpegts from "mpegts.js"
 
 export default class extends Controller {
   static values = { url: String }
 
-  connect() {
-    if (!this.urlValue || !mpegts.isSupported()) return
+  async connect() {
+    this.disconnected = false
+    if (!this.urlValue) return
+
+    const { default: mpegts } = await import("mpegts.js")
+    if (this.disconnected || !mpegts.isSupported()) return
 
     this.player = mpegts.createPlayer({
       type: "mse",
@@ -17,6 +20,7 @@ export default class extends Controller {
   }
 
   disconnect() {
+    this.disconnected = true
     if (!this.player) return
 
     this.player.destroy()

@@ -256,6 +256,7 @@ en:
       download: Download source file
       back: Back to library
       video_not_ready: Broadcast file is not ready yet
+      not_ready: The file is still processing
     content_validation:
       mark: Content validated
       revoke: Clear validation

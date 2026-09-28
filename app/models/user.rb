@@ -46,6 +46,8 @@ class User < ApplicationRecord
 
   has_many :created_advertising_orders, class_name: "AdvertisingOrder",
     foreign_key: :created_by_user_id, inverse_of: :created_by, dependent: :restrict_with_exception
+  has_many :content_validated_media_assets, class_name: "MediaAsset",
+    foreign_key: :content_validated_by_id, inverse_of: :content_validated_by, dependent: :restrict_with_exception
 
   has_one_attached :avatar
 
