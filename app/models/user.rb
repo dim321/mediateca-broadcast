@@ -54,7 +54,8 @@ class User < ApplicationRecord
   enum :role, {
     manager: "manager",
     accountant: "accountant",
-    administrator: "administrator"
+    administrator: "administrator",
+    traffic_manager: "traffic-manager"
   }, default: :manager
 
   enum :status, {

@@ -5,6 +5,7 @@ require "rails_helper"
 RSpec.describe "Advertising order placement", type: :system do
   let(:organization) { create(:organization, :client, name: "Triumph Org") }
   let(:user) { create(:user, :manager, organization: organization, email: "manager@triumph.test") }
+  let(:traffic_manager) { create(:user, :traffic_manager, organization: organization, email: "traffic@triumph.test") }
   let(:asset) { create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 10) }
   let(:group) { create_group_with_hours!(organization: organization, name: "Витрины Триумф") }
 
@@ -34,9 +35,9 @@ RSpec.describe "Advertising order placement", type: :system do
     row.find("[data-order-windows-part='#{which}-minute']").select(minute)
   end
 
-  def sign_in_through_ui
+  def sign_in_through_ui(account = user)
     visit login_path
-    fill_in I18n.t("sessions.new.email"), with: user.email
+    fill_in I18n.t("sessions.new.email"), with: account.email
     fill_in I18n.t("sessions.new.password"), with: "password123456"
     click_button I18n.t("sessions.new.submit")
   end
@@ -51,7 +52,7 @@ RSpec.describe "Advertising order placement", type: :system do
       product_name: "Triumph"
     )
     fill_order_grid!(order, screen: screen, dates: [ Date.new(2026, 6, 3) ])
-    sign_in_through_ui
+    sign_in_through_ui(traffic_manager)
 
     visit advertising_order_path(order)
     click_button I18n.t("advertising_orders.show.activate")
@@ -95,6 +96,11 @@ RSpec.describe "Advertising order placement", type: :system do
     end
     expect(find("[data-order-grid-target='grandTotal']").value).to eq(AdvertisingOrder.last.total_shows.to_s)
 
+    visit advertising_order_path(AdvertisingOrder.last)
+    expect(page).to have_button(I18n.t("advertising_orders.show.activate"), disabled: true)
+
+    click_button I18n.t("layouts.application.sign_out")
+    sign_in_through_ui(traffic_manager)
     visit advertising_order_path(AdvertisingOrder.last)
     click_button I18n.t("advertising_orders.show.activate")
     expect(page).to have_content(I18n.t("advertising_orders.activate.activated"))

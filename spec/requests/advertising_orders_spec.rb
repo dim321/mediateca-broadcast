@@ -8,6 +8,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
   let(:organization) { create(:organization, :client) }
   let(:user) { create(:user, :manager, organization: organization) }
+  let(:traffic_manager) { create(:user, :traffic_manager, organization: organization) }
   let(:accountant) { create(:user, :accountant, organization: organization) }
   let(:asset) { create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 10) }
   let(:group) { create_group_with_hours!(organization: organization) }
@@ -567,7 +568,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
   end
 
   describe "POST /advertising_orders/:id/activate" do
-    before { sign_in_as(user) }
+    before { sign_in_as(traffic_manager) }
 
     def draft_with_days(dates:, shows: 9)
       order = Advertising::CreateOrder.call(
@@ -575,6 +576,21 @@ RSpec.describe "AdvertisingOrders", type: :request do
       )
       fill_order_grid!(order, screen: order_screen, dates: dates, shows: shows)
       order
+    end
+
+    it "denies the manager who created the draft and shows a disabled activate button" do
+      order = draft_with_days(dates: [ Date.new(2026, 6, 3) ])
+      sign_in_as(user)
+
+      get advertising_order_path(order)
+
+      expect(response.body).to include(I18n.t("advertising_orders.show.activate"))
+      expect(response.body).to include("disabled")
+
+      post activate_advertising_order_path(order)
+
+      expect(response).to redirect_to(rails_health_check_path)
+      expect(order.reload).to be_draft
     end
 
     it "occupies the grid and shows the order" do

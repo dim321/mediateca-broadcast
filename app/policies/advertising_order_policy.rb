@@ -11,7 +11,7 @@ class AdvertisingOrderPolicy < ApplicationPolicy
 
   def update? = client_mutator? && operator_or_in_organization? && record.draft?
 
-  def activate? = client_mutator? && operator_or_in_organization? && (record.draft? || record.active?)
+  def activate? = traffic_manager? && operator_or_in_organization? && (record.draft? || record.active?)
 
   def cancel? = client_mutator? && operator_or_in_organization? && !record.cancelled? && !record.completed?
 
@@ -25,7 +25,7 @@ class AdvertisingOrderPolicy < ApplicationPolicy
     def resolve
       return scope.none unless user
       return scope.all if operator?
-      return scope.none unless user.manager? || user.administrator? || user.accountant?
+      return scope.none unless user.manager? || user.administrator? || user.accountant? || user.traffic_manager?
 
       scope.where(organization_id: user.organization_id)
     end
@@ -37,6 +37,6 @@ class AdvertisingOrderPolicy < ApplicationPolicy
     return false unless user
     return true if operator?
 
-    manager? || administrator? || accountant?
+    manager? || administrator? || accountant? || traffic_manager?
   end
 end

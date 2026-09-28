@@ -17,6 +17,8 @@
       = link_to t('.edit'), edit_advertising_order_path(@advertising_order), class: 'btn btn-ghost btn-sm'
     - if can_mutate.activate? && @advertising_order.draft?
       = button_to t('.activate'), activate_advertising_order_path(@advertising_order), method: :post, class: 'btn btn-primary btn-sm'
+    - elsif creator_manager_awaits_activation?
+      = button_to t('.activate'), activate_advertising_order_path(@advertising_order), method: :post, class: 'btn btn-primary btn-sm', disabled: true
     - if can_mutate.activate? && @advertising_order.active? && coverage.unoccupied_days.any?
       = button_to t('.occupy_again'), activate_advertising_order_path(@advertising_order), method: :post, class: 'btn btn-primary btn-sm'
     - if can_mutate.replace_clip?

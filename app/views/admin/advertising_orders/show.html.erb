@@ -7,10 +7,18 @@
     <%= link_to t("admin.advertising_orders.edit"),
           edit_admin_advertising_order_path(@advertising_order),
           class: admin_primary_button_class %>
-    <%= button_to t("admin.advertising_orders.activate"),
-          activate_admin_advertising_order_path(@advertising_order),
-          method: :post,
-          class: admin_primary_button_class %>
+    <% if AdvertisingOrderPolicy.new(Current.user, @advertising_order).activate? %>
+      <%= button_to t("admin.advertising_orders.activate"),
+            activate_admin_advertising_order_path(@advertising_order),
+            method: :post,
+            class: admin_primary_button_class %>
+    <% else %>
+      <%= button_to t("admin.advertising_orders.activate"),
+            activate_admin_advertising_order_path(@advertising_order),
+            method: :post,
+            disabled: true,
+            class: admin_disabled_button_class %>
+    <% end %>
   <% end %>
   <% unless @advertising_order.cancelled? || @advertising_order.completed? %>
     <%= link_to t("admin.advertising_orders.cancel"),

@@ -9,6 +9,7 @@ RSpec.describe "Admin advertising orders", type: :request do
 
   let(:operator_org) { create(:organization, :operator) }
   let(:operator) { create(:user, :manager, organization: operator_org) }
+  let(:operator_traffic_manager) { create(:user, :traffic_manager, organization: operator_org) }
   let(:client) { create(:organization, :client, name: "Триумф", time_zone: "UTC") }
   let(:client_user) { create(:user, :manager, organization: client) }
   let(:sphere) { create(:directory_business_sphere, name: "Ритейл") }
@@ -464,10 +465,17 @@ RSpec.describe "Admin advertising orders", type: :request do
       expect(response).to have_http_status(:unprocessable_content)
     end
 
-    it "lets the operator activate that order and the client see it in the cabinet (AE11)" do
+    it "lets the operator traffic manager activate that order and the client see it in the cabinet (AE11)" do
       post admin_advertising_orders_path, params: order_params(dates: [ "2026-06-03" ])
       order = AdvertisingOrder.last
 
+      post activate_admin_advertising_order_path(order)
+
+      expect(response).to redirect_to(admin_advertising_order_path(order))
+      expect(flash[:alert]).to eq(I18n.t("pundit.not_authorized"))
+      expect(order.reload).to be_draft
+
+      sign_in_as(operator_traffic_manager)
       post activate_admin_advertising_order_path(order)
 
       expect(response).to redirect_to(admin_advertising_order_path(order))

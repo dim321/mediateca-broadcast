@@ -34,6 +34,10 @@ class ApplicationPolicy
     user&.administrator?
   end
 
+  def traffic_manager?
+    user&.traffic_manager?
+  end
+
   # Client LK mutators (R15) + operator path.
   def client_mutator?
     return false unless user

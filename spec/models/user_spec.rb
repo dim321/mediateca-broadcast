@@ -81,9 +81,12 @@ RSpec.describe User, type: :model do
       expect(user).to be_manager
     end
 
-    it 'accepts accountant and administrator' do
+    it 'accepts accountant, administrator, and traffic manager' do
       expect(create(:user, :accountant)).to be_accountant
       expect(create(:user, :administrator)).to be_administrator
+      traffic_manager = create(:user, :traffic_manager)
+      expect(traffic_manager).to be_traffic_manager
+      expect(traffic_manager.role_before_type_cast).to eq("traffic-manager")
     end
   end
 

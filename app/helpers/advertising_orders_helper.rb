@@ -217,6 +217,15 @@ module AdvertisingOrdersHelper
     end.join(", ")
   end
 
+  def creator_manager_awaits_activation?
+    order = @advertising_order
+    return false unless order&.draft?
+    return false unless Current.user&.manager?
+    return false if policy(order).activate?
+
+    order.created_by_user_id == Current.user.id
+  end
+
   def advertising_order_daily_shows_label(order)
     daily_shows = order.advertising_order_line_days.group_by(&:date).values.map do |days|
       days.sum(&:shows)

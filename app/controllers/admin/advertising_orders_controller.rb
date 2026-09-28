@@ -96,6 +96,11 @@ module Admin
 
     def activate
       order = find_order
+      unless AdvertisingOrderPolicy.new(Current.user, order).activate?
+        redirect_to admin_advertising_order_path(order), alert: t("pundit.not_authorized"), status: :see_other
+        return
+      end
+
       result = Advertising::ActivateOrder.call(order: order)
       flash[:notice] = t("advertising_orders.activate.activated")
       flash[:warning] = t("advertising_orders.activate.quota_exceeded") if result.quota_exceeded

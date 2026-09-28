@@ -50,6 +50,10 @@ FactoryBot.define do
       role { :administrator }
     end
 
+    trait :traffic_manager do
+      role { :traffic_manager }
+    end
+
     trait :blocked do
       status { :blocked }
     end

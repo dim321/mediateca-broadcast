@@ -1098,6 +1098,7 @@ en:
         manager: Manager
         accountant: Accountant
         administrator: Administrator
+        traffic_manager: Traffic manager
       status:
         active: Active
         blocked: Blocked
