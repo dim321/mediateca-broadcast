@@ -64,7 +64,7 @@ module AdvertisingOrdersHelper
 
   def advertising_clip_option_label(asset)
     name = advertising_clip_title(asset)
-    "#{name} (#{asset.duration_seconds}s)"
+    "#{name} (#{asset.duration_seconds}s) · #{media_asset_validation_label(asset)}"
   end
 
   def order_clip_rows(order)

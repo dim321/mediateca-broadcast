@@ -52,6 +52,6 @@ module MediaAssetsHelper
 
   def media_asset_select_label(media_asset)
     source = media_asset.file.attached? ? media_asset.file.filename.to_s : "—"
-    "#{source} · #{media_asset_broadcast_label(media_asset)}"
+    "#{source} · #{media_asset_broadcast_label(media_asset)} · #{media_asset_validation_label(media_asset)}"
   end
 end
