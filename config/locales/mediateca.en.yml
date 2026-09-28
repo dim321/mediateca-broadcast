@@ -251,6 +251,15 @@ en:
       create_failed: Could not upload file.
       ready: Processing complete. File is ready.
       failed: Processing failed.
+    content_validation:
+      not_playable: This clip cannot be validated yet
+      marked: Clip content validated
+      revoked: Validation cleared and active orders with this clip were cancelled
+      forbidden: Only a traffic manager can set this mark
+      not_validated: Content not validated
+      validated: Content validated
+      validated_by: "Validated by %{name}, %{time}"
+      confirm_revoke: Clear validation? Active orders with this clip will be cancelled and the clip will leave catalog and service rotations.
   sessions:
     new:
       title: Sign in
