@@ -12,7 +12,7 @@ RSpec.describe "Admin rotation items", type: :request do
 
   it "enqueues regen from the rotation after create" do
     rotation = create(:rotation)
-    asset = create(:media_asset, :ready, :with_png_file, organization: rotation.organization)
+    asset = create(:media_asset, :ready, :content_validated, :with_png_file, organization: rotation.organization)
     station = create(:station)
     portrait = create(:broadcast_portrait, :for_screen, screen: create(:screen, station: station))
     create(:broadcast_portrait_block, :filler, broadcast_portrait: portrait, rotation: rotation)

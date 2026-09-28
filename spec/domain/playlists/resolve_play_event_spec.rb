@@ -89,7 +89,7 @@ RSpec.describe Playlists::ResolvePlayEvent do
   it "falls back to an overlapping media plan when the station has no current playlist in the horizon" do
     client = create(:organization, :client)
     station, screen = station_setup
-    asset = create(:media_asset, :ready, :with_png_file, organization: client)
+    asset = create(:media_asset, :ready, :content_validated, :with_png_file, organization: client)
     rotation = create(:rotation, organization: client)
     create(:rotation_item, rotation: rotation, media_asset: asset, position: 1)
     group = create(:broadcast_point_group, organization: client)
