@@ -13,7 +13,7 @@ RSpec.describe "Admin advertising orders", type: :request do
   let(:client) { create(:organization, :client, name: "Триумф", time_zone: "UTC") }
   let(:client_user) { create(:user, :manager, organization: client) }
   let(:sphere) { create(:directory_business_sphere, name: "Ритейл") }
-  let(:asset) { create(:media_asset, :ready, :with_png_file, organization: client, duration_seconds: 10) }
+  let(:asset) { create(:media_asset, :ready, :content_validated, :with_png_file, organization: client, duration_seconds: 10) }
   let(:group) { create_group_with_hours!(organization: client) }
 
   def order_screen
@@ -400,7 +400,7 @@ RSpec.describe "Admin advertising orders", type: :request do
 
     it "exposes the clip editor on an active order and replaces clips" do
       travel_to Time.utc(2026, 9, 2, 10, 0, 0) do
-        replacement = create(:media_asset, :ready, :with_png_file, organization: client)
+        replacement = create(:media_asset, :ready, :content_validated, :with_png_file, organization: client)
         order = Advertising::CreateOrder.call(
           organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
         )

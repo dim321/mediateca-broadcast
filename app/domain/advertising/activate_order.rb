@@ -12,6 +12,7 @@ module Advertising
 
     def call
       raise Error, I18n.t("advertising.errors.clip_not_ready") unless clips_broadcast_ready?
+      raise Error, I18n.t("advertising.errors.content_not_validated") unless clips_content_validated?
 
       occupied = []
       conflicted = []
@@ -83,6 +84,11 @@ module Advertising
     def clips_broadcast_ready?
       items = order.rotation.rotation_items.includes(:media_asset)
       items.any? && items.all? { |item| item.media_asset.reload.broadcast_ready? }
+    end
+
+    def clips_content_validated?
+      items = order.rotation.rotation_items.includes(:media_asset)
+      items.any? && items.all? { |item| item.media_asset.content_validated? }
     end
   end
 end

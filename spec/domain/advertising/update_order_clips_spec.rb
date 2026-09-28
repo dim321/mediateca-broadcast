@@ -9,17 +9,17 @@ RSpec.describe Advertising::UpdateOrderClips do
   let(:organization) { create(:organization, :client) }
   let(:user) { create(:user, :manager, organization: organization) }
   let(:clip_a) do
-    create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 10).tap do |asset|
+    create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization, duration_seconds: 10).tap do |asset|
       asset.file.blob.update!(filename: "clip-a.png")
     end
   end
   let(:clip_b) do
-    create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 12).tap do |asset|
+    create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization, duration_seconds: 12).tap do |asset|
       asset.file.blob.update!(filename: "clip-b.png")
     end
   end
   let(:clip_c) do
-    create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 14).tap do |asset|
+    create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization, duration_seconds: 14).tap do |asset|
       asset.file.blob.update!(filename: "clip-c.png")
     end
   end
@@ -130,11 +130,28 @@ RSpec.describe Advertising::UpdateOrderClips do
   end
 
   it "rejects a ready video that has no broadcast file" do
-    video = create(:media_asset, :ready, :with_mp4_file, organization: organization, duration_seconds: 8)
+    video = create(:media_asset, :ready, :content_validated, :with_mp4_file, organization: organization, duration_seconds: 8)
 
     expect {
       described_class.call(order: order, media_assets: [ video ])
     }.to raise_error(Advertising::Error, I18n.t("advertising.errors.clip_not_ready"))
+  end
+
+  it "rejects an unmarked clip on an active order" do
+    activate!
+    unmarked = create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 9)
+
+    expect {
+      described_class.call(order: order.reload, media_assets: [ unmarked ])
+    }.to raise_error(Advertising::Error, I18n.t("advertising.errors.content_not_validated"))
+  end
+
+  it "accepts an unmarked clip on a draft" do
+    unmarked = create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 9)
+
+    described_class.call(order: order, media_assets: [ unmarked ])
+
+    expect(order.reload.rotation.ordered_items.sole.media_asset).to eq(unmarked)
   end
 
   it "rejects updates on non-editable order statuses" do

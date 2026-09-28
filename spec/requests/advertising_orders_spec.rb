@@ -10,7 +10,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
   let(:user) { create(:user, :manager, organization: organization) }
   let(:traffic_manager) { create(:user, :traffic_manager, organization: organization) }
   let(:accountant) { create(:user, :accountant, organization: organization) }
-  let(:asset) { create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 10) }
+  let(:asset) { create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization, duration_seconds: 10) }
   let(:group) { create_group_with_hours!(organization: organization) }
 
   def order_screen
@@ -50,7 +50,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
   end
 
   def clip_named(filename, duration:)
-    create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: duration).tap do |record|
+    create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization, duration_seconds: duration).tap do |record|
       record.file.blob.update!(filename: filename)
     end
   end
@@ -473,7 +473,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
     it "replaces clips on an active order and enqueues playlist regen" do
       travel_to Time.utc(2026, 9, 2, 10, 0, 0) do
-        replacement = create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 15)
+        replacement = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization, duration_seconds: 15)
         order = Advertising::CreateOrder.call(
           organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph"
         )
@@ -631,7 +631,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
         commercial_quota_percent: 10,
         commercial_quota_period: :hour
       )
-      long_clip = create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 240)
+      long_clip = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization, duration_seconds: 240)
       order = Advertising::CreateOrder.call(
         organization: organization,
         created_by: user,
