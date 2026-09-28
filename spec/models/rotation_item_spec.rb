@@ -61,6 +61,7 @@ RSpec.describe RotationItem, type: :model do
       expect(item.errors[:media_asset]).to include(
         I18n.t("activerecord.errors.models.rotation_item.attributes.media_asset.content_not_validated")
       )
+      expect(item.errors[:media_asset].count { |message| message == I18n.t("activerecord.errors.models.rotation_item.attributes.media_asset.content_not_validated") }).to eq(1)
     end
 
     it "allows an unmarked asset on a draft order rotation" do

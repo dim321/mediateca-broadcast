@@ -40,8 +40,7 @@ class RotationItem < ApplicationRecord
   validates :media_asset_id, uniqueness: { scope: :rotation_id }
   validate :media_asset_matches_organization
   validate :media_asset_must_be_ready
-  validate :media_asset_content_validated, on: :create
-  validate :media_asset_content_validated, if: -> { media_asset_id_changed? || rotation_id_changed? }
+  validate :media_asset_content_validated, if: -> { new_record? || media_asset_id_changed? || rotation_id_changed? }
 
   before_validation :assign_position, on: :create
 
