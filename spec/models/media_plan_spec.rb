@@ -203,7 +203,7 @@ RSpec.describe MediaPlan, type: :model do
   end
 
   it 'rejects a rotation that contains processing media' do
-    media_asset = create(:media_asset, :ready, :with_png_file, organization: organization)
+    media_asset = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization)
     create(:rotation_item, rotation: rotation, media_asset: media_asset)
     media_asset.update_column(:processing_status, 'processing')
 
@@ -216,7 +216,7 @@ RSpec.describe MediaPlan, type: :model do
   end
 
   it 'requires a broadcast file for ready videos' do
-    media_asset = create(:media_asset, :ready, :with_png_file, organization: organization)
+    media_asset = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization)
     media_asset.update_column(:content_kind, 'video')
     create(:rotation_item, rotation: rotation, media_asset: media_asset)
 
@@ -229,7 +229,7 @@ RSpec.describe MediaPlan, type: :model do
   end
 
   it 'accepts a ready non-video media asset without a broadcast file' do
-    media_asset = create(:media_asset, :ready, :with_png_file, organization: organization)
+    media_asset = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization)
     create(:rotation_item, rotation: rotation, media_asset: media_asset)
 
     expect(build_plan).to be_valid

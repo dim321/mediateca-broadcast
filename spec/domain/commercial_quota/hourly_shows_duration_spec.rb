@@ -7,7 +7,7 @@ RSpec.describe CommercialQuota::HourlyShowsDuration do
   let(:rotation) { create(:rotation, organization: organization) }
 
   def add_item!(display_duration_seconds:)
-    asset = create(:media_asset, :ready, :with_png_file, organization: organization)
+    asset = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization)
     create(
       :rotation_item,
       rotation: rotation,
@@ -45,7 +45,7 @@ RSpec.describe CommercialQuota::HourlyShowsDuration do
   end
 
   it "prefers item display_duration_seconds over asset duration" do
-    asset = create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 99)
+    asset = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization, duration_seconds: 99)
     single = create(:rotation, organization: organization)
     create(:rotation_item, rotation: single, media_asset: asset, display_duration_seconds: 240)
 

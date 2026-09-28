@@ -92,7 +92,7 @@ RSpec.describe Airtime::Cancel do
   end
 
   it 'still cancels when rotation media later becomes not broadcast-ready' do
-    media_asset = create(:media_asset, :ready, :with_png_file, organization: organization)
+    media_asset = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization)
     create(:rotation_item, rotation: rotation, media_asset: media_asset)
     expect(plan).to be_persisted
 

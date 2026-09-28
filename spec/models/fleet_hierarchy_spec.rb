@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe 'fleet hierarchy', type: :model do
   it 'creates a location, station, and portrait screen' do
-    location = Location.create!(name: 'Central Mall')
+    location = Location.create!(name: 'Central Mall', address: '1 Main St')
     station = Station.create!(location:, name: 'Lobby player')
     screen = Screen.create!(
       station:,
@@ -19,7 +19,7 @@ RSpec.describe 'fleet hierarchy', type: :model do
 
   it 'defaults station offline cache to 24 hours' do
     station = Station.create!(
-      location: Location.create!(name: 'Central Mall'),
+      location: Location.create!(name: 'Central Mall', address: '1 Main St'),
       name: 'Lobby player'
     )
 

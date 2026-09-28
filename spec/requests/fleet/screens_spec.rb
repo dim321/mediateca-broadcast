@@ -38,7 +38,7 @@ RSpec.describe 'Fleet::Screens', type: :request do
 
   def create_plan(org:, screen:, starts_at:, ends_at:)
     rotation = create(:rotation, organization: org, name: "Rotation #{org.id}-#{SecureRandom.hex(2)}")
-    asset = create(:media_asset, :ready, :with_png_file, organization: org)
+    asset = create(:media_asset, :ready, :content_validated, :with_png_file, organization: org)
     create(:rotation_item, rotation: rotation, media_asset: asset)
     group = create(:broadcast_point_group, organization: org)
     create(:broadcast_point_group_membership, broadcast_point_group: group, screen: screen)

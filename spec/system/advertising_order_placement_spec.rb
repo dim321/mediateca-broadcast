@@ -52,6 +52,7 @@ RSpec.describe "Advertising order placement", type: :system do
       product_name: "Triumph"
     )
     fill_order_grid!(order, screen: screen, dates: [ Date.new(2026, 6, 3) ])
+    MediaAssets::MarkContentValidated.call(media_asset: asset, user: traffic_manager)
     sign_in_through_ui(traffic_manager)
 
     visit advertising_order_path(order)
@@ -100,6 +101,7 @@ RSpec.describe "Advertising order placement", type: :system do
     expect(page).to have_button(I18n.t("advertising_orders.show.activate"), disabled: true)
 
     click_button I18n.t("layouts.application.sign_out")
+    MediaAssets::MarkContentValidated.call(media_asset: asset, user: traffic_manager)
     sign_in_through_ui(traffic_manager)
     visit advertising_order_path(AdvertisingOrder.last)
     click_button I18n.t("advertising_orders.show.activate")
