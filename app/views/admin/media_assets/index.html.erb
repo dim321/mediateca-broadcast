@@ -29,6 +29,7 @@
           <th scope="col" class="px-6 py-3"><%= Organization.model_name.human %></th>
           <th scope="col" class="px-6 py-3"><%= sort_link @q, :content_kind %></th>
           <th scope="col" class="px-6 py-3"><%= sort_link @q, :processing_status %></th>
+          <th scope="col" class="px-6 py-3"><%= t("media_assets.index.columns.content_validation") %></th>
           <th scope="col" class="px-6 py-3"><span class="sr-only"><%= t("admin.chrome.actions") %></span></th>
         </tr>
       </thead>
@@ -41,6 +42,7 @@
             <td class="px-6 py-4"><%= admin_link_to_record(asset.organization) %></td>
             <td class="px-6 py-4"><%= admin_enum_label(asset, :content_kind) %></td>
             <td class="px-6 py-4"><%= admin_enum_label(asset, :processing_status) %></td>
+            <td class="px-6 py-4"><%= media_asset_validation_label(asset) %></td>
             <td class="px-6 py-4 text-right whitespace-nowrap">
               <%= link_to t("admin.chrome.show"), admin_media_asset_path(asset), class: "font-medium text-blue-700 hover:underline me-3" %>
               <%= link_to t("admin.chrome.edit"), edit_admin_media_asset_path(asset), class: "font-medium text-blue-700 hover:underline" %>

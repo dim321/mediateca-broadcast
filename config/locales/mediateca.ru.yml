@@ -957,6 +957,8 @@ ru:
       updated: Тематика обновлена.
       upload: Файл
       upload_submit: Загрузить
+      place_prompt: Проверенный ролик
+      place_submit: Добавить в папку
     tags:
       clear_search: Сбросить поиск
       created: Тег создан.

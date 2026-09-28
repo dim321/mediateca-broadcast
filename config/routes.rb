@@ -6,7 +6,12 @@ Rails.application.routes.draw do
         resources :business_spheres
       end
       resources :locations
-      resources :media_assets
+      resources :media_assets do
+        member do
+          post :mark_content_validation
+          delete :revoke_content_validation
+        end
+      end
       resources :media_plans do
         member do
           delete :cancel

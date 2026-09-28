@@ -180,4 +180,14 @@ module AdminHelper
   def admin_flash_for(resource, action)
     t("admin.#{resource}.#{action}", default: t("admin.crud.#{action}"))
   end
+
+  def admin_validated_service_clip_options(rotation)
+    MediaAsset.content_type_service
+      .where(organization_id: rotation.organization_id)
+      .where.not(content_validated_at: nil)
+      .where.not(content_validated_by_id: nil)
+      .where.not(id: rotation.rotation_items.select(:media_asset_id))
+      .includes(file_attachment: :blob)
+      .filter_map { |asset| [ asset.file.filename.to_s, asset.id ] if asset.file.attached? }
+  end
 end

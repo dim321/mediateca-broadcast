@@ -9,7 +9,36 @@ module Admin
     end
 
     def show
-      @media_asset = MediaAsset.with_attached_file.with_attached_preview.with_attached_broadcast_file.find(params[:id])
+      @media_asset = MediaAsset.with_attached_file.with_attached_preview.with_attached_broadcast_file
+        .includes(:content_validated_by).find(params[:id])
+    end
+
+    def mark_content_validation
+      media_asset = MediaAsset.find(params[:id])
+      unless Current.user.traffic_manager?
+        redirect_to admin_media_asset_path(media_asset),
+          alert: t("media_assets.content_validation.forbidden"), status: :see_other
+        return
+      end
+
+      MediaAssets::MarkContentValidated.call(media_asset: media_asset, user: Current.user)
+      redirect_to admin_media_asset_path(media_asset),
+        notice: t("media_assets.content_validation.marked"), status: :see_other
+    rescue MediaAssets::Error => e
+      redirect_to admin_media_asset_path(media_asset), alert: e.message, status: :see_other
+    end
+
+    def revoke_content_validation
+      media_asset = MediaAsset.find(params[:id])
+      unless Current.user.traffic_manager?
+        redirect_to admin_media_asset_path(media_asset),
+          alert: t("media_assets.content_validation.forbidden"), status: :see_other
+        return
+      end
+
+      MediaAssets::RevokeContentValidation.call(media_asset: media_asset)
+      redirect_to admin_media_asset_path(media_asset),
+        notice: t("media_assets.content_validation.revoked"), status: :see_other
     end
 
     def edit

@@ -947,6 +947,8 @@ en:
       updated: Service theme updated.
       upload: File
       upload_submit: Upload
+      place_prompt: Validated clip
+      place_submit: Add to folder
     tags:
       clear_search: Clear search
       created: Tag created.

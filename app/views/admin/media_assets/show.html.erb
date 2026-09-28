@@ -2,6 +2,13 @@
 <div class="mb-4">
   <h1 class="text-2xl font-semibold text-gray-900"><%= admin_attachment_name(@media_asset.file) %></h1>
 </div>
+<% if @media_asset.video? && @media_asset.broadcast_file.attached? %>
+  <div class="mb-6">
+    <video class="w-full max-w-3xl" controls
+           data-controller="media-asset-player"
+           data-media-asset-player-url-value="<%= url_for(@media_asset.broadcast_file) %>"></video>
+  </div>
+<% end %>
 <div class="bg-white border border-gray-200 rounded-lg p-6 max-w-xl">
   <dl class="grid grid-cols-1 gap-4">
     <div>
@@ -42,6 +49,30 @@
     </div>
   </dl>
 </div>
+<% if Current.user.traffic_manager? %>
+  <div class="mt-6 max-w-xl bg-white border border-gray-200 rounded-lg p-6">
+    <% if @media_asset.content_validated? %>
+      <p class="text-sm text-gray-900"><%= t("media_assets.content_validation.validated") %></p>
+      <p class="mt-1 text-sm text-gray-500">
+        <%= t("media_assets.content_validation.validated_by",
+              name: @media_asset.content_validated_by.display_name,
+              time: l(@media_asset.content_validated_at, format: :long)) %>
+      </p>
+      <%= button_to t("media_assets.content_validation.revoke"),
+            revoke_content_validation_admin_media_asset_path(@media_asset),
+            method: :delete,
+            class: admin_secondary_button_class,
+            data: { turbo_confirm: t("media_assets.content_validation.confirm_revoke") } %>
+    <% elsif playable_for_validation?(@media_asset) %>
+      <p class="text-sm text-gray-500 mb-3"><%= t("media_assets.content_validation.not_validated") %></p>
+      <%= button_to t("media_assets.content_validation.mark"),
+            mark_content_validation_admin_media_asset_path(@media_asset),
+            class: admin_primary_button_class %>
+    <% else %>
+      <p class="text-sm text-gray-500"><%= t("media_assets.content_validation.not_playable") %></p>
+    <% end %>
+  </div>
+<% end %>
 <div class="mt-6 flex flex-wrap gap-3">
   <%= link_to t("admin.chrome.edit"), edit_admin_media_asset_path(@media_asset), class: admin_primary_button_class %>
   <%= link_to t("admin.chrome.back"), admin_media_assets_path, class: admin_secondary_button_class %>
