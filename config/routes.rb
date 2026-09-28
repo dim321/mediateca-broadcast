@@ -58,7 +58,12 @@ Rails.application.routes.draw do
 
   root "media_assets#index"
 
-  resources :media_assets, only: %i[index create update]
+  resources :media_assets, only: %i[index create update show] do
+    member do
+      post :mark_content_validation
+      delete :revoke_content_validation
+    end
+  end
 
   resources :rotations do
     resources :rotation_items, only: %i[create destroy], path: "items"

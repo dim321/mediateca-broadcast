@@ -42,7 +42,8 @@ RSpec.describe MediaAssetsHelper, type: :helper do
       asset = create(:media_asset, :with_png_file, :ready, organization: organization, uploaded_by: user)
       html = helper.media_asset_source_link(asset)
       expect(html).to include("1x1.png")
-      expect(html).to include("disposition=attachment")
+      expect(html).to include(media_asset_path(asset))
+      expect(html).not_to include("disposition=attachment")
     end
   end
 

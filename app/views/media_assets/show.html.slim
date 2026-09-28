@@ -1,0 +1,22 @@
+- content_for :title, @media_asset.file.attached? ? @media_asset.file.filename.to_s : MediaAsset.model_name.human
+
+.mx-auto.w-full.max-w-6xl.flex.flex-col.gap-6
+  = render "shared/page_header", title: (@media_asset.file.attached? ? @media_asset.file.filename.to_s : MediaAsset.model_name.human)
+  .card.bg-base-100.border.border-base-300.shadow-sm
+    .card-body.gap-4
+      = render "media_assets/player", media_asset: @media_asset
+      - if @media_asset.file.attached?
+        = link_to t("media_assets.show.download"), rails_blob_path(@media_asset.file, disposition: :attachment), class: "link link-hover"
+  .card.bg-base-100.border.border-base-300.shadow-sm
+    .card-body.gap-3
+      - if @media_asset.content_validated?
+        span.badge.badge-success = t("media_assets.content_validation.validated")
+        p.text-sm = t("media_assets.content_validation.validated_by", name: @media_asset.content_validated_by.display_name, time: l(@media_asset.content_validated_at, format: :long))
+      - else
+        span.badge.badge-warning = t("media_assets.content_validation.not_validated")
+      - if policy(@media_asset).mark_content_validation?
+        - if @media_asset.content_validated?
+          = button_to t("media_assets.content_validation.revoke"), revoke_content_validation_media_asset_path(@media_asset), method: :delete, class: "btn btn-warning", form: { data: { turbo_confirm: t("media_assets.content_validation.confirm_revoke") } }
+        - elsif playable_for_validation?(@media_asset)
+          = button_to t("media_assets.content_validation.mark"), mark_content_validation_media_asset_path(@media_asset), class: "btn btn-primary"
+  = link_to t("media_assets.show.back"), media_assets_path, class: "link link-hover"

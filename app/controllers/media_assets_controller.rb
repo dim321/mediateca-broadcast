@@ -2,7 +2,7 @@
 
 class MediaAssetsController < ApplicationController
   before_action :require_user
-  before_action :set_media_asset, only: :update
+  before_action :set_media_asset, only: %i[show update mark_content_validation revoke_content_validation]
 
   def index
     authorize MediaAsset
@@ -34,12 +34,30 @@ class MediaAssetsController < ApplicationController
     respond_created
   end
 
+  def show
+    authorize @media_asset
+  end
+
   def update
     authorize @media_asset
     respond_to do |format|
       format.html { redirect_to media_assets_path }
       format.turbo_stream
     end
+  end
+
+  def mark_content_validation
+    authorize @media_asset
+    MediaAssets::MarkContentValidated.call(media_asset: @media_asset, user: Current.user)
+    redirect_to media_asset_path(@media_asset), notice: t("media_assets.content_validation.marked"), status: :see_other
+  rescue MediaAssets::Error => e
+    redirect_to media_asset_path(@media_asset), alert: e.message, status: :see_other
+  end
+
+  def revoke_content_validation
+    authorize @media_asset
+    MediaAssets::RevokeContentValidation.call(media_asset: @media_asset)
+    redirect_to media_asset_path(@media_asset), notice: t("media_assets.content_validation.revoked"), status: :see_other
   end
 
   private
@@ -51,7 +69,7 @@ class MediaAssetsController < ApplicationController
   end
 
   def set_media_asset
-    @media_asset = policy_scope(MediaAsset).find(params[:id])
+    @media_asset = policy_scope(MediaAsset).includes(:content_validated_by).find(params[:id])
   end
 
   def media_asset_params

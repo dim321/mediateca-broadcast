@@ -238,6 +238,7 @@ ru:
         media_kind: Тип медиа
         content_type: Тип контента
         visibility: Доступность
+        content_validation: Проверка
       content_kinds:
         video: Видео
         audio: Аудио
@@ -253,7 +254,13 @@ ru:
       create_failed: Не удалось загрузить файл.
       ready: Обработка завершена. Файл готов.
       failed: Ошибка обработки.
+    show:
+      download: Скачать исходник
+      back: К библиотеке
+      video_not_ready: Эфирный файл ещё не готов
     content_validation:
+      mark: Содержимое проверено
+      revoke: Снять отметку
       not_playable: Ролик ещё нельзя проверить
       marked: Содержимое ролика проверено
       revoked: Отметка снята, активные заказы с роликом отменены

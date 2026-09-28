@@ -236,6 +236,7 @@ en:
         media_kind: Media type
         content_type: Content type
         visibility: Availability
+        content_validation: Validation
       content_kinds:
         video: Video
         audio: Audio
@@ -251,7 +252,13 @@ en:
       create_failed: Could not upload file.
       ready: Processing complete. File is ready.
       failed: Processing failed.
+    show:
+      download: Download source file
+      back: Back to library
+      video_not_ready: Broadcast file is not ready yet
     content_validation:
+      mark: Content validated
+      revoke: Clear validation
       not_playable: This clip cannot be validated yet
       marked: Clip content validated
       revoked: Validation cleared and active orders with this clip were cancelled
