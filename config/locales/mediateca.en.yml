@@ -915,6 +915,7 @@ en:
       clear_search: Clear search
       clips_count: Clips
       clip_file: File
+      clip_placed: Clip added to the folder
       clip_uploaded: Clip added to the folder.
       created: Service theme created.
       destroy_confirm: Delete this theme and its service rotations?

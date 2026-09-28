@@ -86,26 +86,40 @@ RSpec.describe "Admin service themes", type: :request do
       expect(response.body).to include('value="network"')
     end
 
-    it "uploads a service clip into a theme folder (AE2)" do
+    it "uploads a service clip without adding it to the theme folder" do
       theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
       png = fixture_file_upload("spec/fixtures/files/1x1.png", "image/png")
 
       expect {
         post admin_service_theme_clips_path(theme), params: { role: "welcome", clip: { file: png } }
       }.to change(MediaAsset, :count).by(1)
-        .and change { theme.welcome_rotation.rotation_items.count }.by(1)
+        .and change { theme.welcome_rotation.rotation_items.count }.by(0)
 
-      expect(response).to redirect_to(admin_service_theme_path(theme))
-      expect(MediaAsset.last).to have_attributes(
+      asset = MediaAsset.last
+      expect(response).to redirect_to(admin_media_asset_path(asset))
+      expect(asset).to have_attributes(
         content_type: "service",
         visibility: "network",
         organization: operator_org
       )
     end
 
+    it "places a validated service clip into a theme folder" do
+      theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
+      asset = create(:media_asset, :ready, :with_png_file, :content_validated,
+        organization: operator_org, content_type: :service, visibility: :network)
+
+      expect {
+        post place_admin_service_theme_clips_path(theme), params: { role: "welcome", media_asset_id: asset.id }
+      }.to change { theme.welcome_rotation.rotation_items.count }.by(1)
+
+      expect(response).to redirect_to(admin_service_theme_path(theme))
+      expect(theme.welcome_rotation.rotation_items.find_by(media_asset: asset)).to be_present
+    end
+
     it "live-updates processing status and refreshes while a clip is in flight" do
       theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
-      asset = create(:media_asset, :with_png_file, content_type: :service, processing_status: :processing,
+      asset = create(:media_asset, :with_png_file, :content_validated, content_type: :service, processing_status: :processing,
         organization: operator_org)
       theme.welcome_rotation.rotation_items.create!(media_asset: asset)
 
@@ -119,7 +133,7 @@ RSpec.describe "Admin service themes", type: :request do
 
     it "stops auto-refresh when every clip is ready" do
       theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
-      asset = create(:media_asset, :with_png_file, :ready, content_type: :service, organization: operator_org)
+      asset = create(:media_asset, :with_png_file, :ready, :content_validated, content_type: :service, organization: operator_org)
       theme.welcome_rotation.rotation_items.create!(media_asset: asset)
 
       get admin_service_theme_path(theme)

@@ -925,6 +925,7 @@ ru:
       clear_search: Сбросить поиск
       clips_count: Роликов
       clip_file: Файл
+      clip_placed: Ролик добавлен в папку
       clip_uploaded: Ролик добавлен в папку.
       created: Тематика создана.
       destroy_confirm: Удалить эту тематику и её служебные ротации?

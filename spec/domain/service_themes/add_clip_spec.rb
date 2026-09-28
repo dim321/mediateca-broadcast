@@ -11,7 +11,7 @@ RSpec.describe ServiceThemes::AddClip do
   let(:theme) { ServiceThemes::Create.call(organization: operator, name: "Салон красоты") }
   let(:png) { Rack::Test::UploadedFile.new(Rails.root.join("spec/fixtures/files/1x1.png"), "image/png") }
 
-  it "stores a service clip in the theme folder and regenerates using portraits (AE2)" do
+  it "stores a service clip asset without adding it to the theme folder" do
     station = create(:station, location: create(:location, time_zone: "UTC"), offline_cache_hours: 24)
     screen = create(:screen, station: station)
     portrait = create(:broadcast_portrait, :for_screen, screen: screen)
@@ -22,8 +22,7 @@ RSpec.describe ServiceThemes::AddClip do
       expect {
         described_class.call(theme: theme, role: :welcome, file: png, uploaded_by: user)
       }.to change(MediaAsset, :count).by(1)
-        .and change(RotationItem, :count).by(1)
-        .and have_enqueued_job(Playlists::GenerateForDateJob).with(station.id, "2026-09-02")
+        .and change(RotationItem, :count).by(0)
     end
 
     asset = MediaAsset.last
@@ -33,7 +32,7 @@ RSpec.describe ServiceThemes::AddClip do
       organization: operator,
       uploaded_by: user
     )
-    expect(theme.welcome_rotation.rotation_items.find_by(media_asset: asset)).to be_present
+    expect(theme.welcome_rotation.rotation_items.find_by(media_asset: asset)).to be_nil
   end
 
   it "rejects an unknown role" do
