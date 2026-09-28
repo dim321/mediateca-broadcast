@@ -4,21 +4,24 @@
 #
 # Table name: media_assets
 #
-#  id                :bigint           not null, primary key
-#  content_kind      :string           not null
-#  content_type      :string           not null
-#  duration_seconds  :integer
-#  metadata          :jsonb            not null
-#  processing_status :string           default("pending"), not null
-#  visibility        :string           not null
-#  created_at        :datetime         not null
-#  updated_at        :datetime         not null
-#  organization_id   :bigint           not null
-#  uploaded_by_id    :bigint
+#  id                      :bigint           not null, primary key
+#  content_kind            :string           not null
+#  content_type            :string           not null
+#  content_validated_at    :datetime
+#  duration_seconds        :integer
+#  metadata                :jsonb            not null
+#  processing_status       :string           default("pending"), not null
+#  visibility              :string           not null
+#  created_at              :datetime         not null
+#  updated_at              :datetime         not null
+#  content_validated_by_id :bigint
+#  organization_id         :bigint           not null
+#  uploaded_by_id          :bigint
 #
 # Indexes
 #
 #  index_media_assets_on_content_type                           (content_type)
+#  index_media_assets_on_content_validated_by_id                (content_validated_by_id)
 #  index_media_assets_on_organization_id                        (organization_id)
 #  index_media_assets_on_organization_id_and_created_at         (organization_id,created_at DESC)
 #  index_media_assets_on_organization_id_and_processing_status  (organization_id,processing_status)
@@ -27,12 +30,13 @@
 #
 # Foreign Keys
 #
+#  fk_rails_...  (content_validated_by_id => users.id) ON DELETE => nullify
 #  fk_rails_...  (organization_id => organizations.id)
 #  fk_rails_...  (uploaded_by_id => users.id) ON DELETE => nullify
 #
 class MediaAsset < ApplicationRecord
   def self.ransackable_attributes(_auth_object = nil)
-    %w[id content_kind content_type duration_seconds processing_status visibility created_at updated_at organization_id uploaded_by_id]
+    %w[id content_kind content_type content_validated_at duration_seconds processing_status visibility created_at updated_at organization_id uploaded_by_id content_validated_by_id]
   end
 
   def self.ransackable_associations(_auth_object = nil)
@@ -43,6 +47,7 @@ class MediaAsset < ApplicationRecord
 
   belongs_to :organization
   belongs_to :uploaded_by, class_name: "User", optional: true
+  belongs_to :content_validated_by, class_name: "User", optional: true
 
   has_many :rotation_items, dependent: :restrict_with_exception
   has_many :rotations, through: :rotation_items
@@ -127,6 +132,10 @@ class MediaAsset < ApplicationRecord
     return nil if duration_seconds.blank?
 
     duration_seconds
+  end
+
+  def content_validated?
+    content_validated_at.present? && content_validated_by_id.present?
   end
 
   def broadcast_ready?
