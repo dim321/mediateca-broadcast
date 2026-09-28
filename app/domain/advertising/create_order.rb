@@ -33,12 +33,6 @@ module Advertising
           name: "order-#{SecureRandom.uuid}",
           system_managed: true
         )
-        media_assets.each do |asset|
-          rotation.rotation_items.create!(
-            media_asset: asset,
-            display_duration_seconds: asset.duration_seconds
-          )
-        end
         order = organization.advertising_orders.create!(
           created_by: created_by,
           media_asset: nil,
@@ -50,6 +44,12 @@ module Advertising
           coefficient_percent: coefficient_percent,
           discount_cents: discount_cents
         )
+        media_assets.each do |asset|
+          rotation.rotation_items.create!(
+            media_asset: asset,
+            display_duration_seconds: asset.duration_seconds
+          )
+        end
         rotation.update!(name: I18n.t("advertising.system_rotation_name", number: order.id))
         order
       end

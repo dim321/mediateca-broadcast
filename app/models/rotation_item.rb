@@ -40,6 +40,8 @@ class RotationItem < ApplicationRecord
   validates :media_asset_id, uniqueness: { scope: :rotation_id }
   validate :media_asset_matches_organization
   validate :media_asset_must_be_ready
+  validate :media_asset_content_validated, on: :create
+  validate :media_asset_content_validated, if: -> { media_asset_id_changed? || rotation_id_changed? }
 
   before_validation :assign_position, on: :create
 
@@ -65,5 +67,13 @@ class RotationItem < ApplicationRecord
     return if media_asset.content_type_service?
 
     errors.add(:media_asset, :not_ready) unless media_asset.ready?
+  end
+
+  def media_asset_content_validated
+    return if media_asset.blank? || rotation.blank?
+    return if media_asset.content_validated?
+    return if rotation.advertising_order&.draft?
+
+    errors.add(:media_asset, :content_not_validated)
   end
 end

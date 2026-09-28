@@ -373,6 +373,7 @@ en:
             media_asset:
               wrong_organization: must belong to your organization or be network-shared
               not_ready: must be ready before adding to a rotation
+              content_not_validated: content has not been validated by a traffic manager
         screen_tag:
           attributes:
             base:

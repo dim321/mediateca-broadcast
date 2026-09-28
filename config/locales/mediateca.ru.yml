@@ -377,6 +377,7 @@ ru:
             media_asset:
               wrong_organization: должен принадлежать вашей организации или быть общим в сети
               not_ready: должен быть готов перед добавлением в ротацию
+              content_not_validated: содержимое не проверено трафик-менеджером
         screen_tag:
           attributes:
             base:
