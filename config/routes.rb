@@ -22,6 +22,7 @@ Rails.application.routes.draw do
       resources :advertising_orders, except: %i[destroy] do
         member do
           post :activate
+          post :reject
           post :cancel
         end
       end

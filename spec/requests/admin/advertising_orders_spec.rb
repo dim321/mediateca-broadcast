@@ -71,6 +71,22 @@ RSpec.describe "Admin advertising orders", type: :request do
       expect(order).to be_draft
     end
 
+    it "does not offer cancel on a draft" do
+      order = Advertising::CreateOrder.call(
+        organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
+      )
+
+      get admin_advertising_order_path(order)
+
+      expect(response.body).not_to include(I18n.t("admin.advertising_orders.cancel"))
+
+      post cancel_admin_advertising_order_path(order)
+
+      expect(response).to redirect_to(admin_advertising_order_path(order))
+      expect(flash[:alert]).to eq(I18n.t("advertising.errors.order_not_cancellable"))
+      expect(order.reload).to be_draft
+    end
+
     it "shows an order and lets the operator cancel it" do
       order = Advertising::CreateOrder.call(
         organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
@@ -147,6 +163,56 @@ RSpec.describe "Admin advertising orders", type: :request do
 
       expect(activate_button["disabled"]).to be_nil
       expect(response.body).to include(I18n.t("media_assets.content_validation.validated"))
+    end
+
+    it "rejects a draft with a chosen reason" do
+      order = Advertising::CreateOrder.call(
+        organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
+      )
+
+      sign_in_as(operator_traffic_manager)
+      get admin_advertising_order_path(order)
+
+      expect(response).to have_http_status(:success)
+      dialog = Nokogiri::HTML(response.body).at_css("dialog")
+      expect(dialog.text).to include(
+        I18n.t("admin.advertising_orders.reject_title"),
+        I18n.t("enums.advertising_order.rejection_reason.content_problem"),
+        I18n.t("enums.advertising_order.rejection_reason.invalid_points"),
+        I18n.t("enums.advertising_order.rejection_reason.other")
+      )
+      expect(dialog.at_css("form")["action"]).to eq(reject_admin_advertising_order_path(order))
+
+      post reject_admin_advertising_order_path(order), params: { rejection_reason: "invalid_points" }
+
+      expect(response).to redirect_to(admin_advertising_order_path(order))
+      expect(order.reload).to be_rejected
+      expect(order.rejection_reason).to eq("invalid_points")
+
+      follow_redirect!
+      details = Nokogiri::HTML(response.body).at_css("#advertising-order-details")
+      expect(details.text).to include(
+        I18n.t("enums.advertising_order.status.rejected"),
+        I18n.t("enums.advertising_order.rejection_reason.invalid_points")
+      )
+      expect(response.body).not_to include(I18n.t("admin.advertising_orders.cancel"))
+    end
+
+    it "keeps reject disabled for an operator who is not a traffic manager" do
+      order = Advertising::CreateOrder.call(
+        organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
+      )
+
+      get admin_advertising_order_path(order)
+
+      button = Nokogiri::HTML(response.body).css("button").find { |node| node.text.strip == I18n.t("admin.advertising_orders.reject") }
+      expect(button["disabled"]).to eq("disabled")
+
+      post reject_admin_advertising_order_path(order), params: { rejection_reason: "other" }
+
+      expect(response).to redirect_to(admin_advertising_order_path(order))
+      expect(flash[:alert]).to eq(I18n.t("pundit.not_authorized"))
+      expect(order.reload).to be_draft
     end
 
     def activate_button

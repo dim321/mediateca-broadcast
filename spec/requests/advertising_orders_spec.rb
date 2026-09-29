@@ -73,6 +73,25 @@ RSpec.describe "AdvertisingOrders", type: :request do
       expect(order).to be_draft
     end
 
+    it "shows a rejection reason to the order author" do
+      sign_in_as(user)
+      order = Advertising::CreateOrder.call(
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "RejectedOrder"
+      )
+      order.update!(status: :rejected, rejection_reason: :content_problem)
+      reason = I18n.t("enums.advertising_order.rejection_reason.content_problem")
+
+      get advertising_order_path(order)
+
+      expect(response.body).to include(I18n.t("advertising_orders.show.rejected", reason: reason))
+
+      get advertising_orders_path
+
+      expect(response.body).to include("RejectedOrder")
+      expect(response.body).to include(I18n.t("enums.advertising_order.status.rejected"))
+      expect(response.body).to include(reason)
+    end
+
     it "filters by status" do
       sign_in_as(user)
       draft = Advertising::CreateOrder.call(

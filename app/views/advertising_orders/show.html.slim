@@ -12,6 +12,10 @@
     span = t('.total_shows', count: @advertising_order.total_shows)
     span = t('.document_version', version: @advertising_order.document_version)
 
+  - if @advertising_order.rejected?
+    .alert.alert-error role="alert"
+      span = t('.rejected', reason: t("enums.advertising_order.rejection_reason.#{@advertising_order.rejection_reason}"))
+
   .flex.gap-3.flex-wrap
     - if can_mutate.update?
       = link_to t('.edit'), edit_advertising_order_path(@advertising_order), class: 'btn btn-ghost btn-sm'

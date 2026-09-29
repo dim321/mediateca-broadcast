@@ -14,6 +14,7 @@
 #  duration_seconds      :integer
 #  placement_kind        :string           default("own_atmosphere"), not null
 #  product_name          :string           not null
+#  rejection_reason      :string
 #  shows_per_hour        :integer
 #  status                :string           default("draft"), not null
 #  total_shows           :integer          default(0), not null
@@ -42,7 +43,7 @@
 #
 class AdvertisingOrder < ApplicationRecord
   def self.ransackable_attributes(_auth_object = nil)
-    %w[id business_sphere clip_title coefficient_percent discount_cents document_version distribution_strategy duration_seconds placement_kind product_name shows_per_hour status total_shows total_sum_cents created_at updated_at created_by_user_id media_asset_id organization_id rotation_id]
+    %w[id business_sphere clip_title coefficient_percent discount_cents document_version distribution_strategy duration_seconds placement_kind product_name rejection_reason shows_per_hour status total_shows total_sum_cents created_at updated_at created_by_user_id media_asset_id organization_id rotation_id]
   end
 
   def self.ransackable_associations(_auth_object = nil)
@@ -65,8 +66,15 @@ class AdvertisingOrder < ApplicationRecord
     pending_moderation: "pending_moderation",
     active: "active",
     completed: "completed",
-    cancelled: "cancelled"
+    cancelled: "cancelled",
+    rejected: "rejected"
   }, default: :draft
+
+  enum :rejection_reason, {
+    content_problem: "content_problem",
+    invalid_points: "invalid_points",
+    other: "other"
+  }, validate: { allow_nil: true }
 
   enum :placement_kind, {
     own_atmosphere: "own_atmosphere",
@@ -90,6 +98,8 @@ class AdvertisingOrder < ApplicationRecord
   validates :coefficient_percent, numericality: { only_integer: true }
   validates :document_version, numericality: { only_integer: true, greater_than_or_equal_to: 1 }
   validates :rotation_id, uniqueness: true
+  validates :rejection_reason, presence: true, if: :rejected?
+  validates :rejection_reason, absence: true, unless: :rejected?
   validate :rotation_matches_organization
   validate :rotation_is_system_managed
 

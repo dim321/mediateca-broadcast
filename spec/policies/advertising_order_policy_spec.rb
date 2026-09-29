@@ -34,8 +34,16 @@ RSpec.describe AdvertisingOrderPolicy do
         expect(policy.create?).to be true
         expect(policy.update?).to be true
         expect(policy.activate?).to be false
-        expect(policy.cancel?).to be true
+        expect(policy.cancel?).to be false
       end
+    end
+
+    it "разрешает отмену только активного заказа" do
+      expect(described_class.new(manager, order).cancel?).to be false
+
+      order.update!(status: :active)
+
+      expect(described_class.new(manager, order).cancel?).to be true
     end
 
     it "разрешает замену ролика на активном заказе менеджеру и администратору" do
@@ -52,6 +60,20 @@ RSpec.describe AdvertisingOrderPolicy do
 
       stranger = create(:user, :traffic_manager, organization: create(:organization, :client))
       expect(described_class.new(stranger, order).activate?).to be false
+    end
+
+    it "разрешает отклонение черновика только трафик-менеджеру своей организации" do
+      expect(described_class.new(traffic_manager, order).reject?).to be true
+      expect(described_class.new(manager, order).reject?).to be false
+
+      stranger = create(:user, :traffic_manager, organization: create(:organization, :client))
+      expect(described_class.new(stranger, order).reject?).to be false
+    end
+
+    it "запрещает отмену отклонённого заказа" do
+      order.update!(status: :rejected, rejection_reason: :other)
+
+      expect(described_class.new(manager, order).cancel?).to be false
     end
 
     it "запрещает accountant (AE10)" do
@@ -109,6 +131,8 @@ RSpec.describe AdvertisingOrderPolicy do
 
       expect(described_class.new(operator_traffic_manager, order).activate?).to be true
       expect(described_class.new(operator_traffic_manager, foreign).activate?).to be true
+      expect(described_class.new(operator_traffic_manager, order).reject?).to be true
+      expect(described_class.new(operator_manager, order).reject?).to be false
       expect(described_class::Scope.new(operator_traffic_manager, AdvertisingOrder).resolve).to include(order, foreign)
     end
   end

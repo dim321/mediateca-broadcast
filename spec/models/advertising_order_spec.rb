@@ -16,6 +16,7 @@ require "rails_helper"
 #  duration_seconds      :integer
 #  placement_kind        :string           default("own_atmosphere"), not null
 #  product_name          :string           not null
+#  rejection_reason      :string
 #  shows_per_hour        :integer
 #  status                :string           default("draft"), not null
 #  total_shows           :integer          default(0), not null
@@ -84,6 +85,20 @@ RSpec.describe AdvertisingOrder, type: :model do
     it "allows nil media_asset when rotation carries clips" do
       order = build(:advertising_order, media_asset: nil)
       expect(order).to be_valid
+    end
+
+    it "requires a rejection reason on a rejected order" do
+      order = build(:advertising_order, status: :rejected, rejection_reason: nil)
+
+      expect(order).not_to be_valid
+      expect(order.errors[:rejection_reason]).to be_present
+    end
+
+    it "forbids a rejection reason unless the order is rejected" do
+      order = build(:advertising_order, status: :draft, rejection_reason: :other)
+
+      expect(order).not_to be_valid
+      expect(order.errors[:rejection_reason]).to be_present
     end
   end
 

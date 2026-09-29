@@ -112,11 +112,28 @@ module Admin
       redirect_to admin_advertising_order_path(find_order), alert: e.message
     end
 
+    def reject
+      order = find_order
+      unless AdvertisingOrderPolicy.new(Current.user, order).reject?
+        redirect_to admin_advertising_order_path(order), alert: t("pundit.not_authorized"), status: :see_other
+        return
+      end
+
+      Advertising::RejectOrder.call(order: order, rejection_reason: params[:rejection_reason])
+      redirect_to admin_advertising_order_path(order),
+        notice: t("admin.advertising_orders.rejected"),
+        status: :see_other
+    rescue Advertising::Error => e
+      redirect_to admin_advertising_order_path(order), alert: e.message, status: :see_other
+    end
+
     def cancel
       order = find_order
       Advertising::CancelOrder.call(order: order)
       redirect_to admin_advertising_order_path(order),
         notice: t("admin.advertising_orders.cancelled")
+    rescue Advertising::Error => e
+      redirect_to admin_advertising_order_path(order), alert: e.message, status: :see_other
     end
 
     private

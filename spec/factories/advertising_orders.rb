@@ -14,6 +14,7 @@
 #  duration_seconds      :integer
 #  placement_kind        :string           default("own_atmosphere"), not null
 #  product_name          :string           not null
+#  rejection_reason      :string
 #  shows_per_hour        :integer
 #  status                :string           default("draft"), not null
 #  total_shows           :integer          default(0), not null

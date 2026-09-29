@@ -783,6 +783,7 @@ ru:
       total_shows: "Выходов: %{count}"
       replace_clip: Заменить ролик
       document_version: "Версия %{version}"
+      rejected: "Заказ отклонён. Причина: %{reason}"
     print:
       title: "Заказ — %{product}"
       document_version: "Версия документа: %{version}"
@@ -983,6 +984,11 @@ ru:
       cancel: Отменить заказ
       cancel_confirm: Отменить этот заказ и освободить занятый эфир?
       cancelled: Заказ отменён.
+      reject: Отклонить
+      reject_title: Причина отклонения
+      reject_submit: Отклонить заказ
+      reject_cancel: Отмена
+      rejected: Заказ отклонён.
       show:
         details: Детали заказа
         organization: Организация
@@ -991,6 +997,7 @@ ru:
         business_sphere: Сфера деятельности
         placement_kind: Тип размещения
         status: Статус
+        rejection_reason: Причина отклонения
         date_ranges: Даты размещения
         day_count: Количество дней
         windows: Временные интервалы
@@ -1087,6 +1094,11 @@ ru:
         active: Активен
         completed: Завершён
         cancelled: Отменён
+        rejected: Отклонено
+      rejection_reason:
+        content_problem: Проблема с контентом (видеороликом)
+        invalid_points: Выбраны недопустимые точки показа
+        other: Прочее
     broadcast_portrait:
       kind:
         cyclic: Циклический
@@ -1306,3 +1318,6 @@ ru:
       order_clips_not_editable: ролики можно менять только в черновике или активном заказе
       order_not_active: заменить ролик можно только в активном заказе
       order_not_draft: заменить ролик можно только в черновике
+      order_not_rejectable: отклонить можно только черновик
+      rejection_reason_invalid: укажите причину отклонения
+      order_not_cancellable: отменить можно только активный заказ

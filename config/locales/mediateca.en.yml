@@ -777,6 +777,7 @@ en:
       total_shows: "Shows: %{count}"
       replace_clip: Replace clip
       document_version: "Version %{version}"
+      rejected: "Order rejected. Reason: %{reason}"
     print:
       title: "Order — %{product}"
       document_version: "Document version: %{version}"
@@ -973,6 +974,11 @@ en:
       cancel: Cancel order
       cancel_confirm: Cancel this order and free occupied airtime?
       cancelled: Order cancelled.
+      reject: Reject
+      reject_title: Rejection reason
+      reject_submit: Reject order
+      reject_cancel: Cancel
+      rejected: Order rejected.
       show:
         details: Order details
         organization: Organization
@@ -981,6 +987,7 @@ en:
         business_sphere: Business sphere
         placement_kind: Placement type
         status: Status
+        rejection_reason: Rejection reason
         date_ranges: Placement dates
         day_count: Number of days
         windows: Time windows
@@ -1077,6 +1084,11 @@ en:
         active: Active
         completed: Completed
         cancelled: Cancelled
+        rejected: Rejected
+      rejection_reason:
+        content_problem: Problem with the content (video)
+        invalid_points: Invalid display points selected
+        other: Other
     broadcast_portrait:
       kind:
         cyclic: Cyclic
@@ -1299,3 +1311,6 @@ en:
       order_clips_not_editable: clips can be updated only on draft or active orders
       order_not_active: clip can be replaced only on an active order
       order_not_draft: clip can be replaced only on a draft order
+      order_not_rejectable: only a draft order can be rejected
+      rejection_reason_invalid: choose a rejection reason
+      order_not_cancellable: only an active order can be cancelled
