@@ -93,7 +93,7 @@ RSpec.describe "Admin service themes", type: :request do
       expect {
         post admin_service_theme_clips_path(theme), params: { role: "welcome", clip: { file: png } }
       }.to change(MediaAsset, :count).by(1)
-        .and change { theme.welcome_rotation.rotation_items.count }.by(0)
+        .and not_change { theme.welcome_rotation.rotation_items.count }
 
       asset = MediaAsset.last
       expect(response).to redirect_to(admin_media_asset_path(asset))

@@ -22,7 +22,7 @@ RSpec.describe ServiceThemes::AddClip do
       expect {
         described_class.call(theme: theme, role: :welcome, file: png, uploaded_by: user)
       }.to change(MediaAsset, :count).by(1)
-        .and change(RotationItem, :count).by(0)
+        .and not_change(RotationItem, :count)
     end
 
     asset = MediaAsset.last
