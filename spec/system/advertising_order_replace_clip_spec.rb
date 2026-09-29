@@ -12,7 +12,7 @@ RSpec.describe "Advertising order clip replacement", type: :system do
   let(:group) { create_group_with_hours!(organization: organization, name: "Витрины Триумф") }
 
   def clip_named(filename, duration:)
-    create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: duration).tap do |asset|
+    create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization, duration_seconds: duration).tap do |asset|
       asset.file.blob.update!(filename: filename)
     end
   end

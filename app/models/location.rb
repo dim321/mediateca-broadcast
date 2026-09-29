@@ -5,6 +5,7 @@
 # Table name: locations
 #
 #  id              :bigint           not null, primary key
+#  address         :string           not null
 #  name            :string           not null
 #  operating_hours :jsonb            not null
 #  time_zone       :string           default("UTC"), not null
@@ -17,7 +18,7 @@
 #
 class Location < ApplicationRecord
   def self.ransackable_attributes(_auth_object = nil)
-    %w[id name operating_hours time_zone created_at updated_at]
+    %w[id name address operating_hours time_zone created_at updated_at]
   end
 
   def self.ransackable_associations(_auth_object = nil)
@@ -30,6 +31,7 @@ class Location < ApplicationRecord
   has_many :screens, through: :stations
 
   validates :name, presence: true, uniqueness: true
+  validates :address, presence: true
   validates :time_zone, presence: true
   validate :operating_hours_shape
 

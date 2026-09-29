@@ -1,0 +1,23 @@
+- which = local_assigns.fetch(:which)
+- value = local_assigns.fetch(:value).to_s
+- hour, minute = value.split(':', 2)
+- label = t("advertising_orders.form.window_#{which}")
+- windows_target = which == 'start' ? 'startsAt' : 'endsAt'
+- grid_target = which == 'start' ? 'windowStart' : 'windowEnd'
+div
+  label.block.text-xs.font-medium = label
+  .flex.items-center.gap-1
+    select.select.select-bordered.select-sm.w-20 aria-label="#{label} HH" data-order-windows-part="#{which}-hour" data-action='change->order-windows#syncFromParts change->order-grid#recompute'
+      option value=''
+      - (0..23).each do |number|
+        - clock = format('%02d', number)
+        option value=clock selected=(clock == hour) = clock
+    span.text-sm aria-hidden='true' = ':'
+    select.select.select-bordered.select-sm.w-20 aria-label="#{label} MM" data-order-windows-part="#{which}-minute" data-action='change->order-windows#syncFromParts change->order-grid#recompute'
+      option value=''
+      - (0..59).each do |number|
+        - clock = format('%02d', number)
+        option value=clock selected=(clock == minute) = clock
+  = hidden_field_tag field_name,
+      value.presence,
+      data: { order_windows_target: windows_target, order_grid_target: grid_target }

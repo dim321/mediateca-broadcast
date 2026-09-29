@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_17_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_29_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -93,6 +93,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_17_120000) do
     t.bigint "organization_id", null: false
     t.string "placement_kind", default: "own_atmosphere", null: false
     t.string "product_name", null: false
+    t.string "rejection_reason"
     t.bigint "rotation_id", null: false
     t.integer "shows_per_hour"
     t.string "status", default: "draft", null: false
@@ -193,6 +194,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_17_120000) do
   end
 
   create_table "locations", force: :cascade do |t|
+    t.string "address", null: false
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.jsonb "operating_hours", default: {}, null: false
@@ -204,6 +206,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_17_120000) do
   create_table "media_assets", force: :cascade do |t|
     t.string "content_kind", null: false
     t.string "content_type", null: false
+    t.datetime "content_validated_at"
+    t.bigint "content_validated_by_id"
     t.datetime "created_at", null: false
     t.integer "duration_seconds"
     t.jsonb "metadata", default: {}, null: false
@@ -213,6 +217,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_17_120000) do
     t.bigint "uploaded_by_id"
     t.string "visibility", null: false
     t.index ["content_type"], name: "index_media_assets_on_content_type"
+    t.index ["content_validated_by_id"], name: "index_media_assets_on_content_validated_by_id"
     t.index ["organization_id", "created_at"], name: "index_media_assets_on_organization_id_and_created_at", order: { created_at: :desc }
     t.index ["organization_id", "processing_status"], name: "index_media_assets_on_organization_id_and_processing_status"
     t.index ["organization_id"], name: "index_media_assets_on_organization_id"
@@ -455,6 +460,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_17_120000) do
   add_foreign_key "broadcast_portraits", "screens", on_delete: :cascade
   add_foreign_key "broadcast_portraits", "service_themes", on_delete: :restrict
   add_foreign_key "media_assets", "organizations"
+  add_foreign_key "media_assets", "users", column: "content_validated_by_id", on_delete: :nullify
   add_foreign_key "media_assets", "users", column: "uploaded_by_id", on_delete: :nullify
   add_foreign_key "media_plan_screens", "media_plans", on_delete: :cascade
   add_foreign_key "media_plan_screens", "screens", on_delete: :cascade

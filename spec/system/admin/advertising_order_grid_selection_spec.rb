@@ -164,7 +164,7 @@ RSpec.describe "Admin advertising order grid selection", type: :system do
     expect(cell_values).to eq([ "0", "0", "36" ])
     click_button I18n.t("advertising_orders.form.submit")
 
-    expect(page).to have_content(I18n.t("advertising_orders.create.created"))
+    expect(page).to have_content(I18n.t("advertising_orders.create.created", name: "Triumph"))
     order = AdvertisingOrder.last
     expect(order.product_name).to eq("Triumph")
     expect(order.advertising_order_lines.sole.advertising_order_line_days.order(:date).map(&:shows)).to eq([ 0, 0, 36 ])

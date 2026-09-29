@@ -7,6 +7,7 @@ module Admin
 
     helper ApplicationHelper
     helper AdminHelper
+    helper MediaAssetsHelper
 
     layout "admin/operator"
 

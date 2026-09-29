@@ -236,6 +236,7 @@ en:
         media_kind: Media type
         content_type: Content type
         visibility: Availability
+        content_validation: Validation
       content_kinds:
         video: Video
         audio: Audio
@@ -251,6 +252,22 @@ en:
       create_failed: Could not upload file.
       ready: Processing complete. File is ready.
       failed: Processing failed.
+    show:
+      download: Download source file
+      back: Back to library
+      video_not_ready: Broadcast file is not ready yet
+      not_ready: The file is still processing
+    content_validation:
+      mark: Content validated
+      revoke: Clear validation
+      not_playable: This clip cannot be validated yet
+      marked: Clip content validated
+      revoked: Validation cleared and active orders with this clip were cancelled
+      forbidden: Only a traffic manager can set this mark
+      not_validated: Content not validated
+      validated: Content validated
+      validated_by: "Validated by %{name}, %{time}"
+      confirm_revoke: Clear validation? Active orders with this clip will be cancelled and the clip will leave catalog and service rotations.
   sessions:
     new:
       title: Sign in
@@ -364,6 +381,7 @@ en:
             media_asset:
               wrong_organization: must belong to your organization or be network-shared
               not_ready: must be ready before adding to a rotation
+              content_not_validated: content has not been validated by a traffic manager
         screen_tag:
           attributes:
             base:
@@ -458,6 +476,7 @@ en:
         commercial_quota_period: Quota period
         name: Name
       location:
+        address: Address
         name: Name
         operating_hours: Operating hours
         time_zone: Time zone
@@ -758,11 +777,12 @@ en:
       total_shows: "Shows: %{count}"
       replace_clip: Replace clip
       document_version: "Version %{version}"
+      rejected: "Order rejected. Reason: %{reason}"
     print:
       title: "Order — %{product}"
       document_version: "Document version: %{version}"
     create:
-      created: Order saved.
+      created: "A new order (%{name}) was created as a draft. Traffic-manager moderation is required before the order can be activated."
     update:
       updated: Order updated.
     destroy:
@@ -904,6 +924,7 @@ en:
       clear_search: Clear search
       clips_count: Clips
       clip_file: File
+      clip_placed: Clip added to the folder
       clip_uploaded: Clip added to the folder.
       created: Service theme created.
       destroy_confirm: Delete this theme and its service rotations?
@@ -928,6 +949,8 @@ en:
       updated: Service theme updated.
       upload: File
       upload_submit: Upload
+      place_prompt: Validated clip
+      place_submit: Add to folder
     tags:
       clear_search: Clear search
       created: Tag created.
@@ -951,6 +974,11 @@ en:
       cancel: Cancel order
       cancel_confirm: Cancel this order and free occupied airtime?
       cancelled: Order cancelled.
+      reject: Reject
+      reject_title: Rejection reason
+      reject_submit: Reject order
+      reject_cancel: Cancel
+      rejected: Order rejected.
       show:
         details: Order details
         organization: Organization
@@ -959,6 +987,7 @@ en:
         business_sphere: Business sphere
         placement_kind: Placement type
         status: Status
+        rejection_reason: Rejection reason
         date_ranges: Placement dates
         day_count: Number of days
         windows: Time windows
@@ -969,6 +998,7 @@ en:
         clips: Clips
         content_type: Content type
         content_kind: Content category
+        content_validation: Validation
         total_shows: Total impressions
       edit: Edit grid
       edit_title: Edit order
@@ -1054,6 +1084,11 @@ en:
         active: Active
         completed: Completed
         cancelled: Cancelled
+        rejected: Rejected
+      rejection_reason:
+        content_problem: Problem with the content (video)
+        invalid_points: Invalid display points selected
+        other: Other
     broadcast_portrait:
       kind:
         cyclic: Cyclic
@@ -1097,6 +1132,7 @@ en:
         manager: Manager
         accountant: Accountant
         administrator: Administrator
+        traffic_manager: Traffic manager
       status:
         active: Active
         blocked: Blocked
@@ -1271,6 +1307,10 @@ en:
       clips_duplicate: each clip may appear only once
       clip_foreign: clip must belong to the order organization
       clip_not_ready: clip is not broadcast-ready
+      content_not_validated: clip content has not been validated
       order_clips_not_editable: clips can be updated only on draft or active orders
       order_not_active: clip can be replaced only on an active order
       order_not_draft: clip can be replaced only on a draft order
+      order_not_rejectable: only a draft order can be rejected
+      rejection_reason_invalid: choose a rejection reason
+      order_not_cancellable: only an active order can be cancelled

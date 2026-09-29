@@ -67,6 +67,20 @@ RSpec.describe Advertising::CancelOrder do
     expect(replacement).to be_active
   end
 
+  it "does not cancel an order that is not active" do
+    order.update!(status: :draft)
+
+    expect { described_class.call(order: order) }
+      .to raise_error(Advertising::Error, I18n.t("advertising.errors.order_not_cancellable"))
+    expect(order.reload).to be_draft
+
+    order.update!(status: :rejected, rejection_reason: :content_problem)
+
+    expect { described_class.call(order: order) }
+      .to raise_error(Advertising::Error, I18n.t("advertising.errors.order_not_cancellable"))
+    expect(order.reload).to be_rejected
+  end
+
   it "cancels remaining active slots even if the rotation is no longer broadcast-ready" do
     order.rotation.ordered_items.sole.media_asset.update_column(:processing_status, "processing")
 

@@ -159,6 +159,74 @@ RSpec.describe "MediaAssets", type: :request do
     end
   end
 
+  describe "GET /media_assets/:id" do
+    let(:traffic_manager) { create(:user, :traffic_manager, organization: user.organization) }
+
+    it "plays a ready video from the broadcast file" do
+      sign_in_as(user)
+      asset = create(:media_asset, :ready, :with_mp4_file, :with_broadcast_ts, organization: user.organization)
+
+      get media_asset_path(asset)
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include('data-controller="media-asset-player"')
+      expect(response.body).to include("source.ts")
+      expect(response.body).not_to include(I18n.t("media_assets.content_validation.validated"))
+    end
+
+    it "shows an image from the original file" do
+      sign_in_as(user)
+      asset = create(:media_asset, :ready, :with_png_file, organization: user.organization)
+
+      get media_asset_path(asset)
+
+      expect(response.body).to include("1x1.png")
+      expect(response.body).not_to include("media-asset-player")
+    end
+
+    it "shows the validator and the mark button to the owning traffic manager" do
+      sign_in_as(traffic_manager)
+      asset = create(:media_asset, :ready, :with_png_file, :content_validated, organization: user.organization)
+
+      get media_asset_path(asset)
+
+      expect(response.body).to include(asset.content_validated_by.display_name)
+      expect(response.body).to include(I18n.t("media_assets.content_validation.validated"))
+    end
+
+    it "hides the mark button from a manager" do
+      sign_in_as(user)
+      asset = create(:media_asset, :ready, :with_png_file, organization: user.organization)
+
+      get media_asset_path(asset)
+
+      expect(response.body).not_to include(mark_content_validation_media_asset_path(asset))
+    end
+  end
+
+  describe "POST mark_content_validation" do
+    it "marks the asset for a traffic manager and redirects back" do
+      traffic_manager = create(:user, :traffic_manager, organization: user.organization)
+      sign_in_as(traffic_manager)
+      asset = create(:media_asset, :ready, :with_png_file, organization: user.organization)
+
+      post mark_content_validation_media_asset_path(asset)
+
+      expect(response).to redirect_to(media_asset_path(asset))
+      expect(asset.reload.content_validated_by).to eq(traffic_manager)
+    end
+
+    it "forbids a manager" do
+      sign_in_as(user)
+      asset = create(:media_asset, :ready, :with_png_file, organization: user.organization)
+
+      post mark_content_validation_media_asset_path(asset)
+
+      expect(response).to redirect_to(rails_health_check_path)
+      expect(asset.reload.content_validated?).to be false
+    end
+  end
+
   describe "PATCH /media_assets/:id (turbo_stream)" do
     before { sign_in_as(user) }
 

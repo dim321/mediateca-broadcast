@@ -4,21 +4,24 @@
 #
 # Table name: media_assets
 #
-#  id                :bigint           not null, primary key
-#  content_kind      :string           not null
-#  content_type      :string           not null
-#  duration_seconds  :integer
-#  metadata          :jsonb            not null
-#  processing_status :string           default("pending"), not null
-#  visibility        :string           not null
-#  created_at        :datetime         not null
-#  updated_at        :datetime         not null
-#  organization_id   :bigint           not null
-#  uploaded_by_id    :bigint
+#  id                      :bigint           not null, primary key
+#  content_kind            :string           not null
+#  content_type            :string           not null
+#  content_validated_at    :datetime
+#  duration_seconds        :integer
+#  metadata                :jsonb            not null
+#  processing_status       :string           default("pending"), not null
+#  visibility              :string           not null
+#  created_at              :datetime         not null
+#  updated_at              :datetime         not null
+#  content_validated_by_id :bigint
+#  organization_id         :bigint           not null
+#  uploaded_by_id          :bigint
 #
 # Indexes
 #
 #  index_media_assets_on_content_type                           (content_type)
+#  index_media_assets_on_content_validated_by_id                (content_validated_by_id)
 #  index_media_assets_on_organization_id                        (organization_id)
 #  index_media_assets_on_organization_id_and_created_at         (organization_id,created_at DESC)
 #  index_media_assets_on_organization_id_and_processing_status  (organization_id,processing_status)
@@ -27,6 +30,7 @@
 #
 # Foreign Keys
 #
+#  fk_rails_...  (content_validated_by_id => users.id) ON DELETE => nullify
 #  fk_rails_...  (organization_id => organizations.id)
 #  fk_rails_...  (uploaded_by_id => users.id) ON DELETE => nullify
 #
@@ -53,6 +57,11 @@ FactoryBot.define do
 
     trait :ready do
       processing_status { "ready" }
+    end
+
+    trait :content_validated do
+      content_validated_at { Time.zone.parse("2026-09-28 12:00:00 UTC") }
+      content_validated_by { uploaded_by }
     end
 
     trait :network_neutral do

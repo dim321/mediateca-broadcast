@@ -40,7 +40,7 @@ Exception: advertising order **new/edit** load cabinet CSS via `content_for :hea
 - Auth: `Current.user.organization.operator?` — **no Pundit** in `/admin`.
 - Importmap entry: `javascript_importmap_tags "admin"` → `app/javascript/admin.js`.
 - Stimulus: `eagerLoadControllersFrom("admin/controllers", application)` under `app/javascript/admin/controllers/`. Cabinet controllers are not auto-loaded; `order-grid` is registered manually in `admin.js`.
-- CSS: `app/assets/tailwind/admin.css` (`@plugin "flowbite/plugin"`, `source(none)` + explicit `@source` of admin views/JS). Build: `Procfile.dev` `admin_css` watch, or `bin/rails tailwindcss:build` (enhances `admin:css:build` → `app/assets/builds/admin.css`).
+- CSS: `app/assets/tailwind/admin.css` (`@plugin "flowbite/plugin"`, `source(none)` + explicit `@source` of admin views, `admin_helper.rb`, and admin JS). Helper class strings are not visible to Tailwind unless that file is sourced. Build: `Procfile.dev` `admin_css` watch, or `bin/rails tailwindcss:build` (enhances `admin:css:build` → `app/assets/builds/admin.css`).
 - Pagination: Kaminari `theme: "admin"` → `app/views/kaminari/admin/`.
 - Search/sort: Ransack. Always `ransack_params` (hash-only; scalar `q` must not 500). Allowlist `ransackable_attributes` / `ransackable_associations` on the model.
 

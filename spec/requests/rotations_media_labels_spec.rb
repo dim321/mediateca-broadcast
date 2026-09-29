@@ -9,7 +9,7 @@ RSpec.describe "Rotation media labels", type: :request do
   before { sign_in_as(user) }
 
   it "shows broadcast link and media attributes for rotation items" do
-    asset = create(:media_asset, :with_mp4_file, :with_broadcast_ts, :ready,
+    asset = create(:media_asset, :with_mp4_file, :with_broadcast_ts, :ready, :content_validated,
                    organization: user.organization, uploaded_by: user,
                    content_type: "own", visibility: "organization", duration_seconds: 15)
     create(:rotation_item, rotation: rotation, media_asset: asset)

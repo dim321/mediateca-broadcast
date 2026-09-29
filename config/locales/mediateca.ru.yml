@@ -238,6 +238,7 @@ ru:
         media_kind: Тип медиа
         content_type: Тип контента
         visibility: Доступность
+        content_validation: Проверка
       content_kinds:
         video: Видео
         audio: Аудио
@@ -253,6 +254,22 @@ ru:
       create_failed: Не удалось загрузить файл.
       ready: Обработка завершена. Файл готов.
       failed: Ошибка обработки.
+    show:
+      download: Скачать исходник
+      back: К библиотеке
+      video_not_ready: Эфирный файл ещё не готов
+      not_ready: Файл ещё обрабатывается
+    content_validation:
+      mark: Содержимое проверено
+      revoke: Снять отметку
+      not_playable: Ролик ещё нельзя проверить
+      marked: Содержимое ролика проверено
+      revoked: Отметка снята, активные заказы с роликом отменены
+      forbidden: Отметку ставит только трафик-менеджер
+      not_validated: Содержимое ролика не проверено
+      validated: Содержимое проверено
+      validated_by: "Проверил %{name}, %{time}"
+      confirm_revoke: Снять отметку? Активные заказы с этим роликом будут отменены, ролик уйдёт из обычных и служебных ротаций.
   sessions:
     new:
       title: Вход
@@ -368,6 +385,7 @@ ru:
             media_asset:
               wrong_organization: должен принадлежать вашей организации или быть общим в сети
               not_ready: должен быть готов перед добавлением в ротацию
+              content_not_validated: содержимое не проверено трафик-менеджером
         screen_tag:
           attributes:
             base:
@@ -462,6 +480,7 @@ ru:
         commercial_quota_period: Период квоты
         name: Название
       location:
+        address: Адрес
         name: Название
         operating_hours: Часы работы
         time_zone: Часовой пояс
@@ -764,11 +783,12 @@ ru:
       total_shows: "Выходов: %{count}"
       replace_clip: Заменить ролик
       document_version: "Версия %{version}"
+      rejected: "Заказ отклонён. Причина: %{reason}"
     print:
       title: "Заказ — %{product}"
       document_version: "Версия документа: %{version}"
     create:
-      created: Заказ сохранён.
+      created: "Создан новый заказ (%{name}) в статусе черновик, для активации заказа требуется пройти модерацию траффик-менеджера"
     update:
       updated: Заказ обновлён.
     destroy:
@@ -914,6 +934,7 @@ ru:
       clear_search: Сбросить поиск
       clips_count: Роликов
       clip_file: Файл
+      clip_placed: Ролик добавлен в папку
       clip_uploaded: Ролик добавлен в папку.
       created: Тематика создана.
       destroy_confirm: Удалить эту тематику и её служебные ротации?
@@ -938,6 +959,8 @@ ru:
       updated: Тематика обновлена.
       upload: Файл
       upload_submit: Загрузить
+      place_prompt: Проверенный ролик
+      place_submit: Добавить в папку
     tags:
       clear_search: Сбросить поиск
       created: Тег создан.
@@ -961,6 +984,11 @@ ru:
       cancel: Отменить заказ
       cancel_confirm: Отменить этот заказ и освободить занятый эфир?
       cancelled: Заказ отменён.
+      reject: Отклонить
+      reject_title: Причина отклонения
+      reject_submit: Отклонить заказ
+      reject_cancel: Отмена
+      rejected: Заказ отклонён.
       show:
         details: Детали заказа
         organization: Организация
@@ -969,6 +997,7 @@ ru:
         business_sphere: Сфера деятельности
         placement_kind: Тип размещения
         status: Статус
+        rejection_reason: Причина отклонения
         date_ranges: Даты размещения
         day_count: Количество дней
         windows: Временные интервалы
@@ -979,6 +1008,7 @@ ru:
         clips: Ролики
         content_type: Тип контента
         content_kind: Категория контента
+        content_validation: Проверка
         total_shows: Общее количество показов
       edit: Изменить сетку
       edit_title: Редактирование заказа
@@ -1064,6 +1094,11 @@ ru:
         active: Активен
         completed: Завершён
         cancelled: Отменён
+        rejected: Отклонено
+      rejection_reason:
+        content_problem: Проблема с контентом (видеороликом)
+        invalid_points: Выбраны недопустимые точки показа
+        other: Прочее
     broadcast_portrait:
       kind:
         cyclic: Циклический
@@ -1107,6 +1142,7 @@ ru:
         manager: Менеджер
         accountant: Бухгалтер
         administrator: Администратор
+        traffic_manager: Трафик-менеджер
       status:
         active: Активен
         blocked: Заблокирован
@@ -1278,6 +1314,10 @@ ru:
       clips_duplicate: каждый ролик может быть указан только один раз
       clip_foreign: ролик должен принадлежать организации заказа
       clip_not_ready: ролик не готов к эфиру
+      content_not_validated: ролик не прошёл проверку содержимого
       order_clips_not_editable: ролики можно менять только в черновике или активном заказе
       order_not_active: заменить ролик можно только в активном заказе
       order_not_draft: заменить ролик можно только в черновике
+      order_not_rejectable: отклонить можно только черновик
+      rejection_reason_invalid: укажите причину отклонения
+      order_not_cancellable: отменить можно только активный заказ

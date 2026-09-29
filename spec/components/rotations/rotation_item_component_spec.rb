@@ -7,7 +7,7 @@ RSpec.describe Rotations::RotationItemComponent, type: :component do
   let(:user) { create(:user, organization: organization) }
   let(:rotation) { create(:rotation, organization: organization) }
   let(:asset) do
-    create(:media_asset, :with_mp4_file, :with_broadcast_ts, :ready,
+    create(:media_asset, :with_mp4_file, :with_broadcast_ts, :ready, :content_validated,
            organization: organization, uploaded_by: user,
            content_type: "commercial", visibility: "network", duration_seconds: 42)
   end

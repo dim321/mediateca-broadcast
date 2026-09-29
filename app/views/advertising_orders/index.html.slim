@@ -21,6 +21,8 @@
               = t("enums.advertising_order.status.#{order.status}")
               |  ·
               = money_display(order.total_sum_cents)
+            - if order.rejected?
+              p.text-sm.text-error = t("enums.advertising_order.rejection_reason.#{order.rejection_reason}")
   - else
     .card.bg-base-100.border.border-base-300.shadow-sm
       .card-body

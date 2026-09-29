@@ -27,6 +27,7 @@
       <thead class="text-xs text-gray-700 uppercase bg-gray-50">
         <tr>
           <th scope="col" class="px-6 py-3"><%= sort_link @q, :name %></th>
+          <th scope="col" class="px-6 py-3"><%= sort_link @q, :address %></th>
           <th scope="col" class="px-6 py-3"><%= Location.human_attribute_name(:operating_hours) %></th>
           <th scope="col" class="px-6 py-3"><span class="sr-only"><%= t("admin.chrome.actions") %></span></th>
         </tr>
@@ -37,6 +38,7 @@
             <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
               <%= link_to location.name, admin_location_path(location), class: "text-blue-700 hover:underline" %>
             </th>
+            <td class="px-6 py-4"><%= location.address %></td>
             <td class="px-6 py-4">
               <%= location.operating_hours_configured? ? t("admin.fields.operating_hours.set") : t("admin.fields.operating_hours.missing") %>
             </td>

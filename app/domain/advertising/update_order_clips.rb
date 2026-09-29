@@ -16,6 +16,7 @@ module Advertising
 
     def call
       validate_order_status!
+      validate_content_validated! if order.active?
       validate_media_assets!(media_assets, organization: order.organization)
 
       AdvertisingOrder.transaction do
@@ -35,6 +36,12 @@ module Advertising
       return if order.draft? || order.active?
 
       raise Error, I18n.t("advertising.errors.order_clips_not_editable")
+    end
+
+    def validate_content_validated!
+      return if media_assets.all?(&:content_validated?)
+
+      raise Error, I18n.t("advertising.errors.content_not_validated")
     end
 
     def sync_rotation_items

@@ -53,6 +53,14 @@
           </div>
           <%= submit_tag t("admin.service_themes.upload_submit"), class: admin_primary_button_class %>
         <% end %>
+        <%= form_with url: place_admin_service_theme_clips_path(@service_theme), class: "mt-4 flex flex-col gap-2 sm:flex-row sm:items-end" do %>
+          <%= hidden_field_tag :role, role %>
+          <%= select_tag :media_asset_id,
+                options_for_select(admin_validated_service_clip_options(rotation)),
+                include_blank: t("admin.service_themes.place_prompt"),
+                class: admin_select_class %>
+          <%= submit_tag t("admin.service_themes.place_submit"), class: admin_primary_button_class %>
+        <% end %>
       </div>
 
       <% items = rotation.ordered_items %>

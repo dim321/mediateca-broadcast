@@ -81,9 +81,12 @@ RSpec.describe User, type: :model do
       expect(user).to be_manager
     end
 
-    it 'accepts accountant and administrator' do
+    it 'accepts accountant, administrator, and traffic manager' do
       expect(create(:user, :accountant)).to be_accountant
       expect(create(:user, :administrator)).to be_administrator
+      traffic_manager = create(:user, :traffic_manager)
+      expect(traffic_manager).to be_traffic_manager
+      expect(traffic_manager.role_before_type_cast).to eq("traffic-manager")
     end
   end
 
@@ -94,6 +97,25 @@ RSpec.describe User, type: :model do
 
     it 'supports blocked' do
       expect(create(:user, :blocked)).to be_blocked
+    end
+  end
+
+  describe 'deleting a validator' do
+    it 'refuses to delete a user who validated a media asset' do
+      user = create(:user, :traffic_manager)
+      asset = create(
+        :media_asset,
+        :ready,
+        :with_png_file,
+        :content_validated,
+        organization: user.organization,
+        uploaded_by: user,
+        content_validated_by: user
+      )
+
+      expect { user.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
+      expect(described_class.exists?(user.id)).to be(true)
+      expect(asset.reload).to be_content_validated
     end
   end
 

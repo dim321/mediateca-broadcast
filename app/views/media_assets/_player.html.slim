@@ -1,0 +1,15 @@
+- if media_asset.video?
+  - if media_asset.ready? && media_asset.broadcast_file.attached?
+    video.w-full.max-w-3xl controls="controls" data-controller="media-asset-player" data-media-asset-player-url-value=url_for(media_asset.broadcast_file)
+  - else
+    p.text-sm.text-base-content/70 = t("media_assets.show.video_not_ready")
+- elsif !media_asset.ready?
+  p.text-sm.text-base-content/70 = t("media_assets.show.not_ready")
+- elsif media_asset.audio? && media_asset.file.attached?
+  audio.w-full controls="controls" src=url_for(media_asset.file)
+- elsif media_asset.image? && media_asset.file.attached?
+  = image_tag url_for(media_asset.file), class: "max-w-3xl", alt: media_asset.file.filename.to_s
+- elsif media_asset.document? && media_asset.file.attached?
+  iframe.w-full.max-w-3xl.h-96 src=url_for(media_asset.file)
+- elsif media_asset.file.attached?
+  = link_to media_asset.file.filename.to_s, rails_blob_path(media_asset.file, disposition: :attachment), class: "link link-hover"

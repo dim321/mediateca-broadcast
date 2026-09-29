@@ -16,3 +16,5 @@ tr id=dom_id(media_asset, :card)
       | —
   td = t("media_assets.index.content_types.#{media_asset.content_type}")
   td = t("media_assets.index.visibilities.#{media_asset.visibility}")
+  td
+    span.badge class=(media_asset.content_validated? ? "badge-success" : "badge-ghost") = helpers.media_asset_validation_label(media_asset)

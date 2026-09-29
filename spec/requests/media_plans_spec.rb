@@ -63,7 +63,7 @@ RSpec.describe 'MediaPlans', type: :request do
     before { sign_in_as(user) }
 
     it 'creates a plan and occupies the slot without a prior booking' do
-      asset = create(:media_asset, :ready, :with_png_file, organization: organization)
+      asset = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization)
       create(:rotation_item, rotation: rotation, media_asset: asset)
 
       expect do
@@ -83,7 +83,7 @@ RSpec.describe 'MediaPlans', type: :request do
         starts_at: Time.utc(2026, 8, 10, 10, 0, 0),
         ends_at: Time.utc(2026, 8, 10, 11, 0, 0)
       )
-      asset = create(:media_asset, :ready, :with_png_file, organization: organization)
+      asset = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization)
       create(:rotation_item, rotation: rotation, media_asset: asset)
 
       expect do
@@ -116,7 +116,7 @@ RSpec.describe 'MediaPlans', type: :request do
     end
 
     it 'rejects a rotation containing a processing asset' do
-      asset = create(:media_asset, :ready, :with_png_file, organization: organization)
+      asset = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization)
       create(:rotation_item, rotation: rotation, media_asset: asset)
       asset.update_column(:processing_status, 'processing')
 
@@ -137,7 +137,7 @@ RSpec.describe 'MediaPlans', type: :request do
       create(:broadcast_point_group_membership, broadcast_point_group: group, screen: owned_screen)
       group.update!(commercial_quota_percent: 60, commercial_quota_period: :hour)
 
-      asset = create(:media_asset, :ready, :with_png_file, organization: organization)
+      asset = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization)
       create(:rotation_item, rotation: rotation, media_asset: asset, display_duration_seconds: 240)
 
       Airtime::OccupyWithPlan.call(
@@ -180,7 +180,7 @@ RSpec.describe 'MediaPlans', type: :request do
         ends_at: Time.utc(2026, 8, 10, 12, 0, 0)
       )
       other_rotation = create(:rotation, organization: organization)
-      asset = create(:media_asset, :ready, :with_png_file, organization: organization)
+      asset = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization)
       create(:rotation_item, rotation: other_rotation, media_asset: asset)
 
       patch media_plan_path(plan), params: { media_plan: { rotation_id: other_rotation.id } }

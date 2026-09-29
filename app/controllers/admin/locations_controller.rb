@@ -52,7 +52,7 @@ module Admin
 
     def location_params
       hours = Location::OperatingHours::DAY_KEYS.index_with { [ :start, :end ] }
-      params.require(:location).permit(:name, :time_zone, operating_hours: hours)
+      params.require(:location).permit(:name, :address, :time_zone, operating_hours: hours)
     end
   end
 end

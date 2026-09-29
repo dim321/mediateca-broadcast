@@ -42,20 +42,38 @@ RSpec.describe MediaAssetsHelper, type: :helper do
       asset = create(:media_asset, :with_png_file, :ready, organization: organization, uploaded_by: user)
       html = helper.media_asset_source_link(asset)
       expect(html).to include("1x1.png")
-      expect(html).to include("disposition=attachment")
+      expect(html).to include(media_asset_path(asset))
+      expect(html).not_to include("disposition=attachment")
     end
   end
 
   describe "#media_asset_select_label" do
     it "joins source filename and broadcast label" do
       asset = create(:media_asset, :with_mp4_file, :with_broadcast_ts, :ready, organization: organization, uploaded_by: user)
-      expect(helper.media_asset_select_label(asset)).to eq("source.mp4 · source.ts")
+      expect(helper.media_asset_select_label(asset)).to eq(
+        "source.mp4 · source.ts · #{I18n.t('media_assets.content_validation.not_validated')}"
+      )
+    end
+
+    it "appends validated label when content_validated" do
+      asset = create(
+        :media_asset,
+        :with_mp4_file,
+        :with_broadcast_ts,
+        :ready,
+        :content_validated,
+        organization: organization,
+        uploaded_by: user
+      )
+      expect(helper.media_asset_select_label(asset)).to eq(
+        "source.mp4 · source.ts · #{I18n.t('media_assets.content_validation.validated')}"
+      )
     end
 
     it "joins source filename and Processing… when video is encoding" do
       asset = create(:media_asset, :with_mp4_file, organization: organization, uploaded_by: user, processing_status: "processing")
       expect(helper.media_asset_select_label(asset)).to eq(
-        "source.mp4 · #{I18n.t('media_assets.index.broadcast_processing')}"
+        "source.mp4 · #{I18n.t('media_assets.index.broadcast_processing')} · #{I18n.t('media_assets.content_validation.not_validated')}"
       )
     end
   end

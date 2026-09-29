@@ -10,22 +10,18 @@ module ServiceThemes
     end
 
     def call
-      rotation = theme.rotation_for(role)
-      raise ArgumentError, "unknown service theme role #{role.inspect}" if rotation.blank?
+      raise ArgumentError, "unknown service theme role #{role.inspect}" if theme.rotation_for(role).blank?
 
       asset = nil
       ServiceTheme.transaction do
         asset = build_asset
         asset.save!
-        rotation.rotation_items.create!(media_asset: asset)
       end
-      Playlists::EnqueueRegen.from_rotation(rotation)
       asset
     rescue StandardError => e
       raise unless asset&.persisted? && Media::StorageErrors.network?(e)
 
       ProcessMediaMetadataJob.perform_later(asset.id)
-      Playlists::EnqueueRegen.from_rotation(rotation)
       asset
     end
 

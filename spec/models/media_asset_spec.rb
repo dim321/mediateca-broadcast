@@ -6,21 +6,24 @@ require "rails_helper"
 #
 # Table name: media_assets
 #
-#  id                :bigint           not null, primary key
-#  content_kind      :string           not null
-#  content_type      :string           not null
-#  duration_seconds  :integer
-#  metadata          :jsonb            not null
-#  processing_status :string           default("pending"), not null
-#  visibility        :string           not null
-#  created_at        :datetime         not null
-#  updated_at        :datetime         not null
-#  organization_id   :bigint           not null
-#  uploaded_by_id    :bigint
+#  id                      :bigint           not null, primary key
+#  content_kind            :string           not null
+#  content_type            :string           not null
+#  content_validated_at    :datetime
+#  duration_seconds        :integer
+#  metadata                :jsonb            not null
+#  processing_status       :string           default("pending"), not null
+#  visibility              :string           not null
+#  created_at              :datetime         not null
+#  updated_at              :datetime         not null
+#  content_validated_by_id :bigint
+#  organization_id         :bigint           not null
+#  uploaded_by_id          :bigint
 #
 # Indexes
 #
 #  index_media_assets_on_content_type                           (content_type)
+#  index_media_assets_on_content_validated_by_id                (content_validated_by_id)
 #  index_media_assets_on_organization_id                        (organization_id)
 #  index_media_assets_on_organization_id_and_created_at         (organization_id,created_at DESC)
 #  index_media_assets_on_organization_id_and_processing_status  (organization_id,processing_status)
@@ -29,6 +32,7 @@ require "rails_helper"
 #
 # Foreign Keys
 #
+#  fk_rails_...  (content_validated_by_id => users.id) ON DELETE => nullify
 #  fk_rails_...  (organization_id => organizations.id)
 #  fk_rails_...  (uploaded_by_id => users.id) ON DELETE => nullify
 #
@@ -96,6 +100,24 @@ RSpec.describe MediaAsset, type: :model do
     it "defaults to pending" do
       asset = build(:media_asset, :with_png_file)
       expect(asset.processing_status).to eq("pending")
+    end
+  end
+
+  describe "#content_validated?" do
+    it "is false when both columns are empty" do
+      asset = create(:media_asset, :with_png_file)
+      expect(asset.content_validated?).to be false
+    end
+
+    it "is false when only the timestamp is set" do
+      asset = create(:media_asset, :with_png_file, content_validated_at: Time.current)
+      expect(asset.content_validated?).to be false
+    end
+
+    it "is true when timestamp and user are both set" do
+      asset = create(:media_asset, :with_png_file, :content_validated)
+      expect(asset.content_validated?).to be true
+      expect(asset.content_validated_by).to eq(asset.uploaded_by)
     end
   end
 

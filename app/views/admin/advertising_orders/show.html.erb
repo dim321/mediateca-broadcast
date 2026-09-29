@@ -7,12 +7,56 @@
     <%= link_to t("admin.advertising_orders.edit"),
           edit_admin_advertising_order_path(@advertising_order),
           class: admin_primary_button_class %>
-    <%= button_to t("admin.advertising_orders.activate"),
-          activate_admin_advertising_order_path(@advertising_order),
-          method: :post,
-          class: admin_primary_button_class %>
+    <% can_activate = AdvertisingOrderPolicy.new(Current.user, @advertising_order).activate? &&
+         order_clips_content_validated?(@advertising_order) %>
+    <% if can_activate %>
+      <%= button_to t("admin.advertising_orders.activate"),
+            activate_admin_advertising_order_path(@advertising_order),
+            method: :post,
+            class: admin_primary_button_class %>
+    <% else %>
+      <%= button_to t("admin.advertising_orders.activate"),
+            activate_admin_advertising_order_path(@advertising_order),
+            method: :post,
+            disabled: true,
+            class: admin_disabled_button_class %>
+    <% end %>
+    <% if AdvertisingOrderPolicy.new(Current.user, @advertising_order).reject? %>
+      <div data-controller="modal">
+        <button type="button" class="<%= admin_danger_button_class %>" data-action="modal#open">
+          <%= t("admin.advertising_orders.reject") %>
+        </button>
+        <dialog
+          data-modal-target="dialog"
+          data-action="click->modal#backdrop"
+          class="m-auto w-full max-w-md rounded-lg border border-gray-200 bg-white p-6 shadow-lg backdrop:bg-gray-900/50">
+          <%= form_with url: reject_admin_advertising_order_path(@advertising_order), method: :post, class: "space-y-4" do %>
+            <h2 class="text-lg font-semibold text-gray-900"><%= t("admin.advertising_orders.reject_title") %></h2>
+            <fieldset class="space-y-3">
+              <legend class="sr-only"><%= t("admin.advertising_orders.reject_title") %></legend>
+              <% AdvertisingOrder.rejection_reasons.each_key do |reason| %>
+                <label class="flex items-start gap-3 text-sm text-gray-900">
+                  <%= radio_button_tag :rejection_reason, reason, false, required: true, class: "mt-1 h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500" %>
+                  <span><%= t("enums.advertising_order.rejection_reason.#{reason}") %></span>
+                </label>
+              <% end %>
+            </fieldset>
+            <div class="flex justify-end gap-3">
+              <button type="button" class="<%= admin_secondary_button_class %>" data-action="modal#close">
+                <%= t("admin.advertising_orders.reject_cancel") %>
+              </button>
+              <%= submit_tag t("admin.advertising_orders.reject_submit"), class: admin_danger_button_class %>
+            </div>
+          <% end %>
+        </dialog>
+      </div>
+    <% else %>
+      <button type="button" disabled class="<%= admin_disabled_button_class %>">
+        <%= t("admin.advertising_orders.reject") %>
+      </button>
+    <% end %>
   <% end %>
-  <% unless @advertising_order.cancelled? || @advertising_order.completed? %>
+  <% if @advertising_order.active? %>
     <%= link_to t("admin.advertising_orders.cancel"),
           cancel_admin_advertising_order_path(@advertising_order),
           data: { turbo_method: :post, turbo_confirm: t("admin.advertising_orders.cancel_confirm") },
@@ -49,9 +93,15 @@
       </div>
       <div>
         <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.status") %></dt>
-        <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@advertising_order, :status) %></dd>
+        <dd class="mt-1"><%= admin_advertising_order_status_badge(@advertising_order) %></dd>
       </div>
     </div>
+    <% if @advertising_order.rejected? %>
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.rejection_reason") %></dt>
+        <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@advertising_order, :rejection_reason) %></dd>
+      </div>
+    <% end %>
     <div class="grid gap-4 md:grid-cols-3">
       <div>
         <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.date_ranges") %></dt>
@@ -95,6 +145,7 @@
                   <th scope="col" class="px-4 py-3"><%= t("admin.advertising_orders.show.media_duration") %></th>
                   <th scope="col" class="px-4 py-3"><%= t("admin.advertising_orders.show.content_type") %></th>
                   <th scope="col" class="px-4 py-3"><%= t("admin.advertising_orders.show.content_kind") %></th>
+                  <th scope="col" class="px-4 py-3"><%= t("admin.advertising_orders.show.content_validation") %></th>
                 </tr>
               </thead>
               <tbody>
@@ -115,6 +166,9 @@
                     </td>
                     <td class="px-4 py-3">
                       <%= row.media_asset ? admin_enum_label(row.media_asset, :content_kind) : t("admin.crud.none") %>
+                    </td>
+                    <td class="px-4 py-3">
+                      <%= row.media_asset ? media_asset_validation_label(row.media_asset) : t("admin.crud.none") %>
                     </td>
                   </tr>
                 <% end %>

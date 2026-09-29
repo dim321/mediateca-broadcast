@@ -76,7 +76,7 @@ RSpec.describe Agent::PackageBuilder do
       station = create(:station, offline_cache_hours: 24)
       screen = create(:screen, station: station, owner_organization: client)
       rotation = create(:rotation, organization: client)
-      create(:rotation_item, rotation: rotation, media_asset: create(:media_asset, :ready, :with_png_file, organization: client))
+      create(:rotation_item, rotation: rotation, media_asset: create(:media_asset, :ready, :content_validated, :with_png_file, organization: client))
       plan = Airtime::OccupyWithPlan.call(
         organization: client,
         rotation: rotation,
@@ -99,7 +99,7 @@ RSpec.describe Agent::PackageBuilder do
 
   def create_plan(client:, screen:, starts_at:, ends_at:)
     rotation = create(:rotation, organization: client)
-    media_asset = create(:media_asset, :ready, :with_png_file, organization: client)
+    media_asset = create(:media_asset, :ready, :content_validated, :with_png_file, organization: client)
     create(:rotation_item, rotation:, media_asset:, position: 1)
     group = create(:broadcast_point_group, organization: client)
     create(:broadcast_point_group_membership, broadcast_point_group: group, screen:)

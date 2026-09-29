@@ -43,6 +43,30 @@ RSpec.describe AdminHelper, type: :helper do
     end
   end
 
+  describe "#admin_advertising_order_status_class" do
+    it "colors active, rejected, draft, and cancelled" do
+      expect(helper.admin_advertising_order_status_class("active")).to include("bg-green-100")
+      expect(helper.admin_advertising_order_status_class("rejected")).to include("bg-red-100")
+      expect(helper.admin_advertising_order_status_class("draft")).to include("bg-yellow-100")
+      expect(helper.admin_advertising_order_status_class("cancelled")).to include("bg-orange-100")
+    end
+
+    it "colors pending moderation blue and completed purple" do
+      expect(helper.admin_advertising_order_status_class("pending_moderation")).to include("bg-blue-100")
+      expect(helper.admin_advertising_order_status_class("completed")).to include("bg-purple-100")
+    end
+
+    it "renders a colored status badge" do
+      order = instance_double(AdvertisingOrder, status: "active")
+      allow(helper).to receive(:admin_enum_label).with(order, :status).and_return("Активен")
+
+      badge = helper.admin_advertising_order_status_badge(order)
+
+      expect(badge).to include("bg-green-100")
+      expect(badge).to include("Активен")
+    end
+  end
+
   describe "#admin_nav_section_active?" do
     it "is true when a grouped item is current" do
       allow(helper).to receive(:controller_path).and_return("admin/media_plans")

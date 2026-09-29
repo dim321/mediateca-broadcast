@@ -5,6 +5,7 @@ require "rails_helper"
 RSpec.describe "Advertising order placement", type: :system do
   let(:organization) { create(:organization, :client, name: "Triumph Org") }
   let(:user) { create(:user, :manager, organization: organization, email: "manager@triumph.test") }
+  let(:traffic_manager) { create(:user, :traffic_manager, organization: organization, email: "traffic@triumph.test") }
   let(:asset) { create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 10) }
   let(:group) { create_group_with_hours!(organization: organization, name: "Витрины Триумф") }
 
@@ -23,9 +24,20 @@ RSpec.describe "Advertising order placement", type: :system do
     end
   end
 
-  def sign_in_through_ui
+  def order_window_value(row, target)
+    row.find("[data-order-windows-target='#{target}']", visible: :all).value
+  end
+
+  def set_order_window(row, target, value)
+    which = target == "startsAt" ? "start" : "end"
+    hour, minute = value.split(":")
+    row.find("[data-order-windows-part='#{which}-hour']").select(hour)
+    row.find("[data-order-windows-part='#{which}-minute']").select(minute)
+  end
+
+  def sign_in_through_ui(account = user)
     visit login_path
-    fill_in I18n.t("sessions.new.email"), with: user.email
+    fill_in I18n.t("sessions.new.email"), with: account.email
     fill_in I18n.t("sessions.new.password"), with: "password123456"
     click_button I18n.t("sessions.new.submit")
   end
@@ -40,7 +52,8 @@ RSpec.describe "Advertising order placement", type: :system do
       product_name: "Triumph"
     )
     fill_order_grid!(order, screen: screen, dates: [ Date.new(2026, 6, 3) ])
-    sign_in_through_ui
+    MediaAssets::MarkContentValidated.call(media_asset: asset, user: traffic_manager)
+    sign_in_through_ui(traffic_manager)
 
     visit advertising_order_path(order)
     click_button I18n.t("advertising_orders.show.activate")
@@ -71,7 +84,7 @@ RSpec.describe "Advertising order placement", type: :system do
     expect(page).not_to have_field("advertising_order_lines_0_price_per_day_rubles")
     click_button I18n.t("advertising_orders.form.submit")
 
-    expect(page).to have_content(I18n.t("advertising_orders.create.created"))
+    expect(page).to have_content(I18n.t("advertising_orders.create.created", name: "Triumph"))
     expect(page).to have_content("Triumph")
 
     click_link I18n.t("advertising_orders.show.edit")
@@ -84,6 +97,12 @@ RSpec.describe "Advertising order placement", type: :system do
     end
     expect(find("[data-order-grid-target='grandTotal']").value).to eq(AdvertisingOrder.last.total_shows.to_s)
 
+    visit advertising_order_path(AdvertisingOrder.last)
+    expect(page).to have_button(I18n.t("advertising_orders.show.activate"), disabled: true)
+
+    click_button I18n.t("layouts.application.sign_out")
+    MediaAssets::MarkContentValidated.call(media_asset: asset, user: traffic_manager)
+    sign_in_through_ui(traffic_manager)
     visit advertising_order_path(AdvertisingOrder.last)
     click_button I18n.t("advertising_orders.show.activate")
     expect(page).to have_content(I18n.t("advertising_orders.activate.activated"))
@@ -103,14 +122,14 @@ RSpec.describe "Advertising order placement", type: :system do
     select "3", from: "advertising_order_shows_per_hour"
 
     within("[data-order-grid-target='lineRow']") do
-      # default window 08:00–23:00 ∩ open 09–20 → 12 hours × 3 shows = 36
+      # automatic window matches screen hours 09:00–21:00; 12 open hours × 3 shows = 36
       expect(find("[data-order-grid-target='cell']").value).to eq("36")
       expect(find("[data-order-grid-target='total']").value).to eq("36")
     end
     expect(find("[data-order-grid-target='grandTotal']").value).to eq("36")
   end
 
-  it "sets the automatic window to the common hours of selected screens", :js do
+  it "sets the automatic window to the earliest start and latest end of selected screens", :js do
     asset
     first_screen = named_screen
     second_screen = create(:screen, station: first_screen.station).tap do |screen|
@@ -126,8 +145,10 @@ RSpec.describe "Advertising order placement", type: :system do
     check "order_screen_#{second_screen.id}"
 
     row = find("[data-order-windows-target='row']")
-    expect(row.find("[data-order-windows-target='startsAt']").value).to eq("10:00")
-    expect(row.find("[data-order-windows-target='endsAt']").value).to eq("20:00")
+    expect(order_window_value(row, "startsAt")).to eq("09:00")
+    expect(order_window_value(row, "endsAt")).to eq("21:00")
+    expect(row.find("[data-order-windows-part='start-hour']").value).to eq("09")
+    expect(row.find("[data-order-windows-part='end-hour']").value).to eq("21")
   end
 
   it "preserves manually edited and added windows when screens change", :js do
@@ -140,19 +161,19 @@ RSpec.describe "Advertising order placement", type: :system do
     check "order_screen_#{first_screen.id}"
 
     first_row = find("[data-order-windows-target='row']")
-    first_row.find("[data-order-windows-target='startsAt']").set("11:00")
-    first_row.find("[data-order-windows-target='endsAt']").set("12:00")
+    set_order_window(first_row, "startsAt", "11:00")
+    set_order_window(first_row, "endsAt", "12:00")
     click_button I18n.t("advertising_orders.form.add_window")
 
     rows = all("[data-order-windows-target='row']")
-    rows.last.find("[data-order-windows-target='startsAt']").set("14:00")
-    rows.last.find("[data-order-windows-target='endsAt']").set("15:00")
+    set_order_window(rows.last, "startsAt", "14:00")
+    set_order_window(rows.last, "endsAt", "15:00")
     check "order_screen_#{second_screen.id}"
 
-    expect(rows.first.find("[data-order-windows-target='startsAt']").value).to eq("11:00")
-    expect(rows.first.find("[data-order-windows-target='endsAt']").value).to eq("12:00")
-    expect(rows.last.find("[data-order-windows-target='startsAt']").value).to eq("14:00")
-    expect(rows.last.find("[data-order-windows-target='endsAt']").value).to eq("15:00")
+    expect(order_window_value(rows.first, "startsAt")).to eq("11:00")
+    expect(order_window_value(rows.first, "endsAt")).to eq("12:00")
+    expect(order_window_value(rows.last, "startsAt")).to eq("14:00")
+    expect(order_window_value(rows.last, "endsAt")).to eq("15:00")
   end
 
   it "recomputes day cells when windows are added and the default window is removed", :js do
@@ -199,7 +220,7 @@ RSpec.describe "Advertising order placement", type: :system do
     select "3", from: "advertising_order_shows_per_hour"
     click_button I18n.t("advertising_orders.form.submit")
 
-    expect(page).to have_content(I18n.t("advertising_orders.create.created"))
+    expect(page).to have_content(I18n.t("advertising_orders.create.created", name: "Triumph Duo"))
     order = AdvertisingOrder.last
     expect(order.rotation.ordered_items.map(&:media_asset)).to eq([ first_clip, second_clip ])
   end

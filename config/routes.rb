@@ -6,7 +6,12 @@ Rails.application.routes.draw do
         resources :business_spheres
       end
       resources :locations
-      resources :media_assets
+      resources :media_assets do
+        member do
+          post :mark_content_validation
+          delete :revoke_content_validation
+        end
+      end
       resources :media_plans do
         member do
           delete :cancel
@@ -17,6 +22,7 @@ Rails.application.routes.draw do
       resources :advertising_orders, except: %i[destroy] do
         member do
           post :activate
+          post :reject
           post :cancel
         end
       end
@@ -26,7 +32,11 @@ Rails.application.routes.draw do
       resources :rotations
       resources :rotation_items
       resources :service_themes do
-        resources :clips, only: :create, controller: "service_theme_clips"
+        resources :clips, only: :create, controller: "service_theme_clips" do
+          collection do
+            post :place
+          end
+        end
       end
       resources :screens
       resources :screen_tags
@@ -54,7 +64,12 @@ Rails.application.routes.draw do
 
   root "media_assets#index"
 
-  resources :media_assets, only: %i[index create update]
+  resources :media_assets, only: %i[index create update show] do
+    member do
+      post :mark_content_validation
+      delete :revoke_content_validation
+    end
+  end
 
   resources :rotations do
     resources :rotation_items, only: %i[create destroy], path: "items"

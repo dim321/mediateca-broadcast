@@ -22,7 +22,7 @@ RSpec.describe CommercialQuota::Check do
   let(:rotation) { create(:rotation, organization: owner) }
 
   before do
-    asset = create(:media_asset, :ready, :with_png_file, organization: owner)
+    asset = create(:media_asset, :ready, :content_validated, :with_png_file, organization: owner)
     create(:rotation_item, rotation: rotation, media_asset: asset, display_duration_seconds: 240)
   end
 

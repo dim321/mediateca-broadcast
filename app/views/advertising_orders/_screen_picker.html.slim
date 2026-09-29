@@ -27,16 +27,16 @@
             tr
               th
                 input.checkbox.checkbox-sm type='checkbox' aria-label=t('advertising_orders.form.screen_picker.select_all') data-order-screen-picker-target='selectAll' data-action='order-screen-picker#toggleAll'
-              th = Screen.human_attribute_name(:name)
               th = Location.model_name.human
+              th = Location.human_attribute_name(:address)
               th = Tag.model_name.human(count: 2)
               th = BroadcastPortrait.human_attribute_name(:block_frequencies_per_hour)
               th = t('advertising_orders.form.screen_picker.hours')
             tr
               th
               th
-              th
                 input.input.input-xs.input-bordered.w-full type='search' list='order-screen-filter-locations' placeholder=t('advertising_orders.form.screen_picker.filter_location') data-order-screen-picker-target='filter' data-filter-key='location' data-action='input->order-screen-picker#filterRows'
+              th
               th
                 input.input.input-xs.input-bordered.w-full type='search' list='order-screen-filter-tags' placeholder=t('advertising_orders.form.screen_picker.filter_tags') data-order-screen-picker-target='filter' data-filter-key='tags' data-action='input->order-screen-picker#filterRows'
               th
@@ -55,8 +55,8 @@
                       id: "order_screen_#{screen.id}",
                       class: 'checkbox checkbox-sm',
                       data: { action: 'order-screen-picker#selectionChanged' }
-                td.font-medium = screen.name
                 td = screen.location&.name
+                td = screen.location&.address
                 td = screen.tags.map(&:name).presence&.join(', ')
                 td.whitespace-nowrap = frequencies_label
                 td.whitespace-nowrap = hours_label

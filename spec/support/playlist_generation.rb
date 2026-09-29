@@ -13,7 +13,7 @@ module PlaylistGeneration
   def create_clip_rotation!(organization:, count: 1, duration: 10)
     rotation = create(:rotation, organization: organization)
     count.times do
-      asset = create(:media_asset, :ready, :with_png_file, organization: organization)
+      asset = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization)
       create(:rotation_item, rotation: rotation, media_asset: asset, display_duration_seconds: duration)
     end
     rotation

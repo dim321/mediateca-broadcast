@@ -19,7 +19,7 @@ export default class extends Controller {
     const rows = this.listTarget.querySelectorAll("[data-order-windows-target='row']")
     if (rows.length <= 1) {
       row.dataset.orderWindowsAutomatic = "false"
-      row.querySelectorAll("input").forEach((input) => { input.value = "" })
+      row.querySelectorAll("input, select").forEach((field) => { field.value = "" })
       this.requestRecompute()
       return
     }
@@ -47,9 +47,18 @@ export default class extends Controller {
       return
     }
 
-    const start = Math.max(...bounds.map(([from]) => from))
-    const end = Math.min(...bounds.map(([, to]) => to))
+    const start = Math.min(...bounds.map(([from]) => from))
+    const end = Math.max(...bounds.map(([, to]) => to))
     this.setWindow(row, start < end ? this.clock(start) : "", start < end ? this.clock(end) : "")
+  }
+
+  syncFromParts(event) {
+    const row = event.target.closest("[data-order-windows-target='row']")
+    const which = event.target.dataset.orderWindowsPart?.split("-")[0]
+    if (!row || (which !== "start" && which !== "end")) return
+
+    this.markManual(event)
+    this.writeHiddenClock(row, which)
   }
 
   markManual(event) {
@@ -80,14 +89,47 @@ export default class extends Controller {
   }
 
   setWindow(row, startsAt, endsAt) {
-    row.querySelector("[data-order-windows-target='startsAt']").value = startsAt
-    row.querySelector("[data-order-windows-target='endsAt']").value = endsAt
+    this.applyClock(row, "start", startsAt)
+    this.applyClock(row, "end", endsAt)
     this.requestRecompute()
   }
 
+  applyClock(row, which, value) {
+    const hidden = this.hiddenClock(row, which)
+    if (hidden) hidden.value = value
+
+    const [hour = "", minute = ""] = String(value || "").split(":")
+    const hourSelect = row.querySelector(`[data-order-windows-part='${which}-hour']`)
+    const minuteSelect = row.querySelector(`[data-order-windows-part='${which}-minute']`)
+    if (hourSelect) hourSelect.value = hour
+    if (minuteSelect) minuteSelect.value = minute
+  }
+
+  writeHiddenClock(row, which) {
+    const hidden = this.hiddenClock(row, which)
+    if (!hidden) return
+
+    const hour = row.querySelector(`[data-order-windows-part='${which}-hour']`)?.value ?? ""
+    const minute = row.querySelector(`[data-order-windows-part='${which}-minute']`)?.value ?? ""
+    const hours = Number.parseInt(hour, 10)
+    const minutes = Number.parseInt(minute, 10)
+    if (hour === "" || minute === "" || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+      hidden.value = ""
+      return
+    }
+
+    hidden.value = this.clock(hours * 60 + minutes)
+  }
+
+  hiddenClock(row, which) {
+    const target = which === "start" ? "startsAt" : "endsAt"
+    return row.querySelector(`[data-order-windows-target='${target}']`)
+  }
+
   clock(minutes) {
-    const hours = Math.floor(minutes / 60)
-    const remainder = minutes % 60
+    const total = minutes >= 24 * 60 ? (23 * 60) + 59 : minutes
+    const hours = Math.floor(total / 60)
+    const remainder = total % 60
     return `${String(hours).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`
   }
 

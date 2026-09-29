@@ -44,7 +44,8 @@ module Admin
         distribution_strategy: order_params[:distribution_strategy].presence || :linear
       )
       persist_grid!(@advertising_order)
-      redirect_to admin_advertising_order_path(@advertising_order), notice: t("advertising_orders.create.created")
+      redirect_to admin_advertising_order_path(@advertising_order),
+        notice: t("advertising_orders.create.created", name: @advertising_order.product_name)
     rescue Advertising::InvalidGrid => e
       @advertising_order = e.order
       @form_organization = @advertising_order.organization
@@ -95,6 +96,11 @@ module Admin
 
     def activate
       order = find_order
+      unless AdvertisingOrderPolicy.new(Current.user, order).activate?
+        redirect_to admin_advertising_order_path(order), alert: t("pundit.not_authorized"), status: :see_other
+        return
+      end
+
       result = Advertising::ActivateOrder.call(order: order)
       flash[:notice] = t("advertising_orders.activate.activated")
       flash[:warning] = t("advertising_orders.activate.quota_exceeded") if result.quota_exceeded
@@ -106,11 +112,28 @@ module Admin
       redirect_to admin_advertising_order_path(find_order), alert: e.message
     end
 
+    def reject
+      order = find_order
+      unless AdvertisingOrderPolicy.new(Current.user, order).reject?
+        redirect_to admin_advertising_order_path(order), alert: t("pundit.not_authorized"), status: :see_other
+        return
+      end
+
+      Advertising::RejectOrder.call(order: order, rejection_reason: params[:rejection_reason])
+      redirect_to admin_advertising_order_path(order),
+        notice: t("admin.advertising_orders.rejected"),
+        status: :see_other
+    rescue Advertising::Error => e
+      redirect_to admin_advertising_order_path(order), alert: e.message, status: :see_other
+    end
+
     def cancel
       order = find_order
       Advertising::CancelOrder.call(order: order)
       redirect_to admin_advertising_order_path(order),
         notice: t("admin.advertising_orders.cancelled")
+    rescue Advertising::Error => e
+      redirect_to admin_advertising_order_path(order), alert: e.message, status: :see_other
     end
 
     private

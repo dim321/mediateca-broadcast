@@ -50,8 +50,8 @@ RSpec.describe Playlists::NeutralPicker do
   it "omits filler clips shorter than min_seconds and skips an empty catalog" do
     short = create_clip_rotation!(organization: organization, count: 1, duration: 5)
     mixed = create(:rotation, organization: organization)
-    short_asset = create(:media_asset, :ready, :with_png_file, organization: organization)
-    long_asset = create(:media_asset, :ready, :with_png_file, organization: organization)
+    short_asset = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization)
+    long_asset = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization)
     create(:rotation_item, rotation: mixed, media_asset: short_asset, display_duration_seconds: 5)
     create(:rotation_item, rotation: mixed, media_asset: long_asset, display_duration_seconds: 12)
 

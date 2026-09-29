@@ -90,6 +90,7 @@ RSpec.describe 'Alleya commercial media plan on Komandor screens', type: :system
     asset = MediaAsset.joins(file_attachment: :blob).find_by!(active_storage_blobs: { filename: path.basename.to_s })
     expect(asset.reload).to be_ready
     expect(asset).to be_broadcast_ready
+    MediaAssets::MarkContentValidated.call(media_asset: asset, user: asset.uploaded_by)
   end
 
   def add_ready_clip_to_rotation(filename)

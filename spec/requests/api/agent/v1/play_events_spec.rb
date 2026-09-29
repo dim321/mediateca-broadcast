@@ -103,7 +103,7 @@ RSpec.describe 'Api::Agent::V1::PlayEvents', type: :request do
   private
 
   def create_packaged_media(client:, screen:)
-    media_asset = create(:media_asset, :ready, :with_png_file, organization: client)
+    media_asset = create(:media_asset, :ready, :content_validated, :with_png_file, organization: client)
     rotation = create(:rotation, organization: client)
     create(:rotation_item, rotation:, media_asset:, position: 1)
     group = create(:broadcast_point_group, organization: client)

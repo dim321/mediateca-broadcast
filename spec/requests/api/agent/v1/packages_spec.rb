@@ -86,7 +86,7 @@ RSpec.describe 'Api::Agent::V1::Packages', type: :request do
   end
 
   def create_broadcast_video(organization)
-    media_asset = build(:media_asset, :ready, organization:)
+    media_asset = build(:media_asset, :ready, :content_validated, organization:)
     media_asset.file.attach(
       io: StringIO.new('source video'),
       filename: 'clip.mp4',

@@ -5,6 +5,10 @@
     <%= f.text_field :name, class: admin_input_class, required: true %>
   </div>
   <div class="mb-5">
+    <%= f.label :address, class: admin_label_class %>
+    <%= f.text_field :address, class: admin_input_class, required: true %>
+  </div>
+  <div class="mb-5">
     <%= f.label :time_zone, class: admin_label_class %>
     <%= f.time_zone_select :time_zone, nil, {}, class: admin_select_class %>
   </div>

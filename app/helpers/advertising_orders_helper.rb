@@ -64,7 +64,12 @@ module AdvertisingOrdersHelper
 
   def advertising_clip_option_label(asset)
     name = advertising_clip_title(asset)
-    "#{name} (#{asset.duration_seconds}s)"
+    "#{name} (#{asset.duration_seconds}s) · #{media_asset_validation_label(asset)}"
+  end
+
+  def order_clips_content_validated?(order)
+    rows = order_clip_rows(order)
+    rows.any? && rows.all? { |row| row.media_asset&.content_validated? }
   end
 
   def order_clip_rows(order)
@@ -215,6 +220,15 @@ module AdvertisingOrdersHelper
     windows.map do |window|
       "#{window.starts_at.strftime("%H:%M")}–#{window.ends_at.strftime("%H:%M")}"
     end.join(", ")
+  end
+
+  def creator_manager_awaits_activation?
+    order = @advertising_order
+    return false unless order&.draft?
+    return false unless Current.user&.manager?
+    return false if policy(order).activate?
+
+    order.created_by_user_id == Current.user.id
   end
 
   def advertising_order_daily_shows_label(order)

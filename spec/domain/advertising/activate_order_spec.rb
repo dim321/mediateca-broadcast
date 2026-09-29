@@ -5,7 +5,7 @@ require "rails_helper"
 RSpec.describe Advertising::ActivateOrder do
   let(:organization) { create(:organization, :client, time_zone: "UTC") }
   let(:user) { create(:user, :manager, organization: organization) }
-  let(:asset) { create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 10) }
+  let(:asset) { create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization, duration_seconds: 10) }
   let(:order) do
     Advertising::CreateOrder.call(
       organization: organization,
@@ -141,7 +141,7 @@ RSpec.describe Advertising::ActivateOrder do
       commercial_quota_percent: 10,
       commercial_quota_period: :hour
     )
-    long_clip = create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 240)
+    long_clip = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization, duration_seconds: 240)
     commercial = Advertising::CreateOrder.call(
       organization: organization,
       created_by: user,
@@ -170,6 +170,24 @@ RSpec.describe Advertising::ActivateOrder do
     expect(result.conflicted_windows.size).to eq(1)
     expect(result.conflicted_windows.first.error).to include("own/atmosphere")
     expect(order.reload).to be_draft
+  end
+
+  it "does not occupy when a clip is unmarked" do
+    unmarked = create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 10)
+    unmarked_order = Advertising::CreateOrder.call(
+      organization: organization,
+      created_by: user,
+      media_assets: [ unmarked ],
+      product_name: "Unmarked",
+      shows_per_hour: 3
+    )
+    setup_order!(order: unmarked_order, dates: [ Date.new(2026, 6, 3) ])
+
+    expect {
+      described_class.call(order: unmarked_order)
+    }.to raise_error(Advertising::Error, I18n.t("advertising.errors.content_not_validated"))
+    expect(unmarked_order.reload).to be_draft
+    expect(MediaPlan.count).to eq(0)
   end
 
   it "refuses activation when the clip is not broadcast-ready" do

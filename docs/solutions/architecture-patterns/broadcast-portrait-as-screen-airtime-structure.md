@@ -1,7 +1,7 @@
 ---
 title: Broadcast portrait as screen airtime structure
 date: 2026-09-17
-last_updated: 2026-09-17
+last_updated: 2026-09-22
 category: architecture-patterns
 module: broadcast-portraits
 problem_type: architecture_pattern
@@ -69,7 +69,7 @@ related_components:
 ## Portrait-level knobs
 
 - `block_frequencies_per_hour` — каталог допустимых частот слотов в час (`BLOCK_FREQUENCIES_PER_HOUR`); пересечение по экранам заказа — `Portraits::FrequencySet` (UI `shows_per_hour`).
-- `hour_slot_count` — max частоты; шаг часа в генераторе / `Playlists::HourGrid`.
+- `hour_slot_count` — max частоты. В генераторе это запасное число слотов часа, когда на часе нет коммерческих планов с каталожным `shows_per_hour`. Иначе `Playlists::HourGrid` берёт НОК этих частот. Раскладка ударов — `playlist-from-advertising-orders.md`.
 - `max_commercial_in_row` — потолок клипов рекламы подряд в слоте.
 - `neutral_min_seconds` — 5 или 10 (по умолчанию 10).
 - `kind` портрета: в схеме `cyclic` / `timed`, валидация сейчас допускает только `cyclic`.
@@ -100,6 +100,7 @@ related_components:
 ## Related
 
 - `docs/solutions/architecture-patterns/playlist-as-airtime-projection.md`
+- `docs/solutions/architecture-patterns/playlist-from-advertising-orders.md`
 - `docs/solutions/architecture-patterns/operator-service-theme-on-screen.md`
 - `docs/solutions/architecture-patterns/media-plan-as-airtime-slot.md`
 - `docs/superpowers/specs/2026-09-14-broadcast-portrait-block-frequencies-design.md`

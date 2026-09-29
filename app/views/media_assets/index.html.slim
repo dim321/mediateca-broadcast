@@ -21,6 +21,7 @@
           th = t(".columns.duration")
           th = t(".columns.content_type")
           th = t(".columns.visibility")
+          th = t(".columns.content_validation")
       tbody#media_assets_tbody
         - @media_assets.each do |asset|
           = render "media_assets/media_asset", media_asset: asset

@@ -7,6 +7,8 @@ module Advertising
     end
 
     def call
+      raise Error, I18n.t("advertising.errors.order_not_cancellable") unless order.active?
+
       AdvertisingOrder.transaction do
         order.media_plans.active.find_each do |plan|
           Airtime::Cancel.call(plan: plan)

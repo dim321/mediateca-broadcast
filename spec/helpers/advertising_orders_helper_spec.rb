@@ -3,6 +3,15 @@
 require "rails_helper"
 
 RSpec.describe AdvertisingOrdersHelper, type: :helper do
+  describe "#advertising_clip_option_label" do
+    it "appends the validation label" do
+      asset = create(:media_asset, :ready, :with_png_file, duration_seconds: 10)
+      expect(helper.advertising_clip_option_label(asset)).to eq(
+        "#{helper.advertising_clip_title(asset)} (10s) · #{I18n.t('media_assets.content_validation.not_validated')}"
+      )
+    end
+  end
+
   describe "#order_screen_meta" do
     it "returns the location without the station" do
       location = create(:location, name: "ТЦ Галерея")

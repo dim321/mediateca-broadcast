@@ -8,8 +8,9 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
   let(:organization) { create(:organization, :client) }
   let(:user) { create(:user, :manager, organization: organization) }
+  let(:traffic_manager) { create(:user, :traffic_manager, organization: organization) }
   let(:accountant) { create(:user, :accountant, organization: organization) }
-  let(:asset) { create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 10) }
+  let(:asset) { create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization, duration_seconds: 10) }
   let(:group) { create_group_with_hours!(organization: organization) }
 
   def order_screen
@@ -49,7 +50,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
   end
 
   def clip_named(filename, duration:)
-    create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: duration).tap do |record|
+    create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization, duration_seconds: duration).tap do |record|
       record.file.blob.update!(filename: filename)
     end
   end
@@ -70,6 +71,25 @@ RSpec.describe "AdvertisingOrders", type: :request do
       expect(response.body).to include("Triumph")
       expect(response.body).to include(I18n.t("advertising_orders.index.new_order"))
       expect(order).to be_draft
+    end
+
+    it "shows a rejection reason to the order author" do
+      sign_in_as(user)
+      order = Advertising::CreateOrder.call(
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "RejectedOrder"
+      )
+      order.update!(status: :rejected, rejection_reason: :content_problem)
+      reason = I18n.t("enums.advertising_order.rejection_reason.content_problem")
+
+      get advertising_order_path(order)
+
+      expect(response.body).to include(I18n.t("advertising_orders.show.rejected", reason: reason))
+
+      get advertising_orders_path
+
+      expect(response.body).to include("RejectedOrder")
+      expect(response.body).to include(I18n.t("enums.advertising_order.status.rejected"))
+      expect(response.body).to include(reason)
     end
 
     it "filters by status" do
@@ -123,10 +143,12 @@ RSpec.describe "AdvertisingOrders", type: :request do
       expect do
         post advertising_orders_path, params: order_params(dates: [ "2026-06-03", "2026-06-04" ])
       end.to change(AdvertisingOrder, :count).by(1)
+        .and have_enqueued_mail(AdvertisingOrderMailer, :draft_created)
 
       order = AdvertisingOrder.last
       window = order.advertising_order_windows.sole
       expect(response).to redirect_to(advertising_order_path(order))
+      expect(flash[:notice]).to eq(I18n.t("advertising_orders.create.created", name: order.product_name))
       expect(order).to be_draft.and have_attributes(
         shows_per_hour: 3,
         total_shows: 18,
@@ -151,10 +173,13 @@ RSpec.describe "AdvertisingOrders", type: :request do
     end
 
     it "rejects create without clips" do
+      orders = AdvertisingOrder.count
+
       expect do
         post advertising_orders_path, params: order_params(media_assets: [])
-      end.not_to change(AdvertisingOrder, :count)
+      end.not_to have_enqueued_mail(AdvertisingOrderMailer, :draft_created)
 
+      expect(AdvertisingOrder.count).to eq(orders)
       expect(response).to have_http_status(:unprocessable_content)
     end
 
@@ -272,6 +297,13 @@ RSpec.describe "AdvertisingOrders", type: :request do
       list = Nokogiri::HTML(response.body).at_css("[data-order-windows-target='list']")
       expect(list.at_css("[data-order-grid-target='windowStart']")["value"]).to eq("08:00")
       expect(list.at_css("[data-order-grid-target='windowEnd']")["value"]).to eq("23:00")
+      expect(list.at_css("[data-order-windows-part='start-hour'] option[selected]")["value"]).to eq("08")
+      expect(list.at_css("[data-order-windows-part='start-minute'] option[selected]")["value"]).to eq("00")
+      expect(list.at_css("[data-order-windows-part='end-hour'] option[selected]")["value"]).to eq("23")
+      expect(list.at_css("[data-order-windows-part='end-minute'] option[selected]")["value"]).to eq("00")
+      expect(list.at_css("[data-order-windows-part='start-hour']").css("option").map { |option| option["value"] }).to eq(
+        [ "" ] + (0..23).map { |number| format("%02d", number) }
+      )
       expect(list.at_css("[data-order-windows-automatic='true']")).to be_present
     end
 
@@ -404,7 +436,9 @@ RSpec.describe "AdvertisingOrders", type: :request do
         lines: advertising_order_grid_lines(screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
       )
 
-      patch advertising_order_path(order), params: order_params(dates: [ "2026-06-03", "2026-06-04" ])
+      expect do
+        patch advertising_order_path(order), params: order_params(dates: [ "2026-06-03", "2026-06-04" ])
+      end.not_to have_enqueued_mail(AdvertisingOrderMailer, :draft_created)
 
       expect(response).to redirect_to(advertising_order_path(order))
       expect(order.reload.total_shows).to eq(18)
@@ -458,7 +492,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
     it "replaces clips on an active order and enqueues playlist regen" do
       travel_to Time.utc(2026, 9, 2, 10, 0, 0) do
-        replacement = create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 15)
+        replacement = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization, duration_seconds: 15)
         order = Advertising::CreateOrder.call(
           organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph"
         )
@@ -553,7 +587,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
   end
 
   describe "POST /advertising_orders/:id/activate" do
-    before { sign_in_as(user) }
+    before { sign_in_as(traffic_manager) }
 
     def draft_with_days(dates:, shows: 9)
       order = Advertising::CreateOrder.call(
@@ -561,6 +595,21 @@ RSpec.describe "AdvertisingOrders", type: :request do
       )
       fill_order_grid!(order, screen: order_screen, dates: dates, shows: shows)
       order
+    end
+
+    it "denies the manager who created the draft and shows a disabled activate button" do
+      order = draft_with_days(dates: [ Date.new(2026, 6, 3) ])
+      sign_in_as(user)
+
+      get advertising_order_path(order)
+
+      expect(response.body).to include(I18n.t("advertising_orders.show.activate"))
+      expect(response.body).to include("disabled")
+
+      post activate_advertising_order_path(order)
+
+      expect(response).to redirect_to(rails_health_check_path)
+      expect(order.reload).to be_draft
     end
 
     it "occupies the grid and shows the order" do
@@ -601,7 +650,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
         commercial_quota_percent: 10,
         commercial_quota_period: :hour
       )
-      long_clip = create(:media_asset, :ready, :with_png_file, organization: organization, duration_seconds: 240)
+      long_clip = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization, duration_seconds: 240)
       order = Advertising::CreateOrder.call(
         organization: organization,
         created_by: user,

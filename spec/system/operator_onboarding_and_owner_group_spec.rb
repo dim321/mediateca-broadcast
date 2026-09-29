@@ -114,6 +114,7 @@ RSpec.describe 'Operator onboarding and owner group', type: :system do
   def create_location_with_hours(name)
     visit new_admin_location_path
     fill_in 'location_name', with: name
+    fill_in 'location_address', with: 'ул. Ленина, 1'
     find('input[data-operating-hours-day="mon"][data-operating-hours-part="start"]').set('09:00')
     find('input[data-operating-hours-day="mon"][data-operating-hours-part="end"]').set('21:00')
     submit_admin_form

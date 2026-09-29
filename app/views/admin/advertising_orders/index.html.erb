@@ -39,7 +39,7 @@
               <%= link_to order.product_name, admin_advertising_order_path(order), class: "text-blue-700 hover:underline" %>
             </th>
             <td class="px-6 py-4"><%= admin_link_to_record(order.organization) %></td>
-            <td class="px-6 py-4"><%= admin_enum_label(order, :status) %></td>
+            <td class="px-6 py-4"><%= admin_advertising_order_status_badge(order) %></td>
             <td class="px-6 py-4 text-right whitespace-nowrap">
               <%= link_to t("admin.chrome.show"), admin_advertising_order_path(order), class: "font-medium text-blue-700 hover:underline" %>
             </td>
