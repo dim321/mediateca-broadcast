@@ -93,7 +93,7 @@
       </div>
       <div>
         <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.status") %></dt>
-        <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@advertising_order, :status) %></dd>
+        <dd class="mt-1"><%= admin_advertising_order_status_badge(@advertising_order) %></dd>
       </div>
     </div>
     <% if @advertising_order.rejected? %>

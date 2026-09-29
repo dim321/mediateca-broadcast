@@ -137,6 +137,32 @@ module AdminHelper
     t("enums.#{record.model_name.i18n_key}.#{attribute}.#{value}")
   end
 
+  def admin_advertising_order_status_class(status)
+    case status.to_s
+    when "active"
+      "bg-green-100 text-green-800 ring-green-600/20"
+    when "rejected"
+      "bg-red-100 text-red-800 ring-red-600/20"
+    when "draft"
+      "bg-yellow-100 text-yellow-800 ring-yellow-600/20"
+    when "cancelled"
+      "bg-orange-100 text-orange-800 ring-orange-600/20"
+    when "pending_moderation"
+      "bg-blue-100 text-blue-800 ring-blue-600/20"
+    when "completed"
+      "bg-purple-100 text-purple-800 ring-purple-600/20"
+    else
+      "bg-gray-100 text-gray-700 ring-gray-500/20"
+    end
+  end
+
+  def admin_advertising_order_status_badge(order)
+    tag.span(
+      admin_enum_label(order, :status),
+      class: "inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset #{admin_advertising_order_status_class(order.status)}"
+    )
+  end
+
   def admin_enum_options(model, attribute)
     model.public_send(attribute.to_s.pluralize).keys.map do |key|
       [ t("enums.#{model.model_name.i18n_key}.#{attribute}.#{key}"), key ]
