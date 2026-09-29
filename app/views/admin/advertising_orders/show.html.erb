@@ -7,7 +7,9 @@
     <%= link_to t("admin.advertising_orders.edit"),
           edit_admin_advertising_order_path(@advertising_order),
           class: admin_primary_button_class %>
-    <% if AdvertisingOrderPolicy.new(Current.user, @advertising_order).activate? %>
+    <% can_activate = AdvertisingOrderPolicy.new(Current.user, @advertising_order).activate? &&
+         order_clips_content_validated?(@advertising_order) %>
+    <% if can_activate %>
       <%= button_to t("admin.advertising_orders.activate"),
             activate_admin_advertising_order_path(@advertising_order),
             method: :post,
@@ -103,6 +105,7 @@
                   <th scope="col" class="px-4 py-3"><%= t("admin.advertising_orders.show.media_duration") %></th>
                   <th scope="col" class="px-4 py-3"><%= t("admin.advertising_orders.show.content_type") %></th>
                   <th scope="col" class="px-4 py-3"><%= t("admin.advertising_orders.show.content_kind") %></th>
+                  <th scope="col" class="px-4 py-3"><%= t("admin.advertising_orders.show.content_validation") %></th>
                 </tr>
               </thead>
               <tbody>
@@ -123,6 +126,9 @@
                     </td>
                     <td class="px-4 py-3">
                       <%= row.media_asset ? admin_enum_label(row.media_asset, :content_kind) : t("admin.crud.none") %>
+                    </td>
+                    <td class="px-4 py-3">
+                      <%= row.media_asset ? media_asset_validation_label(row.media_asset) : t("admin.crud.none") %>
                     </td>
                   </tr>
                 <% end %>

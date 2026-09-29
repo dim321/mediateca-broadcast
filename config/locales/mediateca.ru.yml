@@ -1001,6 +1001,7 @@ ru:
         clips: Ролики
         content_type: Тип контента
         content_kind: Категория контента
+        content_validation: Проверка
         total_shows: Общее количество показов
       edit: Изменить сетку
       edit_title: Редактирование заказа

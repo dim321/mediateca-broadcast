@@ -991,6 +991,7 @@ en:
         clips: Clips
         content_type: Content type
         content_kind: Content category
+        content_validation: Validation
         total_shows: Total impressions
       edit: Edit grid
       edit_title: Edit order

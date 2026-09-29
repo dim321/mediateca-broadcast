@@ -122,8 +122,37 @@ RSpec.describe "Admin advertising orders", type: :request do
         "10",
         I18n.t("enums.media_asset.content_kind.image"),
         I18n.t("enums.media_asset.content_type.own"),
+        I18n.t("admin.advertising_orders.show.content_validation"),
+        I18n.t("media_assets.content_validation.validated"),
         order.total_shows.to_s
       )
+    end
+
+    it "keeps activate disabled until every clip passes traffic-manager review" do
+      unchecked = create(:media_asset, :ready, :with_png_file, organization: client, duration_seconds: 10)
+      order = Advertising::CreateOrder.call(
+        organization: client, created_by: client_user, media_assets: [ unchecked ], product_name: "Triumph"
+      )
+      fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
+
+      sign_in_as(operator_traffic_manager)
+      get admin_advertising_order_path(order)
+
+      expect(response).to have_http_status(:success)
+      expect(activate_button["disabled"]).to eq("disabled")
+      expect(response.body).to include(I18n.t("media_assets.content_validation.not_validated"))
+
+      MediaAssets::MarkContentValidated.call(media_asset: unchecked, user: operator_traffic_manager)
+      get admin_advertising_order_path(order)
+
+      expect(activate_button["disabled"]).to be_nil
+      expect(response.body).to include(I18n.t("media_assets.content_validation.validated"))
+    end
+
+    def activate_button
+      Nokogiri::HTML(response.body).css("button").find do |node|
+        node.text.include?(I18n.t("admin.advertising_orders.activate"))
+      end
     end
 
     def datalist_values(document, input)

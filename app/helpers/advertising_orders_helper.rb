@@ -67,6 +67,11 @@ module AdvertisingOrdersHelper
     "#{name} (#{asset.duration_seconds}s) · #{media_asset_validation_label(asset)}"
   end
 
+  def order_clips_content_validated?(order)
+    rows = order_clip_rows(order)
+    rows.any? && rows.all? { |row| row.media_asset&.content_validated? }
+  end
+
   def order_clip_rows(order)
     items = order.rotation&.ordered_items
     if items.present?
