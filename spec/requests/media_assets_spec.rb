@@ -49,6 +49,13 @@ RSpec.describe "MediaAssets", type: :request do
       expect(response.body).to include("source.ts")
       expect(response.body).to include(I18n.t("media_assets.index.broadcast_na"))
       expect(response.body).to include('id="media_assets_table"')
+    end
+
+    it "renders a filter for each column" do
+      sign_in_as(user)
+
+      get media_assets_path
+
       expect(response.body).to include('name="q[filename_cont]"')
       expect(response.body).to include('name="q[processing_status_eq]"')
       expect(response.body).to include('name="q[content_type_eq]"')
