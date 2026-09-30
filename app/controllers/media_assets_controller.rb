@@ -6,11 +6,7 @@ class MediaAssetsController < ApplicationController
 
   def index
     authorize MediaAsset
-    @media_assets = policy_scope(MediaAsset)
-      .with_attached_file
-      .with_attached_preview
-      .with_attached_broadcast_file
-      .order(created_at: :desc)
+    load_media_assets
     @media_asset = MediaAsset.new
   end
 
@@ -90,12 +86,21 @@ class MediaAssetsController < ApplicationController
   end
 
   def respond_create_failed
-    @media_assets = policy_scope(MediaAsset)
+    load_media_assets
+    flash.now[:alert] = t(".create_failed")
+    render :index, status: :unprocessable_content
+  end
+
+  def load_media_assets
+    @q = policy_scope(MediaAsset).ransack(ransack_params)
+    @q.sorts = "created_at desc" if @q.sorts.empty?
+    @media_assets = @q.result
       .with_attached_file
       .with_attached_preview
       .with_attached_broadcast_file
-      .order(created_at: :desc)
-    flash.now[:alert] = t(".create_failed")
-    render :index, status: :unprocessable_content
+  end
+
+  def ransack_params
+    params[:q].is_a?(ActionController::Parameters) ? params[:q] : {}
   end
 end

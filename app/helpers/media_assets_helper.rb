@@ -20,6 +20,37 @@ module MediaAssetsHelper
     I18n.t("media_assets.content_validation.#{key}")
   end
 
+  def media_asset_validation_filter_options
+    %w[validated not_validated].map do |key|
+      [ I18n.t("media_assets.content_validation.#{key}"), key ]
+    end
+  end
+
+  def media_asset_status_filter_options
+    MediaAsset.processing_statuses.keys.map do |key|
+      [ t("enums.media_asset.processing_status.#{key}"), key ]
+    end
+  end
+
+  def media_asset_content_type_filter_options
+    MediaAsset.content_types.keys.map do |key|
+      [ t("media_assets.index.content_types.#{key}"), key ]
+    end
+  end
+
+  def media_asset_visibility_filter_options
+    MediaAsset.visibilities.keys.map do |key|
+      [ t("media_assets.index.visibilities.#{key}"), key ]
+    end
+  end
+
+  def media_assets_filtered?
+    query = params[:q]
+    return false unless query.respond_to?(:except)
+
+    query.except(:s, "s").values.flatten.any?(&:present?)
+  end
+
   def media_asset_broadcast_cell(media_asset)
     if media_asset.broadcast_file.attached?
       link_to(

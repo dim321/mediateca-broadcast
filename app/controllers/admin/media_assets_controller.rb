@@ -6,6 +6,7 @@ module Admin
       @q = MediaAsset.ransack(ransack_params)
       @q.sorts = "created_at desc" if @q.sorts.empty?
       @media_assets = @q.result.includes(:organization).with_attached_file.page(params[:page]).per(25)
+      @organizations = Organization.order(:name)
     end
 
     def show

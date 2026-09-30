@@ -247,6 +247,11 @@ ru:
         presentation: Презентация
       broadcast_processing: Обработка…
       broadcast_na: Н/Д
+      filters:
+        any: Все
+      search_submit: Найти
+      clear_search: Сбросить поиск
+      empty_search: Ничего не найдено
       source_label: Исходник
       broadcast_label: Эфир
     create:
@@ -874,6 +879,9 @@ ru:
       rotation_items: Элементы ротаций
       rotations: Ротации
       screens: Экраны
+    media_assets:
+      filters:
+        any: Все
     organizations:
       index:
         brand: Бренд

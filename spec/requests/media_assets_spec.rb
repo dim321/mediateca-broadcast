@@ -49,6 +49,36 @@ RSpec.describe "MediaAssets", type: :request do
       expect(response.body).to include("source.ts")
       expect(response.body).to include(I18n.t("media_assets.index.broadcast_na"))
       expect(response.body).to include('id="media_assets_table"')
+      expect(response.body).to include('name="q[filename_cont]"')
+      expect(response.body).to include('name="q[processing_status_eq]"')
+      expect(response.body).to include('name="q[content_type_eq]"')
+      expect(response.body).to include('name="q[visibility_eq]"')
+      expect(response.body).to include('name="q[content_validated_eq]"')
+    end
+
+    it "filters the library by filename, content type, visibility, status, and validation" do
+      sign_in_as(user)
+      matching = create(:media_asset, :with_png_file, :ready, :content_validated,
+        organization: user.organization, content_type: "own", visibility: "organization")
+      matching.file.blob.update!(filename: "gallery-clip.png")
+      other = create(:media_asset, :with_mp4_file,
+        organization: user.organization, content_type: "commercial", visibility: "network")
+      other.file.blob.update!(filename: "other-clip.mp4")
+
+      get media_assets_path, params: { q: { filename_cont: "GALLERY" } }
+
+      expect(response.body).to include("gallery-clip.png")
+      expect(response.body).not_to include("other-clip.mp4")
+
+      get media_assets_path, params: { q: { content_type_eq: "commercial", visibility_eq: "network" } }
+
+      expect(response.body).to include("other-clip.mp4")
+      expect(response.body).not_to include("gallery-clip.png")
+
+      get media_assets_path, params: { q: { processing_status_eq: "ready", content_validated_eq: "validated" } }
+
+      expect(response.body).to include("gallery-clip.png")
+      expect(response.body).not_to include("other-clip.mp4")
     end
   end
 

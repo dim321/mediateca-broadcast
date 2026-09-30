@@ -31,9 +31,7 @@ module AdminHelper
     {
       key: :media_library,
       items: [
-        { key: :media_assets, path: :admin_media_assets_path, controllers: %w[admin/media_assets] },
-        { key: :rotations, path: :admin_rotations_path, controllers: %w[admin/rotations] },
-        { key: :rotation_items, path: :admin_rotation_items_path, controllers: %w[admin/rotation_items] }
+        { key: :media_assets, path: :admin_media_assets_path, controllers: %w[admin/media_assets] }
       ]
     },
     {
@@ -64,6 +62,13 @@ module AdminHelper
 
   def admin_nav_items
     NAV_ITEMS
+  end
+
+  def admin_ransack_filtered?
+    query = params[:q]
+    return false unless query.respond_to?(:except)
+
+    query.except(:s, "s").values.flatten.any?(&:present?)
   end
 
   def admin_nav_active?(item)

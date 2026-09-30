@@ -10,18 +10,45 @@
       h2.card-title.text-base = t(".upload_heading")
       = render "media_assets/upload_form", media_asset: @media_asset
 
-  .overflow-x-auto
-    table.table#media_assets_table
-      thead
-        tr
-          th = t(".columns.preview")
-          th = t(".columns.source")
-          th = t(".columns.broadcast")
-          th = t(".columns.status")
-          th = t(".columns.duration")
-          th = t(".columns.content_type")
-          th = t(".columns.visibility")
-          th = t(".columns.content_validation")
-      tbody#media_assets_tbody
-        - @media_assets.each do |asset|
-          = render "media_assets/media_asset", media_asset: asset
+  = search_form_for @q, url: media_assets_path, html: { method: :get } do |f|
+    - if params[:q].is_a?(ActionController::Parameters)
+      - Array(params.dig(:q, :s)).each do |sort|
+        = hidden_field_tag "q[s]", sort
+    .overflow-x-auto
+      table.table#media_assets_table
+        thead
+          tr
+            th = t(".columns.preview")
+            th = t(".columns.source")
+            th = t(".columns.broadcast")
+            th = t(".columns.status")
+            th = t(".columns.duration")
+            th = t(".columns.content_type")
+            th = t(".columns.visibility")
+            th = t(".columns.content_validation")
+          tr.normal-case.font-normal
+            th
+            th.min-w-72
+              .flex.items-center.gap-2
+                = f.search_field :filename_cont, class: "input input-bordered input-sm min-w-0 flex-1", placeholder: t(".columns.source"), aria: { label: t(".columns.source") }
+                = f.submit t(".search_submit"), class: "btn btn-primary btn-sm shrink-0"
+              - if media_assets_filtered?
+                .mt-2
+                  = link_to t(".clear_search"), media_assets_path, class: "btn btn-outline btn-sm"
+            th
+            th
+              = f.select :processing_status_eq, media_asset_status_filter_options, { include_blank: t(".filters.any") }, class: "select select-bordered select-sm w-full", aria: { label: t(".columns.status") }, onchange: "this.form.requestSubmit()"
+            th
+            th
+              = f.select :content_type_eq, media_asset_content_type_filter_options, { include_blank: t(".filters.any") }, class: "select select-bordered select-sm w-full", aria: { label: t(".columns.content_type") }, onchange: "this.form.requestSubmit()"
+            th
+              = f.select :visibility_eq, media_asset_visibility_filter_options, { include_blank: t(".filters.any") }, class: "select select-bordered select-sm w-full", aria: { label: t(".columns.visibility") }, onchange: "this.form.requestSubmit()"
+            th
+              = f.select :content_validated_eq, media_asset_validation_filter_options, { include_blank: t(".filters.any") }, class: "select select-bordered select-sm w-full", aria: { label: t(".columns.content_validation") }, onchange: "this.form.requestSubmit()"
+        tbody#media_assets_tbody
+          - if @media_assets.empty? && media_assets_filtered?
+            tr
+              td.text-center.text-base-content/60 colspan="8" = t(".empty_search")
+          - else
+            - @media_assets.each do |asset|
+              = render "media_assets/media_asset", media_asset: asset

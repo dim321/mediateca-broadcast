@@ -16,6 +16,45 @@ RSpec.describe "Admin media assets", type: :request do
 
     expect(response).to have_http_status(:success)
     expect(response.body).to include("1x1.png")
+    expect(response.body).to include('name="q[filename_cont]"')
+    expect(response.body).to include('name="q[organization_id_eq]"')
+    expect(response.body).to include('name="q[content_kind_eq]"')
+    expect(response.body).to include('name="q[content_type_eq]"')
+    expect(response.body).to include('name="q[processing_status_eq]"')
+    expect(response.body).to include('name="q[content_validated_eq]"')
+  end
+
+  it "filters the index by filename, organization, kind, status, and validation" do
+    matching = create(:media_asset, :with_png_file, :ready, :content_validated, organization: client_org)
+    matching.file.blob.update!(filename: "gallery-clip.png")
+    other_org = create(:organization, name: "Другая организация")
+    other = create(:media_asset, :with_mp4_file, organization: other_org, content_type: "commercial")
+    other.file.blob.update!(filename: "other-clip.mp4")
+
+    get admin_media_assets_path, params: { q: { filename_cont: "GALLERY" } }
+
+    expect(response.body).to include("gallery-clip.png")
+    expect(response.body).not_to include("other-clip.mp4")
+
+    get admin_media_assets_path, params: { q: { organization_id_eq: client_org.id } }
+
+    expect(response.body).to include("gallery-clip.png")
+    expect(response.body).not_to include("other-clip.mp4")
+
+    get admin_media_assets_path, params: { q: { content_kind_eq: "image", content_type_eq: "own", processing_status_eq: "ready", content_validated_eq: "validated" } }
+
+    expect(response.body).to include("gallery-clip.png")
+    expect(response.body).not_to include("other-clip.mp4")
+
+    get admin_media_assets_path, params: { q: { content_type_eq: "commercial" } }
+
+    expect(response.body).to include("other-clip.mp4")
+    expect(response.body).not_to include("gallery-clip.png")
+
+    get admin_media_assets_path, params: { q: { content_validated_eq: "not_validated" } }
+
+    expect(response.body).to include("other-clip.mp4")
+    expect(response.body).not_to include("gallery-clip.png")
   end
 
   it "renders the show page for an asset with attachments" do

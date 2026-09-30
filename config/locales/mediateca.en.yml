@@ -245,6 +245,11 @@ en:
         presentation: Presentation
       broadcast_processing: Processing…
       broadcast_na: N/A
+      filters:
+        any: Any
+      search_submit: Search
+      clear_search: Clear search
+      empty_search: No matches
       source_label: Source
       broadcast_label: Broadcast
     create:
@@ -864,6 +869,9 @@ en:
       rotation_items: Rotation items
       rotations: Rotations
       screens: Screens
+    media_assets:
+      filters:
+        any: Any
     organizations:
       index:
         brand: Brand
