@@ -197,6 +197,24 @@ RSpec.describe Advertising::ReviseActiveOrder do
     end
   end
 
+  it "moves future slot bounds and leaves today in place" do
+    travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
+      order = active_order!(dates: [ Date.new(2026, 6, 4), Date.new(2026, 6, 6) ])
+
+      revise(order, windows: [ { starts_at: "10:00", ends_at: "13:00" } ])
+
+      order.reload
+      future = order.media_plans.active.find { |plan| plan.starts_at.to_date == Date.new(2026, 6, 6) }
+      current = order.media_plans.active.find { |plan| plan.starts_at.to_date == Date.new(2026, 6, 4) }
+      expect(future.starts_at).to eq(Time.utc(2026, 6, 6, 10, 0, 0))
+      expect(future.ends_at).to eq(Time.utc(2026, 6, 6, 13, 0, 0))
+      expect(current.starts_at).to eq(Time.utc(2026, 6, 4, 9, 0, 0))
+      expect(order.advertising_order_line_days.find_by!(date: Date.new(2026, 6, 4)).shows).to eq(9)
+      expect(order.advertising_order_line_days.find_by!(date: Date.new(2026, 6, 6)).shows).to eq(9)
+      expect(order.advertising_order_windows.map { |window| [ window.starts_at.strftime("%H:%M"), window.ends_at.strftime("%H:%M") ] }).to eq([ [ "10:00", "13:00" ] ])
+    end
+  end
+
   it "occupies a future day that was skipped" do
     travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
       order = active_order!(dates: [ Date.new(2026, 6, 3), Date.new(2026, 6, 6) ])

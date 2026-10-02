@@ -775,7 +775,7 @@ EOF
 - Modify: `app/domain/advertising/revise_active_order.rb`
 - Test: `spec/domain/advertising/revise_active_order_spec.rb`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ruby
 it "moves future slot bounds and leaves today in place" do
@@ -799,25 +799,25 @@ end
 
 Новое окно тоже 3 часа, показы остаются 9. Меняются только границы будущего слота.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/domain/advertising/revise_active_order_spec.rb -e "moves future slot bounds" --format documentation`
 
 Expected: FAIL, будущий слот остаётся на 09:00.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Если границы суток не совпали с новым `ranges`, отменить прежние активные слоты этих суток с `enqueue_regen: false` и занять новые тем же `OccupyWithPlan`, тоже с `enqueue_regen: false`. Строку дня обновить посчитанными показами. Сегодняшний и прошедший слоты в этот цикл не входят.
 
 Пустой список окон или окно, у которого конец не позже начала, отклонять в `validate!` через `Advertising::Error` с уже существующей валидацией модели: построить `AdvertisingOrderWindow` и вызвать `valid?`. Сообщение модели достаточно; отдельный ключ не добавлять.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/domain/advertising/revise_active_order_spec.rb --format documentation`
 
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/domain/advertising/revise_active_order.rb spec/domain/advertising/revise_active_order_spec.rb

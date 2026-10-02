@@ -73,6 +73,7 @@ module Advertising
       assert_locked_days!
       assert_future_start_present!
       assert_shows_per_hour!
+      assert_windows!
     end
 
     def persist_frequency_and_strategy!
@@ -215,12 +216,34 @@ module Advertising
     end
 
     def update_matching_plans!(line, date, ranges, plans_to_regen)
-      return unless plan_bounds_match?(line, date, ranges)
+      if plan_bounds_match?(line, date, ranges)
+        overlapping_plans(line, date).each do |plan|
+          next if plan.shows_per_hour == shows_per_hour
+
+          plan.update_columns(shows_per_hour: shows_per_hour, updated_at: Time.current)
+          plans_to_regen << plan
+        end
+        return
+      end
 
       overlapping_plans(line, date).each do |plan|
-        next if plan.shows_per_hour == shows_per_hour
+        Airtime::Cancel.call(plan: plan, enqueue_regen: false)
+        plans_to_regen << plan
+      end
 
-        plan.update_columns(shows_per_hour: shows_per_hour, updated_at: Time.current)
+      ranges.each do |starts_at, ends_at|
+        plan = Airtime::OccupyWithPlan.call(
+          organization: order.organization,
+          rotation: order.rotation,
+          starts_at: starts_at,
+          ends_at: ends_at,
+          placement_kind: order.placement_kind,
+          shows_per_hour: shows_per_hour,
+          screens: [ line.screen ],
+          order_claim: true,
+          advertising_order_line: line,
+          enqueue_regen: false
+        )
         plans_to_regen << plan
       end
     end
@@ -333,6 +356,24 @@ module Advertising
         raise
       end
       order.shows_per_hour = previous
+    end
+
+    def assert_windows!
+      raise Error, I18n.t("errors.messages.blank") if Array(windows).empty?
+
+      Array(windows).each do |window|
+        hash = window.respond_to?(:to_h) ? window.to_h : {}
+        starts_at = hash[:starts_at] || hash["starts_at"]
+        ends_at = hash[:ends_at] || hash["ends_at"]
+        record = AdvertisingOrderWindow.new(
+          advertising_order: order,
+          starts_at: starts_at,
+          ends_at: ends_at
+        )
+        next if record.valid?
+
+        raise Error, record.errors.full_messages.to_sentence
+      end
     end
 
     def period_start
