@@ -318,4 +318,87 @@ RSpec.describe Advertising::ReviseActiveOrder do
       expect(line.media_plans.cancelled.count).to eq(1)
     end
   end
+
+  it "replaces clips, bumps the version once, and regenerates today's plan" do
+    travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
+      order = active_order!(dates: [ Date.new(2026, 6, 4), Date.new(2026, 6, 6) ])
+      replacement = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization, duration_seconds: 15)
+
+      expect {
+        revise(order, media_assets: [ replacement ])
+      }.to have_enqueued_job(Playlists::GenerateForDateJob).with(screen.station_id, "2026-06-04")
+
+      expect(order.reload.rotation.ordered_items.sole.media_asset).to eq(replacement)
+      expect(order.document_version).to eq(2)
+    end
+  end
+
+  it "rolls back clips and other days when one future slot conflicts" do
+    travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
+      order = active_order!(dates: [ Date.new(2026, 6, 6) ])
+      replacement = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization, duration_seconds: 15)
+      Airtime::OccupyWithPlan.call(
+        organization: organization,
+        broadcast_point_group: group,
+        rotation: create(:rotation, organization: organization),
+        starts_at: Time.utc(2026, 6, 5, 0, 0, 0),
+        ends_at: Time.utc(2026, 6, 6, 0, 0, 0)
+      )
+
+      expect {
+        revise(order, media_assets: [ replacement ], lines: [ {
+          screen_id: screen.id,
+          days: [
+            { date: Date.new(2026, 6, 5), skipped: false, shows: 9 },
+            { date: Date.new(2026, 6, 6), skipped: false, shows: 9 }
+          ]
+        } ])
+      }.to raise_error(Advertising::Error, I18n.t("advertising.errors.slot_conflict"))
+
+      expect(order.reload.rotation.ordered_items.sole.media_asset).to eq(asset)
+      expect(order.advertising_order_line_days.map(&:date)).to eq([ Date.new(2026, 6, 6) ])
+      expect(order.document_version).to eq(1)
+    end
+  end
+
+  it "reports commercial quota without rolling the revision back" do
+    travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
+      owner = create(:organization, :client)
+      owned = create_group_with_hours!(
+        organization: owner,
+        commercial_quota_percent: 10,
+        commercial_quota_period: :hour
+      )
+      owned_screen = owned.screens.first
+      create(:broadcast_portrait, :for_screen, screen: owned_screen, block_frequencies_per_hour: [ 1, 2, 3, 4, 6 ])
+      long_clip = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization, duration_seconds: 240)
+      commercial = Advertising::CreateOrder.call(
+        organization: organization,
+        created_by: user,
+        media_assets: [ long_clip ],
+        product_name: "Triumph",
+        placement_kind: :commercial,
+        shows_per_hour: 3
+      )
+      fill_order_grid!(commercial, screen: owned_screen, dates: [ Date.new(2026, 6, 6) ], shows: 9)
+      Advertising::ActivateOrder.call(order: commercial)
+
+      result = described_class.call(
+        order: commercial.reload,
+        shows_per_hour: 6,
+        distribution_strategy: "linear",
+        windows: [ { starts_at: "09:00", ends_at: "12:00" } ],
+        screen_ids: [ owned_screen.id ],
+        lines: [ { screen_id: owned_screen.id, days: [ { date: Date.new(2026, 6, 6), skipped: false, shows: 9 } ] } ],
+        grid_from: Date.new(2026, 6, 6),
+        grid_to: Date.new(2026, 6, 6),
+        product_name: "Triumph",
+        placement_kind: "commercial"
+      )
+
+      expect(result.quota_exceeded).to be(true)
+      expect(commercial.reload.shows_per_hour).to eq(6)
+      expect(commercial).to be_active
+    end
+  end
 end

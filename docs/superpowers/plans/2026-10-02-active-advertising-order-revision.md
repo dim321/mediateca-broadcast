@@ -977,7 +977,7 @@ EOF
 - Modify: `app/domain/advertising/revise_active_order.rb`
 - Test: `spec/domain/advertising/revise_active_order_spec.rb`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ruby
 it "replaces clips, bumps the version once, and regenerates today's plan" do
@@ -1068,13 +1068,13 @@ it "reports commercial quota without rolling the revision back" do
 end
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/domain/advertising/revise_active_order_spec.rb -e "clips" -e "conflict" -e "quota" --format documentation`
 
 Expected: FAIL
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Если `media_assets` не `nil`, внутри той же транзакции вызвать:
 
@@ -1097,13 +1097,13 @@ Advertising::UpdateOrderClips.call(
 
 Квота: после занятия пройтись по новым планам через `CommercialQuota::Check.call(plan:).exceeded`. Хотя бы одно превышение даёт `quota_exceeded: true` в `Result`. Запись не откатывать.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/domain/advertising/revise_active_order_spec.rb spec/domain/advertising/activate_order_spec.rb --format documentation`
 
 Expected: PASS. Активация по-прежнему оставляет конфликтные окна частичным успехом: это поведение `ActivateOrder`, не правки.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/domain/advertising/revise_active_order.rb spec/domain/advertising/revise_active_order_spec.rb

@@ -38,10 +38,22 @@ module Advertising
       validate!
 
       plans_to_regen = []
+      @plans_for_quota = []
       document_changed = false
+      clips_changed = !media_assets.nil?
 
       MediaPlan.transaction do
         Airtime::ScreenLock.call(screen_ids: lock_ids)
+
+        if clips_changed
+          Advertising::UpdateOrderClips.call(
+            order: order,
+            media_assets: media_assets,
+            enqueue_regen: false,
+            bump_version: false
+          )
+          document_changed = true
+        end
 
         document_changed |= persist_frequency_and_strategy!
         document_changed |= replace_windows_if_changed!
@@ -55,15 +67,32 @@ module Advertising
         end
       end
 
-      plans_to_regen.uniq.each { |plan| Playlists::EnqueueRegen.from_plan(plan) }
+      enqueue_regen_after_revision!(plans_to_regen, clips_changed: clips_changed)
 
-      Result.new(order: order.reload, quota_exceeded: false)
+      quota_exceeded = plans_for_quota.uniq.any? { |plan| CommercialQuota::Check.call(plan: plan).exceeded }
+
+      Result.new(order: order.reload, quota_exceeded: quota_exceeded)
+    rescue Airtime::ConflictError
+      raise Error, I18n.t("advertising.errors.slot_conflict")
     end
 
     private
 
     attr_reader :order, :shows_per_hour, :distribution_strategy, :windows, :screen_ids, :lines,
                 :media_assets, :grid_from, :grid_to, :product_name, :placement_kind
+
+    def plans_for_quota
+      @plans_for_quota ||= []
+    end
+
+    def enqueue_regen_after_revision!(plans_to_regen, clips_changed:)
+      if clips_changed
+        order.rotation.media_plans.active.find_each { |plan| Playlists::EnqueueRegen.from_plan(plan) }
+        plans_to_regen.uniq.each { |plan| Playlists::EnqueueRegen.from_plan(plan) }
+      else
+        plans_to_regen.uniq.each { |plan| Playlists::EnqueueRegen.from_plan(plan) }
+      end
+    end
 
     def validate!
       raise Error, I18n.t("advertising.errors.order_not_revisable") unless order.active?
@@ -158,7 +187,7 @@ module Advertising
         Array(submitted[:days]).each do |entry|
           date = parse_date(entry[:date])
           next unless date > today
-          next unless date >= period_start && date <= effective_grid_ceiling
+          next unless date > today && date <= effective_grid_ceiling
           next if skipped?(entry)
 
           day_result = screen_day_hours(line, date)
@@ -203,6 +232,7 @@ module Advertising
           enqueue_regen: false
         )
         plans_to_regen << plan
+        plans_for_quota << plan
       end
     end
 
@@ -230,6 +260,7 @@ module Advertising
 
           plan.update_columns(shows_per_hour: shows_per_hour, updated_at: Time.current)
           plans_to_regen << plan
+          plans_for_quota << plan
         end
         return
       end
@@ -253,6 +284,7 @@ module Advertising
           enqueue_regen: false
         )
         plans_to_regen << plan
+        plans_for_quota << plan
       end
     end
 
