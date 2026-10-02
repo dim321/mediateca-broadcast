@@ -333,7 +333,7 @@ EOF
 - Modify: `app/domain/advertising/update_order_clips.rb`
 - Test: `spec/domain/advertising/update_order_clips_spec.rb`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 В `spec/domain/advertising/update_order_clips_spec.rb` после примера `"does not enqueue regen when enqueue_regen is false"`:
 
@@ -355,13 +355,13 @@ it "syncs clips without a version bump when the caller owns the version" do
 end
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/domain/advertising/update_order_clips_spec.rb --format documentation`
 
 Expected: FAIL, неизвестный keyword `bump_version`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 ```ruby
 def initialize(order:, media_assets:, enqueue_regen: true, bump_version: true)
@@ -380,13 +380,13 @@ attrs[:document_version] = order.document_version + 1 if order.active? && bump_v
 
 Добавить `bump_version` в `attr_reader`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/domain/advertising/update_order_clips_spec.rb --format documentation`
 
 Expected: PASS. Прежний пример по-прежнему ставит версию 2 и задачу.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/domain/advertising/update_order_clips.rb spec/domain/advertising/update_order_clips_spec.rb

@@ -61,6 +61,22 @@ RSpec.describe Advertising::UpdateOrderClips do
     expect(order.reload.document_version).to eq(2)
   end
 
+  it "syncs clips without a version bump when the caller owns the version" do
+    activate!
+
+    expect {
+      described_class.call(
+        order: order,
+        media_assets: [ clip_b ],
+        enqueue_regen: false,
+        bump_version: false
+      )
+    }.not_to have_enqueued_job(Playlists::GenerateForDateJob)
+
+    expect(order.reload.rotation.ordered_items.sole.media_asset).to eq(clip_b)
+    expect(order.document_version).to eq(1)
+  end
+
   it "syncs clips on an active order, bumps document_version, and enqueues regen" do
     travel_to Time.utc(2026, 9, 2, 12, 0, 0) do
       fill_order_grid!(order, screen: group.screens.first, dates: [ Date.new(2026, 9, 3) ])

@@ -4,10 +4,11 @@ module Advertising
   class UpdateOrderClips < BaseService
     include ValidatesMediaAssets
 
-    def initialize(order:, media_assets:, enqueue_regen: true)
+    def initialize(order:, media_assets:, enqueue_regen: true, bump_version: true)
       @order = order
       @media_assets = Array(media_assets)
       @enqueue_regen = enqueue_regen
+      @bump_version = bump_version
     end
 
     def self.enqueue_regen_for(order)
@@ -30,7 +31,7 @@ module Advertising
 
     private
 
-    attr_reader :order, :media_assets
+    attr_reader :order, :media_assets, :bump_version
 
     def validate_order_status!
       return if order.draft? || order.active?
@@ -58,7 +59,7 @@ module Advertising
     def update_order!
       attrs = { media_asset_id: nil }
       snapshot_clip_metadata!(attrs)
-      attrs[:document_version] = order.document_version + 1 if order.active?
+      attrs[:document_version] = order.document_version + 1 if order.active? && bump_version
       order.update!(attrs)
     end
 
