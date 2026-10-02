@@ -609,7 +609,7 @@ EOF
 - Modify: `app/domain/advertising/revise_active_order.rb`
 - Test: `spec/domain/advertising/revise_active_order_spec.rb`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ruby
 it "updates shows per hour only on future plans and line days" do
@@ -647,13 +647,13 @@ end
 
 Окно 09:00–12:00 даёт 3 часа. Частота 6 даёт 18 показов. `starts_at.to_date` в UTC совпадает с локальным днём, потому что организация в этом тесте живёт в UTC.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/domain/advertising/revise_active_order_spec.rb --format documentation`
 
 Expected: FAIL, частота и версия не меняются, задача не ставится.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 После `validate!` открыть `MediaPlan.transaction`. Внутри:
 
@@ -669,13 +669,13 @@ Expected: FAIL, частота и версия не меняются, задач
 
 Сравнение границ: пары `[starts_at, ends_at]` из `ScreenDayHours#ranges` и активных планов строки, пересекающих локальные сутки. Сутки — как в `Advertising::Coverage.occupied?`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/domain/advertising/revise_active_order_spec.rb --format documentation`
 
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/domain/advertising/revise_active_order.rb spec/domain/advertising/revise_active_order_spec.rb

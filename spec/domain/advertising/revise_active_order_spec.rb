@@ -3,6 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Advertising::ReviseActiveOrder do
+  include ActiveJob::TestHelper
   include ActiveSupport::Testing::TimeHelpers
 
   let(:organization) { create(:organization, :client, time_zone: "UTC") }
@@ -13,6 +14,7 @@ RSpec.describe Advertising::ReviseActiveOrder do
 
   before do
     create(:broadcast_portrait, :for_screen, screen: screen, block_frequencies_per_hour: [ 1, 2, 3, 4, 6 ])
+    screen.station.update!(offline_cache_hours: 72)
   end
 
   def active_order!(dates:)
@@ -144,6 +146,38 @@ RSpec.describe Advertising::ReviseActiveOrder do
       }.to raise_error(Advertising::Error, I18n.t("advertising.errors.future_start_removed"))
 
       expect(order.media_plans.active.count).to eq(4)
+    end
+  end
+
+  it "updates shows per hour only on future plans and line days" do
+    travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
+      order = active_order!(dates: [ Date.new(2026, 6, 3), Date.new(2026, 6, 4), Date.new(2026, 6, 6) ])
+
+      expect {
+        revise(order, shows_per_hour: 6)
+      }.to have_enqueued_job(Playlists::GenerateForDateJob).with(screen.station_id, "2026-06-06")
+
+      order.reload
+      expect(order.shows_per_hour).to eq(6)
+      expect(order.document_version).to eq(2)
+      expect(order.advertising_order_line_days.find_by!(date: Date.new(2026, 6, 6)).shows).to eq(18)
+      expect(order.advertising_order_line_days.find_by!(date: Date.new(2026, 6, 3)).shows).to eq(9)
+      expect(order.advertising_order_line_days.find_by!(date: Date.new(2026, 6, 4)).shows).to eq(9)
+      future = order.media_plans.active.find { |plan| plan.starts_at.to_date == Date.new(2026, 6, 6) }
+      today_plan = order.media_plans.active.find { |plan| plan.starts_at.to_date == Date.new(2026, 6, 4) }
+      expect(future.shows_per_hour).to eq(6)
+      expect(today_plan.shows_per_hour).to eq(3)
+      expect(future.starts_at).to eq(Time.utc(2026, 6, 6, 9, 0, 0))
+    end
+  end
+
+  it "does not bump the document or enqueue regen when nothing changed" do
+    travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
+      order = active_order!(dates: [ Date.new(2026, 6, 6) ])
+
+      expect { revise(order) }.not_to have_enqueued_job(Playlists::GenerateForDateJob)
+
+      expect(order.reload.document_version).to eq(1)
     end
   end
 end
