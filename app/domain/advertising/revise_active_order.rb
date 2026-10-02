@@ -111,38 +111,107 @@ module Advertising
         screen_index = normalized_screen_ids.index(line.screen_id)
         next if screen_index.nil?
 
-        line.advertising_order_line_days.each do |day|
-          next unless day.date > today
+        desired = desired_future_days_for(line, screen_index)
 
-          entry = day_entry(line_for_screen(line.screen_id), day.date)
-          next if entry.nil? || skipped?(entry)
+        line.advertising_order_line_days.select { |day| day.date > today }.each do |day|
+          unless desired.key?(day.date)
+            remove_future_line_day!(day, plans_to_regen)
+            changed = true
+            next
+          end
 
-          day_result = Advertising::ScreenDayHours.call(
-            screen: line.screen,
-            date: day.date,
-            windows: order.advertising_order_windows,
-            time_zone: time_zone
-          )
-          computed_shows = Advertising::DayShows.call(
-            date: day.date,
-            shows_per_hour: shows_per_hour,
-            hours: day_result.hours,
-            distribution_strategy: order.distribution_strategy,
-            screen_index: screen_index,
-            screen_count: normalized_screen_ids.size
-          )
-
-          # Zero-show days are removed in the distribution-strategy step (Task 10).
-          if computed_shows.positive? && day.shows != computed_shows
+          computed_shows = desired.fetch(day.date)
+          if day.shows != computed_shows
             day.update!(shows: computed_shows)
             changed = true
           end
 
+          day_result = screen_day_hours(line, day.date)
           update_matching_plans!(line, day.date, day_result.ranges, plans_to_regen)
+        end
+
+        desired.each do |date, computed_shows|
+          next if line.advertising_order_line_days.any? { |stored| stored.date == date }
+
+          add_future_line_day!(line, date, computed_shows, plans_to_regen)
+          changed = true
         end
       end
 
       changed
+    end
+
+    def desired_future_days_for(line, screen_index)
+      submitted = line_for_screen(line.screen_id)
+      return {} unless submitted
+
+      {}.tap do |result|
+        Array(submitted[:days]).each do |entry|
+          date = parse_date(entry[:date])
+          next unless date > today
+          next unless date >= period_start && date <= effective_grid_ceiling
+          next if skipped?(entry)
+
+          day_result = screen_day_hours(line, date)
+          computed_shows = Advertising::DayShows.call(
+            date: date,
+            shows_per_hour: shows_per_hour,
+            hours: day_result.hours,
+            distribution_strategy: order.distribution_strategy,
+            screen_index: screen_index,
+            screen_count: screen_ids.size
+          )
+          next unless computed_shows.positive?
+
+          result[date] = computed_shows
+        end
+      end
+    end
+
+    def remove_future_line_day!(day, plans_to_regen)
+      line = day.advertising_order_line
+      overlapping_plans(line, day.date).each do |plan|
+        Airtime::Cancel.call(plan: plan, enqueue_regen: false)
+        plans_to_regen << plan
+      end
+      day.destroy!
+    end
+
+    def add_future_line_day!(line, date, computed_shows, plans_to_regen)
+      line.advertising_order_line_days.create!(date: date, shows: computed_shows)
+
+      screen_day_hours(line, date).ranges.each do |starts_at, ends_at|
+        plan = Airtime::OccupyWithPlan.call(
+          organization: order.organization,
+          rotation: order.rotation,
+          starts_at: starts_at,
+          ends_at: ends_at,
+          placement_kind: order.placement_kind,
+          shows_per_hour: shows_per_hour,
+          screens: [ line.screen ],
+          order_claim: true,
+          advertising_order_line: line,
+          enqueue_regen: false
+        )
+        plans_to_regen << plan
+      end
+    end
+
+    def screen_day_hours(line, date)
+      Advertising::ScreenDayHours.call(
+        screen: line.screen,
+        date: date,
+        windows: order.advertising_order_windows,
+        time_zone: time_zone
+      )
+    end
+
+    def effective_grid_ceiling
+      @effective_grid_ceiling ||= begin
+        ceiling = period_end
+        ceiling = [ parse_date(grid_to), ceiling ].min if grid_to.present?
+        ceiling
+      end
     end
 
     def update_matching_plans!(line, date, ranges, plans_to_regen)

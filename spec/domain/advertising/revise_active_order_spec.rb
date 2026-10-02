@@ -180,4 +180,40 @@ RSpec.describe Advertising::ReviseActiveOrder do
       expect(order.reload.document_version).to eq(1)
     end
   end
+
+  it "cancels a removed future day and keeps the order active" do
+    travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
+      order = active_order!(dates: [ Date.new(2026, 6, 3), Date.new(2026, 6, 6) ])
+
+      revise(order, grid_to: Date.new(2026, 6, 3), lines: [ {
+        screen_id: screen.id,
+        days: [ { date: Date.new(2026, 6, 3), skipped: false, shows: 9 } ]
+      } ])
+
+      expect(order.reload).to be_active
+      expect(order.advertising_order_line_days.map(&:date)).to eq([ Date.new(2026, 6, 3) ])
+      expect(order.media_plans.active.count).to eq(1)
+      expect(order.media_plans.cancelled.count).to eq(1)
+    end
+  end
+
+  it "occupies a future day that was skipped" do
+    travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
+      order = active_order!(dates: [ Date.new(2026, 6, 3), Date.new(2026, 6, 6) ])
+
+      revise(order, lines: [ {
+        screen_id: screen.id,
+        days: [
+          { date: Date.new(2026, 6, 3), skipped: false, shows: 9 },
+          { date: Date.new(2026, 6, 5), skipped: false, shows: 9 },
+          { date: Date.new(2026, 6, 6), skipped: false, shows: 9 }
+        ]
+      } ])
+
+      expect(order.reload.advertising_order_line_days.map(&:date)).to contain_exactly(
+        Date.new(2026, 6, 3), Date.new(2026, 6, 5), Date.new(2026, 6, 6)
+      )
+      expect(order.media_plans.active.count).to eq(3)
+    end
+  end
 end

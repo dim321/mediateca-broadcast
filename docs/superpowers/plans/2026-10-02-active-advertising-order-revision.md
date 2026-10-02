@@ -694,7 +694,7 @@ EOF
 - Modify: `app/domain/advertising/revise_active_order.rb`
 - Test: `spec/domain/advertising/revise_active_order_spec.rb`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ruby
 it "cancels a removed future day and keeps the order active" do
@@ -734,13 +734,13 @@ it "occupies a future day that was skipped" do
 end
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/domain/advertising/revise_active_order_spec.rb --format documentation`
 
 Expected: FAIL, 6 июня остаётся после сокращения, 5 июня не занимается.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Желаемые будущие даты экрана — те, что `> today`, `>= period_start`, `<= [grid_to, period_end].min`, не `skipped`, и `DayShows` для них больше нуля.
 
@@ -750,13 +750,13 @@ Expected: FAIL, 6 июня остаётся после сокращения, 5 �
 
 После коммита поставить пересборку и по отменённым, и по новым планам. `Cancel` внутри внешней `MediaPlan.transaction` присоединяется к ней, поэтому флаг `enqueue_regen: false` обязателен.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/domain/advertising/revise_active_order_spec.rb --format documentation`
 
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/domain/advertising/revise_active_order.rb spec/domain/advertising/revise_active_order_spec.rb
