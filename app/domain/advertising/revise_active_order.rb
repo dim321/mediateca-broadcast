@@ -132,7 +132,8 @@ module Advertising
             screen_count: normalized_screen_ids.size
           )
 
-          if day.shows != computed_shows
+          # Zero-show days are removed in the distribution-strategy step (Task 10).
+          if computed_shows.positive? && day.shows != computed_shows
             day.update!(shows: computed_shows)
             changed = true
           end
