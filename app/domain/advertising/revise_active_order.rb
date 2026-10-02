@@ -186,8 +186,7 @@ module Advertising
       {}.tap do |result|
         Array(submitted[:days]).each do |entry|
           date = parse_date(entry[:date])
-          next unless date > today
-          next unless date > today && date <= effective_grid_ceiling
+          next unless date > today && date >= period_start && date <= effective_grid_ceiling
           next if skipped?(entry)
 
           day_result = screen_day_hours(line, date)

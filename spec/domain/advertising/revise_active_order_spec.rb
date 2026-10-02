@@ -335,7 +335,7 @@ RSpec.describe Advertising::ReviseActiveOrder do
 
   it "rolls back clips and other days when one future slot conflicts" do
     travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
-      order = active_order!(dates: [ Date.new(2026, 6, 6) ])
+      order = active_order!(dates: [ Date.new(2026, 6, 3), Date.new(2026, 6, 6) ])
       replacement = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization, duration_seconds: 15)
       Airtime::OccupyWithPlan.call(
         organization: organization,
@@ -344,19 +344,24 @@ RSpec.describe Advertising::ReviseActiveOrder do
         starts_at: Time.utc(2026, 6, 5, 0, 0, 0),
         ends_at: Time.utc(2026, 6, 6, 0, 0, 0)
       )
+      clear_enqueued_jobs
 
       expect {
         revise(order, media_assets: [ replacement ], lines: [ {
           screen_id: screen.id,
           days: [
+            { date: Date.new(2026, 6, 3), skipped: false, shows: 9 },
             { date: Date.new(2026, 6, 5), skipped: false, shows: 9 },
             { date: Date.new(2026, 6, 6), skipped: false, shows: 9 }
           ]
         } ])
       }.to raise_error(Advertising::Error, I18n.t("advertising.errors.slot_conflict"))
+        .and not_change { enqueued_jobs.size }
 
       expect(order.reload.rotation.ordered_items.sole.media_asset).to eq(asset)
-      expect(order.advertising_order_line_days.map(&:date)).to eq([ Date.new(2026, 6, 6) ])
+      expect(order.advertising_order_line_days.map(&:date)).to contain_exactly(
+        Date.new(2026, 6, 3), Date.new(2026, 6, 6)
+      )
       expect(order.document_version).to eq(1)
     end
   end
