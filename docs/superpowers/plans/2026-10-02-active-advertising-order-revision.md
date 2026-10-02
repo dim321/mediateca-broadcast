@@ -1135,7 +1135,7 @@ EOF
 - Modify: `app/javascript/controllers/order_screen_picker_controller.js`
 - Test: `spec/requests/advertising_orders_spec.rb`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 В `describe "PATCH /advertising_orders/:id"`:
 
@@ -1190,13 +1190,13 @@ end
 
 `GET edit` активного заказа менеджером возвращает 200, поле названия `disabled`, клетка 3 июня `disabled`.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/requests/advertising_orders_spec.rb -e "active order" --format documentation`
 
 Expected: FAIL, `update?` запрещает менеджеру сохранение.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 `edit` и `update`: если заказ `active?`, `authorize @advertising_order, :revise?`, иначе прежний `authorize @advertising_order`.
 
@@ -1284,13 +1284,13 @@ setFutureSkipped(row, skipped) {
 
 Черновик заблокированных клеток не имеет, поэтому строка по-прежнему удаляется при снятии экрана.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/requests/advertising_orders_spec.rb spec/policies/advertising_order_policy_spec.rb --format documentation`
 
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/controllers/advertising_orders_controller.rb app/controllers/concerns/advertising_order_grid.rb app/views/advertising_orders app/helpers/advertising_orders_helper.rb app/javascript/controllers/order_grid_controller.js app/javascript/controllers/order_screen_picker_controller.js spec/requests/advertising_orders_spec.rb

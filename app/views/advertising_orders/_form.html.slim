@@ -28,10 +28,10 @@
   div.grid.gap-4.md:grid-cols-2
     div
       = f.label :product_name, class: 'block text-sm font-medium'
-      = f.text_field :product_name, class: 'input input-bordered w-full mt-1'
+      = f.text_field :product_name, class: 'input input-bordered w-full mt-1', disabled: advertising_order.active?
     div
       = f.label :placement_kind, class: 'block text-sm font-medium'
-      = f.select :placement_kind, AdvertisingOrder.placement_kinds.keys.map { |kind| [t("enums.advertising_order.placement_kind.#{kind}"), kind] }, {}, class: 'select select-bordered w-full mt-1'
+      = f.select :placement_kind, AdvertisingOrder.placement_kinds.keys.map { |kind| [t("enums.advertising_order.placement_kind.#{kind}"), kind] }, {}, class: 'select select-bordered w-full mt-1', disabled: advertising_order.active?
     - if advertising_order.new_record? || advertising_order.draft? || advertising_order.active?
       div.md:col-span-2
         = render 'advertising_orders/clips_editor',

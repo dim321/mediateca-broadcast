@@ -101,6 +101,11 @@ export default class extends Controller {
       }
 
       row.querySelectorAll('[data-order-grid-target="cell"]').forEach((cell) => {
+        if (cell.disabled) {
+          this.updateCellAppearance(cell)
+          return
+        }
+
         if (this.cellSkipped(cell)) {
           this.updateCellAppearance(cell)
           return
