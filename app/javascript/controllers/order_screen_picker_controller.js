@@ -80,20 +80,25 @@ export default class extends Controller {
     const selectedRows = this.rowTargets.filter((row) => this.rowCheckbox(row)?.checked)
     const selectedIds = new Set(selectedRows.map((row) => this.rowCheckbox(row).value))
 
-    this.gridRowTargets.forEach((row) => {
-      if (selectedIds.has(String(row.dataset.screenId))) return
-      if (this.rowHasLockedCell(row)) {
-        this.setFutureSkipped(row, true)
+    const gridScreenIds = [ ...new Set(this.gridRowTargets.map((row) => String(row.dataset.screenId))) ]
+    gridScreenIds.forEach((screenId) => {
+      if (selectedIds.has(screenId)) return
+
+      const rows = this.gridRowTargets.filter((row) => String(row.dataset.screenId) === screenId)
+      const hasLockedCell = rows.some((row) => this.rowHasLockedCell(row))
+      if (hasLockedCell) {
+        rows.forEach((row) => this.setFutureSkipped(row, true))
         return
       }
-      row.remove()
+      rows.forEach((row) => row.remove())
     })
 
     selectedRows.forEach((pickerRow) => {
       const id = this.rowCheckbox(pickerRow).value
-      const existing = this.gridRowTargets.find((row) => String(row.dataset.screenId) === id)
-      if (existing) {
-        this.setFutureSkipped(existing, false)
+      const existing = this.gridRowTargets.filter((row) => String(row.dataset.screenId) === id)
+      if (existing.length > 0) {
+        existing.forEach((row) => this.setFutureSkipped(row, false))
+        this.appendGridRows(pickerRow, id)
         return
       }
       this.appendGridRows(pickerRow, id)
@@ -128,6 +133,8 @@ export default class extends Controller {
   }
 
   appendGridRow(pickerRow, screenId, template, gridLines) {
+    if (gridLines.querySelector(`[data-screen-id="${screenId}"]`)) return
+
     const html = template.innerHTML
       .replaceAll("NEW_LINE", `screen-${screenId}`)
       .replaceAll("NEW_SCREEN", screenId)

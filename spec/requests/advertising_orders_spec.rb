@@ -522,6 +522,7 @@ RSpec.describe "AdvertisingOrders", type: :request do
         )
         fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3), Date.new(2026, 6, 6) ], shows: 9)
         Advertising::ActivateOrder.call(order: order)
+        rotation_item_id = order.rotation.ordered_items.sole.id
 
         patch advertising_order_path(order), params: order_params(
           dates: [ "2026-06-03", "2026-06-06" ],
@@ -531,9 +532,11 @@ RSpec.describe "AdvertisingOrders", type: :request do
         )
 
         expect(response).to redirect_to(advertising_order_path(order))
-        expect(order.reload.shows_per_hour).to eq(6)
+        order.reload
+        expect(order.shows_per_hour).to eq(6)
         expect(order.advertising_order_line_days.find_by!(date: Date.new(2026, 6, 3)).shows).to eq(9)
         expect(order.advertising_order_line_days.find_by!(date: Date.new(2026, 6, 6)).shows).to eq(18)
+        expect(order.rotation.ordered_items.sole.id).to eq(rotation_item_id)
       end
     end
 

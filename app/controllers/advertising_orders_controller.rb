@@ -233,8 +233,11 @@ class AdvertisingOrdersController < ApplicationController
       revise_args[:placement_kind] = order_params[:placement_kind]
     end
     if clip_ids_submitted?
-      media_assets = find_media_assets
-      revise_args[:media_assets] = media_assets if media_assets.any?
+      submitted_ids = submitted_media_asset_ids.map(&:to_s)
+      current_ids = @advertising_order.rotation&.ordered_items&.map { |item| item.media_asset_id.to_s } || []
+      if submitted_ids != current_ids
+        revise_args[:media_assets] = find_media_assets
+      end
     end
 
     result = Advertising::ReviseActiveOrder.call(**revise_args)

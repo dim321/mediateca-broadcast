@@ -314,6 +314,8 @@ export default class extends Controller {
 
   zeroSelectedCells() {
     this.selectedCells.forEach((cell) => {
+      if (cell.disabled) return
+
       cell.value = "0"
       this.cellChanged({ target: cell })
     })
