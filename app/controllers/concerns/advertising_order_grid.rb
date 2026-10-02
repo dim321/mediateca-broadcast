@@ -55,26 +55,14 @@ module AdvertisingOrderGrid
   end
 
   def distributed_shows(order, date, screen_index, screen_count, shows)
-    case order.distribution_strategy
-    when "weekdays"
-      weekend?(date) ? 0 : shows
-    when "weekends"
-      weekend?(date) ? shows : 0
-    when "even_days"
-      date.day.even? ? shows : 0
-    when "odd_days"
-      date.day.odd? ? shows : 0
-    when "chess"
-      first_half_day = date.day.odd?
-      in_first_half = screen_index < (screen_count / 2.0).ceil
-      first_half_day == in_first_half ? shows : 0
-    else
-      shows
-    end
-  end
-
-  def weekend?(date)
-    date.saturday? || date.sunday?
+    Advertising::DayShows.call(
+      date: date,
+      shows_per_hour: order.shows_per_hour,
+      hours: order.shows_per_hour.to_i.zero? ? 0 : shows / order.shows_per_hour.to_i,
+      distribution_strategy: order.distribution_strategy,
+      screen_index: screen_index,
+      screen_count: screen_count
+    )
   end
 
   def form_screen_ids

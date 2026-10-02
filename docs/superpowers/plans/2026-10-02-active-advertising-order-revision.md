@@ -88,7 +88,7 @@ EOF
 - Create: `spec/domain/advertising/day_shows_spec.rb`
 - Modify: `app/controllers/concerns/advertising_order_grid.rb`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `spec/domain/advertising/day_shows_spec.rb`:
 
@@ -142,13 +142,13 @@ end
 
 6 июня 2026 — суббота, день месяца чётный. Для `chess` нечётный день отдаёт первую половину экранов; чётный день — вторую. Индекс 0 при двух экранах в первую половину не попадает.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/domain/advertising/day_shows_spec.rb --format documentation`
 
 Expected: FAIL, класс не найден.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 `app/domain/advertising/day_shows.rb`:
 
@@ -214,13 +214,13 @@ end
 
 `shows` сюда уже приходит как `shows_per_hour * hours`. Деление восстанавливает часы только при ненулевой частоте. Методы `weekend?` в concern удалить, если после этого на них нет ссылок.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/domain/advertising/day_shows_spec.rb spec/requests/advertising_orders_spec.rb --format documentation`
 
 Expected: PASS. Запросные тесты черновика по-прежнему получают 9 показов на день при окне 09:00–12:00 и частоте 3.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/domain/advertising/day_shows.rb spec/domain/advertising/day_shows_spec.rb app/controllers/concerns/advertising_order_grid.rb
