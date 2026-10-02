@@ -917,7 +917,7 @@ EOF
 - Modify: `app/domain/advertising/revise_active_order.rb`
 - Test: `spec/domain/advertising/revise_active_order_spec.rb`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 5 июня 2026 — пятница, 6 июня — суббота.
 
@@ -942,23 +942,23 @@ end
 
 Суббота при `weekdays` получает 0 показов и снимается, даже если в `lines` она не помечена `skipped`. Сервер считает сам.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/domain/advertising/revise_active_order_spec.rb -e "strategy" --format documentation`
 
 Expected: FAIL, суббота остаётся в сетке.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Желаемый день существует только когда `DayShows` больше нуля. `skipped` в запросе дополнительно выключает день, но не может включить день, который стратегия обнулила. Прошедшие строки не пересчитывать.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/domain/advertising/revise_active_order_spec.rb --format documentation`
 
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/domain/advertising/revise_active_order.rb spec/domain/advertising/revise_active_order_spec.rb

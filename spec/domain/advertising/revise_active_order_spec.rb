@@ -286,6 +286,23 @@ RSpec.describe Advertising::ReviseActiveOrder do
     end
   end
 
+  it "recomputes future days for the new strategy and leaves past shows" do
+    travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
+      order = active_order!(dates: [ Date.new(2026, 6, 3), Date.new(2026, 6, 5), Date.new(2026, 6, 6) ])
+
+      revise(order, distribution_strategy: "weekdays")
+
+      order.reload
+      expect(order.distribution_strategy).to eq("weekdays")
+      expect(order.advertising_order_line_days.find_by!(date: Date.new(2026, 6, 3)).shows).to eq(9)
+      expect(order.advertising_order_line_days.find_by(date: Date.new(2026, 6, 6))).to be_nil
+      expect(order.advertising_order_line_days.find_by!(date: Date.new(2026, 6, 5)).shows).to eq(9)
+      expect(order.media_plans.active.map { |plan| plan.starts_at.to_date }).to contain_exactly(
+        Date.new(2026, 6, 3), Date.new(2026, 6, 5)
+      )
+    end
+  end
+
   it "drops future slots of an unchecked screen and keeps days through today" do
     travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
       order = active_order!(dates: [ Date.new(2026, 6, 3), Date.new(2026, 6, 6) ])
