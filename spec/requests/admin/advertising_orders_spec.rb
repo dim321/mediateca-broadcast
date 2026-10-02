@@ -560,6 +560,60 @@ RSpec.describe "Admin advertising orders", type: :request do
       expect(response).to have_http_status(:unprocessable_content)
     end
 
+    def activated_client_order
+      order = Advertising::CreateOrder.call(
+        organization: client,
+        created_by: client_user,
+        media_assets: [ asset ],
+        product_name: "Triumph",
+        shows_per_hour: 3
+      )
+      fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3), Date.new(2026, 6, 6) ], shows: 9)
+      Advertising::ActivateOrder.call(order: order)
+      order.reload
+    end
+
+    describe "active order" do
+      it "lets an operator revise another organization's active order" do
+        travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
+          order = activated_client_order
+
+          patch admin_advertising_order_path(order), params: order_params(
+            dates: [ "2026-06-03", "2026-06-06" ],
+            shows_per_hour: 6
+          ).merge(grid_from: "2026-06-03", grid_to: "2026-06-06")
+
+          expect(response).to redirect_to(admin_advertising_order_path(order))
+          expect(order.reload.shows_per_hour).to eq(6)
+          expect(order.advertising_order_line_days.find_by!(date: Date.new(2026, 6, 3)).shows).to eq(9)
+        end
+      end
+
+      it "rejects an extended end date for an active order" do
+        travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
+          order = activated_client_order
+
+          patch admin_advertising_order_path(order), params: order_params(
+            dates: [ "2026-06-03", "2026-06-06", "2026-06-07" ],
+            shows_per_hour: 3
+          ).merge(grid_from: "2026-06-03", grid_to: "2026-06-07")
+
+          expect(response).to have_http_status(:unprocessable_content)
+          expect(order.reload.advertising_order_line_days.map(&:date)).to contain_exactly(
+            Date.new(2026, 6, 3), Date.new(2026, 6, 6)
+          )
+        end
+      end
+
+      it "links to edit from an active order" do
+        order = activated_client_order
+
+        get admin_advertising_order_path(order)
+
+        expect(response.body).to include(edit_admin_advertising_order_path(order))
+      end
+    end
+
     it "lets the operator traffic manager activate that order and the client see it in the cabinet (AE11)" do
       post admin_advertising_orders_path, params: order_params(dates: [ "2026-06-03" ])
       order = AdvertisingOrder.last

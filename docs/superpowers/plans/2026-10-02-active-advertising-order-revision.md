@@ -1311,7 +1311,7 @@ EOF
 - Modify: `app/views/admin/advertising_orders/edit.html.erb`
 - Test: `spec/requests/admin/advertising_orders_spec.rb`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Внутри `context "when signed in as operator"` файла `spec/requests/admin/advertising_orders_spec.rb`. Хелпер `order_params` и `order_screen` в этом файле уже есть.
 
@@ -1369,13 +1369,13 @@ it "links to edit from an active order" do
 end
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/requests/admin/advertising_orders_spec.rb -e "active order" --format documentation`
 
 Expected: FAIL. Текущий `update` либо не пускает активный заказ в сетку правки, либо переписывает весь документ черновым путём.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 В `Admin::AdvertisingOrdersController#update` та же развилка, что в кабинете: активный заказ идёт в `Advertising::ReviseActiveOrder`, черновик остаётся на текущем `update!` + `persist_grid!`. Успех редиректит на `admin_advertising_order_path` с `t("advertising_orders.update.updated")`. Квота — `flash[:warning]`. Ошибки `Advertising::Error`, `Airtime::ConflictError` и `InvalidGrid` рендерят `:edit` со статусом 422.
 
@@ -1383,13 +1383,13 @@ Expected: FAIL. Текущий `update` либо не пускает актив�
 
 `show.html.erb`: ссылка «Изменить» и для `active?`, классом `admin_primary_button_class`, рядом с отменой. Черновик свою ссылку сохраняет.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/requests/admin/advertising_orders_spec.rb --format documentation`
 
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/controllers/admin/advertising_orders_controller.rb app/views/admin/advertising_orders spec/requests/admin/advertising_orders_spec.rb

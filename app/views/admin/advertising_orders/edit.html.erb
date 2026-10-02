@@ -8,14 +8,15 @@
   <%= link_to @advertising_order.product_name, admin_advertising_order_path(@advertising_order), class: admin_secondary_button_class %>
 </div>
 
+<% grid_end = @advertising_order.advertising_order_line_days.map(&:date).compact.max %>
 <%= form_with url: edit_admin_advertising_order_path(@advertising_order), method: :get, html: { class: "flex flex-wrap items-end gap-3 mb-6" } do %>
   <div>
     <label class="<%= admin_label_class %>"><%= t("advertising_orders.form.fill_from") %></label>
-    <%= order_grid_date_field_tag :grid_from, @grid_dates.first, html_class: admin_input_class %>
+    <%= order_grid_date_field_tag :grid_from, @grid_dates.first, html_class: admin_input_class, readonly: @advertising_order.active? %>
   </div>
   <div>
     <label class="<%= admin_label_class %>"><%= t("advertising_orders.form.fill_to") %></label>
-    <%= order_grid_date_field_tag :grid_to, @grid_dates.last, html_class: admin_input_class %>
+    <%= order_grid_date_field_tag :grid_to, @grid_dates.last, html_class: admin_input_class, max: (@advertising_order.active? ? grid_end : nil) %>
   </div>
   <%= submit_tag t("advertising_orders.form.show_grid"), class: admin_primary_button_class %>
 <% end %>
