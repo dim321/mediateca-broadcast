@@ -359,7 +359,12 @@ module Advertising
     end
 
     def assert_windows!
-      raise Error, I18n.t("errors.messages.blank") if Array(windows).empty?
+      if Array(windows).empty?
+        record = AdvertisingOrderWindow.new(advertising_order: order)
+        return if record.valid?
+
+        raise Error, record.errors.full_messages.to_sentence
+      end
 
       Array(windows).each do |window|
         hash = window.respond_to?(:to_h) ? window.to_h : {}

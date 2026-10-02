@@ -197,6 +197,35 @@ RSpec.describe Advertising::ReviseActiveOrder do
     end
   end
 
+  it "rejects an empty window list with the model message" do
+    travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
+      order = active_order!(dates: [ Date.new(2026, 6, 6) ])
+      blank = AdvertisingOrderWindow.new(advertising_order: order)
+      blank.valid?
+
+      expect {
+        revise(order, windows: [])
+      }.to raise_error(Advertising::Error, blank.errors.full_messages.to_sentence)
+
+      expect(order.reload.shows_per_hour).to eq(3)
+      expect(order.advertising_order_windows.map { |window| window.starts_at.strftime("%H:%M") }).to eq([ "09:00" ])
+    end
+  end
+
+  it "rejects a window that does not end after it starts" do
+    travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
+      order = active_order!(dates: [ Date.new(2026, 6, 6) ])
+      record = AdvertisingOrderWindow.new(advertising_order: order, starts_at: "12:00", ends_at: "10:00")
+      record.valid?
+
+      expect {
+        revise(order, windows: [ { starts_at: "12:00", ends_at: "10:00" } ])
+      }.to raise_error(Advertising::Error, record.errors.full_messages.to_sentence)
+
+      expect(order.reload.advertising_order_windows.map { |window| window.starts_at.strftime("%H:%M") }).to eq([ "09:00" ])
+    end
+  end
+
   it "moves future slot bounds and leaves today in place" do
     travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
       order = active_order!(dates: [ Date.new(2026, 6, 4), Date.new(2026, 6, 6) ])
