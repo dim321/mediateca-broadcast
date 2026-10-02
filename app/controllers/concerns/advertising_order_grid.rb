@@ -155,7 +155,7 @@ module AdvertisingOrderGrid
       from = order_grid_bounds.begin
       requested_to = parse_grid_date(params[:grid_to]) || order_grid_bounds.end
       to = [ requested_to, order_grid_bounds.end ].min
-      from, to = to, from if from > to
+      to = from if to < from
       return (from..to).to_a
     end
 

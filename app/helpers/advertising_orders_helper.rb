@@ -44,7 +44,10 @@ module AdvertisingOrdersHelper
       }
     }
     picker_options[:readonly] = true if readonly
-    picker_options[:max] = max.iso8601 if max
+    if max
+      text_options[:max] = max.iso8601
+      picker_options[:max] = max.iso8601
+    end
 
     content_tag(:div, class: "relative", data: { controller: "order-grid-date" }) do
       safe_join([

@@ -426,6 +426,8 @@ RSpec.describe "AdvertisingOrders", type: :request do
         expect(product_name["disabled"]).to eq("disabled")
         locked_cell = html.at_css('[data-order-grid-target="cell"][data-date="2026-06-03"]')
         expect(locked_cell["disabled"]).to eq("disabled")
+        grid_to = html.css("input[name='grid_to']").find { |node| node["type"] != "hidden" }
+        expect(grid_to["max"]).to eq("2026-06-06")
       end
     end
 

@@ -129,6 +129,8 @@ export default class extends Controller {
 
   cellChanged(event) {
     const cell = event.target
+    if (cell.disabled) return
+
     const skipped = cell.parentElement?.querySelector('[data-order-grid-target="skipped"]')
     if (cell.value === "0") {
       cell.dataset.skipped = "1"
