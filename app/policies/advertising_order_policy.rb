@@ -11,6 +11,8 @@ class AdvertisingOrderPolicy < ApplicationPolicy
 
   def update? = client_mutator? && operator_or_in_organization? && record.draft?
 
+  def revise? = client_mutator? && operator_or_in_organization? && record.active?
+
   def activate? = traffic_manager? && operator_or_in_organization? && (record.draft? || record.active?)
 
   def reject? = traffic_manager? && operator_or_in_organization? && record.draft?

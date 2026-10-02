@@ -18,7 +18,7 @@
 - Modify: `app/policies/advertising_order_policy.rb`
 - Test: `spec/policies/advertising_order_policy_spec.rb`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 В `describe "update?"` файл уже запрещает `update?` для активного заказа. Добавить рядом:
 
@@ -46,13 +46,13 @@ describe "revise?" do
 end
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/policies/advertising_order_policy_spec.rb --format documentation`
 
 Expected: FAIL, `revise?` не определён.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 В `app/policies/advertising_order_policy.rb` после `update?`:
 
@@ -62,13 +62,13 @@ def revise? = client_mutator? && operator_or_in_organization? && record.active?
 
 `update?` не менять: он остаётся только для черновика.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/policies/advertising_order_policy_spec.rb --format documentation`
 
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/policies/advertising_order_policy.rb spec/policies/advertising_order_policy_spec.rb
