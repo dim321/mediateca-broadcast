@@ -241,7 +241,7 @@ EOF
 - Test: `spec/domain/airtime/cancel_spec.rb`
 - Test: `spec/domain/airtime/occupy_with_plan_spec.rb`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 В `spec/domain/airtime/cancel_spec.rb` после примера про `GenerateForDateJob`:
 
@@ -286,13 +286,13 @@ it "does not enqueue playlist regen when asked to defer it" do
 end
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/domain/airtime/cancel_spec.rb spec/domain/airtime/occupy_with_plan_spec.rb --format documentation`
 
 Expected: FAIL, неизвестный keyword `enqueue_regen`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 `Airtime::Cancel#initialize` получает `enqueue_regen: true`. После успешной отмены:
 
@@ -308,13 +308,13 @@ Playlists::EnqueueRegen.from_plan(plan) if enqueue_regen
 
 Сохранить оба флага в `attr_reader`. Значение по умолчанию `true`, чтобы текущие вызовы не изменились.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/domain/airtime/cancel_spec.rb spec/domain/airtime/occupy_with_plan_spec.rb --format documentation`
 
 Expected: PASS, включая прежние примеры, где задача ставится.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/domain/airtime/cancel.rb app/domain/airtime/occupy_with_plan.rb spec/domain/airtime/cancel_spec.rb spec/domain/airtime/occupy_with_plan_spec.rb

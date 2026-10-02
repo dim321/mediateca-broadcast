@@ -40,6 +40,24 @@ RSpec.describe Airtime::Cancel do
     end
   end
 
+  it "does not enqueue playlist regen when asked to defer it" do
+    travel_to Time.utc(2026, 9, 2, 12, 0, 0) do
+      future_plan = Airtime::OccupyWithPlan.call(
+        organization: organization,
+        broadcast_point_group: group,
+        rotation: rotation,
+        starts_at: Time.utc(2026, 9, 3, 10, 0, 0),
+        ends_at: Time.utc(2026, 9, 3, 11, 0, 0)
+      )
+
+      expect {
+        described_class.call(plan: future_plan, enqueue_regen: false)
+      }.not_to have_enqueued_job(Playlists::GenerateForDateJob)
+
+      expect(future_plan.reload).to be_cancelled
+    end
+  end
+
   it 'soft-cancels plan and booking together (AE5)' do
     described_class.call(plan: plan)
 

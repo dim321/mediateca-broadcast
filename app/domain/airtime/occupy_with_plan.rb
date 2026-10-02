@@ -13,7 +13,8 @@ module Airtime
       placement_kind: :own_atmosphere,
       shows_per_hour: nil,
       order_claim: false,
-      advertising_order_line: nil
+      advertising_order_line: nil,
+      enqueue_regen: true
     )
       @organization = organization
       @broadcast_point_group = broadcast_point_group
@@ -25,6 +26,7 @@ module Airtime
       @shows_per_hour = shows_per_hour
       @order_claim = order_claim
       @advertising_order_line = advertising_order_line
+      @enqueue_regen = enqueue_regen
     end
 
     def call
@@ -68,14 +70,14 @@ module Airtime
         record.save!
         record
       end
-      Playlists::EnqueueRegen.from_plan(plan)
+      Playlists::EnqueueRegen.from_plan(plan) if enqueue_regen
       plan
     end
 
     private
 
     attr_reader :organization, :broadcast_point_group, :screens, :rotation, :starts_at, :ends_at,
-      :placement_kind, :shows_per_hour, :order_claim, :advertising_order_line
+      :placement_kind, :shows_per_hour, :order_claim, :advertising_order_line, :enqueue_regen
 
     def validate_inputs!
       validate_time_window!

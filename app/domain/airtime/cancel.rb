@@ -3,8 +3,9 @@
 module Airtime
   # Soft-cancel a media plan and its internal booking together (KTD5).
   class Cancel < BaseService
-    def initialize(plan:)
+    def initialize(plan:, enqueue_regen: true)
       @plan = plan
+      @enqueue_regen = enqueue_regen
     end
 
     def call
@@ -30,13 +31,13 @@ module Airtime
 
         locked_plan
       end
-      Playlists::EnqueueRegen.from_plan(cancelled)
+      Playlists::EnqueueRegen.from_plan(cancelled) if enqueue_regen
       cancelled
     end
 
     private
 
-    attr_reader :plan
+    attr_reader :plan, :enqueue_regen
 
     def occupying_screen_ids(locked_plan, locked_booking)
       ids = locked_plan.screens.ids
