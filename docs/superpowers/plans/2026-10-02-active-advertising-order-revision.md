@@ -407,7 +407,7 @@ EOF
 - Modify: `config/locales/mediateca.ru.yml`
 - Modify: `config/locales/mediateca.en.yml`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `spec/domain/advertising/revise_active_order_spec.rb`. Общий setup, его же используют следующие задачи:
 
@@ -536,13 +536,13 @@ end
 
 Отдельный пример без `travel_to` на 4 июня, а на `Time.utc(2026, 6, 1, 8, 0, 0)`: заказ с датами 3–6 июня, правка не включает 3 июня. Ожидание — `I18n.t("advertising.errors.future_start_removed")`, слоты на месте.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/domain/advertising/revise_active_order_spec.rb --format documentation`
 
 Expected: FAIL, класс не найден.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Ключи в оба локаля, в `advertising.errors`:
 
@@ -584,13 +584,13 @@ end
 
 `lines` нормализовать через `to_h.deep_symbolize_keys`. Даты принимать и как `Date`, и как строку `Date.iso8601`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/domain/advertising/revise_active_order_spec.rb --format documentation`
 
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/domain/advertising/revise_active_order.rb spec/domain/advertising/revise_active_order_spec.rb config/locales/mediateca.ru.yml config/locales/mediateca.en.yml

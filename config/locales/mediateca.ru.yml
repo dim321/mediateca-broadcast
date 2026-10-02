@@ -1329,3 +1329,10 @@ ru:
       order_not_rejectable: отклонить можно только черновик
       rejection_reason_invalid: укажите причину отклонения
       order_not_cancellable: отменить можно только активный заказ
+      order_not_revisable: править можно только активный заказ
+      end_date_extended: дату окончания нельзя сдвинуть вперёд
+      start_date_changed: дату начала менять нельзя
+      locked_day_changed: прошедшие дни и сегодняшний день менять нельзя
+      frozen_field_changed: название и тип размещения менять нельзя
+      future_start_removed: дата начала ещё впереди и должна остаться в сетке
+      slot_conflict: выбранный интервал уже занят
