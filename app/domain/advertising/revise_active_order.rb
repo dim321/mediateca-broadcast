@@ -108,11 +108,19 @@ module Advertising
       changed = false
       normalized_screen_ids = screen_ids.map(&:to_i)
 
+      normalized_screen_ids.each do |screen_id|
+        order.advertising_order_lines.find_or_create_by!(screen_id: screen_id) do |line|
+          line.price_per_day_cents = 0
+        end
+      end
+
       order.advertising_order_lines.includes(:advertising_order_line_days, :screen).find_each do |line|
         screen_index = normalized_screen_ids.index(line.screen_id)
-        next if screen_index.nil?
-
-        desired = desired_future_days_for(line, screen_index)
+        desired = if screen_index.nil?
+          {}
+        else
+          desired_future_days_for(line, screen_index)
+        end
 
         line.advertising_order_line_days.select { |day| day.date > today }.each do |day|
           unless desired.key?(day.date)

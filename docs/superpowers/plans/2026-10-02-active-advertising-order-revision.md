@@ -836,7 +836,7 @@ EOF
 - Modify: `app/domain/advertising/revise_active_order.rb`
 - Test: `spec/domain/advertising/revise_active_order_spec.rb`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ruby
 it "occupies a newly selected screen from the first editable date" do
@@ -880,25 +880,25 @@ end
 
 Пустой `screen_ids` при сохранённой строке с прошедшим днём означает «убрать экран из будущего». Строка остаётся из-за внешнего ключа слотов.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/domain/advertising/revise_active_order_spec.rb -e "screen" --format documentation`
 
 Expected: FAIL
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Для `screen_id`, которого нет среди строк, `find_or_create_by!(screen_id:)` с `price_per_day_cents: 0`, затем занять желаемые будущие даты. Экран не из `screen_ids` получает пустое множество будущих дат: будущие дни снимаются, прошедшие строки не удаляются. Строку без дней не уничтожать, если на неё ссылается хотя бы один `MediaPlan`.
 
 `AssertShowsPerHour` уже смотрит на итоговый `screen_ids`. Для экрана, снятого с будущего, но оставшегося в истории, в пересечение портретов его не включать.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/domain/advertising/revise_active_order_spec.rb --format documentation`
 
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/domain/advertising/revise_active_order.rb spec/domain/advertising/revise_active_order_spec.rb

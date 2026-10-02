@@ -263,4 +263,42 @@ RSpec.describe Advertising::ReviseActiveOrder do
       expect(order.media_plans.active.count).to eq(3)
     end
   end
+
+  it "occupies a newly selected screen from the first editable date" do
+    travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
+      order = active_order!(dates: [ Date.new(2026, 6, 3), Date.new(2026, 6, 6) ])
+      added = create_group_with_hours!(organization: organization).screens.first
+      create(:broadcast_portrait, :for_screen, screen: added, block_frequencies_per_hour: [ 1, 2, 3, 4, 6 ])
+
+      revise(order, screen_ids: [ screen.id, added.id ], lines: [
+        { screen_id: screen.id, days: [
+          { date: Date.new(2026, 6, 3), skipped: false, shows: 9 },
+          { date: Date.new(2026, 6, 6), skipped: false, shows: 9 }
+        ] },
+        { screen_id: added.id, days: [
+          { date: Date.new(2026, 6, 6), skipped: false, shows: 9 }
+        ] }
+      ])
+
+      added_line = order.reload.advertising_order_lines.find_by!(screen: added)
+      expect(added_line.advertising_order_line_days.map(&:date)).to eq([ Date.new(2026, 6, 6) ])
+      expect(added_line.media_plans.active.count).to eq(1)
+    end
+  end
+
+  it "drops future slots of an unchecked screen and keeps days through today" do
+    travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
+      order = active_order!(dates: [ Date.new(2026, 6, 3), Date.new(2026, 6, 6) ])
+
+      revise(order, screen_ids: [], lines: [ {
+        screen_id: screen.id,
+        days: [ { date: Date.new(2026, 6, 3), skipped: false, shows: 9 } ]
+      } ])
+
+      line = order.reload.advertising_order_lines.find_by!(screen: screen)
+      expect(line.advertising_order_line_days.map(&:date)).to eq([ Date.new(2026, 6, 3) ])
+      expect(line.media_plans.active.count).to eq(1)
+      expect(line.media_plans.cancelled.count).to eq(1)
+    end
+  end
 end
