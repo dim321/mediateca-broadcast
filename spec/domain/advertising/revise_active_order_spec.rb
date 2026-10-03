@@ -160,9 +160,11 @@ RSpec.describe Advertising::ReviseActiveOrder do
       order.reload
       expect(order.shows_per_hour).to eq(6)
       expect(order.document_version).to eq(2)
-      expect(order.advertising_order_line_days.find_by!(date: Date.new(2026, 6, 6)).shows).to eq(18)
-      expect(order.advertising_order_line_days.find_by!(date: Date.new(2026, 6, 3)).shows).to eq(9)
-      expect(order.advertising_order_line_days.find_by!(date: Date.new(2026, 6, 4)).shows).to eq(9)
+      expect(order.advertising_order_line_days.order(:date).pluck(:date, :shows)).to eq([
+        [ Date.new(2026, 6, 3), 9 ],
+        [ Date.new(2026, 6, 4), 9 ],
+        [ Date.new(2026, 6, 6), 18 ]
+      ])
       future = order.media_plans.active.find { |plan| plan.starts_at.to_date == Date.new(2026, 6, 6) }
       today_plan = order.media_plans.active.find { |plan| plan.starts_at.to_date == Date.new(2026, 6, 4) }
       expect(future.shows_per_hour).to eq(6)
