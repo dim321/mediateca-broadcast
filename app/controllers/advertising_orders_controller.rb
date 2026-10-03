@@ -63,11 +63,16 @@ class AdvertisingOrdersController < ApplicationController
   end
 
   def edit
-    authorize @advertising_order
+    authorize @advertising_order, (@advertising_order.active? ? :revise? : :update?)
     load_occupancy
   end
 
   def update
+    if @advertising_order.active?
+      authorize @advertising_order, :revise?
+      return update_active_order!
+    end
+
     authorize @advertising_order
     clip_media_assets = find_media_assets if clip_ids_submitted?
     AdvertisingOrder.transaction do
@@ -207,6 +212,43 @@ class AdvertisingOrdersController < ApplicationController
     load_form_collections
     load_occupancy
     render template, status: :unprocessable_content
+  end
+
+  def update_active_order!
+    revise_args = {
+      order: @advertising_order,
+      shows_per_hour: order_header_shows_per_hour,
+      distribution_strategy: order_params[:distribution_strategy].presence || @advertising_order.distribution_strategy,
+      windows: order_params[:windows],
+      screen_ids: form_screen_ids,
+      lines: revise_lines_payload,
+      grid_from: parse_grid_date(params[:grid_from]),
+      grid_to: parse_grid_date(params[:grid_to])
+    }
+    raw_order = params[:advertising_order]
+    if raw_order&.key?(:product_name)
+      revise_args[:product_name] = order_params[:product_name]
+    end
+    if raw_order&.key?(:placement_kind)
+      revise_args[:placement_kind] = order_params[:placement_kind]
+    end
+    if clip_ids_submitted?
+      submitted_ids = submitted_media_asset_ids.map(&:to_s)
+      current_ids = @advertising_order.rotation&.ordered_items&.map { |item| item.media_asset_id.to_s } || []
+      if submitted_ids != current_ids
+        revise_args[:media_assets] = find_media_assets
+      end
+    end
+
+    result = Advertising::ReviseActiveOrder.call(**revise_args)
+    flash[:warning] = t("advertising_orders.activate.quota_exceeded") if result.quota_exceeded
+    redirect_to @advertising_order, notice: t(".updated")
+  rescue Advertising::InvalidGrid => e
+    @advertising_order = e.order
+    render_form_failure(:edit)
+  rescue Advertising::Error, Airtime::ConflictError => e
+    @advertising_order.errors.add(:base, e.message)
+    render_form_failure(:edit)
   end
 
   def order_params

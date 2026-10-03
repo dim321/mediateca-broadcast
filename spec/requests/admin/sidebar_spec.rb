@@ -55,20 +55,20 @@ RSpec.describe "Admin sidebar", type: :request do
     )
   end
 
-  it "renders the media library group with media assets and rotations" do
+  it "renders the media library group with media assets" do
     get admin_root_path
 
     group = nav_group("media_library")
     expect(group).to be_present
     expect(group.text).to include(
       I18n.t("admin.nav.groups.media_library"),
-      I18n.t("admin.nav.media_assets"),
+      I18n.t("admin.nav.media_assets")
+    )
+    expect(group.text).not_to include(
       I18n.t("admin.nav.rotations"),
       I18n.t("admin.nav.rotation_items")
     )
-    expect(group.css("a").map { |link| link["href"] }).to eq(
-      [ admin_media_assets_path, admin_rotations_path, admin_rotation_items_path ]
-    )
+    expect(group.css("a").map { |link| link["href"] }).to eq([ admin_media_assets_path ])
   end
 
   it "renders the directories group with business spheres and tags" do

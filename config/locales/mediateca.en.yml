@@ -245,6 +245,11 @@ en:
         presentation: Presentation
       broadcast_processing: Processing…
       broadcast_na: N/A
+      filters:
+        any: Any
+      search_submit: Search
+      clear_search: Clear search
+      empty_search: No matches
       source_label: Source
       broadcast_label: Broadcast
     create:
@@ -864,6 +869,9 @@ en:
       rotation_items: Rotation items
       rotations: Rotations
       screens: Screens
+    media_assets:
+      filters:
+        any: Any
     organizations:
       index:
         brand: Brand
@@ -1314,3 +1322,10 @@ en:
       order_not_rejectable: only a draft order can be rejected
       rejection_reason_invalid: choose a rejection reason
       order_not_cancellable: only an active order can be cancelled
+      order_not_revisable: only an active order can be revised
+      end_date_extended: the end date cannot be moved later
+      start_date_changed: the start date cannot be changed
+      locked_day_changed: past days and today cannot be changed
+      frozen_field_changed: the product name and placement kind cannot be changed
+      future_start_removed: a future start date must stay on the grid
+      slot_conflict: the selected interval is already booked

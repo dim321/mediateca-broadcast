@@ -101,6 +101,11 @@ export default class extends Controller {
       }
 
       row.querySelectorAll('[data-order-grid-target="cell"]').forEach((cell) => {
+        if (cell.disabled) {
+          this.updateCellAppearance(cell)
+          return
+        }
+
         if (this.cellSkipped(cell)) {
           this.updateCellAppearance(cell)
           return
@@ -124,6 +129,8 @@ export default class extends Controller {
 
   cellChanged(event) {
     const cell = event.target
+    if (cell.disabled) return
+
     const skipped = cell.parentElement?.querySelector('[data-order-grid-target="skipped"]')
     if (cell.value === "0") {
       cell.dataset.skipped = "1"
@@ -307,6 +314,8 @@ export default class extends Controller {
 
   zeroSelectedCells() {
     this.selectedCells.forEach((cell) => {
+      if (cell.disabled) return
+
       cell.value = "0"
       this.cellChanged({ target: cell })
     })

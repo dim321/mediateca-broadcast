@@ -57,6 +57,9 @@
     <% end %>
   <% end %>
   <% if @advertising_order.active? %>
+    <%= link_to t("admin.advertising_orders.edit"),
+          edit_admin_advertising_order_path(@advertising_order),
+          class: admin_primary_button_class %>
     <%= link_to t("admin.advertising_orders.cancel"),
           cancel_admin_advertising_order_path(@advertising_order),
           data: { turbo_method: :post, turbo_confirm: t("admin.advertising_orders.cancel_confirm") },

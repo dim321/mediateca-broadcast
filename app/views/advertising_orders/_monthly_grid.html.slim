@@ -17,7 +17,7 @@ table id=grid_id class="table table-sm table-pin-rows table-pin-cols w-full"
   tbody data-order-grid-target='lines' data-order-screen-picker-target='gridLines'
     - rows.each_with_index do |line, index|
       = render 'advertising_orders/line_fields',
-          **order_line_field_locals(line, index).merge(grid_dates: dates)
+          **order_line_field_locals(line, index).merge(grid_dates: dates, advertising_order: advertising_order)
   - if show_grand_total
     tfoot
       tr.bg-base-200.border-t.border-base-300
@@ -33,4 +33,4 @@ table id=grid_id class="table table-sm table-pin-rows table-pin-cols w-full"
 
 template data-order-screen-picker-target='rowTemplate'
   = render 'advertising_orders/line_fields',
-      **order_line_field_locals(AdvertisingOrderLine.new, 'NEW_LINE').merge(grid_dates: dates)
+      **order_line_field_locals(AdvertisingOrderLine.new, 'NEW_LINE').merge(grid_dates: dates, advertising_order: advertising_order)

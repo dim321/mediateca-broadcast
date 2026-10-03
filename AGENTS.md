@@ -73,13 +73,15 @@ App: http://localhost:3000. PostgreSQL is the Compose `postgres` service — do 
 
 ```bash
 docker compose up --build
-docker compose exec -e RAILS_ENV=test web bundle exec rspec
+docker compose exec -e RAILS_ENV=test web bin/ci
 docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/path/to/spec.rb
 ```
 
-Always pass `RAILS_ENV=test` into the `web` container. The Compose default is development; omitting it points RSpec at the development DB. Do not run `bundle exec rspec` on the host.
+After file changes, verify with `bin/ci` in the `web` container (`config/ci.rb`: RuboCop, RSpec, bundler-audit, importmap audit, Brakeman). A single spec file is only for iteration; finish with `bin/ci`.
 
-When the working branch is already pushed to GitHub and a PR exists, do not re-run Docker RSpec locally for that verification — CI/CD runs tests on the PR; analyze the CI check results instead. Local Docker RSpec is for pre-push development or when explicitly requested.
+Always pass `RAILS_ENV=test` into the `web` container. The Compose default is development; omitting it points RSpec at the development DB. Do not run `bin/ci` or `bundle exec rspec` on the host.
+
+When the working branch is already pushed to GitHub and a PR exists, do not re-run Docker `bin/ci` locally for that verification — CI/CD runs the checks on the PR; analyze the CI check results instead. Local Docker `bin/ci` is for pre-push development or when explicitly requested.
 
 RSpec + FactoryBot. Spec path mirrors `app/` (`app/domain/airtime/cancel.rb` → `spec/domain/airtime/cancel_spec.rb`).
 

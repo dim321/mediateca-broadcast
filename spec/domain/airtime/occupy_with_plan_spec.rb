@@ -39,6 +39,23 @@ RSpec.describe Airtime::OccupyWithPlan do
     end
   end
 
+  it "does not enqueue playlist regen when asked to defer it" do
+    travel_to Time.utc(2026, 9, 2, 12, 0, 0) do
+      expect {
+        described_class.call(
+          organization: organization,
+          broadcast_point_group: group,
+          rotation: rotation,
+          starts_at: Time.utc(2026, 9, 3, 10, 0, 0),
+          ends_at: Time.utc(2026, 9, 3, 11, 0, 0),
+          enqueue_regen: false
+        )
+      }.not_to have_enqueued_job(Playlists::GenerateForDateJob)
+    end
+
+    expect(MediaPlan.active.count).to eq(1)
+  end
+
   it 'creates a confirmed booking and active media plan together' do
     plan = occupy!
 

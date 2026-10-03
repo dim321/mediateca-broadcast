@@ -17,7 +17,7 @@
       span = t('.rejected', reason: t("enums.advertising_order.rejection_reason.#{@advertising_order.rejection_reason}"))
 
   .flex.gap-3.flex-wrap
-    - if can_mutate.update?
+    - if can_mutate.update? || can_mutate.revise?
       = link_to t('.edit'), edit_advertising_order_path(@advertising_order), class: 'btn btn-ghost btn-sm'
     - if can_mutate.activate? && @advertising_order.draft?
       = button_to t('.activate'), activate_advertising_order_path(@advertising_order), method: :post, class: 'btn btn-primary btn-sm'

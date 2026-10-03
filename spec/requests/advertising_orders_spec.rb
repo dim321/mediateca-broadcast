@@ -21,8 +21,8 @@ RSpec.describe "AdvertisingOrders", type: :request do
     end
   end
 
-  def order_params(screen: order_screen, dates: [ "2026-06-03" ], shows_per_hour: 3, media_assets: [ asset ], **header)
-    {
+  def order_params(screen: order_screen, dates: [ "2026-06-03" ], shows_per_hour: 3, media_assets: [ asset ], grid_from: nil, grid_to: nil, **header)
+    params = {
       advertising_order: {
         product_name: "Triumph",
         media_asset_ids: media_assets.map(&:id),
@@ -38,6 +38,9 @@ RSpec.describe "AdvertisingOrders", type: :request do
         }
       }.merge(header)
     }
+    params[:grid_from] = grid_from if grid_from
+    params[:grid_to] = grid_to if grid_to
+    params
   end
 
   def active_order
@@ -406,6 +409,28 @@ RSpec.describe "AdvertisingOrders", type: :request do
       expect(cell["class"]).to include("min-w-14")
     end
 
+    it "locks product name and past grid cells on an active order" do
+      travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
+        organization.update!(time_zone: "UTC")
+        order = Advertising::CreateOrder.call(
+          organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph", shows_per_hour: 3
+        )
+        fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3), Date.new(2026, 6, 6) ], shows: 9)
+        Advertising::ActivateOrder.call(order: order)
+
+        get edit_advertising_order_path(order), params: { grid_from: "2026-06-03", grid_to: "2026-06-06" }
+
+        expect(response).to have_http_status(:ok)
+        html = Nokogiri::HTML(response.body)
+        product_name = html.at_css('input[name="advertising_order[product_name]"]')
+        expect(product_name["disabled"]).to eq("disabled")
+        locked_cell = html.at_css('[data-order-grid-target="cell"][data-date="2026-06-03"]')
+        expect(locked_cell["disabled"]).to eq("disabled")
+        grid_to = html.css("input[name='grid_to']").find { |node| node["type"] != "hidden" }
+        expect(grid_to["max"]).to eq("2026-06-06")
+      end
+    end
+
     it "shows the month once in the grid header instead of each screen row" do
       order = Advertising::CreateOrder.call(
         organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph"
@@ -490,6 +515,52 @@ RSpec.describe "AdvertisingOrders", type: :request do
       expect(order.reload.rotation.ordered_items.sole.media_asset).to eq(asset)
     end
 
+    it "lets a manager revise frequency on an active order" do
+      travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
+        order = Advertising::CreateOrder.call(
+          organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph", shows_per_hour: 3
+        )
+        fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3), Date.new(2026, 6, 6) ], shows: 9)
+        Advertising::ActivateOrder.call(order: order)
+        rotation_item_id = order.rotation.ordered_items.sole.id
+
+        patch advertising_order_path(order), params: order_params(
+          dates: [ "2026-06-03", "2026-06-06" ],
+          shows_per_hour: 6,
+          grid_from: "2026-06-03",
+          grid_to: "2026-06-06"
+        )
+
+        expect(response).to redirect_to(advertising_order_path(order))
+        order.reload
+        expect(order.shows_per_hour).to eq(6)
+        expect(order.advertising_order_line_days.find_by!(date: Date.new(2026, 6, 3)).shows).to eq(9)
+        expect(order.advertising_order_line_days.find_by!(date: Date.new(2026, 6, 6)).shows).to eq(18)
+        expect(order.rotation.ordered_items.sole.id).to eq(rotation_item_id)
+      end
+    end
+
+    it "rejects a tampered grid start on an active order" do
+      travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
+        order = Advertising::CreateOrder.call(
+          organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph", shows_per_hour: 3
+        )
+        fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3), Date.new(2026, 6, 6) ], shows: 9)
+        Advertising::ActivateOrder.call(order: order)
+
+        patch advertising_order_path(order), params: order_params(
+          dates: [ "2026-06-03", "2026-06-06" ],
+          grid_from: "2026-06-04",
+          grid_to: "2026-06-06"
+        )
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(order.reload.advertising_order_line_days.map(&:date)).to contain_exactly(
+          Date.new(2026, 6, 3), Date.new(2026, 6, 6)
+        )
+      end
+    end
+
     it "replaces clips on an active order and enqueues playlist regen" do
       travel_to Time.utc(2026, 9, 2, 10, 0, 0) do
         replacement = create(:media_asset, :ready, :content_validated, :with_png_file, organization: organization, duration_seconds: 15)
@@ -544,6 +615,26 @@ RSpec.describe "AdvertisingOrders", type: :request do
       expect(response).to have_http_status(:success)
       expect(response.body).to include(I18n.t("advertising.print_sheet.title"))
       expect(response.body).to match(/print-.*\.css/)
+    end
+
+    it "denies patch on an active order" do
+      travel_to Time.utc(2026, 6, 4, 8, 0, 0) do
+        order = Advertising::CreateOrder.call(
+          organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph", shows_per_hour: 3
+        )
+        fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3), Date.new(2026, 6, 6) ], shows: 9)
+        Advertising::ActivateOrder.call(order: order)
+
+        patch advertising_order_path(order), params: order_params(
+          dates: [ "2026-06-03", "2026-06-06" ],
+          shows_per_hour: 6,
+          grid_from: "2026-06-03",
+          grid_to: "2026-06-06"
+        )
+
+        expect(response).to redirect_to(rails_health_check_path)
+        expect(order.reload.shows_per_hour).to eq(3)
+      end
     end
   end
 

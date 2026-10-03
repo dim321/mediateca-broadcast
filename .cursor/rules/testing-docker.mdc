@@ -7,18 +7,21 @@ alwaysApply: true
 
 The project runs locally with Docker Compose.
 
-Always run the test suite inside the web container:
+After changing files, run `bin/ci` inside the web container. It runs RuboCop,
+the RSpec suite, and the security checks, so linters are covered together
+with tests:
 
 ```bash
-docker compose exec -e RAILS_ENV=test web bundle exec rspec
+docker compose exec -e RAILS_ENV=test web bin/ci
 ```
 
-Do not run `bundle exec rspec` directly on the host.
+Do not run `bin/ci` or `bundle exec rspec` directly on the host.
 
 Do not search for or start a host PostgreSQL server. PostgreSQL runs in the
 Docker Compose `postgres` service.
 
-For focused tests:
+While iterating, a single spec file is fine. Finish with `bin/ci` before
+considering the change done:
 
 ```bash
 docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/path/to/spec.rb
@@ -27,10 +30,9 @@ docker compose exec -e RAILS_ENV=test web bundle exec rspec spec/path/to/spec.rb
 ## After a branch is pushed / PR opened
 
 When Grok Bot (or another agent) has already pushed the working branch to
-GitHub and opened a PR, do **not** run the Docker Compose RSpec suite locally
-to verify that work. CI/CD runs the tests on the PR; analyze the CI results
-(checks on the PR) instead of re-running `docker compose exec … rspec` on the
-host machine.
+GitHub and opened a PR, do **not** run `bin/ci` locally to verify that work.
+CI/CD runs the checks on the PR; analyze the CI results (checks on the PR)
+instead of re-running `docker compose exec … bin/ci` on the host machine.
 
-Local Docker RSpec remains the way to run tests while developing before push,
-or when the user explicitly asks to run them locally.
+Local `bin/ci` in Docker remains the way to verify while developing before
+push, or when the user explicitly asks to run it locally.

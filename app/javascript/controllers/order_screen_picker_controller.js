@@ -80,19 +80,47 @@ export default class extends Controller {
     const selectedRows = this.rowTargets.filter((row) => this.rowCheckbox(row)?.checked)
     const selectedIds = new Set(selectedRows.map((row) => this.rowCheckbox(row).value))
 
-    this.gridRowTargets.forEach((row) => {
-      if (!selectedIds.has(String(row.dataset.screenId))) row.remove()
+    const gridScreenIds = [ ...new Set(this.gridRowTargets.map((row) => String(row.dataset.screenId))) ]
+    gridScreenIds.forEach((screenId) => {
+      if (selectedIds.has(screenId)) return
+
+      const rows = this.gridRowTargets.filter((row) => String(row.dataset.screenId) === screenId)
+      const hasLockedCell = rows.some((row) => this.rowHasLockedCell(row))
+      if (hasLockedCell) {
+        rows.forEach((row) => this.setFutureSkipped(row, true))
+        return
+      }
+      rows.forEach((row) => row.remove())
     })
 
     selectedRows.forEach((pickerRow) => {
       const id = this.rowCheckbox(pickerRow).value
-      if (this.gridRowTargets.some((row) => String(row.dataset.screenId) === id)) return
+      const existing = this.gridRowTargets.filter((row) => String(row.dataset.screenId) === id)
+      if (existing.length > 0) {
+        existing.forEach((row) => this.setFutureSkipped(row, false))
+        this.appendGridRows(pickerRow, id)
+        return
+      }
       this.appendGridRows(pickerRow, id)
     })
 
     this.dispatch("recompute", { prefix: "order-grid" })
-    const grid = this.element
-    grid.dispatchEvent(new Event("input", { bubbles: true }))
+    this.element.dispatchEvent(new Event("input", { bubbles: true }))
+  }
+
+  rowHasLockedCell(row) {
+    return row.querySelector("[data-order-grid-target='cell']:disabled") != null
+  }
+
+  setFutureSkipped(row, skipped) {
+    row.querySelectorAll("[data-order-grid-target='cell']").forEach((cell) => {
+      if (cell.disabled) return
+
+      const flag = cell.parentElement?.querySelector("[data-order-grid-target='skipped']")
+      cell.dataset.skipped = skipped ? "1" : ""
+      if (skipped) cell.value = "0"
+      if (flag) flag.value = skipped ? "1" : "0"
+    })
   }
 
   appendGridRows(pickerRow, screenId) {
@@ -105,6 +133,8 @@ export default class extends Controller {
   }
 
   appendGridRow(pickerRow, screenId, template, gridLines) {
+    if (gridLines.querySelector(`[data-screen-id="${screenId}"]`)) return
+
     const html = template.innerHTML
       .replaceAll("NEW_LINE", `screen-${screenId}`)
       .replaceAll("NEW_SCREEN", screenId)

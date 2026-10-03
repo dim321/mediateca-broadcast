@@ -30,8 +30,8 @@ RSpec.describe AdminHelper, type: :helper do
       )
     end
 
-    it "groups media assets and rotations under the media library" do
-      expect(section_item_keys(:media_library)).to eq(%i[media_assets rotations rotation_items])
+    it "lists media assets under the media library" do
+      expect(section_item_keys(:media_library)).to eq(%i[media_assets])
     end
 
     it "groups business spheres and tags under directories" do

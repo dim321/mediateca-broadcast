@@ -55,26 +55,14 @@ module AdvertisingOrderGrid
   end
 
   def distributed_shows(order, date, screen_index, screen_count, shows)
-    case order.distribution_strategy
-    when "weekdays"
-      weekend?(date) ? 0 : shows
-    when "weekends"
-      weekend?(date) ? shows : 0
-    when "even_days"
-      date.day.even? ? shows : 0
-    when "odd_days"
-      date.day.odd? ? shows : 0
-    when "chess"
-      first_half_day = date.day.odd?
-      in_first_half = screen_index < (screen_count / 2.0).ceil
-      first_half_day == in_first_half ? shows : 0
-    else
-      shows
-    end
-  end
-
-  def weekend?(date)
-    date.saturday? || date.sunday?
+    Advertising::DayShows.call(
+      date: date,
+      shows_per_hour: order.shows_per_hour,
+      hours: order.shows_per_hour.to_i.zero? ? 0 : shows / order.shows_per_hour.to_i,
+      distribution_strategy: order.distribution_strategy,
+      screen_index: screen_index,
+      screen_count: screen_count
+    )
   end
 
   def form_screen_ids
@@ -163,10 +151,34 @@ module AdvertisingOrderGrid
   end
 
   def grid_dates
+    if @advertising_order&.active? && order_grid_bounds
+      from = order_grid_bounds.begin
+      requested_to = parse_grid_date(params[:grid_to]) || order_grid_bounds.end
+      to = [ requested_to, order_grid_bounds.end ].min
+      to = from if to < from
+      return (from..to).to_a
+    end
+
     from = parse_grid_date(params[:grid_from]) || order_grid_bounds&.begin || Date.current.tomorrow
     to = parse_grid_date(params[:grid_to]) || order_grid_bounds&.end || Date.current.end_of_month
     from, to = to, from if from > to
     (from..to).to_a
+  end
+
+  def revise_lines_payload
+    line_rows.filter_map do |row|
+      screen_id = row[:screen_id].to_i
+      next if screen_id.zero?
+
+      days = Array(row[:days]).filter_map do |day|
+        date = Date.iso8601(day[:date].to_s)
+        skipped = day[:skipped].to_s == "1" || day[:shows].to_s == "0"
+        { date: date, skipped: skipped, shows: day[:shows].to_i }
+      rescue ArgumentError, TypeError
+        nil
+      end
+      { screen_id: screen_id, days: days }
+    end
   end
 
   def order_grid_bounds

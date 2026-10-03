@@ -114,6 +114,28 @@ RSpec.describe AdvertisingOrderPolicy do
     end
   end
 
+  describe "revise?" do
+    it "разрешает менеджеру и администратору своей организации править активный заказ" do
+      order.update!(status: :active)
+
+      [ manager, administrator ].each do |user|
+        expect(described_class.new(user, order).revise?).to be true
+      end
+    end
+
+    it "запрещает правку черновика, бухгалтера, трафик-менеджера и чужую организацию" do
+      expect(described_class.new(manager, order).revise?).to be false
+
+      order.update!(status: :active)
+
+      stranger = create(:user, :manager, organization: create(:organization, :client))
+      expect(described_class.new(accountant, order).revise?).to be false
+      expect(described_class.new(traffic_manager, order).revise?).to be false
+      expect(described_class.new(stranger, order).revise?).to be false
+      expect(described_class.new(manager, order).update?).to be false
+    end
+  end
+
   describe "operator organization" do
     let(:operator_org) { create(:organization, :operator) }
     let(:operator_manager) { create(:user, :manager, organization: operator_org) }

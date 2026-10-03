@@ -20,34 +20,42 @@ module AdvertisingOrdersHelper
     date&.strftime("%d.%m.%Y")
   end
 
-  def order_grid_date_field_tag(name, date, html_class:)
+  def order_grid_date_field_tag(name, date, html_class:, readonly: false, max: nil)
+    text_options = {
+      class: "#{html_class} pr-10",
+      placeholder: t("advertising_orders.form.date_placeholder"),
+      autocomplete: "off",
+      data: {
+        order_grid_date_target: "display",
+        action: "change->order-grid-date#syncFromDisplay"
+      }
+    }
+    text_options[:readonly] = true if readonly
+
+    picker_options = {
+      type: "date",
+      value: date&.iso8601,
+      class: "absolute inset-y-0 right-0 w-9 cursor-pointer opacity-0",
+      tabindex: -1,
+      aria: { label: t("advertising_orders.form.pick_date") },
+      data: {
+        order_grid_date_target: "picker",
+        action: "change->order-grid-date#syncFromPicker"
+      }
+    }
+    picker_options[:readonly] = true if readonly
+    if max
+      text_options[:max] = max.iso8601
+      picker_options[:max] = max.iso8601
+    end
+
     content_tag(:div, class: "relative", data: { controller: "order-grid-date" }) do
       safe_join([
-        text_field_tag(
-          name,
-          order_grid_date_value(date),
-          class: "#{html_class} pr-10",
-          placeholder: t("advertising_orders.form.date_placeholder"),
-          autocomplete: "off",
-          data: {
-            order_grid_date_target: "display",
-            action: "change->order-grid-date#syncFromDisplay"
-          }
-        ),
+        text_field_tag(name, order_grid_date_value(date), **text_options),
         content_tag(:span, class: "pointer-events-none absolute inset-y-0 right-0 flex w-9 items-center justify-center") do
           order_grid_calendar_icon
         end,
-        tag.input(
-          type: "date",
-          value: date&.iso8601,
-          class: "absolute inset-y-0 right-0 w-9 cursor-pointer opacity-0",
-          tabindex: -1,
-          aria: { label: t("advertising_orders.form.pick_date") },
-          data: {
-            order_grid_date_target: "picker",
-            action: "change->order-grid-date#syncFromPicker"
-          }
-        )
+        tag.input(**picker_options)
       ])
     end
   end

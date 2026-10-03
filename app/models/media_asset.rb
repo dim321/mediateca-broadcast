@@ -43,6 +43,44 @@ class MediaAsset < ApplicationRecord
     %w[organization]
   end
 
+  def self.ransackable_scopes(_auth_object = nil)
+    %i[filename_cont content_validated_eq]
+  end
+
+  def self.ransackable_scopes_skip_sanitize_args
+    ransackable_scopes
+  end
+
+  scope :filename_cont, lambda { |query|
+    term = query.to_s.strip
+    return all if term.blank?
+
+    pattern = "%#{klass.sanitize_sql_like(term)}%"
+    where(<<~SQL.squish, pattern)
+      EXISTS (
+        SELECT 1
+        FROM active_storage_attachments
+        INNER JOIN active_storage_blobs
+          ON active_storage_blobs.id = active_storage_attachments.blob_id
+        WHERE active_storage_attachments.record_type = 'MediaAsset'
+          AND active_storage_attachments.name = 'file'
+          AND active_storage_attachments.record_id = media_assets.id
+          AND active_storage_blobs.filename ILIKE ?
+      )
+    SQL
+  }
+
+  scope :content_validated_eq, lambda { |value|
+    case value.to_s
+    when "validated"
+      where.not(content_validated_at: nil).where.not(content_validated_by_id: nil)
+    when "not_validated"
+      where("media_assets.content_validated_at IS NULL OR media_assets.content_validated_by_id IS NULL")
+    else
+      all
+    end
+  }
+
   MAX_FILE_SIZE = 1.gigabyte
 
   belongs_to :organization
