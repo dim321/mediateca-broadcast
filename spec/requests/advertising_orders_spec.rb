@@ -87,12 +87,15 @@ RSpec.describe "AdvertisingOrders", type: :request do
       get advertising_order_path(order)
 
       expect(response.body).to include(I18n.t("advertising_orders.show.rejected", reason: reason))
+      expect(response.body).to include(I18n.t("advertising_orders.show.edit_rejected"))
+      status = Nokogiri::HTML(response.body).at_css("#advertising-order-status")
+      expect(status.text).to include(I18n.t("enums.advertising_order.status.rejected"), reason)
 
       get advertising_orders_path
 
       expect(response.body).to include("RejectedOrder")
-      expect(response.body).to include(I18n.t("enums.advertising_order.status.rejected"))
-      expect(response.body).to include(reason)
+      card_status = Nokogiri::HTML(response.body).at_css(".order-status")
+      expect(card_status.text).to include(I18n.t("enums.advertising_order.status.rejected"), reason)
     end
 
     it "filters by status" do
@@ -488,6 +491,79 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
       expect(order.reload.coefficient_percent).to eq(15)
       expect(order.discount_cents).to eq(1_000)
+    end
+
+    it "shows the rejection reason and a resubmit action on the edit form" do
+      order = Advertising::CreateOrder.call(
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph"
+      )
+      Advertising::RejectOrder.call(order: order, rejection_reason: "invalid_points")
+      reason = I18n.t("enums.advertising_order.rejection_reason.invalid_points")
+
+      get edit_advertising_order_path(order)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(I18n.t("advertising_orders.show.rejected", reason: reason))
+      expect(response.body).to include(I18n.t("advertising_orders.form.resubmit"))
+    end
+
+    it "returns a rejected order to draft so a traffic manager can activate it" do
+      order = Advertising::CreateOrder.call(
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph"
+      )
+      fill_order_grid!(order, screen: order_screen, dates: [ Date.new(2026, 6, 3) ])
+      Advertising::RejectOrder.call(order: order, rejection_reason: "invalid_points")
+
+      patch advertising_order_path(order), params: order_params(
+        dates: [ "2026-06-03", "2026-06-04" ],
+        product_name: "Fixed"
+      )
+
+      expect(response).to redirect_to(advertising_order_path(order))
+      expect(flash[:notice]).to eq(I18n.t("advertising_orders.update.resubmitted"))
+      expect(order.reload).to have_attributes(
+        status: "draft",
+        rejection_reason: nil,
+        product_name: "Fixed",
+        total_shows: 18
+      )
+
+      sign_in_as(traffic_manager)
+      post activate_advertising_order_path(order)
+
+      expect(response).to redirect_to(advertising_order_path(order))
+      expect(order.reload).to be_active
+    end
+
+    it "keeps a rejected order rejected when the edit is invalid" do
+      order = Advertising::CreateOrder.call(
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph"
+      )
+      Advertising::RejectOrder.call(order: order, rejection_reason: "content_problem")
+
+      patch advertising_order_path(order), params: order_params(product_name: "")
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include(I18n.t("advertising_orders.form.resubmit"))
+      expect(order.reload).to be_rejected
+      expect(order).to be_content_problem
+      expect(order.product_name).to eq("Triumph")
+    end
+
+    it "denies a traffic manager and an accountant from editing a rejected order" do
+      order = Advertising::CreateOrder.call(
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph"
+      )
+      Advertising::RejectOrder.call(order: order, rejection_reason: "other")
+
+      [ traffic_manager, accountant ].each do |actor|
+        sign_in_as(actor)
+
+        get edit_advertising_order_path(order)
+
+        expect(response).to redirect_to(rails_health_check_path)
+        expect(order.reload).to be_rejected
+      end
     end
 
     it "updates the draft clip list" do

@@ -5,7 +5,10 @@
 .flex.flex-col.gap-4.w-full.max-w-6xl
   = render 'shared/page_header', title: @advertising_order.product_name
   .flex.flex-wrap.gap-2.text-sm.text-base-content/70
-    span = t("enums.advertising_order.status.#{@advertising_order.status}")
+    span#advertising-order-status
+      = t("enums.advertising_order.status.#{@advertising_order.status}")
+      - if @advertising_order.rejected?
+        span.text-error< = " · #{t("enums.advertising_order.rejection_reason.#{@advertising_order.rejection_reason}")}"
     - order_clip_rows(@advertising_order).each do |row|
       span = order_clip_row_label(row)
     span = money_display(@advertising_order.total_sum_cents)
@@ -17,7 +20,9 @@
       span = t('.rejected', reason: t("enums.advertising_order.rejection_reason.#{@advertising_order.rejection_reason}"))
 
   .flex.gap-3.flex-wrap
-    - if can_mutate.update? || can_mutate.revise?
+    - if @advertising_order.rejected? && can_mutate.update?
+      = link_to t('.edit_rejected'), edit_advertising_order_path(@advertising_order), class: 'btn btn-primary btn-sm'
+    - elsif can_mutate.update? || can_mutate.revise?
       = link_to t('.edit'), edit_advertising_order_path(@advertising_order), class: 'btn btn-ghost btn-sm'
     - if can_mutate.activate? && @advertising_order.draft?
       = button_to t('.activate'), activate_advertising_order_path(@advertising_order), method: :post, class: 'btn btn-primary btn-sm'

@@ -170,6 +170,15 @@ RSpec.describe Advertising::UpdateOrderClips do
     expect(order.reload.rotation.ordered_items.sole.media_asset).to eq(unmarked)
   end
 
+  it "replaces clips on a rejected order" do
+    Advertising::RejectOrder.call(order: order, rejection_reason: "content_problem")
+
+    described_class.call(order: order, media_assets: [ clip_b ])
+
+    expect(order.reload).to be_rejected
+    expect(order.rotation.ordered_items.sole.media_asset).to eq(clip_b)
+  end
+
   it "rejects updates on non-editable order statuses" do
     activate!
     order.update!(status: :completed)

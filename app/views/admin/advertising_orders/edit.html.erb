@@ -8,6 +8,12 @@
   <%= link_to @advertising_order.product_name, admin_advertising_order_path(@advertising_order), class: admin_secondary_button_class %>
 </div>
 
+<% if @advertising_order.rejected? %>
+  <div role="alert" class="<%= admin_flash_class(:alert) %>">
+    <%= t("advertising_orders.show.rejected", reason: t("enums.advertising_order.rejection_reason.#{@advertising_order.rejection_reason}")) %>
+  </div>
+<% end %>
+
 <% grid_end = @advertising_order.advertising_order_line_days.map(&:date).compact.max %>
 <%= form_with url: edit_admin_advertising_order_path(@advertising_order), method: :get, html: { class: "flex flex-wrap items-end gap-3 mb-6" } do %>
   <div>
@@ -26,4 +32,5 @@
       form_url: admin_advertising_order_path(@advertising_order),
       cancel_url: admin_advertising_order_path(@advertising_order),
       time_zone: @form_organization.time_zone,
-      show_screen_picker: true %>
+      show_screen_picker: true,
+      submit_label: (@advertising_order.rejected? ? t("advertising_orders.form.resubmit") : nil) %>

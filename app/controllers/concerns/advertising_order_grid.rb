@@ -218,7 +218,7 @@ module AdvertisingOrderGrid
     ids = Array(order_params[:media_asset_ids]).map(&:presence).compact
     return true if ids.any?
 
-    @advertising_order&.draft? && order_params[:media_asset_id].present?
+    (@advertising_order&.draft? || @advertising_order&.rejected?) && order_params[:media_asset_id].present?
   end
 
   def find_media_assets

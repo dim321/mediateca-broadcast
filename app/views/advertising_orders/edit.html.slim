@@ -2,6 +2,9 @@
 
 .flex.flex-col.gap-4.w-full.max-w-6xl
   h1.text-2xl.font-bold = t('.title')
+  - if @advertising_order.rejected?
+    .alert.alert-error role="alert"
+      span = t('advertising_orders.show.rejected', reason: t("enums.advertising_order.rejection_reason.#{@advertising_order.rejection_reason}"))
   - grid_end = @advertising_order.advertising_order_line_days.map(&:date).compact.max
   = form_with url: edit_advertising_order_path(@advertising_order), method: :get, class: 'flex flex-wrap items-end gap-3' do
     div
@@ -11,4 +14,7 @@
       label.block.text-xs.font-medium = t('advertising_orders.form.fill_to')
       = order_grid_date_field_tag :grid_to, @grid_dates.last, html_class: 'input input-bordered input-sm', max: (@advertising_order.active? ? grid_end : nil)
     = submit_tag t('advertising_orders.form.show_grid'), class: 'btn btn-sm'
-  = render 'form', advertising_order: @advertising_order, show_screen_picker: true
+  = render 'form',
+      advertising_order: @advertising_order,
+      show_screen_picker: true,
+      submit_label: (@advertising_order.rejected? ? t('advertising_orders.form.resubmit') : nil)

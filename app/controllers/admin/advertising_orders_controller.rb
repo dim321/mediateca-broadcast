@@ -5,6 +5,7 @@ module Admin
     include AdvertisingOrderGrid
 
     helper AdvertisingOrdersHelper
+    helper_method :operator_order_editor?
 
     def index
       @q = AdvertisingOrder.ransack(ransack_params)
@@ -62,6 +63,8 @@ module Admin
 
     def edit
       @advertising_order = find_order
+      return if redirect_rejected_edit
+
       @form_organization = @advertising_order.organization
       prepare_form
     end
@@ -69,8 +72,10 @@ module Admin
     def update
       @advertising_order = find_order
       @form_organization = @advertising_order.organization
+      return if redirect_rejected_edit
       return update_active_order! if @advertising_order.active?
 
+      resubmitting = @advertising_order.rejected?
       clip_media_assets = find_media_assets if clip_ids_submitted?
       AdvertisingOrder.transaction do
         @advertising_order.update!(header_update_attrs)
@@ -82,9 +87,11 @@ module Admin
           )
         end
         persist_grid!(@advertising_order)
+        Advertising::ResubmitOrder.call(order: @advertising_order) if resubmitting
       end
       Advertising::UpdateOrderClips.enqueue_regen_for(@advertising_order) if clip_media_assets && @advertising_order.active?
-      redirect_to admin_advertising_order_path(@advertising_order), notice: t("advertising_orders.update.updated")
+      notice = resubmitting ? "advertising_orders.update.resubmitted" : "advertising_orders.update.updated"
+      redirect_to admin_advertising_order_path(@advertising_order), notice: t(notice)
     rescue Advertising::InvalidGrid => e
       @advertising_order = e.order
       @form_organization = @advertising_order.organization
@@ -139,6 +146,19 @@ module Admin
     end
 
     private
+
+    def operator_order_editor?
+      Current.user.manager? || Current.user.administrator?
+    end
+
+    def redirect_rejected_edit
+      return false unless @advertising_order.rejected? && !operator_order_editor?
+
+      redirect_to admin_advertising_order_path(@advertising_order),
+        alert: t("pundit.not_authorized"),
+        status: :see_other
+      true
+    end
 
     def find_order
       AdvertisingOrder.includes(

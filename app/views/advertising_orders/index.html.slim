@@ -18,11 +18,12 @@
           .card-body.gap-2
             = link_to order.product_name, order, class: 'link link-hover font-medium'
             p.text-sm.text-base-content/60
-              = t("enums.advertising_order.status.#{order.status}")
+              span.order-status
+                = t("enums.advertising_order.status.#{order.status}")
+                - if order.rejected?
+                  span.text-error< = " · #{t("enums.advertising_order.rejection_reason.#{order.rejection_reason}")}"
               |  ·
               = money_display(order.total_sum_cents)
-            - if order.rejected?
-              p.text-sm.text-error = t("enums.advertising_order.rejection_reason.#{order.rejection_reason}")
   - else
     .card.bg-base-100.border.border-base-300.shadow-sm
       .card-body

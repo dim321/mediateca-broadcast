@@ -34,7 +34,7 @@ module Advertising
     attr_reader :order, :media_assets, :bump_version
 
     def validate_order_status!
-      return if order.draft? || order.active?
+      return if order.draft? || order.rejected? || order.active?
 
       raise Error, I18n.t("advertising.errors.order_clips_not_editable")
     end

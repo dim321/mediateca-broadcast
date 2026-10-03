@@ -74,6 +74,7 @@ class AdvertisingOrdersController < ApplicationController
     end
 
     authorize @advertising_order
+    resubmitting = @advertising_order.rejected?
     clip_media_assets = find_media_assets if clip_ids_submitted?
     AdvertisingOrder.transaction do
       @advertising_order.update!(header_update_attrs)
@@ -85,9 +86,10 @@ class AdvertisingOrdersController < ApplicationController
         )
       end
       persist_grid!(@advertising_order)
+      Advertising::ResubmitOrder.call(order: @advertising_order) if resubmitting
     end
     Advertising::UpdateOrderClips.enqueue_regen_for(@advertising_order) if clip_media_assets && @advertising_order.active?
-    redirect_to @advertising_order, notice: t(".updated")
+    redirect_to @advertising_order, notice: t(resubmitting ? ".resubmitted" : ".updated")
   rescue Advertising::InvalidGrid => e
     @advertising_order = e.order
     render_form_failure(:edit)

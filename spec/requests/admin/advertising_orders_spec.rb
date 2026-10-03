@@ -191,11 +191,88 @@ RSpec.describe "Admin advertising orders", type: :request do
 
       follow_redirect!
       details = Nokogiri::HTML(response.body).at_css("#advertising-order-details")
-      expect(details.text).to include(
+      status = details.at_css("#advertising-order-status")
+      expect(status.text).to include(
         I18n.t("enums.advertising_order.status.rejected"),
         I18n.t("enums.advertising_order.rejection_reason.invalid_points")
       )
       expect(response.body).not_to include(I18n.t("admin.advertising_orders.cancel"))
+    end
+
+    it "shows the rejection reason next to the status in the list" do
+      order = Advertising::CreateOrder.call(
+        organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
+      )
+      Advertising::RejectOrder.call(order: order, rejection_reason: "invalid_points")
+
+      get admin_advertising_orders_path
+
+      row = Nokogiri::HTML(response.body).css("tr").find { |tr| tr.text.include?("Triumph") }
+      expect(row.css("td")[1].text).to include(
+        I18n.t("enums.advertising_order.status.rejected"),
+        I18n.t("enums.advertising_order.rejection_reason.invalid_points")
+      )
+    end
+
+    it "lets the operator manager edit a rejected order of any client and return it to draft" do
+      other_client = create(:organization, :client, name: "Другой клиент")
+      other_asset = create(:media_asset, :ready, :content_validated, :with_png_file, organization: other_client, duration_seconds: 10)
+      other_group = create_group_with_hours!(organization: other_client)
+      screen = other_group.screens.first
+      create(:broadcast_portrait, :for_screen, screen: screen, block_frequencies_per_hour: [ 1, 2, 3, 4, 6 ])
+      order = Advertising::CreateOrder.call(
+        organization: other_client,
+        created_by: create(:user, :manager, organization: other_client),
+        media_assets: [ other_asset ],
+        product_name: "Foreign"
+      )
+      fill_order_grid!(order, screen: screen, dates: [ Date.new(2026, 6, 3) ])
+      Advertising::RejectOrder.call(order: order, rejection_reason: "content_problem")
+      reason = I18n.t("enums.advertising_order.rejection_reason.content_problem")
+
+      get admin_advertising_order_path(order)
+
+      expect(response.body).to include(I18n.t("advertising_orders.show.edit_rejected"))
+      expect(response.body).to include(edit_admin_advertising_order_path(order))
+
+      get edit_admin_advertising_order_path(order)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(I18n.t("advertising_orders.show.rejected", reason: reason))
+      expect(response.body).to include(I18n.t("advertising_orders.form.resubmit"))
+
+      patch admin_advertising_order_path(order), params: order_params(
+        organization_id: other_client.id,
+        screen: screen,
+        product_name: "Foreign fixed",
+        media_asset_id: other_asset.id
+      )
+
+      expect(response).to redirect_to(admin_advertising_order_path(order))
+      expect(flash[:notice]).to eq(I18n.t("advertising_orders.update.resubmitted"))
+      expect(order.reload).to have_attributes(status: "draft", rejection_reason: nil, product_name: "Foreign fixed")
+    end
+
+    it "denies an operator traffic manager from editing a rejected order" do
+      order = Advertising::CreateOrder.call(
+        organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
+      )
+      Advertising::RejectOrder.call(order: order, rejection_reason: "other")
+
+      sign_in_as(operator_traffic_manager)
+      get admin_advertising_order_path(order)
+
+      expect(response.body).not_to include(I18n.t("advertising_orders.show.edit_rejected"))
+
+      get edit_admin_advertising_order_path(order)
+
+      expect(response).to redirect_to(admin_advertising_order_path(order))
+      expect(flash[:alert]).to eq(I18n.t("pundit.not_authorized"))
+
+      patch admin_advertising_order_path(order), params: order_params(product_name: "Changed")
+
+      expect(order.reload).to be_rejected
+      expect(order.product_name).to eq("Triumph")
     end
 
     it "keeps reject disabled for an operator who is not a traffic manager" do
