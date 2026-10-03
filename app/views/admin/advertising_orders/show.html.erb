@@ -56,6 +56,11 @@
       </button>
     <% end %>
   <% end %>
+  <% if @advertising_order.rejected? && operator_order_editor? %>
+    <%= link_to t("advertising_orders.show.edit_rejected"),
+          edit_admin_advertising_order_path(@advertising_order),
+          class: admin_primary_button_class %>
+  <% end %>
   <% if @advertising_order.active? %>
     <%= link_to t("admin.advertising_orders.edit"),
           edit_admin_advertising_order_path(@advertising_order),
@@ -96,15 +101,14 @@
       </div>
       <div>
         <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.status") %></dt>
-        <dd class="mt-1"><%= admin_advertising_order_status_badge(@advertising_order) %></dd>
+        <dd id="advertising-order-status" class="mt-1 flex flex-wrap items-center gap-2">
+          <%= admin_advertising_order_status_badge(@advertising_order) %>
+          <% if @advertising_order.rejected? %>
+            <span class="text-sm text-red-800"><%= admin_enum_label(@advertising_order, :rejection_reason) %></span>
+          <% end %>
+        </dd>
       </div>
     </div>
-    <% if @advertising_order.rejected? %>
-      <div>
-        <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.rejection_reason") %></dt>
-        <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@advertising_order, :rejection_reason) %></dd>
-      </div>
-    <% end %>
     <div class="grid gap-4 md:grid-cols-3">
       <div>
         <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.date_ranges") %></dt>

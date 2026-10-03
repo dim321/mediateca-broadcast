@@ -88,12 +88,14 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
       expect(response.body).to include(I18n.t("advertising_orders.show.rejected", reason: reason))
       expect(response.body).to include(I18n.t("advertising_orders.show.edit_rejected"))
+      status = Nokogiri::HTML(response.body).at_css("#advertising-order-status")
+      expect(status.text).to include(I18n.t("enums.advertising_order.status.rejected"), reason)
 
       get advertising_orders_path
 
       expect(response.body).to include("RejectedOrder")
-      expect(response.body).to include(I18n.t("enums.advertising_order.status.rejected"))
-      expect(response.body).to include(reason)
+      card_status = Nokogiri::HTML(response.body).at_css(".order-status")
+      expect(card_status.text).to include(I18n.t("enums.advertising_order.status.rejected"), reason)
     end
 
     it "filters by status" do
