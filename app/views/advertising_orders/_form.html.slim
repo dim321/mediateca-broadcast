@@ -1,5 +1,6 @@
 - time_zone = local_assigns.fetch(:time_zone) { Current.user.organization.time_zone }
 - cancel_url = local_assigns.fetch(:cancel_url, advertising_orders_path)
+- submit_label = local_assigns[:submit_label].presence || t('.submit')
 - sphere_text = advertising_order.business_sphere.presence || local_assigns[:business_sphere_preview]
 - show_picker = local_assigns.fetch(:show_screen_picker, false)
 - stimulus_controllers = ['order-grid', 'order-windows']
@@ -32,7 +33,7 @@
     div
       = f.label :placement_kind, class: 'block text-sm font-medium'
       = f.select :placement_kind, AdvertisingOrder.placement_kinds.keys.map { |kind| [t("enums.advertising_order.placement_kind.#{kind}"), kind] }, {}, class: 'select select-bordered w-full mt-1', disabled: advertising_order.active?
-    - if advertising_order.new_record? || advertising_order.draft? || advertising_order.active?
+    - if advertising_order.new_record? || advertising_order.draft? || advertising_order.rejected? || advertising_order.active?
       div.md:col-span-2
         = render 'advertising_orders/clips_editor',
             selected_assets: order_form_selected_media_assets(advertising_order),
@@ -98,6 +99,6 @@
               grid_id: index.zero? ? 'order-airtime-grid' : "order-airtime-grid-#{month.strftime('%Y-%m')}",
               show_grand_total: index == grid_months.size - 1
   .flex.gap-3
-    = f.submit t('.submit'), class: 'btn btn-primary btn-sm'
+    = f.submit submit_label, class: 'btn btn-primary btn-sm'
     = link_to t('.cancel'), cancel_url, class: 'btn btn-ghost btn-sm'
   .hidden.fixed.z-50.pointer-events-none.border.border-dashed.border-primary.bg-primary/20 aria-hidden='true' data-order-grid-target='marquee'

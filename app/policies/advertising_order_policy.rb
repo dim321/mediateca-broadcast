@@ -9,7 +9,7 @@ class AdvertisingOrderPolicy < ApplicationPolicy
 
   def create? = client_mutator?
 
-  def update? = client_mutator? && operator_or_in_organization? && record.draft?
+  def update? = client_mutator? && operator_or_in_organization? && (record.draft? || record.rejected?)
 
   def revise? = client_mutator? && operator_or_in_organization? && record.active?
 

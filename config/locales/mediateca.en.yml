@@ -720,6 +720,7 @@ en:
       title: Edit order
     form:
       submit: Save
+      resubmit: Send for review again
       cancel: Cancel
       grid: Airtime grid
       screens: Screens
@@ -770,6 +771,7 @@ en:
       total_shows: Total
     show:
       edit: Edit grid
+      edit_rejected: Fix order
       activate: Activate
       occupy_again: Occupy remaining days
       print: Print
@@ -790,6 +792,7 @@ en:
       created: "A new order (%{name}) was created as a draft. Traffic-manager moderation is required before the order can be activated."
     update:
       updated: Order updated.
+      resubmitted: The order is a draft again and sent back for review.
     destroy:
       destroyed: Draft deleted.
     activate:
@@ -1316,7 +1319,8 @@ en:
       clip_foreign: clip must belong to the order organization
       clip_not_ready: clip is not broadcast-ready
       content_not_validated: clip content has not been validated
-      order_clips_not_editable: clips can be updated only on draft or active orders
+      order_clips_not_editable: clips can be updated only on draft, rejected, or active orders
+      order_not_resubmittable: only a rejected order can be sent back for review
       order_not_active: clip can be replaced only on an active order
       order_not_draft: clip can be replaced only on a draft order
       order_not_rejectable: only a draft order can be rejected

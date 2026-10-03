@@ -112,6 +112,16 @@ RSpec.describe AdvertisingOrderPolicy do
 
       expect(described_class.new(manager, order).update?).to be false
     end
+
+    it "разрешает менеджеру и администратору править отклонённый заказ" do
+      order.update!(status: :rejected, rejection_reason: :other)
+
+      [ manager, administrator ].each do |user|
+        expect(described_class.new(user, order).update?).to be true
+      end
+      expect(described_class.new(accountant, order).update?).to be false
+      expect(described_class.new(traffic_manager, order).update?).to be false
+    end
   end
 
   describe "revise?" do
