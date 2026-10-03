@@ -139,6 +139,96 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
       expect(response).to have_http_status(:success)
       expect(response.body).to include("Triumph")
+      expect(response.body).not_to include(I18n.t("advertising_orders.index.copy_order"))
+    end
+  end
+
+  describe "POST /advertising_orders/:id/copy" do
+    def source_order
+      order = Advertising::CreateOrder.call(
+        organization: organization,
+        created_by: user,
+        media_assets: [ asset ],
+        product_name: "Triumph",
+        placement_kind: :commercial,
+        shows_per_hour: 4,
+        distribution_strategy: :chess,
+        coefficient_percent: 15,
+        discount_cents: 1_000
+      )
+      fill_order_grid!(
+        order,
+        screen: order_screen,
+        dates: [ Date.new(2026, 6, 3), Date.new(2026, 6, 5) ],
+        shows_per_hour: 4,
+        windows: [ { starts_at: "10:00", ends_at: "18:00" } ]
+      )
+      order.update!(distribution_strategy: :chess, coefficient_percent: 15, discount_cents: 1_000, document_version: 3)
+      order
+    end
+
+    it "offers a hidden copy button and a single-choice radio" do
+      sign_in_as(user)
+      order = source_order
+
+      get advertising_orders_path
+
+      document = Nokogiri::HTML(response.body)
+      button = document.css("button").find { |node| node.text.include?(I18n.t("advertising_orders.index.copy_order")) }
+      expect(button["hidden"]).to eq("hidden")
+      expect(button["disabled"]).to eq("disabled")
+      expect(document.at_css("input[type='radio'][name='copy_order_id'][value='#{order.id}']")).to be_present
+    end
+
+    it "creates a draft from the selected order without its dates" do
+      sign_in_as(user)
+      source = source_order
+
+      travel_to Time.zone.local(2026, 10, 3, 12) do
+        expect do
+          post copy_advertising_order_path(source)
+        end.to change(AdvertisingOrder, :count).by(1)
+          .and have_enqueued_mail(AdvertisingOrderMailer, :draft_created)
+
+        copy = AdvertisingOrder.order(:id).last
+        expect(response).to redirect_to(edit_advertising_order_path(copy))
+        expect(copy).to be_draft.and have_attributes(
+          created_by: user,
+          product_name: "Triumph",
+          placement_kind: "commercial",
+          shows_per_hour: 4,
+          distribution_strategy: "chess",
+          coefficient_percent: 15,
+          discount_cents: 1_000,
+          document_version: 1
+        )
+        expect(copy.rotation.ordered_items.map(&:media_asset)).to eq([ asset ])
+        expect(copy.advertising_order_lines.map { |line| [ line.screen, line.advertising_order_line_days.to_a ] })
+          .to eq([ [ order_screen, [] ] ])
+        expect(copy.advertising_order_windows.map { |window| window.starts_at.strftime("%H:%M") }).to eq([ "10:00" ])
+
+        follow_redirect!
+        from = Nokogiri::HTML(response.body).css("input[name='grid_from']").find { |node| node["type"] != "hidden" }
+        expect(from["value"]).to eq("04.10.2026")
+        expect(flash[:notice]).to eq(I18n.t("advertising_orders.copy.created"))
+      end
+    end
+
+    it "does not copy an order from another organization" do
+      sign_in_as(user)
+      other = create(:organization, :client)
+      foreign = Advertising::CreateOrder.call(
+        organization: other,
+        created_by: create(:user, :manager, organization: other),
+        media_assets: [ create(:media_asset, :ready, :with_png_file, organization: other) ],
+        product_name: "ForeignOrderXYZ"
+      )
+
+      expect do
+        post copy_advertising_order_path(foreign)
+      end.not_to change(AdvertisingOrder, :count)
+
+      expect(response).to have_http_status(:not_found)
     end
   end
 

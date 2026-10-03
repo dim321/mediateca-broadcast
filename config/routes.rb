@@ -24,6 +24,7 @@ Rails.application.routes.draw do
           post :activate
           post :reject
           post :cancel
+          post :copy
         end
       end
       resources :organizations
@@ -105,6 +106,7 @@ Rails.application.routes.draw do
     member do
       post :activate
       post :cancel
+      post :copy
       get :print
       get :replace_clip
       patch :replace_clip
