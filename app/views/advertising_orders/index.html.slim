@@ -1,9 +1,18 @@
 - content_for :title, t('.title')
+- can_copy = policy(AdvertisingOrder).create?
 - actions = capture do
-  - if policy(AdvertisingOrder).create?
+  - if can_copy
     = link_to t('.new_order'), new_advertising_order_path, class: 'btn btn-primary btn-sm'
+    = button_to t('.copy_order'),
+        copy_advertising_order_path('ORDER_ID'),
+        method: :post,
+        class: 'btn btn-outline btn-sm hidden',
+        disabled: true,
+        hidden: true,
+        form_class: 'inline-flex',
+        data: { order_list_copy_target: 'button' }
 
-.mx-auto.w-full.max-w-6xl
+.mx-auto.w-full.max-w-6xl data-controller=(can_copy ? "order-list-copy" : nil)
   = render 'shared/page_header', title: t('.title'), actions: actions
 
   .flex.flex-wrap.gap-2.mb-4
@@ -16,14 +25,18 @@
       - @advertising_orders.each do |order|
         .card.bg-base-100.border.border-base-300.shadow-sm
           .card-body.gap-2
-            = link_to order.product_name, order, class: 'link link-hover font-medium'
-            p.text-sm.text-base-content/60
-              span.order-status
-                = t("enums.advertising_order.status.#{order.status}")
-                - if order.rejected?
-                  span.text-error< = " · #{t("enums.advertising_order.rejection_reason.#{order.rejection_reason}")}"
-              |  ·
-              = money_display(order.total_sum_cents)
+            .flex.items-start.gap-3
+              - if can_copy
+                input.radio.radio-sm.mt-1 type='radio' name='copy_order_id' value=order.id aria-label=t('.copy_select', name: order.product_name) data-action='change->order-list-copy#select'
+              div.min-w-0
+                = link_to order.product_name, order, class: 'link link-hover font-medium'
+                p.text-sm.text-base-content/60
+                  span.order-status
+                    = t("enums.advertising_order.status.#{order.status}")
+                    - if order.rejected?
+                      span.text-error< = " · #{t("enums.advertising_order.rejection_reason.#{order.rejection_reason}")}"
+                  |  ·
+                  = money_display(order.total_sum_cents)
   - else
     .card.bg-base-100.border.border-base-300.shadow-sm
       .card-body

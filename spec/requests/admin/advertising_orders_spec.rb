@@ -24,6 +24,29 @@ RSpec.describe "Admin advertising orders", type: :request do
     end
   end
 
+  def client_source_order
+    order = Advertising::CreateOrder.call(
+      organization: client,
+      created_by: client_user,
+      media_assets: [ asset ],
+      product_name: "Triumph",
+      placement_kind: :commercial,
+      shows_per_hour: 4,
+      distribution_strategy: :weekdays,
+      coefficient_percent: 12,
+      discount_cents: 500
+    )
+    fill_order_grid!(
+      order,
+      screen: order_screen,
+      dates: [ Date.new(2026, 6, 3) ],
+      shows_per_hour: 4,
+      windows: [ { starts_at: "11:00", ends_at: "15:00" } ]
+    )
+    order.update!(distribution_strategy: :weekdays, coefficient_percent: 12, discount_cents: 500)
+    order
+  end
+
   def order_params(organization_id: client.id, screen: order_screen, dates: [ "2026-06-03" ], shows_per_hour: 3, **header)
     {
       advertising_order: {
@@ -69,6 +92,38 @@ RSpec.describe "Admin advertising orders", type: :request do
       expect(response).to have_http_status(:success)
       expect(response.body).to include("Triumph")
       expect(order).to be_draft
+      document = Nokogiri::HTML(response.body)
+      button = document.css("button").find { |node| node.text.include?(I18n.t("advertising_orders.index.copy_order")) }
+      expect(button["hidden"]).to eq("hidden")
+      expect(document.at_css("input[type='radio'][name='copy_order_id'][value='#{order.id}']")).to be_present
+    end
+
+    it "creates a client draft from a copy without the source dates" do
+      source = client_source_order
+      travel_to Time.zone.local(2026, 10, 3, 12) do
+        expect do
+          post copy_admin_advertising_order_path(source)
+        end.to change(AdvertisingOrder, :count).by(1)
+
+        copy = AdvertisingOrder.order(:id).last
+        expect(response).to redirect_to(edit_admin_advertising_order_path(copy))
+        expect(copy).to be_draft.and have_attributes(
+          organization: client,
+          created_by: operator,
+          product_name: "Triumph",
+          shows_per_hour: 4,
+          distribution_strategy: "weekdays",
+          coefficient_percent: 12,
+          discount_cents: 500
+        )
+        expect(copy.advertising_order_lines.map { |line| [ line.screen, line.advertising_order_line_days.to_a ] })
+          .to eq([ [ order_screen, [] ] ])
+        expect(copy.advertising_order_windows.map { |window| window.starts_at.strftime("%H:%M") }).to eq([ "11:00" ])
+
+        follow_redirect!
+        from = Nokogiri::HTML(response.body).css("input[name='grid_from']").find { |node| node["type"] != "hidden" }
+        expect(from["value"]).to eq("04.10.2026")
+      end
     end
 
     it "does not offer cancel on a draft" do
@@ -208,7 +263,7 @@ RSpec.describe "Admin advertising orders", type: :request do
       get admin_advertising_orders_path
 
       row = Nokogiri::HTML(response.body).css("tr").find { |tr| tr.text.include?("Triumph") }
-      expect(row.css("td")[1].text).to include(
+      expect(row.css("td")[2].text).to include(
         I18n.t("enums.advertising_order.status.rejected"),
         I18n.t("enums.advertising_order.rejection_reason.invalid_points")
       )

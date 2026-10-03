@@ -4,7 +4,7 @@ class AdvertisingOrdersController < ApplicationController
   include AdvertisingOrderGrid
 
   before_action :require_user
-  before_action :set_advertising_order, only: %i[show edit update destroy activate cancel print replace_clip]
+  before_action :set_advertising_order, only: %i[show edit update destroy activate cancel print replace_clip copy]
   before_action :load_form_collections, only: %i[new create edit update]
 
   def index
@@ -132,6 +132,15 @@ class AdvertisingOrdersController < ApplicationController
   def print
     authorize @advertising_order
     render layout: "print"
+  end
+
+  def copy
+    authorize AdvertisingOrder, :create?
+    order = Advertising::CopyOrder.call(source: @advertising_order, created_by: Current.user)
+    notify_draft_created(order)
+    redirect_to edit_advertising_order_path(order), notice: t(".created"), status: :see_other
+  rescue Advertising::Error => e
+    redirect_to advertising_orders_path, alert: e.message, status: :see_other
   end
 
   def replace_clip

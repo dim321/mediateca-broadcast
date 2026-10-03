@@ -136,6 +136,16 @@ module Admin
       redirect_to admin_advertising_order_path(order), alert: e.message, status: :see_other
     end
 
+    def copy
+      source = AdvertisingOrder.find(params[:id])
+      order = Advertising::CopyOrder.call(source: source, created_by: Current.user)
+      redirect_to edit_admin_advertising_order_path(order),
+        notice: t("advertising_orders.copy.created"),
+        status: :see_other
+    rescue Advertising::Error => e
+      redirect_to admin_advertising_orders_path, alert: e.message, status: :see_other
+    end
+
     def cancel
       order = find_order
       Advertising::CancelOrder.call(order: order)

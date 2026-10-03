@@ -6,6 +6,7 @@ import OrderGridDateController from "controllers/order_grid_date_controller"
 import OrderMediaAssetsController from "controllers/order_media_assets_controller"
 import OrderScreenPickerController from "controllers/order_screen_picker_controller"
 import OrderWindowsController from "controllers/order_windows_controller"
+import OrderListCopyController from "controllers/order_list_copy_controller"
 import MediaAssetPlayerController from "controllers/media_asset_player_controller"
 
 const application = Application.start()
@@ -18,4 +19,5 @@ application.register("order-grid-date", OrderGridDateController)
 application.register("order-media-assets", OrderMediaAssetsController)
 application.register("order-screen-picker", OrderScreenPickerController)
 application.register("order-windows", OrderWindowsController)
+application.register("order-list-copy", OrderListCopyController)
 application.register("media-asset-player", MediaAssetPlayerController)

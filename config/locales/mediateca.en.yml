@@ -712,6 +712,8 @@ en:
     index:
       title: Placement orders
       new_order: New order
+      copy_order: Create from copy
+      copy_select: Create a copy of %{name}
       empty: No orders yet.
       filter_all: All
     new:
@@ -790,6 +792,8 @@ en:
       document_version: "Document version: %{version}"
     create:
       created: "A new order (%{name}) was created as a draft. Traffic-manager moderation is required before the order can be activated."
+    copy:
+      created: Order created from a copy. Set the From and To dates.
     update:
       updated: Order updated.
       resubmitted: The order is a draft again and sent back for review.
