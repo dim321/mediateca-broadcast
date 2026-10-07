@@ -18,7 +18,7 @@ RSpec.describe "Cabinet shell", type: :system do
 
     expect(page).to have_content("Acme Screens")
     expect(page).to have_content(I18n.t("layouts.application.brand"))
-    expect(page).to have_css("a.menu-active", text: I18n.t("layouts.application.media_library"))
+    expect(page).to have_css("a.menu-active", text: I18n.t("layouts.application.advertising_orders"))
   end
 
   it "highlights the active nav section while navigating" do

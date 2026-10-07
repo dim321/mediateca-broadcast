@@ -38,6 +38,6 @@ class SessionsController < ApplicationController
   end
 
   def after_authentication_path(user)
-    user.organization.operator? ? admin_root_path : media_assets_path
+    user.organization.operator? ? admin_root_path : root_path
   end
 end

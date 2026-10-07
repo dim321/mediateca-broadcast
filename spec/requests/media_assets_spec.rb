@@ -5,15 +5,15 @@ require "rails_helper"
 RSpec.describe "MediaAssets", type: :request do
   let(:user) { create(:user) }
 
-  describe "GET /" do
+  describe "GET /media_assets" do
     it "redirects guests to login" do
-      get root_path
+      get media_assets_path
       expect(response).to redirect_to(login_path)
     end
 
     it "returns success when signed in" do
       sign_in_as(user)
-      get root_path
+      get media_assets_path
       expect(response).to have_http_status(:success)
       expect(response.body).to include("turbo-cable-stream-source")
     end

@@ -59,6 +59,15 @@ RSpec.describe "AdvertisingOrders", type: :request do
   end
 
   describe "GET /advertising_orders" do
+    it "roots the cabinet at advertising orders" do
+      sign_in_as(user)
+      get root_path
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include(I18n.t("layouts.application.advertising_orders"))
+      expect(response.body).to include(I18n.t("advertising_orders.index.new_order"))
+    end
+
     it "lists orders of the client organization" do
       sign_in_as(user)
       order = Advertising::CreateOrder.call(

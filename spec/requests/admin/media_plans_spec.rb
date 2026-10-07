@@ -40,8 +40,8 @@ RSpec.describe 'Admin media plans', type: :request do
   context "when signed in as operator" do
     before { sign_in_as(operator) }
 
-    it 'roots admin at media plans and has no Quotas nav' do
-      get admin_root_path
+    it 'lists media plans and has no Quotas nav' do
+      get admin_media_plans_path
 
       expect(response).to have_http_status(:success)
       expect(response.body).not_to include('Airtime quotas')

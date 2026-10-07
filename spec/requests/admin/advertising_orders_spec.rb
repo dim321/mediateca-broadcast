@@ -82,6 +82,13 @@ RSpec.describe "Admin advertising orders", type: :request do
       sign_in_as(operator)
     end
 
+    it "roots admin at advertising orders" do
+      get admin_root_path
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include(I18n.t("admin.nav.advertising_orders"))
+    end
+
     it "lists orders from client organizations" do
       order = Advertising::CreateOrder.call(
         organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
