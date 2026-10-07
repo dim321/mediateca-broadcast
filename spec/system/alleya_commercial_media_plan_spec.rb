@@ -45,8 +45,7 @@ RSpec.describe 'Alleya commercial media plan on Komandor screens', type: :system
     expect(rotation.media_assets.map { |asset| asset.file.filename.to_s })
       .to contain_exactly('alleya_clip_1.mp4', 'alleya_clip_2.mp4')
 
-    click_link I18n.t('layouts.application.media_plans')
-    click_link I18n.t('media_plans.index.new_media_plan')
+    visit new_media_plan_path
 
     select 'Витрины Командор', from: 'media_plan_broadcast_point_group_id'
     select I18n.t('media_plans.form.placement_kinds.commercial'), from: 'media_plan_placement_kind'

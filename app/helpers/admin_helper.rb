@@ -5,8 +5,7 @@ module AdminHelper
     {
       key: :orders,
       items: [
-        { key: :advertising_orders, path: :admin_advertising_orders_path, controllers: %w[admin/advertising_orders] },
-        { key: :media_plans, path: :admin_media_plans_path, controllers: %w[admin/media_plans] }
+        { key: :advertising_orders, path: :admin_advertising_orders_path, controllers: %w[admin/advertising_orders] }
       ]
     },
     {
