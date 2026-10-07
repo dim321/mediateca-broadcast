@@ -13,7 +13,7 @@
         = nav_link_to t("layouts.application.advertising_orders"), advertising_orders_path, controllers: %w[advertising_orders]
     - else
       li
-        = nav_link_to t("layouts.application.media_library"), root_path, controllers: %w[media_assets]
+        = nav_link_to t("layouts.application.media_library"), media_assets_path, controllers: %w[media_assets]
       li
         = nav_link_to t("layouts.application.rotations"), rotations_path, controllers: %w[rotations]
       li
@@ -22,8 +22,6 @@
         = nav_link_to t("layouts.application.locations"), locations_path, controllers: %w[locations]
       li
         = nav_link_to t("layouts.application.advertising_orders"), advertising_orders_path, controllers: %w[advertising_orders]
-      li
-        = nav_link_to t("layouts.application.media_plans"), media_plans_path, controllers: %w[media_plans]
       li
         = nav_link_to t("layouts.application.fleet_screens"), fleet_screens_path, controllers: %w[fleet/screens]
       li

@@ -109,6 +109,10 @@
         </dd>
       </div>
     </div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.screens_count") %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= @advertising_order.advertising_order_lines.size %></dd>
+    </div>
     <div class="grid gap-4 md:grid-cols-3">
       <div>
         <dt class="text-sm font-medium text-gray-500"><%= t("admin.advertising_orders.show.date_ranges") %></dt>

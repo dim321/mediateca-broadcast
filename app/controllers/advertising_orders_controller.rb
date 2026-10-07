@@ -9,7 +9,9 @@ class AdvertisingOrdersController < ApplicationController
 
   def index
     authorize AdvertisingOrder
-    @advertising_orders = policy_scope(AdvertisingOrder).includes(:media_asset).order(created_at: :desc)
+    @q = policy_scope(AdvertisingOrder).ransack(ransack_params)
+    @q.sorts = "created_at desc" if @q.sorts.empty?
+    @advertising_orders = @q.result.includes(:media_asset)
     @advertising_orders = @advertising_orders.where(status: params[:status]) if params[:status].present?
   end
 
@@ -170,6 +172,10 @@ class AdvertisingOrdersController < ApplicationController
     redirect_to login_path, alert: t("media_assets.authentication_required")
   end
 
+  def ransack_params
+    params[:q].is_a?(ActionController::Parameters) ? params[:q] : {}
+  end
+
   def notify_draft_created(order)
     return unless order.draft?
 
@@ -179,6 +185,9 @@ class AdvertisingOrdersController < ApplicationController
   def set_advertising_order
     @advertising_order = policy_scope(AdvertisingOrder)
       .includes(
+        :organization,
+        :created_by,
+        :advertising_order_windows,
         { rotation: { rotation_items: { media_asset: { file_attachment: :blob } } } },
         advertising_order_lines: [ :screen, :advertising_order_line_days ]
       )

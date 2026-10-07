@@ -16,8 +16,8 @@ RSpec.describe AdminHelper, type: :helper do
   end
 
   describe "#admin_nav_sections" do
-    it "groups advertising orders and media plans under orders" do
-      expect(section_item_keys(:orders)).to eq(%i[advertising_orders media_plans])
+    it "groups advertising orders under orders" do
+      expect(section_item_keys(:orders)).to eq(%i[advertising_orders])
     end
 
     it "groups organizations and users under clients" do
@@ -69,7 +69,7 @@ RSpec.describe AdminHelper, type: :helper do
 
   describe "#admin_nav_section_active?" do
     it "is true when a grouped item is current" do
-      allow(helper).to receive(:controller_path).and_return("admin/media_plans")
+      allow(helper).to receive(:controller_path).and_return("admin/advertising_orders")
       section = helper.admin_nav_sections.find { |entry| entry[:key] == :orders }
 
       expect(helper.admin_nav_section_active?(section)).to be true
@@ -80,6 +80,22 @@ RSpec.describe AdminHelper, type: :helper do
       section = helper.admin_nav_sections.find { |entry| entry[:key] == :orders }
 
       expect(helper.admin_nav_section_active?(section)).to be false
+    end
+  end
+
+  describe "#admin_nav_group_icon" do
+    it "renders an svg for each named nav group" do
+      %i[orders clients screen_fleet media_library service_library directories].each do |key|
+        icon = helper.admin_nav_group_icon(key)
+
+        expect(icon).to include("<svg")
+        expect(icon).to include('viewBox="0 0 20 20"')
+        expect(icon).to include("<path")
+      end
+    end
+
+    it "returns nil for an unknown group" do
+      expect(helper.admin_nav_group_icon(:unknown)).to be_nil
     end
   end
 end

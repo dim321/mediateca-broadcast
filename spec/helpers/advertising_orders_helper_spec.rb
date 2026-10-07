@@ -3,6 +3,27 @@
 require "rails_helper"
 
 RSpec.describe AdvertisingOrdersHelper, type: :helper do
+  describe "#advertising_order_status_badge_class" do
+    it "maps statuses to daisyUI badge colors" do
+      expect(helper.advertising_order_status_badge_class("draft")).to eq("badge-warning")
+      expect(helper.advertising_order_status_badge_class("active")).to eq("badge-success")
+      expect(helper.advertising_order_status_badge_class("rejected")).to eq("badge-error")
+      expect(helper.advertising_order_status_badge_class("pending_moderation")).to eq("badge-info")
+      expect(helper.advertising_order_status_badge_class("completed")).to eq("badge-primary")
+      expect(helper.advertising_order_status_badge_class("cancelled")).to eq("badge-neutral")
+    end
+  end
+
+  describe "#advertising_order_status_badge" do
+    it "renders a soft colored badge with the status label" do
+      order = build(:advertising_order, status: :active)
+      badge = Nokogiri::HTML.fragment(helper.advertising_order_status_badge(order)).at_css("span")
+
+      expect(badge.text).to eq(I18n.t("enums.advertising_order.status.active"))
+      expect(badge["class"]).to include("badge", "badge-soft", "badge-success")
+    end
+  end
+
   describe "#advertising_clip_option_label" do
     it "appends the validation label" do
       asset = create(:media_asset, :ready, :with_png_file, duration_seconds: 10)

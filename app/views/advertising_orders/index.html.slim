@@ -15,29 +15,50 @@
 .mx-auto.w-full.max-w-6xl data-controller=(can_copy ? "order-list-copy" : nil)
   = render 'shared/page_header', title: t('.title'), actions: actions
 
+  = search_form_for @q, url: advertising_orders_path, html: { method: :get, class: 'mb-4' } do |f|
+    - if params[:status].present?
+      = hidden_field_tag :status, params[:status]
+    .join.w-full.max-w-md
+      = f.search_field :product_name_cont,
+          class: 'input input-bordered input-sm join-item w-full',
+          placeholder: t('.search'),
+          aria: { label: t('.search') }
+      = f.submit t('.search_submit'), class: 'btn btn-primary btn-sm join-item'
+      - if advertising_orders_filtered?
+        = link_to t('.clear_search'), advertising_orders_path(status: params[:status].presence), class: 'btn btn-outline btn-sm join-item'
+
   .flex.flex-wrap.gap-2.mb-4
-    = link_to t('.filter_all'), advertising_orders_path, class: "btn btn-sm #{'btn-active' if params[:status].blank?}"
+    = link_to t('.filter_all'), advertising_orders_path(advertising_orders_index_params(status: nil)), class: "btn btn-sm #{'btn-active' if params[:status].blank?}"
     - AdvertisingOrder.statuses.keys.excluding('pending_moderation').each do |status|
-      = link_to t("enums.advertising_order.status.#{status}"), advertising_orders_path(status: status), class: "btn btn-sm #{'btn-active' if params[:status] == status}"
+      = link_to t("enums.advertising_order.status.#{status}"),
+          advertising_orders_path(advertising_orders_index_params(status: status)),
+          class: "btn btn-sm #{'btn-active' if params[:status] == status}"
 
   - if @advertising_orders.any?
-    .grid.gap-3
-      - @advertising_orders.each do |order|
-        .card.bg-base-100.border.border-base-300.shadow-sm
-          .card-body.gap-2
-            .flex.items-start.gap-3
+    .overflow-x-auto
+      table.table
+        thead
+          tr
+            - if can_copy
+              th.w-10
+            th = t('.columns.name')
+            th = t('.columns.status')
+        tbody
+          - @advertising_orders.each do |order|
+            tr
               - if can_copy
-                input.radio.radio-sm.mt-1 type='radio' name='copy_order_id' value=order.id aria-label=t('.copy_select', name: order.product_name) data-action='change->order-list-copy#select'
-              div.min-w-0
+                td
+                  input.radio.radio-sm type='radio' name='copy_order_id' value=order.id aria-label=t('.copy_select', name: order.product_name) data-action='change->order-list-copy#select'
+              td
                 = link_to order.product_name, order, class: 'link link-hover font-medium'
-                p.text-sm.text-base-content/60
-                  span.order-status
-                    = t("enums.advertising_order.status.#{order.status}")
-                    - if order.rejected?
-                      span.text-error< = " · #{t("enums.advertising_order.rejection_reason.#{order.rejection_reason}")}"
-                  |  ·
-                  = money_display(order.total_sum_cents)
+              td
+                .order-status.flex.flex-wrap.items-center.gap-2
+                  = advertising_order_status_badge(order)
+                  - if order.rejected?
+                    span.text-sm.text-error = t("enums.advertising_order.rejection_reason.#{order.rejection_reason}")
+  - elsif advertising_orders_filtered? || params[:status].present?
+    .alert
+      span = t('.empty_search')
   - else
-    .card.bg-base-100.border.border-base-300.shadow-sm
-      .card-body
-        p.text-base-content/60 = t('.empty')
+    .alert
+      span = t('.empty')

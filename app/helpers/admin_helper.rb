@@ -5,8 +5,7 @@ module AdminHelper
     {
       key: :orders,
       items: [
-        { key: :advertising_orders, path: :admin_advertising_orders_path, controllers: %w[admin/advertising_orders] },
-        { key: :media_plans, path: :admin_media_plans_path, controllers: %w[admin/media_plans] }
+        { key: :advertising_orders, path: :admin_advertising_orders_path, controllers: %w[admin/advertising_orders] }
       ]
     },
     {
@@ -56,6 +55,16 @@ module AdminHelper
 
   NAV_ITEMS = NAV_SECTIONS.flat_map { |section| section.fetch(:items) }.freeze
 
+  # Heroicons solid mini (20×20) paths for sidebar group headers.
+  NAV_GROUP_ICON_PATHS = {
+    orders: "M2 6a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 100 4v2a2 2 0 01-2 2H4a2 2 0 01-2-2v-2a2 2 0 100-4V6z",
+    clients: "M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z",
+    screen_fleet: "M3 4a1 1 0 011-1h12a1 1 0 011 1v8a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 10a1 1 0 00-1 1v1a1 1 0 001 1h10a1 1 0 001-1v-1a1 1 0 00-1-1H5z",
+    media_library: "M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z",
+    service_library: "M4 2a2 2 0 00-2 2v11a3 3 0 106 0V4a2 2 0 00-2-2H4zm1 14a1 1 0 100-2 1 1 0 000 2zm8-14a2 2 0 00-2 2v11a3 3 0 106 0V4a2 2 0 00-2-2h-2zm1 14a1 1 0 100-2 1 1 0 000 2z",
+    directories: "M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"
+  }.freeze
+
   def admin_nav_sections
     NAV_SECTIONS
   end
@@ -77,6 +86,21 @@ module AdminHelper
 
   def admin_nav_section_active?(section)
     section.fetch(:items).any? { |item| admin_nav_active?(item) }
+  end
+
+  def admin_nav_group_icon(key)
+    path = NAV_GROUP_ICON_PATHS[key.to_sym]
+    return if path.blank?
+
+    tag.svg(
+      class: "w-4 h-4 shrink-0 text-gray-500",
+      "aria-hidden": "true",
+      xmlns: "http://www.w3.org/2000/svg",
+      fill: "currentColor",
+      viewBox: "0 0 20 20"
+    ) do
+      tag.path(d: path)
+    end
   end
 
   def admin_nav_link_options(item)

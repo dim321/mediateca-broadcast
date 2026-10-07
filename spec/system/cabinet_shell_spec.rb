@@ -18,7 +18,7 @@ RSpec.describe "Cabinet shell", type: :system do
 
     expect(page).to have_content("Acme Screens")
     expect(page).to have_content(I18n.t("layouts.application.brand"))
-    expect(page).to have_css("a.menu-active", text: I18n.t("layouts.application.media_library"))
+    expect(page).to have_css("a.menu-active", text: I18n.t("layouts.application.advertising_orders"))
   end
 
   it "highlights the active nav section while navigating" do
@@ -32,9 +32,9 @@ RSpec.describe "Cabinet shell", type: :system do
     expect(page).to have_content(I18n.t("broadcast_point_groups.index.title"))
     expect(page).to have_css("a.menu-active", text: I18n.t("layouts.application.broadcast_point_groups"))
 
-    click_link I18n.t("layouts.application.media_plans")
-    expect(page).to have_content(I18n.t("media_plans.index.title"))
-    expect(page).to have_css("a.menu-active", text: I18n.t("layouts.application.media_plans"))
+    click_link I18n.t("layouts.application.advertising_orders")
+    expect(page).to have_content(I18n.t("advertising_orders.index.title"))
+    expect(page).to have_css("a.menu-active", text: I18n.t("layouts.application.advertising_orders"))
   end
 
   it "renders login without the cabinet sidebar" do

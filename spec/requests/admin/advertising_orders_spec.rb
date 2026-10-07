@@ -82,6 +82,13 @@ RSpec.describe "Admin advertising orders", type: :request do
       sign_in_as(operator)
     end
 
+    it "roots admin at advertising orders" do
+      get admin_root_path
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include(I18n.t("admin.nav.advertising_orders"))
+    end
+
     it "lists orders from client organizations" do
       order = Advertising::CreateOrder.call(
         organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
@@ -91,11 +98,44 @@ RSpec.describe "Admin advertising orders", type: :request do
 
       expect(response).to have_http_status(:success)
       expect(response.body).to include("Triumph")
+      expect(response.body).to include('name="q[organization_id_eq]"')
+      expect(response.body).to include('name="q[status_eq]"')
       expect(order).to be_draft
       document = Nokogiri::HTML(response.body)
       button = document.css("button").find { |node| node.text.include?(I18n.t("advertising_orders.index.copy_order")) }
       expect(button["hidden"]).to eq("hidden")
       expect(document.at_css("input[type='radio'][name='copy_order_id'][value='#{order.id}']")).to be_present
+    end
+
+    describe "index filters" do
+      before do
+        Advertising::CreateOrder.call(
+          organization: client, created_by: client_user, media_assets: [ asset ], product_name: "Triumph"
+        )
+        other_client = create(:organization, :client, name: "Другая")
+        other_user = create(:user, :manager, organization: other_client)
+        other_asset = create(
+          :media_asset, :ready, :content_validated, :with_png_file, organization: other_client, duration_seconds: 10
+        )
+        other_order = Advertising::CreateOrder.call(
+          organization: other_client, created_by: other_user, media_assets: [ other_asset ], product_name: "Other Brand"
+        )
+        other_order.update!(status: :active)
+      end
+
+      it "filters by organization" do
+        get admin_advertising_orders_path, params: { q: { organization_id_eq: client.id } }
+
+        expect(response.body).to include("Triumph")
+        expect(response.body).not_to include("Other Brand")
+      end
+
+      it "filters by status" do
+        get admin_advertising_orders_path, params: { q: { status_eq: "active" } }
+
+        expect(response.body).to include("Other Brand")
+        expect(response.body).not_to include("Triumph")
+      end
     end
 
     it "creates a client draft from a copy without the source dates" do
@@ -183,6 +223,7 @@ RSpec.describe "Admin advertising orders", type: :request do
         I18n.t("admin.advertising_orders.show.organization"),
         I18n.t("admin.advertising_orders.show.author"),
         I18n.t("admin.advertising_orders.show.business_sphere"),
+        I18n.t("admin.advertising_orders.show.screens_count"),
         I18n.t("admin.advertising_orders.show.shows_per_hour"),
         I18n.t("admin.advertising_orders.show.daily_shows"),
         "01.06.2026–02.06.2026, 04.06.2026",
@@ -197,6 +238,7 @@ RSpec.describe "Admin advertising orders", type: :request do
         I18n.t("media_assets.content_validation.validated"),
         order.total_shows.to_s
       )
+      expect(details.text).to match(/#{Regexp.escape(I18n.t("admin.advertising_orders.show.screens_count"))}\s*1/)
     end
 
     it "keeps activate disabled until every clip passes traffic-manager review" do

@@ -59,6 +59,15 @@ RSpec.describe "AdvertisingOrders", type: :request do
   end
 
   describe "GET /advertising_orders" do
+    it "roots the cabinet at advertising orders" do
+      sign_in_as(user)
+      get root_path
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include(I18n.t("layouts.application.advertising_orders"))
+      expect(response.body).to include(I18n.t("advertising_orders.index.new_order"))
+    end
+
     it "lists orders of the client organization" do
       sign_in_as(user)
       order = Advertising::CreateOrder.call(
@@ -98,6 +107,47 @@ RSpec.describe "AdvertisingOrders", type: :request do
       expect(card_status.text).to include(I18n.t("enums.advertising_order.status.rejected"), reason)
     end
 
+    it "shows placement and media details on the order page" do
+      sign_in_as(user)
+      order = Advertising::CreateOrder.call(
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph"
+      )
+      fill_order_grid!(
+        order,
+        screen: order_screen,
+        dates: [ Date.new(2026, 6, 1), Date.new(2026, 6, 2), Date.new(2026, 6, 4) ],
+        shows: 9
+      )
+
+      get advertising_order_path(order)
+
+      expect(response).to have_http_status(:success)
+      details = Nokogiri::HTML(response.body).at_css("#advertising-order-details")
+
+      expect(details).to be_present
+      expect(details.css("h2").text).to include(I18n.t("advertising_orders.show.details"))
+      expect(details.text).to include(
+        I18n.t("advertising_orders.show.organization"),
+        I18n.t("advertising_orders.show.author"),
+        I18n.t("advertising_orders.show.business_sphere"),
+        I18n.t("advertising_orders.show.screens_count"),
+        I18n.t("advertising_orders.show.shows_per_hour"),
+        I18n.t("advertising_orders.show.daily_shows"),
+        "01.06.2026–02.06.2026, 04.06.2026",
+        "09:00–12:00",
+        "3",
+        "9",
+        asset.file.filename.to_s,
+        "10",
+        I18n.t("enums.media_asset.content_kind.image"),
+        I18n.t("enums.media_asset.content_type.own"),
+        I18n.t("advertising_orders.show.content_validation"),
+        I18n.t("media_assets.content_validation.validated"),
+        order.total_shows.to_s
+      )
+      expect(details.text).to match(/#{Regexp.escape(I18n.t("advertising_orders.show.screens_count"))}\s*1/)
+    end
+
     it "filters by status" do
       sign_in_as(user)
       draft = Advertising::CreateOrder.call(
@@ -112,6 +162,37 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
       expect(response.body).to include(draft.product_name)
       expect(response.body).not_to include(active.product_name)
+    end
+
+    it "searches orders by product name" do
+      sign_in_as(user)
+      Advertising::CreateOrder.call(
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph Alpha"
+      )
+      Advertising::CreateOrder.call(
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "Other Brand"
+      )
+
+      get advertising_orders_path, params: { q: { product_name_cont: "Triumph" } }
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include("Triumph Alpha")
+      expect(response.body).not_to include("Other Brand")
+      expect(response.body).to include(I18n.t("advertising_orders.index.columns.name"))
+      expect(response.body).to include(I18n.t("advertising_orders.index.columns.status"))
+    end
+
+    it "renders a colored status badge in the list" do
+      sign_in_as(user)
+      Advertising::CreateOrder.call(
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph"
+      )
+
+      get advertising_orders_path
+
+      badge = Nokogiri::HTML(response.body).at_css(".order-status .badge")
+      expect(badge.text).to include(I18n.t("enums.advertising_order.status.draft"))
+      expect(badge["class"]).to include("badge-warning")
     end
 
     it "hides foreign organization orders" do
@@ -896,7 +977,6 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
       expect(order.reload).to be_active
       expect(order.media_plans.active.count).to eq(1)
-      expect(response.body).to include(I18n.t("advertising_orders.show.unoccupied"))
       expect(response.body).to include(I18n.t("advertising_orders.show.occupy_again"))
     end
 

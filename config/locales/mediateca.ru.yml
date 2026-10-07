@@ -721,7 +721,14 @@ ru:
       copy_order: Создать из копии
       copy_select: Создать копию заказа %{name}
       empty: Заказов пока нет.
+      empty_search: Ничего не найдено
       filter_all: Все
+      search: Поиск по названию
+      search_submit: Найти
+      clear_search: Сбросить поиск
+      columns:
+        name: Название заказа
+        status: Статус
     new:
       title: Новый заказ
     edit:
@@ -793,6 +800,29 @@ ru:
       replace_clip: Заменить ролик
       document_version: "Версия %{version}"
       rejected: "Заказ отклонён. Причина: %{reason}"
+      none: "—"
+      details: Детали заказа
+      organization: Организация
+      author: Автор заказа
+      product_name: Продукт
+      business_sphere: Сфера деятельности
+      placement_kind: Тип размещения
+      status: Статус
+      screens_count: Количество экранов
+      date_ranges: Даты размещения
+      day_count: Количество дней
+      windows: Временные интервалы
+      shows_per_hour: Количество показов в час
+      daily_shows: Суммарное количество показов в день
+      total_shows_label: Общее количество показов
+      total_sum: Сумма
+      document_version_label: Версия документа
+      media_filename: Имя медиафайла
+      media_duration: Длительность, с
+      clips: Ролики
+      content_type: Тип контента
+      content_kind: Категория контента
+      content_validation: Проверка
     print:
       title: "Заказ — %{product}"
       document_version: "Версия документа: %{version}"
@@ -996,9 +1026,12 @@ ru:
       updated: Тег обновлён.
     advertising_orders:
       activate: Активировать
+      any_status: Любой статус
       cancel: Отменить заказ
       cancel_confirm: Отменить этот заказ и освободить занятый эфир?
       cancelled: Заказ отменён.
+      filters:
+        any: Все
       reject: Отклонить
       reject_title: Причина отклонения
       reject_submit: Отклонить заказ
@@ -1012,6 +1045,7 @@ ru:
         business_sphere: Сфера деятельности
         placement_kind: Тип размещения
         status: Статус
+        screens_count: Количество экранов
         rejection_reason: Причина отклонения
         date_ranges: Даты размещения
         day_count: Количество дней

@@ -50,7 +50,7 @@ Rails.application.routes.draw do
       resources :tags
       resources :users
 
-      root to: "media_plans#index"
+      root to: "advertising_orders#index"
     end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
   # Cabinet (HTML), internal JSON, and Api::V1 device routes are added in later phases (see tasks.md).
@@ -63,7 +63,7 @@ Rails.application.routes.draw do
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
-  root "media_assets#index"
+  root "advertising_orders#index"
 
   resources :media_assets, only: %i[index create update show] do
     member do

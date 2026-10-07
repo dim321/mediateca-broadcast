@@ -11,6 +11,7 @@ module Admin
       @q = AdvertisingOrder.ransack(ransack_params)
       @q.sorts = "created_at desc" if @q.sorts.empty?
       @advertising_orders = @q.result.includes(:organization, :created_by).page(params[:page]).per(25)
+      @organizations = Organization.order(:name)
     end
 
     def show

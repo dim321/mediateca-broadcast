@@ -12,19 +12,30 @@ RSpec.describe "Admin sidebar", type: :request do
     Nokogiri::HTML(response.body).at_css("[data-nav-group='#{key}']")
   end
 
-  it "renders the orders group with advertising orders and media plans" do
+  it "renders the orders group with advertising orders" do
     get admin_root_path
 
     group = nav_group("orders")
     expect(group).to be_present
     expect(group.text).to include(
       I18n.t("admin.nav.groups.orders"),
-      I18n.t("admin.nav.advertising_orders"),
-      I18n.t("admin.nav.media_plans")
+      I18n.t("admin.nav.advertising_orders")
     )
+    expect(group.text).not_to include(I18n.t("admin.nav.media_plans"))
     expect(group.css("a").map { |link| link["href"] }).to eq(
-      [ admin_advertising_orders_path, admin_media_plans_path ]
+      [ admin_advertising_orders_path ]
     )
+  end
+
+  it "renders icons next to named nav group headers" do
+    get admin_root_path
+
+    %w[orders clients screen_fleet media_library service_library directories].each do |key|
+      summary = nav_group(key).at_css("summary")
+      icon = summary.css("svg").find { |svg| svg["viewBox"] == "0 0 20 20" || svg["viewbox"] == "0 0 20 20" }
+      expect(icon).to be_present
+      expect(icon.at_css("path")).to be_present
+    end
   end
 
   it "renders the clients group with organizations and users" do

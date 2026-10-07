@@ -4,12 +4,12 @@ require "rails_helper"
 
 RSpec.describe "Sessions", type: :request do
   describe "POST /login" do
-    it "redirects a client user to the cabinet media library" do
+    it "redirects a client user to the cabinet orders list" do
       user = create(:user, password: "password123456")
 
       post login_path, params: { email: user.email, password: "password123456" }
 
-      expect(response).to redirect_to(media_assets_path)
+      expect(response).to redirect_to(root_path)
     end
 
     it "redirects an operator user to the admin panel" do
@@ -46,7 +46,7 @@ RSpec.describe "Sessions", type: :request do
 
       get login_path
 
-      expect(response).to redirect_to(media_assets_path)
+      expect(response).to redirect_to(root_path)
     end
 
     it "redirects a signed-in operator to the admin panel" do

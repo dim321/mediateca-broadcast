@@ -6,7 +6,7 @@
     .flex.flex-wrap.gap-3.text-sm
       = link_to t(".edit_rotation"), edit_rotation_path(@rotation), class: "text-blue-600 underline"
       = link_to t(".back"), rotations_path, class: "text-blue-600 underline"
-      = link_to t(".media_library"), root_path, class: "text-blue-600 underline"
+      = link_to t(".media_library"), media_assets_path, class: "text-blue-600 underline"
   .flex.flex-col.lg:flex-row.gap-8
     .flex-1.min-w-0
       h2.text-lg.font-semibold.mb-3 = t(".items_heading")
