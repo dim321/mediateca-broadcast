@@ -179,6 +179,9 @@ class AdvertisingOrdersController < ApplicationController
   def set_advertising_order
     @advertising_order = policy_scope(AdvertisingOrder)
       .includes(
+        :organization,
+        :created_by,
+        :advertising_order_windows,
         { rotation: { rotation_items: { media_asset: { file_attachment: :blob } } } },
         advertising_order_lines: [ :screen, :advertising_order_line_days ]
       )

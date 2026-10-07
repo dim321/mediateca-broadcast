@@ -787,6 +787,29 @@ en:
       replace_clip: Replace clip
       document_version: "Version %{version}"
       rejected: "Order rejected. Reason: %{reason}"
+      none: "—"
+      details: Order details
+      organization: Organization
+      author: Order author
+      product_name: Product
+      business_sphere: Business sphere
+      placement_kind: Placement type
+      status: Status
+      screens_count: Number of screens
+      date_ranges: Placement dates
+      day_count: Number of days
+      windows: Time windows
+      shows_per_hour: Shows per hour
+      daily_shows: Total shows per day
+      total_shows_label: Total impressions
+      total_sum: Amount
+      document_version_label: Document version
+      media_filename: Media filename
+      media_duration: Duration, sec
+      clips: Clips
+      content_type: Content type
+      content_kind: Content category
+      content_validation: Validation
     print:
       title: "Order — %{product}"
       document_version: "Document version: %{version}"
@@ -1002,6 +1025,7 @@ en:
         business_sphere: Business sphere
         placement_kind: Placement type
         status: Status
+        screens_count: Number of screens
         rejection_reason: Rejection reason
         date_ranges: Placement dates
         day_count: Number of days

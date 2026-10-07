@@ -1,19 +1,10 @@
 - content_for :title, @advertising_order.product_name
 - coverage = @coverage
 - can_mutate = policy(@advertising_order)
+- none = t('advertising_orders.show.none')
 
 .flex.flex-col.gap-4.w-full.max-w-6xl
   = render 'shared/page_header', title: @advertising_order.product_name
-  .flex.flex-wrap.gap-2.text-sm.text-base-content/70
-    span#advertising-order-status
-      = t("enums.advertising_order.status.#{@advertising_order.status}")
-      - if @advertising_order.rejected?
-        span.text-error< = " · #{t("enums.advertising_order.rejection_reason.#{@advertising_order.rejection_reason}")}"
-    - order_clip_rows(@advertising_order).each do |row|
-      span = order_clip_row_label(row)
-    span = money_display(@advertising_order.total_sum_cents)
-    span = t('.total_shows', count: @advertising_order.total_shows)
-    span = t('.document_version', version: @advertising_order.document_version)
 
   - if @advertising_order.rejected?
     .alert.alert-error role="alert"
@@ -40,19 +31,101 @@
       = button_to t('.destroy'), advertising_order_path(@advertising_order), method: :delete, class: 'btn btn-ghost btn-sm text-error', form: { data: { turbo_confirm: t('.destroy_confirm') } }
     = link_to t('.back'), advertising_orders_path, class: 'btn btn-ghost btn-sm'
 
-  - @advertising_order.advertising_order_lines.each do |line|
-    .card.bg-base-100.border.border-base-300.shadow-sm
-      .card-body.gap-2
-        h2.card-title.text-base = line.screen.name
-        - unoccupied = unoccupied_dates_for(coverage, line)
-        - if unoccupied.any?
-          p.text-sm.text-warning
-            = t('.unoccupied')
-            | :
-            =< unoccupied.map { |date| l(date) }.join(', ')
-        ul.text-sm.space-y-1
-          - line.advertising_order_line_days.sort_by(&:date).each do |day|
-            li class=("text-warning" if unoccupied.include?(day.date))
-              = l(day.date)
-              |  ·
-              = day.shows
+  #advertising-order-details.card.bg-base-100.border.border-base-300.shadow-sm
+    .card-body.gap-4
+      h2.card-title.text-base = t('.details')
+      dl.space-y-4
+        .grid.gap-4.md:grid-cols-2
+          div
+            dt.text-sm.font-medium.text-base-content/60 = t('.organization')
+            dd.mt-1.text-sm = @advertising_order.organization.name
+          div
+            dt.text-sm.font-medium.text-base-content/60 = t('.author')
+            dd.mt-1.text-sm = @advertising_order.created_by&.display_name || none
+        .grid.gap-4.md:grid-cols-2
+          div
+            dt.text-sm.font-medium.text-base-content/60 = t('.product_name')
+            dd.mt-1.text-sm = @advertising_order.product_name
+          div
+            dt.text-sm.font-medium.text-base-content/60 = t('.business_sphere')
+            dd.mt-1.text-sm = @advertising_order.business_sphere.presence || none
+        .grid.gap-4.md:grid-cols-2
+          div
+            dt.text-sm.font-medium.text-base-content/60 = t('.placement_kind')
+            dd.mt-1.text-sm = t("enums.advertising_order.placement_kind.#{@advertising_order.placement_kind}")
+          div
+            dt.text-sm.font-medium.text-base-content/60 = t('.status')
+            dd#advertising-order-status.mt-1.flex.flex-wrap.items-center.gap-2
+              span.badge.badge-soft = t("enums.advertising_order.status.#{@advertising_order.status}")
+              - if @advertising_order.rejected?
+                span.text-sm.text-error = t("enums.advertising_order.rejection_reason.#{@advertising_order.rejection_reason}")
+        div
+          dt.text-sm.font-medium.text-base-content/60 = t('.screens_count')
+          dd.mt-1.text-sm = @advertising_order.advertising_order_lines.size
+        .grid.gap-4.md:grid-cols-3
+          div
+            dt.text-sm.font-medium.text-base-content/60 = t('.date_ranges')
+            dd.mt-1.text-sm = advertising_order_date_ranges(@advertising_order)
+          div
+            dt.text-sm.font-medium.text-base-content/60 = t('.day_count')
+            dd.mt-1.text-sm = advertising_order_day_count(@advertising_order)
+          div
+            dt.text-sm.font-medium.text-base-content/60 = t('.total_shows_label')
+            dd.mt-1.text-sm = @advertising_order.total_shows
+        .grid.gap-4.md:grid-cols-3
+          div
+            dt.text-sm.font-medium.text-base-content/60 = t('.windows')
+            dd.mt-1.text-sm = advertising_order_windows_label(@advertising_order)
+          div
+            dt.text-sm.font-medium.text-base-content/60 = t('.shows_per_hour')
+            dd.mt-1.text-sm = @advertising_order.shows_per_hour || none
+          div
+            dt.text-sm.font-medium.text-base-content/60 = t('.daily_shows')
+            dd.mt-1.text-sm = advertising_order_daily_shows_label(@advertising_order)
+        .grid.gap-4.md:grid-cols-2
+          div
+            dt.text-sm.font-medium.text-base-content/60 = t('.total_sum')
+            dd.mt-1.text-sm = money_display(@advertising_order.total_sum_cents)
+          div
+            dt.text-sm.font-medium.text-base-content/60 = t('.document_version_label')
+            dd.mt-1.text-sm = t('.document_version', version: @advertising_order.document_version)
+        div
+          dt.text-sm.font-medium.text-base-content/60 = t('.clips')
+          dd.mt-1.text-sm
+            - rows = order_clip_rows(@advertising_order)
+            - if rows.empty?
+              = none
+            - else
+              .overflow-x-auto
+                table.table.table-sm
+                  thead
+                    tr
+                      th = t('.media_filename')
+                      th = t('.media_duration')
+                      th = t('.content_type')
+                      th = t('.content_kind')
+                      th = t('.content_validation')
+                  tbody
+                    - rows.each do |row|
+                      tr
+                        td
+                          - if row.media_asset
+                            = link_to row.title, media_asset_path(row.media_asset), class: 'link link-hover'
+                          - else
+                            = row.title
+                        td = row.duration_seconds || none
+                        td
+                          - if row.media_asset
+                            = t("enums.media_asset.content_type.#{row.media_asset.content_type}")
+                          - else
+                            = none
+                        td
+                          - if row.media_asset
+                            = t("enums.media_asset.content_kind.#{row.media_asset.content_kind}")
+                          - else
+                            = none
+                        td
+                          - if row.media_asset
+                            = media_asset_validation_label(row.media_asset)
+                          - else
+                            = none

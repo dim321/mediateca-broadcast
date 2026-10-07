@@ -190,6 +190,7 @@ RSpec.describe "Admin advertising orders", type: :request do
         I18n.t("admin.advertising_orders.show.organization"),
         I18n.t("admin.advertising_orders.show.author"),
         I18n.t("admin.advertising_orders.show.business_sphere"),
+        I18n.t("admin.advertising_orders.show.screens_count"),
         I18n.t("admin.advertising_orders.show.shows_per_hour"),
         I18n.t("admin.advertising_orders.show.daily_shows"),
         "01.06.2026–02.06.2026, 04.06.2026",
@@ -204,6 +205,7 @@ RSpec.describe "Admin advertising orders", type: :request do
         I18n.t("media_assets.content_validation.validated"),
         order.total_shows.to_s
       )
+      expect(details.text).to match(/#{Regexp.escape(I18n.t("admin.advertising_orders.show.screens_count"))}\s*1/)
     end
 
     it "keeps activate disabled until every clip passes traffic-manager review" do
