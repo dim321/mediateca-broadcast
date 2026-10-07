@@ -18,17 +18,34 @@
   <% if params[:q].is_a?(ActionController::Parameters) %>
     <% Array(params.dig(:q, :s)).each do |sort| %><%= hidden_field_tag "q[s]", sort %><% end %>
   <% end %>
-  <div class="relative max-w-sm">
-    <%= f.search_field :product_name_cont, class: admin_input_class, placeholder: t("admin.crud.search") %>
-  </div>
-  <div class="mt-2 flex gap-2">
-    <%= f.submit t("admin.crud.search_submit"), class: admin_primary_button_class %>
-    <% if params[:q].is_a?(ActionController::Parameters) && params.dig(:q, :product_name_cont).present? %>
-      <%= link_to t("admin.crud.clear_search"), admin_advertising_orders_path, class: admin_secondary_button_class %>
-    <% end %>
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+    <div class="relative max-w-sm flex-1">
+      <%= f.label :product_name_cont, t("admin.crud.search"), class: "sr-only" %>
+      <%= f.search_field :product_name_cont, class: admin_input_class, placeholder: t("admin.crud.search") %>
+    </div>
+    <div class="w-full sm:w-56">
+      <%= f.label :organization_id_eq, Organization.model_name.human, class: "sr-only" %>
+      <%= f.collection_select :organization_id_eq, @organizations, :id, :name,
+            { include_blank: t("admin.advertising_orders.filters.any") },
+            class: admin_select_class,
+            onchange: "this.form.requestSubmit()" %>
+    </div>
+    <div class="w-full sm:w-48">
+      <%= f.label :status_eq, AdvertisingOrder.human_attribute_name(:status), class: "sr-only" %>
+      <%= f.select :status_eq, admin_enum_options(AdvertisingOrder, :status),
+            { include_blank: t("admin.advertising_orders.any_status") },
+            class: admin_select_class,
+            onchange: "this.form.requestSubmit()" %>
+    </div>
+    <div class="flex gap-2">
+      <%= f.submit t("admin.crud.search_submit"), class: admin_primary_button_class %>
+      <% if admin_ransack_filtered? %>
+        <%= link_to t("admin.crud.clear_search"), admin_advertising_orders_path, class: admin_secondary_button_class %>
+      <% end %>
+    </div>
   </div>
 <% end %>
-<% if @advertising_orders.empty? && params[:q].blank? %>
+<% if @advertising_orders.empty? && !admin_ransack_filtered? %>
   <%= render "admin/shared/empty_state", title: t("admin.crud.empty.title"), description: t("admin.crud.empty.description"), action_path: new_admin_advertising_order_path, action_label: t("admin.crud.new") %>
 <% elsif @advertising_orders.empty? %>
   <%= render "admin/shared/empty_state", title: t("admin.crud.empty.search_title"), description: t("admin.crud.empty.search_description"), action_path: admin_advertising_orders_path, action_label: t("admin.crud.clear_search") %>

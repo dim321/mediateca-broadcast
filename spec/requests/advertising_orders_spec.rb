@@ -164,6 +164,37 @@ RSpec.describe "AdvertisingOrders", type: :request do
       expect(response.body).not_to include(active.product_name)
     end
 
+    it "searches orders by product name" do
+      sign_in_as(user)
+      Advertising::CreateOrder.call(
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph Alpha"
+      )
+      Advertising::CreateOrder.call(
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "Other Brand"
+      )
+
+      get advertising_orders_path, params: { q: { product_name_cont: "Triumph" } }
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include("Triumph Alpha")
+      expect(response.body).not_to include("Other Brand")
+      expect(response.body).to include(I18n.t("advertising_orders.index.columns.name"))
+      expect(response.body).to include(I18n.t("advertising_orders.index.columns.status"))
+    end
+
+    it "renders a colored status badge in the list" do
+      sign_in_as(user)
+      Advertising::CreateOrder.call(
+        organization: organization, created_by: user, media_assets: [ asset ], product_name: "Triumph"
+      )
+
+      get advertising_orders_path
+
+      badge = Nokogiri::HTML(response.body).at_css(".order-status .badge")
+      expect(badge.text).to include(I18n.t("enums.advertising_order.status.draft"))
+      expect(badge["class"]).to include("badge-warning")
+    end
+
     it "hides foreign organization orders" do
       sign_in_as(user)
       other = create(:organization, :client)

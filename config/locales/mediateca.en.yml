@@ -715,7 +715,14 @@ en:
       copy_order: Create from copy
       copy_select: Create a copy of %{name}
       empty: No orders yet.
+      empty_search: No matches
       filter_all: All
+      search: Search by name
+      search_submit: Search
+      clear_search: Clear search
+      columns:
+        name: Order name
+        status: Status
     new:
       title: New order
     edit:
@@ -1009,9 +1016,12 @@ en:
       updated: Tag updated.
     advertising_orders:
       activate: Activate
+      any_status: Any status
       cancel: Cancel order
       cancel_confirm: Cancel this order and free occupied airtime?
       cancelled: Order cancelled.
+      filters:
+        any: Any
       reject: Reject
       reject_title: Rejection reason
       reject_submit: Reject order

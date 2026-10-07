@@ -3,6 +3,43 @@
 module AdvertisingOrdersHelper
   OrderClipRow = Struct.new(:title, :duration_seconds, :media_asset, keyword_init: true)
 
+  STATUS_BADGE_CLASSES = {
+    "draft" => "badge-warning",
+    "pending_moderation" => "badge-info",
+    "active" => "badge-success",
+    "completed" => "badge-primary",
+    "cancelled" => "badge-neutral",
+    "rejected" => "badge-error"
+  }.freeze
+
+  def advertising_order_status_badge_class(status)
+    STATUS_BADGE_CLASSES.fetch(status.to_s, "badge-ghost")
+  end
+
+  def advertising_order_status_badge(order)
+    tag.span(
+      t("enums.advertising_order.status.#{order.status}"),
+      class: "badge badge-soft #{advertising_order_status_badge_class(order.status)}"
+    )
+  end
+
+  def advertising_orders_filtered?
+    query = params[:q]
+    return false unless query.respond_to?(:except)
+
+    query.except(:s, "s").values.flatten.any?(&:present?)
+  end
+
+  def advertising_orders_index_params(extra = {})
+    query = {}
+    if params[:q].is_a?(ActionController::Parameters)
+      cont = params[:q][:product_name_cont].presence
+      query[:product_name_cont] = cont if cont
+    end
+
+    { status: params[:status].presence, q: query.presence }.compact.merge(extra)
+  end
+
   def advertising_order_day_for(line, date)
     line.advertising_order_line_days.detect { |day| day.date == date }
   end

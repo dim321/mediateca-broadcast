@@ -721,7 +721,14 @@ ru:
       copy_order: Создать из копии
       copy_select: Создать копию заказа %{name}
       empty: Заказов пока нет.
+      empty_search: Ничего не найдено
       filter_all: Все
+      search: Поиск по названию
+      search_submit: Найти
+      clear_search: Сбросить поиск
+      columns:
+        name: Название заказа
+        status: Статус
     new:
       title: Новый заказ
     edit:
@@ -1019,9 +1026,12 @@ ru:
       updated: Тег обновлён.
     advertising_orders:
       activate: Активировать
+      any_status: Любой статус
       cancel: Отменить заказ
       cancel_confirm: Отменить этот заказ и освободить занятый эфир?
       cancelled: Заказ отменён.
+      filters:
+        any: Все
       reject: Отклонить
       reject_title: Причина отклонения
       reject_submit: Отклонить заказ
