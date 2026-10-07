@@ -27,6 +27,17 @@ RSpec.describe "Admin sidebar", type: :request do
     )
   end
 
+  it "renders icons next to named nav group headers" do
+    get admin_root_path
+
+    %w[orders clients screen_fleet media_library service_library directories].each do |key|
+      summary = nav_group(key).at_css("summary")
+      icon = summary.css("svg").find { |svg| svg["viewBox"] == "0 0 20 20" || svg["viewbox"] == "0 0 20 20" }
+      expect(icon).to be_present
+      expect(icon.at_css("path")).to be_present
+    end
+  end
+
   it "renders the clients group with organizations and users" do
     get admin_root_path
 

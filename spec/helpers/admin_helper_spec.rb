@@ -82,4 +82,20 @@ RSpec.describe AdminHelper, type: :helper do
       expect(helper.admin_nav_section_active?(section)).to be false
     end
   end
+
+  describe "#admin_nav_group_icon" do
+    it "renders an svg for each named nav group" do
+      %i[orders clients screen_fleet media_library service_library directories].each do |key|
+        icon = helper.admin_nav_group_icon(key)
+
+        expect(icon).to include("<svg")
+        expect(icon).to include('viewBox="0 0 20 20"')
+        expect(icon).to include("<path")
+      end
+    end
+
+    it "returns nil for an unknown group" do
+      expect(helper.admin_nav_group_icon(:unknown)).to be_nil
+    end
+  end
 end

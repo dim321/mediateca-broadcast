@@ -13,6 +13,7 @@
           <li>
             <%= tag.details class: "group", **(admin_nav_section_active?(section) ? { open: true } : {}) do %>
               <summary class="flex items-center w-full p-2 text-xs font-semibold tracking-wide text-gray-500 uppercase rounded-lg cursor-pointer hover:bg-gray-100 list-none [&::-webkit-details-marker]:hidden">
+                <%= admin_nav_group_icon(section[:key]) %>
                 <span class="flex-1 ms-3 text-left"><%= t("admin.nav.groups.#{section[:key]}") %></span>
                 <svg class="w-3 h-3 shrink-0 transition-transform group-open:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                   <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
