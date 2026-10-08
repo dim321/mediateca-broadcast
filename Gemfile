@@ -75,7 +75,7 @@ gem "pundit", "~> 2.5", groups: []
 gem "bcrypt", "~> 3.1", groups: []
 gem "rails-i18n", "~> 8.0"
 
-gem "lograge", "~> 0.15.0", group: :production
+gem "lograge", "~> 0.15.1", group: :production
 
 gem "slim-rails", "~> 4.0"
 gem "view_component", "~> 4.6"
