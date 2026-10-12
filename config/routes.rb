@@ -125,6 +125,7 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :agent do
+      put "uploads/:token", to: "uploads#update", as: :upload
       namespace :v1 do
         get :package, to: "packages#show"
         get :config, to: "configs#show"

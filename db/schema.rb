@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_12_100200) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_12_100300) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -108,6 +108,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_12_100200) do
     t.check_constraint "discount_cents >= 0", name: "advertising_orders_discount_cents_non_negative"
     t.check_constraint "total_shows >= 0", name: "advertising_orders_total_shows_non_negative"
     t.check_constraint "total_sum_cents >= 0", name: "advertising_orders_total_sum_cents_non_negative"
+  end
+
+  create_table "agent_commands", force: :cascade do |t|
+    t.bigint "station_id", null: false
+    t.bigint "screen_id", null: false
+    t.string "public_id", null: false
+    t.string "command_type", null: false
+    t.jsonb "params", default: {}, null: false
+    t.datetime "issued_at", null: false
+    t.string "status", default: "pending", null: false
+    t.boolean "succeeded"
+    t.string "result_error"
+    t.datetime "finished_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["public_id"], name: "index_agent_commands_on_public_id", unique: true
+    t.index ["screen_id"], name: "index_agent_commands_on_screen_id"
+    t.index ["station_id", "status"], name: "index_agent_commands_on_station_id_and_status"
+    t.index ["station_id"], name: "index_agent_commands_on_station_id"
   end
 
   create_table "airtime_bookings", force: :cascade do |t|
@@ -489,6 +508,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_12_100200) do
   add_foreign_key "advertising_orders", "organizations", on_delete: :restrict
   add_foreign_key "advertising_orders", "rotations", on_delete: :restrict
   add_foreign_key "advertising_orders", "users", column: "created_by_user_id", on_delete: :restrict
+  add_foreign_key "agent_commands", "screens"
+  add_foreign_key "agent_commands", "stations"
   add_foreign_key "airtime_bookings", "broadcast_point_groups"
   add_foreign_key "airtime_bookings", "organizations"
   add_foreign_key "broadcast_point_group_memberships", "broadcast_point_groups", on_delete: :cascade

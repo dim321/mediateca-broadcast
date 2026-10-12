@@ -37,6 +37,7 @@ class Station < ApplicationRecord
   has_one :tv_monitor, class_name: "StationTvMonitor", dependent: :destroy
   has_one :telemetry_snapshot, class_name: "StationTelemetrySnapshot", dependent: :destroy
   has_many :screen_telemetry_snapshots, dependent: :destroy
+  has_many :agent_commands, dependent: :destroy
 
   validates :name, presence: true, uniqueness: { scope: :location_id }
   validates :offline_cache_hours, numericality: { only_integer: true, greater_than: 0 }

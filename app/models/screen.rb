@@ -39,6 +39,7 @@ class Screen < ApplicationRecord
 
   belongs_to :station
   has_one :telemetry_snapshot, class_name: "ScreenTelemetrySnapshot", dependent: :destroy
+  has_many :agent_commands, dependent: :destroy
   belongs_to :owner_organization, class_name: "Organization", optional: true
 
   has_one :broadcast_portrait, dependent: :destroy, inverse_of: :screen
