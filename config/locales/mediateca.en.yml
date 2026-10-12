@@ -963,6 +963,15 @@ en:
       tv_monitor_telemetry: Telemetry interval, seconds
       template_blank: Default template
       template_keep: Keep current
+      telemetry: Telemetry
+      telemetry_empty: No snapshot yet.
+      telemetry_reported_at: Reported at
+      telemetry_package_etag: Package ETag
+      telemetry_broadcast_ok: Broadcast up
+      telemetry_ignored: Foreign screen ids
+      telemetry_playing: playing
+      telemetry_wakefulness: wakefulness
+      telemetry_last_error: last_error
     users:
       account_section: Account
       any_status: Any status

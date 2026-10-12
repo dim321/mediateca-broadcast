@@ -12,6 +12,8 @@ module Admin
       @station = Station.includes(:location, screens: :broadcast_portrait).find(params[:id])
       @playlist_date = playlist_date_for(@station)
       @playlist = @station.playlists.current.includes(items: [ :media_asset, :screens ]).find_by(for_date: @playlist_date)
+      @telemetry = @station.telemetry_snapshot
+      @screen_telemetry = @station.screen_telemetry_snapshots.includes(:screen).order(:screen_id)
     end
 
     def regenerate_playlists

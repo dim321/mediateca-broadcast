@@ -973,6 +973,15 @@ ru:
       tv_monitor_telemetry: Интервал telemetry, секунды
       template_blank: Шаблон по умолчанию
       template_keep: Не менять текущий
+      telemetry: Телеметрия
+      telemetry_empty: Снимка ещё не было.
+      telemetry_reported_at: Время снимка
+      telemetry_package_etag: ETag пакета
+      telemetry_broadcast_ok: Эфир поднят
+      telemetry_ignored: Чужие screen_id
+      telemetry_playing: playing
+      telemetry_wakefulness: wakefulness
+      telemetry_last_error: last_error
     users:
       account_section: Учётная запись
       any_status: Любой статус

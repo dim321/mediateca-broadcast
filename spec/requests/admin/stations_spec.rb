@@ -36,6 +36,39 @@ RSpec.describe "Admin stations", type: :request do
     expect(response).to redirect_to(admin_station_path(station))
   end
 
+  it "shows the latest telemetry snapshot" do
+    station = create(:station, location: location)
+    screen = create(:screen, station:)
+    StationTelemetrySnapshot.create!(
+      station: station,
+      reported_at: Time.utc(2026, 10, 9, 11, 0, 0),
+      uptime_seconds: 3600,
+      package_etag: "W/\"pkg\"",
+      broadcast_ok: true,
+      ignored_screen_ids: [ 404 ]
+    )
+    ScreenTelemetrySnapshot.create!(
+      screen: screen,
+      station: station,
+      reported_at: Time.utc(2026, 10, 9, 11, 0, 0),
+      reachable: true,
+      agent_ok: true,
+      playing: false,
+      url: "http://192.168.33.1:8091/",
+      wakefulness: "",
+      stream_port: 8091,
+      broadcast_clients: 0,
+      last_error: "player down"
+    )
+
+    get admin_station_path(station)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include("pkg")
+    expect(response.body).to include("player down")
+    expect(response.body).to include("404")
+  end
+
   it "renders the current playlist source_kind and offset on show" do
     station = create(:station, location: location)
     playlist = create(:playlist, station: station, for_date: Date.new(2026, 9, 2), status: "current")
