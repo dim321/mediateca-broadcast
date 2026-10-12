@@ -20,5 +20,25 @@ RSpec.describe Agent::ConfigBuilder do
         ]
       )
     end
+
+    it "omits tv_monitor when the station has no settings row" do
+      station = create(:station)
+
+      expect(described_class.call(station:)).not_to have_key(:tv_monitor)
+    end
+
+    it "includes an explicit auto-restart boolean when settings exist" do
+      station = create(:station)
+      create(:station_tv_monitor, station:, health_interval_seconds: 15,
+        auto_restart_when_not_playing: false, telemetry_interval_seconds: 45)
+
+      expect(described_class.call(station:)).to include(
+        tv_monitor: {
+          health_interval_seconds: 15,
+          auto_restart_when_not_playing: false,
+          telemetry_interval_seconds: 45
+        }
+      )
+    end
   end
 end

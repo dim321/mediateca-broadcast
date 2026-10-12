@@ -34,6 +34,7 @@ class Station < ApplicationRecord
 
   has_many :screens, dependent: :destroy
   has_many :playlists, dependent: :restrict_with_exception, inverse_of: :station
+  has_one :tv_monitor, class_name: "StationTvMonitor", dependent: :destroy
 
   validates :name, presence: true, uniqueness: { scope: :location_id }
   validates :offline_cache_hours, numericality: { only_integer: true, greater_than: 0 }

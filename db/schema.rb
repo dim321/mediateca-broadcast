@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_29_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_12_100100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -401,6 +401,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_29_120000) do
     t.index ["welcome_rotation_id"], name: "index_service_themes_on_welcome_rotation_id"
   end
 
+  create_table "station_tv_monitors", force: :cascade do |t|
+    t.bigint "station_id", null: false
+    t.integer "health_interval_seconds", default: 30, null: false
+    t.boolean "auto_restart_when_not_playing", default: true, null: false
+    t.integer "telemetry_interval_seconds", default: 60, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["station_id"], name: "index_station_tv_monitors_on_station_id", unique: true
+  end
+
   create_table "stations", force: :cascade do |t|
     t.string "agent_token_digest"
     t.datetime "created_at", null: false
@@ -492,6 +502,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_29_120000) do
   add_foreign_key "service_themes", "rotations", column: "header_end_rotation_id", on_delete: :restrict
   add_foreign_key "service_themes", "rotations", column: "header_start_rotation_id", on_delete: :restrict
   add_foreign_key "service_themes", "rotations", column: "welcome_rotation_id", on_delete: :restrict
+  add_foreign_key "station_tv_monitors", "stations"
   add_foreign_key "stations", "locations"
   add_foreign_key "users", "organizations"
 end
