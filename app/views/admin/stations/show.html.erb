@@ -82,6 +82,52 @@
   <% end %>
 </div>
 
+<div class="mt-6 bg-white border border-gray-200 rounded-lg p-6">
+  <h2 class="mb-4 text-lg font-medium text-gray-900"><%= t("admin.stations.telemetry") %></h2>
+  <% if @telemetry %>
+    <dl class="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2 text-sm text-gray-900">
+      <div>
+        <dt class="text-gray-500"><%= t("admin.stations.telemetry_reported_at") %></dt>
+        <dd><%= @telemetry.reported_at.utc.iso8601 %></dd>
+      </div>
+      <div>
+        <dt class="text-gray-500"><%= t("admin.stations.telemetry_package_etag") %></dt>
+        <dd><%= @telemetry.package_etag %></dd>
+      </div>
+      <div>
+        <dt class="text-gray-500"><%= t("admin.stations.telemetry_broadcast_ok") %></dt>
+        <dd><%= admin_boolean(@telemetry.broadcast_ok) %></dd>
+      </div>
+      <div>
+        <dt class="text-gray-500"><%= t("admin.stations.telemetry_ignored") %></dt>
+        <dd><%= @telemetry.ignored_screen_ids.presence&.join(", ") || t("admin.crud.none") %></dd>
+      </div>
+    </dl>
+    <table class="w-full text-sm text-left text-gray-500">
+      <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+        <tr>
+          <th class="px-4 py-3"><%= Screen.model_name.human %></th>
+          <th class="px-4 py-3"><%= t("admin.stations.telemetry_playing") %></th>
+          <th class="px-4 py-3"><%= t("admin.stations.telemetry_wakefulness") %></th>
+          <th class="px-4 py-3"><%= t("admin.stations.telemetry_last_error") %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @screen_telemetry.each do |row| %>
+          <tr class="bg-white border-b">
+            <td class="px-4 py-3"><%= row.screen.name %></td>
+            <td class="px-4 py-3"><%= admin_boolean(row.playing) %></td>
+            <td class="px-4 py-3"><%= row.wakefulness.presence || t("admin.crud.none") %></td>
+            <td class="px-4 py-3"><%= row.last_error.presence || t("admin.crud.none") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="text-sm text-gray-500"><%= t("admin.stations.telemetry_empty") %></p>
+  <% end %>
+</div>
+
 <div class="mt-6 flex flex-wrap gap-3">
   <%= link_to t("admin.chrome.edit"), edit_admin_station_path(@station), class: admin_primary_button_class %>
   <%= link_to t("admin.chrome.back"), admin_stations_path, class: admin_secondary_button_class %>

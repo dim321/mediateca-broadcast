@@ -39,7 +39,9 @@ Rails.application.routes.draw do
           end
         end
       end
-      resources :screens
+      resources :screens do
+        resources :agent_commands, only: :create
+      end
       resources :screen_tags
       resources :broadcast_portraits
       resources :stations do
@@ -125,10 +127,14 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :agent do
+      put "uploads/:token", to: "uploads#update", as: :upload
       namespace :v1 do
         get :package, to: "packages#show"
         get :config, to: "configs#show"
+        get :commands, to: "commands#index"
+        post :command_results, to: "command_results#create"
         post :play_events, to: "play_events#create"
+        post :telemetry, to: "telemetries#create"
       end
       namespace :v2 do
         get :package, to: "packages#show"

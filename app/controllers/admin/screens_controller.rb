@@ -11,6 +11,7 @@ module Admin
     def show
       @screen = Screen.includes(:tags, :station, :owner_organization, :broadcast_point_groups,
         broadcast_portrait: :service_theme).find(params[:id])
+      @agent_commands = @screen.agent_commands.order(issued_at: :desc).limit(20)
     end
 
     def new

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_29_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_12_100300) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -108,6 +108,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_29_120000) do
     t.check_constraint "discount_cents >= 0", name: "advertising_orders_discount_cents_non_negative"
     t.check_constraint "total_shows >= 0", name: "advertising_orders_total_shows_non_negative"
     t.check_constraint "total_sum_cents >= 0", name: "advertising_orders_total_sum_cents_non_negative"
+  end
+
+  create_table "agent_commands", force: :cascade do |t|
+    t.bigint "station_id", null: false
+    t.bigint "screen_id", null: false
+    t.string "public_id", null: false
+    t.string "command_type", null: false
+    t.jsonb "params", default: {}, null: false
+    t.datetime "issued_at", null: false
+    t.string "status", default: "pending", null: false
+    t.boolean "succeeded"
+    t.string "result_error"
+    t.datetime "finished_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["public_id"], name: "index_agent_commands_on_public_id", unique: true
+    t.index ["screen_id"], name: "index_agent_commands_on_screen_id"
+    t.index ["station_id", "status"], name: "index_agent_commands_on_station_id_and_status"
+    t.index ["station_id"], name: "index_agent_commands_on_station_id"
   end
 
   create_table "airtime_bookings", force: :cascade do |t|
@@ -370,6 +389,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_29_120000) do
     t.index ["tag_id"], name: "index_screen_tags_on_tag_id"
   end
 
+  create_table "screen_telemetry_snapshots", force: :cascade do |t|
+    t.bigint "screen_id", null: false
+    t.bigint "station_id", null: false
+    t.datetime "reported_at", null: false
+    t.boolean "reachable", default: false, null: false
+    t.boolean "agent_ok", default: false, null: false
+    t.boolean "playing", default: false, null: false
+    t.string "url", default: "", null: false
+    t.string "wakefulness", default: "", null: false
+    t.integer "stream_port", default: 0, null: false
+    t.integer "broadcast_clients", default: 0, null: false
+    t.string "last_error"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["screen_id"], name: "index_screen_telemetry_snapshots_on_screen_id", unique: true
+    t.index ["station_id"], name: "index_screen_telemetry_snapshots_on_station_id"
+  end
+
   create_table "screens", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.boolean "inherit_operating_hours_from_location", default: true, null: false
@@ -399,6 +436,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_29_120000) do
     t.index ["organization_id", "name"], name: "index_service_themes_on_organization_id_and_name", unique: true
     t.index ["organization_id"], name: "index_service_themes_on_organization_id"
     t.index ["welcome_rotation_id"], name: "index_service_themes_on_welcome_rotation_id"
+  end
+
+  create_table "station_telemetry_snapshots", force: :cascade do |t|
+    t.bigint "station_id", null: false
+    t.datetime "reported_at", null: false
+    t.integer "uptime_seconds", null: false
+    t.string "package_etag", default: "", null: false
+    t.boolean "broadcast_ok", default: false, null: false
+    t.jsonb "ignored_screen_ids", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["station_id"], name: "index_station_telemetry_snapshots_on_station_id", unique: true
+  end
+
+  create_table "station_tv_monitors", force: :cascade do |t|
+    t.bigint "station_id", null: false
+    t.integer "health_interval_seconds", default: 30, null: false
+    t.boolean "auto_restart_when_not_playing", default: true, null: false
+    t.integer "telemetry_interval_seconds", default: 60, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["station_id"], name: "index_station_tv_monitors_on_station_id", unique: true
   end
 
   create_table "stations", force: :cascade do |t|
@@ -449,6 +508,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_29_120000) do
   add_foreign_key "advertising_orders", "organizations", on_delete: :restrict
   add_foreign_key "advertising_orders", "rotations", on_delete: :restrict
   add_foreign_key "advertising_orders", "users", column: "created_by_user_id", on_delete: :restrict
+  add_foreign_key "agent_commands", "screens"
+  add_foreign_key "agent_commands", "stations"
   add_foreign_key "airtime_bookings", "broadcast_point_groups"
   add_foreign_key "airtime_bookings", "organizations"
   add_foreign_key "broadcast_point_group_memberships", "broadcast_point_groups", on_delete: :cascade
@@ -485,6 +546,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_29_120000) do
   add_foreign_key "rotations", "organizations"
   add_foreign_key "screen_tags", "screens"
   add_foreign_key "screen_tags", "tags"
+  add_foreign_key "screen_telemetry_snapshots", "screens"
+  add_foreign_key "screen_telemetry_snapshots", "stations"
   add_foreign_key "screens", "organizations", column: "owner_organization_id"
   add_foreign_key "screens", "stations"
   add_foreign_key "service_themes", "organizations", on_delete: :restrict
@@ -492,6 +555,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_29_120000) do
   add_foreign_key "service_themes", "rotations", column: "header_end_rotation_id", on_delete: :restrict
   add_foreign_key "service_themes", "rotations", column: "header_start_rotation_id", on_delete: :restrict
   add_foreign_key "service_themes", "rotations", column: "welcome_rotation_id", on_delete: :restrict
+  add_foreign_key "station_telemetry_snapshots", "stations"
+  add_foreign_key "station_tv_monitors", "stations"
   add_foreign_key "stations", "locations"
   add_foreign_key "users", "organizations"
 end

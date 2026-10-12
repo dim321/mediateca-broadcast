@@ -1,5 +1,8 @@
 <%= form_with model: [:admin, station], class: "max-w-xl bg-white border border-gray-200 rounded-lg p-6" do |f| %>
   <%= render "admin/shared/form_errors", record: station %>
+  <% if station.tv_monitor&.errors&.any? %>
+    <%= render "admin/shared/form_errors", record: station.tv_monitor %>
+  <% end %>
   <div class="mb-5">
     <%= f.label :location_id, class: admin_label_class %>
     <%= f.collection_select :location_id, Location.order(:name), :id, :name, { include_blank: true }, class: admin_select_class %>
@@ -12,6 +15,28 @@
     <%= f.label :offline_cache_hours, class: admin_label_class %>
     <%= f.number_field :offline_cache_hours, class: admin_input_class %>
   </div>
+  <% monitor = station.tv_monitor || station.build_tv_monitor %>
+  <fieldset class="mb-5 space-y-4">
+    <div>
+      <%= hidden_field_tag "station[configure_tv_monitor]", "0" %>
+      <%= check_box_tag "station[configure_tv_monitor]", "1", @configure_tv_monitor, id: "station_configure_tv_monitor", class: "rounded border-gray-300" %>
+      <%= label_tag "station_configure_tv_monitor", t("admin.stations.configure_tv_monitor"), class: "ml-2 text-sm text-gray-700" %>
+      <p class="mt-2 text-sm text-gray-500"><%= t("admin.stations.tv_monitor_hint") %></p>
+    </div>
+    <div>
+      <%= label_tag "station_tv_monitor_health_interval_seconds", t("admin.stations.tv_monitor_health"), class: admin_label_class %>
+      <%= number_field_tag "station[tv_monitor][health_interval_seconds]", monitor.health_interval_seconds, id: "station_tv_monitor_health_interval_seconds", class: admin_input_class, min: 5 %>
+    </div>
+    <div>
+      <%= hidden_field_tag "station[tv_monitor][auto_restart_when_not_playing]", "0" %>
+      <%= check_box_tag "station[tv_monitor][auto_restart_when_not_playing]", "1", monitor.auto_restart_when_not_playing, id: "station_tv_monitor_auto_restart_when_not_playing", class: "rounded border-gray-300" %>
+      <%= label_tag "station_tv_monitor_auto_restart_when_not_playing", t("admin.stations.tv_monitor_auto_restart"), class: "ml-2 text-sm text-gray-700" %>
+    </div>
+    <div>
+      <%= label_tag "station_tv_monitor_telemetry_interval_seconds", t("admin.stations.tv_monitor_telemetry"), class: admin_label_class %>
+      <%= number_field_tag "station[tv_monitor][telemetry_interval_seconds]", monitor.telemetry_interval_seconds, id: "station_tv_monitor_telemetry_interval_seconds", class: admin_input_class, min: 5 %>
+    </div>
+  </fieldset>
   <div class="flex flex-wrap gap-3">
     <%= f.submit class: admin_primary_button_class %>
     <%= link_to t("admin.chrome.cancel"), admin_stations_path, class: admin_secondary_button_class %>

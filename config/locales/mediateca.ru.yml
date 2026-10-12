@@ -957,6 +957,22 @@ ru:
       template_blank: Шаблон по умолчанию
       template_keep: Не менять текущий
       service_theme_blank: Без тематики
+    agent_commands:
+      title: Команды станции
+      created: Команда поставлена в очередь.
+      type: Тип
+      url: URL
+      buffer_ms: buffer_ms
+      seconds: Секунды записи
+      submit: Поставить в очередь
+      upload_link_expiry: Ссылка загрузки screenshot и record действует 15 минут с момента постановки команды. Если станция офлайн дольше, загрузка вернёт 403.
+      empty: Команд ещё не было.
+      errors:
+        unknown_type: Неизвестный тип команды.
+        buffer_ms_invalid: buffer_ms должен быть неотрицательным числом.
+        seconds_out_of_range: Длина записи от 1 до 120 секунд.
+        url_must_be_https: URL APK должен начинаться с https://.
+        missing_host: Не задан хост Hub для upload URL.
     stations:
       closed_day: Закрытый день — в текущем плейлисте нет позиций.
       current_playlist: Текущий плейлист
@@ -966,8 +982,22 @@ ru:
       regen_confirm: Пересобрать плейлисты этой станции на горизонт кэша?
       regen_enqueued: Пересборка плейлиста поставлена в очередь.
       regenerate_playlists: Пересобрать плейлисты
+      configure_tv_monitor: Отдавать tv_monitor станции
+      tv_monitor_hint: Пустой объект не отправляем. Снятие флажка возвращает дефолты station (health 30 с, авторестарт включён, telemetry 60 с). При включённом авторестарте команда stop может быть сразу отменена watchdog.
+      tv_monitor_health: Интервал health, секунды
+      tv_monitor_auto_restart: Авторестарт, когда эфир есть, а playing=false
+      tv_monitor_telemetry: Интервал telemetry, секунды
       template_blank: Шаблон по умолчанию
       template_keep: Не менять текущий
+      telemetry: Телеметрия
+      telemetry_empty: Снимка ещё не было.
+      telemetry_reported_at: Время снимка
+      telemetry_package_etag: ETag пакета
+      telemetry_broadcast_ok: Эфир поднят
+      telemetry_ignored: Чужие screen_id
+      telemetry_playing: playing
+      telemetry_wakefulness: wakefulness
+      telemetry_last_error: last_error
     users:
       account_section: Учётная запись
       any_status: Любой статус

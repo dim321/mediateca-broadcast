@@ -947,6 +947,22 @@ en:
       template_blank: Default template
       template_keep: Keep current
       service_theme_blank: No service theme
+    agent_commands:
+      title: Station commands
+      created: Command queued.
+      type: Type
+      url: URL
+      buffer_ms: buffer_ms
+      seconds: Record seconds
+      submit: Queue command
+      upload_link_expiry: The screenshot and record upload link lasts 15 minutes from when the command is queued. A station that is offline longer gets 403 on upload.
+      empty: No commands yet.
+      errors:
+        unknown_type: Unknown command type.
+        buffer_ms_invalid: buffer_ms must be a non-negative number.
+        seconds_out_of_range: Record length must be from 1 to 120 seconds.
+        url_must_be_https: The APK URL must start with https://.
+        missing_host: No hub host is configured for the upload URL.
     stations:
       closed_day: Closed day — the current playlist has no items.
       current_playlist: Current playlist
@@ -956,8 +972,22 @@ en:
       regen_confirm: Regenerate playlists for this station over the cache horizon?
       regen_enqueued: Playlist regeneration queued.
       regenerate_playlists: Regenerate playlists
+      configure_tv_monitor: Send tv_monitor to the station
+      tv_monitor_hint: An empty object is never sent. Clearing the box restores station defaults (health 30s, auto-restart on, telemetry 60s). With auto-restart on, a stop command can be undone by the watchdog.
+      tv_monitor_health: Health interval, seconds
+      tv_monitor_auto_restart: Auto-restart when the broadcast is up and playing is false
+      tv_monitor_telemetry: Telemetry interval, seconds
       template_blank: Default template
       template_keep: Keep current
+      telemetry: Telemetry
+      telemetry_empty: No snapshot yet.
+      telemetry_reported_at: Reported at
+      telemetry_package_etag: Package ETag
+      telemetry_broadcast_ok: Broadcast up
+      telemetry_ignored: Foreign screen ids
+      telemetry_playing: playing
+      telemetry_wakefulness: wakefulness
+      telemetry_last_error: last_error
     users:
       account_section: Account
       any_status: Any status
