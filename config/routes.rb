@@ -129,6 +129,7 @@ Rails.application.routes.draw do
         get :package, to: "packages#show"
         get :config, to: "configs#show"
         post :play_events, to: "play_events#create"
+        post :telemetry, to: "telemetries#create"
       end
       namespace :v2 do
         get :package, to: "packages#show"
