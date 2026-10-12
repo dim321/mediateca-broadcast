@@ -947,6 +947,21 @@ en:
       template_blank: Default template
       template_keep: Keep current
       service_theme_blank: No service theme
+    agent_commands:
+      title: Station commands
+      created: Command queued.
+      type: Type
+      url: URL
+      buffer_ms: buffer_ms
+      seconds: Record seconds
+      submit: Queue command
+      empty: No commands yet.
+      errors:
+        unknown_type: Unknown command type.
+        buffer_ms_invalid: buffer_ms must be a non-negative number.
+        seconds_out_of_range: Record length must be from 1 to 120 seconds.
+        url_must_be_https: The APK URL must start with https://.
+        missing_host: No hub host is configured for the upload URL.
     stations:
       closed_day: Closed day — the current playlist has no items.
       current_playlist: Current playlist

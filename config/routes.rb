@@ -39,7 +39,9 @@ Rails.application.routes.draw do
           end
         end
       end
-      resources :screens
+      resources :screens do
+        resources :agent_commands, only: :create
+      end
       resources :screen_tags
       resources :broadcast_portraits
       resources :stations do

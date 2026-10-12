@@ -38,6 +38,43 @@
     </div>
   </dl>
 </div>
+<div class="mt-6 bg-white border border-gray-200 rounded-lg p-6 max-w-xl">
+  <h2 class="mb-4 text-lg font-medium text-gray-900"><%= t("admin.agent_commands.title") %></h2>
+  <%= form_with url: admin_screen_agent_commands_path(@screen), scope: :agent_command, class: "space-y-4" do |f| %>
+    <div>
+      <%= f.label :command_type, t("admin.agent_commands.type"), class: admin_label_class %>
+      <%= f.select :command_type, AgentCommand::TYPES, {}, class: admin_select_class %>
+    </div>
+    <div>
+      <%= f.label :url, t("admin.agent_commands.url"), class: admin_label_class %>
+      <%= f.text_field :url, class: admin_input_class %>
+    </div>
+    <div>
+      <%= f.label :buffer_ms, t("admin.agent_commands.buffer_ms"), class: admin_label_class %>
+      <%= f.number_field :buffer_ms, class: admin_input_class, min: 0 %>
+    </div>
+    <div>
+      <%= f.label :seconds, t("admin.agent_commands.seconds"), class: admin_label_class %>
+      <%= f.number_field :seconds, class: admin_input_class, min: 1, max: 120 %>
+    </div>
+    <%= f.submit t("admin.agent_commands.submit"), class: admin_primary_button_class %>
+  <% end %>
+
+  <% if @agent_commands.any? %>
+    <ul class="mt-6 space-y-2 text-sm text-gray-900">
+      <% @agent_commands.each do |command| %>
+        <li>
+          <span class="font-mono"><%= command.public_id %></span>
+          <%= command.command_type %>
+          <%= command.status %>
+          <%= command.result_error %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="mt-6 text-sm text-gray-500"><%= t("admin.agent_commands.empty") %></p>
+  <% end %>
+</div>
 <div class="mt-6 flex flex-wrap gap-3">
   <%= link_to t("admin.chrome.edit"), edit_admin_screen_path(@screen), class: admin_primary_button_class %>
   <% if @screen.broadcast_portrait %>
