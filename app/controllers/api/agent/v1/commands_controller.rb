@@ -21,7 +21,7 @@ module Api
           header = request.headers["If-None-Match"].to_s
           return false if header.blank?
 
-          header.split(",").map(&:strip).any? { |candidate| candidate == etag || candidate == "W/#{etag}" }
+          header == etag
         end
       end
     end

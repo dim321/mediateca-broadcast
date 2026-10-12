@@ -68,4 +68,28 @@ RSpec.describe "Api::Agent::V1::Commands", type: :request do
     expect(response).to have_http_status(:ok)
     expect(response.parsed_body["commands"].map { |row| row["id"] }).to eq([ "cmd_visible" ])
   end
+
+  it "returns 200 when If-None-Match is a weak tag" do
+    get "/api/agent/v1/commands", headers: agent_authorization_headers(token), as: :json
+    etag = response.headers["ETag"]
+
+    get "/api/agent/v1/commands",
+      headers: agent_authorization_headers(token).merge("If-None-Match" => "W/#{etag}"),
+      as: :json
+
+    expect(response).to have_http_status(:ok)
+    expect(response.parsed_body).to have_key("commands")
+  end
+
+  it "returns 200 when If-None-Match is a comma-separated list" do
+    get "/api/agent/v1/commands", headers: agent_authorization_headers(token), as: :json
+    etag = response.headers["ETag"]
+
+    get "/api/agent/v1/commands",
+      headers: agent_authorization_headers(token).merge("If-None-Match" => "#{etag}, \"other\""),
+      as: :json
+
+    expect(response).to have_http_status(:ok)
+    expect(response.parsed_body).to have_key("commands")
+  end
 end
