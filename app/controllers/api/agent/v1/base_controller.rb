@@ -4,6 +4,11 @@ module Api
   module Agent
     module V1
       class BaseController < ActionController::API
+        # Agent JSON is unrooted (reported_at/station/screens, events, …).
+        # Default ParamsWrapper would nest under :telemetry / :play_event and
+        # trip "Unpermitted parameter" on top-level permit.
+        wrap_parameters false
+
         before_action :authenticate_station!
 
         rescue_from ActiveRecord::RecordNotFound do

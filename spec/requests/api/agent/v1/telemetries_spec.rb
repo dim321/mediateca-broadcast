@@ -55,6 +55,20 @@ RSpec.describe "Api::Agent::V1::Telemetries", type: :request do
     expect(screen_snapshot.playing).to be(true)
   end
 
+  it "does not wrap the unrooted JSON body under :telemetry" do
+    unpermitted = []
+    callback = lambda do |_name, _start, _finish, _id, payload|
+      unpermitted.concat(Array(payload[:keys]))
+    end
+
+    ActiveSupport::Notifications.subscribed(callback, "unpermitted_parameters.action_controller") do
+      post "/api/agent/v1/telemetry", params: payload, headers: agent_authorization_headers(token), as: :json
+    end
+
+    expect(response).to have_http_status(:accepted)
+    expect(unpermitted).not_to include(:telemetry)
+  end
+
   it "keeps the batch when a screen id belongs to another station" do
     other = create(:screen)
 
