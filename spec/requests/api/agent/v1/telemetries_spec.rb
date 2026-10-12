@@ -83,6 +83,17 @@ RSpec.describe "Api::Agent::V1::Telemetries", type: :request do
     expect(station.reload.telemetry_snapshot.reported_at.utc.iso8601).to eq("2026-10-09T12:00:00Z")
   end
 
+  it "returns 422 when uptime_seconds is invalid" do
+    post "/api/agent/v1/telemetry",
+      params: payload.deep_merge(station: { uptime_seconds: -1 }),
+      headers: agent_authorization_headers(token),
+      as: :json
+
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(response.parsed_body).to eq("error" => "invalid_telemetry")
+    expect(station.reload.telemetry_snapshot).to be_nil
+  end
+
   it "returns 422 when reported_at is missing" do
     post "/api/agent/v1/telemetry",
       params: payload.except(:reported_at),

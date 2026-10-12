@@ -9,18 +9,23 @@ module Agent
 
     def call
       reported_at = Time.iso8601(payload.fetch("reported_at").to_s)
-      existing = station.telemetry_snapshot
-      return :stale if existing && existing.reported_at > reported_at
-
       station_row = payload.fetch("station")
       screen_rows = payload.fetch("screens")
       raise ArgumentError, "screens must be an array" unless screen_rows.is_a?(Array)
 
+      result = :recorded
       Station.transaction do
+        station.lock!
+        existing = station.reload.telemetry_snapshot
+        if existing && existing.reported_at > reported_at
+          result = :stale
+          next
+        end
+
         write_station(reported_at, station_row, ignored_ids_for(screen_rows))
         write_screens(reported_at, screen_rows)
       end
-      :recorded
+      result
     end
 
     private

@@ -7,7 +7,7 @@ module Api
         def create
           ::Agent::RecordTelemetry.call(station: current_station, payload: telemetry_payload)
           head :accepted
-        rescue ArgumentError, KeyError, ActionController::ParameterMissing, TypeError
+        rescue ArgumentError, KeyError, ActionController::ParameterMissing, TypeError, ActiveRecord::RecordInvalid
           render json: { error: "invalid_telemetry" }, status: :unprocessable_content
         end
 
