@@ -3,6 +3,10 @@
 require "rails_helper"
 
 RSpec.describe "Api::Agent::Uploads", type: :request do
+  include ActiveSupport::Testing::TimeHelpers
+
+  after { travel_back }
+
   let(:command) { create(:agent_command, command_type: "screenshot", params: {}) }
 
   def put_artifact(token:, body:, content_type:)
@@ -36,6 +40,27 @@ RSpec.describe "Api::Agent::Uploads", type: :request do
 
     expect(response).to have_http_status(:forbidden)
     expect(response).not_to have_http_status(:unauthorized)
+  end
+
+  it "returns 403 for an expired token and does not use 401" do
+    token = Agent::ArtifactToken.generate(command.public_id)
+    travel 16.minutes
+
+    put_artifact(token:, body: "png-bytes", content_type: "image/png")
+
+    expect(response).to have_http_status(:forbidden)
+    expect(response).not_to have_http_status(:unauthorized)
+    expect(command.reload.artifact).not_to be_attached
+  end
+
+  it "returns 413 when the body exceeds the size limit" do
+    stub_const("Agent::StoreArtifact::MAX_BYTES", 4)
+    token = Agent::ArtifactToken.generate(command.public_id)
+
+    put_artifact(token:, body: "12345", content_type: "image/png")
+
+    expect(response).to have_http_status(:content_too_large)
+    expect(command.reload.artifact).not_to be_attached
   end
 
   it "returns 415 when the content type does not match the command" do
