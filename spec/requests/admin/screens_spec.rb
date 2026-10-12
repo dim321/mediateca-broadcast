@@ -294,9 +294,8 @@ RSpec.describe "Admin screens", type: :request do
       )
     end
   end
-end
 
-RSpec.describe "Admin screen agent commands", type: :request do
+  describe "agent commands" do
   let(:operator_org) { create(:organization, :operator) }
   let(:operator) { create(:user, :manager, organization: operator_org) }
   let(:station) { create(:station) }
@@ -345,5 +344,6 @@ RSpec.describe "Admin screen agent commands", type: :request do
     expect(screen.agent_commands).to be_empty
     follow_redirect!
     expect(response.body).to include(I18n.t("admin.agent_commands.errors.url_must_be_https"))
+  end
   end
 end
