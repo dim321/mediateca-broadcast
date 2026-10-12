@@ -33,7 +33,14 @@ RSpec.describe Agent::Commands::Issue do
     expect(Agent::ArtifactToken.verify!(CGI.unescape(token))).to eq(command.public_id)
   end
 
-  it "defaults record length to 10 seconds and keeps an explicit length" do
+  it "defaults record length to 10 seconds" do
+    command = described_class.call(screen:, type: "record", params: {}, url_options:)
+
+    expect(command.params["seconds"]).to eq(10)
+    expect(command.params["upload_url"]).to be_present
+  end
+
+  it "stores an explicit record length" do
     command = described_class.call(screen:, type: "record", params: { seconds: 15 }, url_options:)
 
     expect(command.params["seconds"]).to eq(15)

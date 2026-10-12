@@ -101,6 +101,55 @@ RSpec.describe "Admin stations", type: :request do
     expect(station.reload.name).to eq("Renamed")
   end
 
+  it "creates tv monitor settings when the operator opts in on create" do
+    expect {
+      post admin_stations_path, params: {
+        station: {
+          location_id: location.id,
+          name: "Monitor lobby",
+          offline_cache_hours: 24,
+          configure_tv_monitor: "1",
+          tv_monitor: {
+            health_interval_seconds: 20,
+            auto_restart_when_not_playing: "1",
+            telemetry_interval_seconds: 90
+          }
+        }
+      }
+    }.to change(Station, :count).by(1)
+
+    station = Station.find_by!(name: "Monitor lobby")
+    expect(response).to redirect_to(admin_station_path(station))
+    monitor = station.tv_monitor
+    expect(monitor.health_interval_seconds).to eq(20)
+    expect(monitor.auto_restart_when_not_playing).to be(true)
+    expect(monitor.telemetry_interval_seconds).to eq(90)
+  end
+
+  it "renders the new form again when telemetry interval is below 5 on create" do
+    expect {
+      post admin_stations_path, params: {
+        station: {
+          location_id: location.id,
+          name: "Bad telemetry interval",
+          offline_cache_hours: 24,
+          configure_tv_monitor: "1",
+          tv_monitor: {
+            health_interval_seconds: 30,
+            auto_restart_when_not_playing: "1",
+            telemetry_interval_seconds: 4
+          }
+        }
+      }
+    }.not_to change(Station, :count)
+
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(Station.find_by(name: "Bad telemetry interval")).to be_nil
+    station_form = Nokogiri::HTML(response.body).at_css("form[action='#{admin_stations_path}']")
+    expect(station_form).to be_present
+    expect(station_form.at_css("input[name='_method'][value='patch']")).to be_nil
+  end
+
   it "does not create tv monitor settings unless the operator opts in" do
     post admin_stations_path, params: {
       station: {

@@ -955,6 +955,7 @@ en:
       buffer_ms: buffer_ms
       seconds: Record seconds
       submit: Queue command
+      upload_link_expiry: The screenshot and record upload link lasts 15 minutes from when the command is queued. A station that is offline longer gets 403 on upload.
       empty: No commands yet.
       errors:
         unknown_type: Unknown command type.

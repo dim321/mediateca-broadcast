@@ -16,7 +16,8 @@ module Api
         def telemetry_payload
           params.require(:reported_at)
           params.require(:station)
-          params.require(:screens)
+          raise ActionController::ParameterMissing, :screens unless params.key?(:screens)
+
           params.permit(
             :reported_at,
             station: %i[uptime_seconds package_etag broadcast_ok],

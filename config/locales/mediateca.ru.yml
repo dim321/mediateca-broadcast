@@ -965,6 +965,7 @@ ru:
       buffer_ms: buffer_ms
       seconds: Секунды записи
       submit: Поставить в очередь
+      upload_link_expiry: Ссылка загрузки screenshot и record действует 15 минут с момента постановки команды. Если станция офлайн дольше, загрузка вернёт 403.
       empty: Команд ещё не было.
       errors:
         unknown_type: Неизвестный тип команды.

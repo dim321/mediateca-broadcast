@@ -103,4 +103,40 @@ RSpec.describe "Api::Agent::V1::Telemetries", type: :request do
     expect(response).to have_http_status(:unprocessable_content)
     expect(response.parsed_body).to eq("error" => "invalid_telemetry")
   end
+
+  it "returns 422 when the screens key is missing" do
+    post "/api/agent/v1/telemetry",
+      params: payload.except(:screens),
+      headers: agent_authorization_headers(token),
+      as: :json
+
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(response.parsed_body).to eq("error" => "invalid_telemetry")
+  end
+
+  it "accepts an empty screens array for a station with no screens" do
+    screenless_token = SecureRandom.hex(16)
+    screenless_station = create(:station)
+    screenless_station.assign_agent_token!(screenless_token)
+
+    post "/api/agent/v1/telemetry",
+      params: {
+        reported_at: "2026-10-09T11:00:00Z",
+        station: {
+          uptime_seconds: 120,
+          package_etag: "W/\"empty\"",
+          broadcast_ok: false
+        },
+        screens: []
+      },
+      headers: agent_authorization_headers(screenless_token),
+      as: :json
+
+    expect(response).to have_http_status(:accepted)
+    expect(response.body).to be_empty
+    snapshot = screenless_station.reload.telemetry_snapshot
+    expect(snapshot).to be_present
+    expect(snapshot.package_etag).to eq("W/\"empty\"")
+    expect(snapshot.broadcast_ok).to be(false)
+  end
 end
