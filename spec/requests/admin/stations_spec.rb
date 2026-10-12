@@ -67,4 +67,80 @@ RSpec.describe "Admin stations", type: :request do
     expect(response).to redirect_to(admin_station_path(station))
     expect(station.reload.name).to eq("Renamed")
   end
+
+  it "does not create tv monitor settings unless the operator opts in" do
+    post admin_stations_path, params: {
+      station: {
+        location_id: location.id,
+        name: "Lobby",
+        offline_cache_hours: 24,
+        configure_tv_monitor: "0",
+        tv_monitor: { health_interval_seconds: 30, auto_restart_when_not_playing: "1", telemetry_interval_seconds: 60 }
+      }
+    }
+
+    station = Station.find_by!(name: "Lobby")
+    expect(station.tv_monitor).to be_nil
+  end
+
+  it "saves an explicit false auto-restart when tv monitor is enabled" do
+    station = create(:station, location: location)
+
+    patch admin_station_path(station), params: {
+      station: {
+        location_id: location.id,
+        name: station.name,
+        offline_cache_hours: 24,
+        configure_tv_monitor: "1",
+        tv_monitor: {
+          health_interval_seconds: 20,
+          auto_restart_when_not_playing: "0",
+          telemetry_interval_seconds: 90
+        }
+      }
+    }
+
+    expect(response).to redirect_to(admin_station_path(station))
+    monitor = station.reload.tv_monitor
+    expect(monitor.health_interval_seconds).to eq(20)
+    expect(monitor.auto_restart_when_not_playing).to be(false)
+    expect(monitor.telemetry_interval_seconds).to eq(90)
+  end
+
+  it "drops tv monitor settings when the operator clears the checkbox" do
+    station = create(:station, location: location)
+    create(:station_tv_monitor, station:)
+
+    patch admin_station_path(station), params: {
+      station: {
+        location_id: location.id,
+        name: station.name,
+        offline_cache_hours: 24,
+        configure_tv_monitor: "0"
+      }
+    }
+
+    expect(station.reload.tv_monitor).to be_nil
+  end
+
+  it "renders the edit form again when the health interval is below 5" do
+    station = create(:station, location: location)
+
+    patch admin_station_path(station), params: {
+      station: {
+        location_id: location.id,
+        name: station.name,
+        offline_cache_hours: 24,
+        configure_tv_monitor: "1",
+        tv_monitor: {
+          health_interval_seconds: 1,
+          auto_restart_when_not_playing: "1",
+          telemetry_interval_seconds: 60
+        }
+      }
+    }
+
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(station.reload.tv_monitor).to be_nil
+  end
 end
