@@ -130,6 +130,7 @@ Rails.application.routes.draw do
         get :package, to: "packages#show"
         get :config, to: "configs#show"
         get :commands, to: "commands#index"
+        post :command_results, to: "command_results#create"
         post :play_events, to: "play_events#create"
         post :telemetry, to: "telemetries#create"
       end
