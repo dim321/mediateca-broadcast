@@ -989,6 +989,8 @@ ru:
       tv_monitor_telemetry: Интервал telemetry, секунды
       template_blank: Шаблон по умолчанию
       template_keep: Не менять текущий
+      agent_package_v2: Пакет агента (v2)
+      agent_config_v1: Конфиг агента (v1)
       telemetry: Телеметрия
       telemetry_empty: Снимка ещё не было.
       telemetry_reported_at: Время снимка

@@ -979,6 +979,8 @@ en:
       tv_monitor_telemetry: Telemetry interval, seconds
       template_blank: Default template
       template_keep: Keep current
+      agent_package_v2: Agent package (v2)
+      agent_config_v1: Agent config (v1)
       telemetry: Telemetry
       telemetry_empty: No snapshot yet.
       telemetry_reported_at: Reported at
