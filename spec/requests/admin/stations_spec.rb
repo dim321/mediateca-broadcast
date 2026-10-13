@@ -225,4 +225,40 @@ RSpec.describe "Admin stations", type: :request do
     expect(response).to have_http_status(:unprocessable_content)
     expect(station.reload.tv_monitor).to be_nil
   end
+
+  it "renders agent v2 package JSON on show" do
+    station = create(:station, location: location)
+
+    get admin_station_path(station)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include(I18n.t("admin.stations.agent_package_v2"))
+    expect(response.body).to include("entries")
+    expect(response.body).to include("screen_map")
+    expect(response.body).to include("etag")
+  end
+
+  it "renders agent v1 config JSON on show" do
+    station = create(:station, location: location)
+    create(:screen, station: station, name: "Lobby TV", orientation: "landscape")
+
+    get admin_station_path(station)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include(I18n.t("admin.stations.agent_config_v1"))
+    expect(response.body).to include("station_id")
+    expect(response.body).to include("screens")
+    expect(response.body).to include("offline_cache_hours")
+    expect(response.body).to include("Lobby TV")
+  end
+
+  it "enqueues GenerateForDateJob when show builds package with missing horizon playlists" do
+    station = create(:station, location: location, offline_cache_hours: 24)
+
+    expect {
+      get admin_station_path(station)
+    }.to have_enqueued_job(Playlists::GenerateForDateJob).at_least(:once)
+
+    expect(response).to have_http_status(:ok)
+  end
 end

@@ -14,6 +14,8 @@ module Admin
       @playlist = @station.playlists.current.includes(items: [ :media_asset, :screens ]).find_by(for_date: @playlist_date)
       @telemetry = @station.telemetry_snapshot
       @screen_telemetry = @station.screen_telemetry_snapshots.includes(:screen).order(:screen_id)
+      @agent_package = Playlists::PackageFromPlaylists.call(station: @station)
+      @agent_config = Agent::ConfigBuilder.call(station: @station)
     end
 
     def regenerate_playlists
