@@ -130,12 +130,12 @@
 
 <div class="mt-6 bg-white border border-gray-200 rounded-lg p-6">
   <h2 class="mb-4 text-lg font-medium text-gray-900"><%= t("admin.stations.agent_package_v2") %></h2>
-  <pre class="overflow-x-auto rounded-lg bg-gray-50 p-4 text-xs text-gray-900 whitespace-pre"><%= raw JSON.pretty_generate(@agent_package) %></pre>
+  <pre class="overflow-x-auto rounded-lg bg-gray-50 p-4 text-xs text-gray-900 whitespace-pre"><%= JSON.pretty_generate(@agent_package) %></pre>
 </div>
 
 <div class="mt-6 bg-white border border-gray-200 rounded-lg p-6">
   <h2 class="mb-4 text-lg font-medium text-gray-900"><%= t("admin.stations.agent_config_v1") %></h2>
-  <pre class="overflow-x-auto rounded-lg bg-gray-50 p-4 text-xs text-gray-900 whitespace-pre"><%= raw JSON.pretty_generate(@agent_config) %></pre>
+  <pre class="overflow-x-auto rounded-lg bg-gray-50 p-4 text-xs text-gray-900 whitespace-pre"><%= JSON.pretty_generate(@agent_config) %></pre>
 </div>
 
 <div class="mt-6 flex flex-wrap gap-3">
