@@ -27,6 +27,20 @@ RSpec.describe "Api::Agent::V1::CommandResults", type: :request do
     { mac_address:, ip_address:, **extra }
   end
 
+  def expect_rejected_discovery_result(result, public_id:)
+    existing = create(:screen, station:, network_registered: true)
+    command = create(:agent_command, :fetch_screens, station:, public_id:)
+
+    post_results([
+      fetch_result(command, screens: [], result:)
+    ])
+
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(response.parsed_body).to eq("error" => "invalid_result")
+    expect(command.reload).to be_pending
+    expect(existing.reload).to be_network_registered
+  end
+
   it "returns 401 without a token" do
     post_results([], headers: {})
 
@@ -195,6 +209,24 @@ RSpec.describe "Api::Agent::V1::CommandResults", type: :request do
     expect(existing.reload).to be_network_registered
   end
 
+  it "rejects a nil discovery row" do
+    expect_rejected_discovery_result(
+      { screens: [ nil ] },
+      public_id: "cmd_nil_screen"
+    )
+  end
+
+  it "rejects a scalar discovery row" do
+    expect_rejected_discovery_result(
+      { screens: [ "bad" ] },
+      public_id: "cmd_scalar_screen"
+    )
+  end
+
+  it "rejects a scalar result" do
+    expect_rejected_discovery_result("bad", public_id: "cmd_scalar_result")
+  end
+
   it "acks a failed fetch_screens result without changing registration" do
     existing = create(:screen, station:, network_registered: true)
     command = create(:agent_command, :fetch_screens, station:, public_id: "cmd_failed_fetch")
@@ -254,7 +286,7 @@ RSpec.describe "Api::Agent::V1::CommandResults", type: :request do
     expect(existing.reload).to be_network_registered
   end
 
-  it "ignores malformed discovery payloads for unknown and already acknowledged commands" do
+  it "rejects structurally malformed discovery payloads before command lookup" do
     acknowledged = create(
       :agent_command,
       :fetch_screens,
@@ -276,7 +308,8 @@ RSpec.describe "Api::Agent::V1::CommandResults", type: :request do
       }
     ])
 
-    expect(response).to have_http_status(:ok)
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(response.parsed_body).to eq("error" => "invalid_result")
     expect(acknowledged.reload.finished_at.utc.iso8601).to eq("2026-10-09T11:01:00Z")
   end
 
