@@ -16,11 +16,8 @@ module Agent
         return Result.new(command:, created: false) if command
 
         Result.new(command: create_command, created: true)
-      rescue ActiveRecord::RecordNotUnique => error
-        command = pending
-        raise error unless command
-
-        Result.new(command:, created: false)
+      rescue ActiveRecord::RecordNotUnique
+        Result.new(command: pending!, created: false)
       end
 
       private
@@ -31,15 +28,21 @@ module Agent
         station.agent_commands.pending.find_by(command_type: "fetch_screens")
       end
 
+      def pending!
+        station.agent_commands.pending.find_by!(command_type: "fetch_screens")
+      end
+
       def create_command
-        station.agent_commands.create!(
-          screen: nil,
-          public_id: "cmd_#{SecureRandom.uuid}",
-          command_type: "fetch_screens",
-          params: {},
-          issued_at: Time.current,
-          status: "pending"
-        )
+        AgentCommand.transaction(requires_new: true) do
+          station.agent_commands.create!(
+            screen: nil,
+            public_id: "cmd_#{SecureRandom.uuid}",
+            command_type: "fetch_screens",
+            params: {},
+            issued_at: Time.current,
+            status: "pending"
+          )
+        end
       end
     end
   end
