@@ -16,17 +16,11 @@ module Api
         def result_rows
           rows = params.require(:results)
           raw_rows = raw_result_rows
+          raise ActionController::ParameterMissing, :results unless rows.is_a?(Array)
           raise ActionController::ParameterMissing, :results unless raw_rows.size == rows.size
 
           rows.each_with_index.map do |row, index|
-            validate_result_shape!(raw_rows.fetch(index))
-            row.permit(
-              :command_id,
-              :ok,
-              :error,
-              :finished_at,
-              result: { screens: [ :mac_address, :ip_address ] }
-            ).to_h
+            sanitize_row(row, raw_rows.fetch(index))
           end
         end
 
@@ -38,16 +32,31 @@ module Api
           raise ActionController::ParameterMissing, :results
         end
 
-        def validate_result_shape!(row)
-          return unless row.key?("result")
+        def sanitize_row(row, raw_row)
+          valid_row = parameters_hash?(row) && parameters_hash?(raw_row)
+          raise ActionController::ParameterMissing, :results unless valid_row
 
-          result = row["result"]
-          raise ActionController::ParameterMissing, :result unless parameters_hash?(result)
-          return unless result.key?("screens")
+          permitted = row.permit(:command_id, :ok, :error, :finished_at).to_h
+          return permitted unless raw_row.key?("result")
 
-          screens = result["screens"]
-          valid_rows = screens.is_a?(Array) && screens.all? { parameters_hash?(_1) }
-          raise ActionController::ParameterMissing, :screens unless valid_rows
+          permitted.merge("result" => sanitize_result(raw_row["result"]))
+        end
+
+        def sanitize_result(result)
+          return result unless parameters_hash?(result)
+          return {} unless result.key?("screens")
+
+          { "screens" => sanitize_screens(result["screens"]) }
+        end
+
+        def sanitize_screens(screens)
+          return screens unless screens.is_a?(Array)
+
+          screens.map do |screen|
+            next screen unless parameters_hash?(screen)
+
+            ActionController::Parameters.new(screen).permit(:mac_address, :ip_address).to_h
+          end
         end
 
         def parameters_hash?(value)

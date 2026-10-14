@@ -48,6 +48,13 @@ RSpec.describe "Api::Agent::V1::CommandResults", type: :request do
     expect(response.parsed_body).to eq("error" => "unauthorized")
   end
 
+  it "returns 422 when a top-level result row is scalar" do
+    post_results([ "bad" ])
+
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(response.parsed_body).to eq("error" => "invalid_result")
+  end
+
   it "acks a command and drops it from the queue" do
     command = create(:agent_command, station:, screen:, public_id: "cmd_restart_1")
 
@@ -161,6 +168,28 @@ RSpec.describe "Api::Agent::V1::CommandResults", type: :request do
       network_registered: true
     )
     expect(station.screens.order(:id).last.name).not_to eq("Injected")
+  end
+
+  it "strips extra result and screen keys before synchronization" do
+    command = create(:agent_command, :fetch_screens, station:, public_id: "cmd_whitelist")
+    allow(Agent::Screens::Synchronize).to receive(:call)
+
+    post_results([
+      fetch_result(
+        command,
+        screens: [],
+        result: {
+          screens: [ discovered("aa:bb:cc:dd:ee:ff", "192.168.1.10", name: "Injected") ],
+          extra: "ignored"
+        }
+      )
+    ])
+
+    expect(response).to have_http_status(:ok)
+    expect(Agent::Screens::Synchronize).to have_received(:call).with(
+      station:,
+      screens: [ { "mac_address" => "aa:bb:cc:dd:ee:ff", "ip_address" => "192.168.1.10" } ]
+    )
   end
 
   it "rejects a malformed discovered MAC without changing screens or acknowledging" do
@@ -286,7 +315,23 @@ RSpec.describe "Api::Agent::V1::CommandResults", type: :request do
     expect(existing.reload).to be_network_registered
   end
 
-  it "rejects structurally malformed discovery payloads before command lookup" do
+  it "ignores a malformed scalar result for an unknown command" do
+    post_results([
+      {
+        command_id: "cmd_unknown_fetch",
+        ok: true,
+        error: nil,
+        finished_at: "2026-10-09T11:01:02Z",
+        result: "bad"
+      }
+    ])
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to be_empty
+  end
+
+  it "ignores a malformed result for an already acknowledged fetch" do
+    existing = create(:screen, station:, network_registered: true)
     acknowledged = create(
       :agent_command,
       :fetch_screens,
@@ -298,19 +343,12 @@ RSpec.describe "Api::Agent::V1::CommandResults", type: :request do
     )
 
     post_results([
-      fetch_result(acknowledged, screens: "invalid"),
-      {
-        command_id: "cmd_unknown_fetch",
-        ok: true,
-        error: nil,
-        finished_at: "2026-10-09T11:01:02Z",
-        result: { screens: "invalid" }
-      }
+      fetch_result(acknowledged, screens: [], result: "bad")
     ])
 
-    expect(response).to have_http_status(:unprocessable_content)
-    expect(response.parsed_body).to eq("error" => "invalid_result")
+    expect(response).to have_http_status(:ok)
     expect(acknowledged.reload.finished_at.utc.iso8601).to eq("2026-10-09T11:01:00Z")
+    expect(existing.reload).to be_network_registered
   end
 
   it "keeps a batch atomic when a later row is invalid" do
