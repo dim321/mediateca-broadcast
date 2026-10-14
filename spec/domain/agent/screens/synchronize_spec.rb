@@ -43,7 +43,13 @@ RSpec.describe Agent::Screens::Synchronize do
       ip_address: "192.168.1.2",
       network_registered: true
     )
-    legacy = create(:screen, station:, mac_address: nil, network_registered: true)
+    legacy = create(
+      :screen,
+      station:,
+      mac_address: nil,
+      ip_address: "192.168.1.3",
+      network_registered: true
+    )
     screens = [ discovered("aa:bb:cc:dd:ee:01", "192.168.1.1") ]
 
     described_class.call(station:, screens:)
@@ -54,8 +60,11 @@ RSpec.describe Agent::Screens::Synchronize do
       ip_address: IPAddr.new("192.168.1.2"),
       network_registered: false
     )
-    expect(legacy.reload.mac_address).to be_nil
-    expect(legacy).not_to be_network_registered
+    expect(legacy.reload).to have_attributes(
+      mac_address: nil,
+      ip_address: IPAddr.new("192.168.1.3"),
+      network_registered: false
+    )
   end
 
   it "unregisters every station screen for an empty discovery" do
@@ -65,6 +74,19 @@ RSpec.describe Agent::Screens::Synchronize do
     synchronize
 
     expect([ registered.reload, another.reload ]).to all(satisfy { !_1.network_registered? })
+  end
+
+  it "synchronizes inside the station lock" do
+    screens = [ discovered("aa:bb:cc:dd:ee:ff", "192.168.1.2") ]
+    allow(station).to receive(:with_lock).and_call_original
+
+    described_class.call(station:, screens:)
+
+    expect(station).to have_received(:with_lock)
+    expect(station.screens.sole).to have_attributes(
+      mac_address: "aa:bb:cc:dd:ee:ff",
+      network_registered: true
+    )
   end
 
   it "creates unknown screens in numeric IPv4 order with sequential default names" do
