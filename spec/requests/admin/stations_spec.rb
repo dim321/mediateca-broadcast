@@ -82,6 +82,80 @@ RSpec.describe "Admin stations", type: :request do
     }.to change { station.agent_commands.count }.by(1)
   end
 
+  it "shows station screens with the screen refresh action" do
+    station = create(:station, location: location)
+    screen = create(:screen, station:, name: "Lobby TV")
+
+    get admin_station_path(station)
+
+    document = Nokogiri::HTML(response.body)
+    screens_section = document.at_css("[data-testid='station-screens']")
+    refresh_form = document.at_css("form[action='#{admin_station_screen_refresh_path(station)}'][method='post']")
+    screen_link = document.at_css("a[href='#{admin_screen_path(screen)}']")
+
+    expect(response).to have_http_status(:ok)
+    expect(screens_section.at_css("h2")&.text).to include(I18n.t("admin.stations.screens.title"))
+    expect(refresh_form).to be_present
+    expect(refresh_form.text).to include(I18n.t("admin.stations.screens.refresh"))
+    expect(screen_link&.text).to include(screen.name)
+  end
+
+  it "shows station screen addresses, registration status, and column headings" do
+    station = create(:station, location: location)
+    create(
+      :screen,
+      station:,
+      mac_address: "08-00-2B-01-02-03",
+      ip_address: "192.0.2.10",
+      network_registered: true
+    )
+
+    get admin_station_path(station)
+
+    screens_section = Nokogiri::HTML(response.body).at_css("[data-testid='station-screens']")
+
+    expect(response.body).to include("08:00:2b:01:02:03")
+    expect(response.body).to include("192.0.2.10")
+    expect(response.body).to include(I18n.t("admin.crud.yes"))
+    expect(screens_section.css("th[scope='col']").map(&:text)).to contain_exactly(
+      Screen.human_attribute_name(:name),
+      Screen.human_attribute_name(:mac_address),
+      Screen.human_attribute_name(:ip_address),
+      Screen.human_attribute_name(:network_registered)
+    )
+  end
+
+  it "orders station screens case-insensitively by name and then id" do
+    station = create(:station, location: location)
+    first_alpha = create(:screen, station:, name: "alpha")
+    beta = create(:screen, station:, name: "Beta")
+    second_alpha = create(:screen, station:, name: "Alpha")
+
+    get admin_station_path(station)
+
+    body = response.body
+    expect(body.index(admin_screen_path(first_alpha))).to be < body.index(admin_screen_path(second_alpha))
+    expect(body.index(admin_screen_path(second_alpha))).to be < body.index(admin_screen_path(beta))
+  end
+
+  it "shows none for missing station screen addresses" do
+    station = create(:station, location: location)
+    create(:screen, station:, mac_address: nil, ip_address: nil)
+
+    get admin_station_path(station)
+
+    screens_section = Nokogiri::HTML(response.body).at_css("[data-testid='station-screens']")
+    expect(screens_section.text.scan(I18n.t("admin.crud.none")).size).to eq(2)
+  end
+
+  it "shows the station screens empty state" do
+    station = create(:station, location: location)
+
+    get admin_station_path(station)
+
+    expect(response.body).to include(I18n.t("admin.stations.screens.empty"))
+  end
+
   it "shows the latest telemetry snapshot" do
     station = create(:station, location: location)
     screen = create(:screen, station:)
