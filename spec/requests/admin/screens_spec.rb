@@ -298,6 +298,13 @@ RSpec.describe "Admin screens", type: :request do
   describe "agent commands" do
     let(:screen) { create(:screen, station:) }
 
+    it "offers only screen commands" do
+      get admin_screen_path(screen)
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).not_to include(%(value="fetch_screens"))
+    end
+
     it "queues a restart_stream that the agent poll can see" do
       token = SecureRandom.hex(16)
       station.assign_agent_token!(token)

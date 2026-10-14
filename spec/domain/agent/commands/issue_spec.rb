@@ -65,6 +65,12 @@ RSpec.describe Agent::Commands::Issue do
     }.to raise_error(described_class::Error) { |error| expect(error.code).to eq("unknown_type") }
   end
 
+  it "rejects a station command for a screen" do
+    expect {
+      described_class.call(screen:, type: "fetch_screens", params: {}, url_options:)
+    }.to raise_error(described_class::Error) { |error| expect(error.code).to eq("unknown_type") }
+  end
+
   it "refuses to mint an upload url without a host" do
     expect {
       described_class.call(screen:, type: "screenshot", params: {}, url_options: {})

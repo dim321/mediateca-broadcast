@@ -31,7 +31,9 @@
 #  fk_rails_...  (station_id => stations.id)
 #
 class AgentCommand < ApplicationRecord
-  TYPES = %w[start_stream restart_stream stop wake sleep screenshot record ensure_app install_apk fetch_screens].freeze
+  SCREEN_TYPES = %w[start_stream restart_stream stop wake sleep screenshot record ensure_app install_apk].freeze
+  STATION_TYPES = %w[fetch_screens].freeze
+  TYPES = (SCREEN_TYPES + STATION_TYPES).freeze
   UPLOAD_TYPES = %w[screenshot record].freeze
 
   belongs_to :station

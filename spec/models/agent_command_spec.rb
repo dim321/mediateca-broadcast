@@ -3,6 +3,17 @@
 require "rails_helper"
 
 RSpec.describe AgentCommand, type: :model do
+  describe "command types" do
+    it "separates screen and station commands" do
+      expect(described_class::SCREEN_TYPES).not_to include("fetch_screens")
+      expect(described_class::STATION_TYPES).to eq(%w[fetch_screens])
+      expect(described_class::TYPES).to contain_exactly(
+        *described_class::SCREEN_TYPES,
+        *described_class::STATION_TYPES
+      )
+    end
+  end
+
   describe "command scope" do
     it "allows fetch_screens without a screen" do
       expect(build(:agent_command, :fetch_screens)).to be_valid

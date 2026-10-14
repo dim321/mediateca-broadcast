@@ -77,6 +77,25 @@ RSpec.describe Screen, type: :model do
 
       expect(build(:screen, mac_address: "08:00:2b:01:02:03")).to be_valid
     end
+
+    it "enforces MAC uniqueness within a station at the database level" do
+      station = create(:station)
+      create(:screen, station: station, mac_address: "08:00:2b:01:02:03")
+
+      duplicate = create(:screen, station: station)
+
+      expect {
+        duplicate.update_columns(mac_address: "08:00:2b:01:02:03")
+      }.to raise_error(ActiveRecord::RecordNotUnique)
+    end
+
+    it "rejects IPv6 at the database level" do
+      screen = create(:screen)
+
+      expect {
+        screen.update_columns(ip_address: "2001:db8::1")
+      }.to raise_error(ActiveRecord::StatementInvalid)
+    end
   end
 
   it "allows saving without an owner" do

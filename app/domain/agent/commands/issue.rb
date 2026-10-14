@@ -22,7 +22,7 @@ module Agent
       end
 
       def call
-        raise Error, "unknown_type" unless AgentCommand::TYPES.include?(type)
+        raise Error, "unknown_type" unless AgentCommand::SCREEN_TYPES.include?(type)
 
         AgentCommand.transaction do
           command = screen.station.agent_commands.create!(
