@@ -46,3 +46,6 @@
 
 # daisyUI (Tailwind plugin) — install with npm for local CSS builds
 /node_modules
+
+# Isolated agent worktrees
+/.worktrees/
