@@ -982,6 +982,9 @@ ru:
       regen_confirm: Пересобрать плейлисты этой станции на горизонт кэша?
       regen_enqueued: Пересборка плейлиста поставлена в очередь.
       regenerate_playlists: Пересобрать плейлисты
+      screen_refresh:
+        queued: Обновление экранов поставлено в очередь.
+        already_queued: Обновление экранов уже ожидает выполнения.
       configure_tv_monitor: Отдавать tv_monitor станции
       tv_monitor_hint: Пустой объект не отправляем. Снятие флажка возвращает дефолты station (health 30 с, авторестарт включён, telemetry 60 с). При включённом авторестарте команда stop может быть сразу отменена watchdog.
       tv_monitor_health: Интервал health, секунды

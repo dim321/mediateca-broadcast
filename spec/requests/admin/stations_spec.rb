@@ -36,6 +36,52 @@ RSpec.describe "Admin stations", type: :request do
     expect(response).to redirect_to(admin_station_path(station))
   end
 
+  it "queues one station-level fetch_screens command" do
+    station = create(:station, location: location)
+
+    expect {
+      post admin_station_screen_refresh_path(station)
+    }.to change { station.agent_commands.count }.by(1)
+
+    expect(response).to have_http_status(:see_other)
+    expect(response).to redirect_to(admin_station_path(station))
+    expect(station.agent_commands.sole).to have_attributes(command_type: "fetch_screens", screen_id: nil)
+  end
+
+  it "reuses a pending fetch_screens command and reports that it is already queued" do
+    station = create(:station, location: location)
+    post admin_station_screen_refresh_path(station)
+
+    expect {
+      post admin_station_screen_refresh_path(station)
+    }.not_to change { station.agent_commands.count }
+
+    follow_redirect!
+    expect(response.body).to include(I18n.t("admin.stations.screen_refresh.already_queued"))
+  end
+
+  it "queues a new fetch_screens command after acknowledgement" do
+    station = create(:station, location: location)
+    post admin_station_screen_refresh_path(station)
+    station.agent_commands.sole.update!(status: "acked")
+
+    expect {
+      post admin_station_screen_refresh_path(station)
+    }.to change { station.agent_commands.count }.by(1)
+
+    expect(station.agent_commands.pending.where(command_type: "fetch_screens").count).to eq(1)
+  end
+
+  it "does not reuse another station's pending fetch_screens command" do
+    station = create(:station, location: location)
+    other_station = create(:station, location: location)
+    Agent::Commands::FetchScreens.call(station: other_station)
+
+    expect {
+      post admin_station_screen_refresh_path(station)
+    }.to change { station.agent_commands.count }.by(1)
+  end
+
   it "shows the latest telemetry snapshot" do
     station = create(:station, location: location)
     screen = create(:screen, station:)
