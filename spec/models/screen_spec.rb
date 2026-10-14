@@ -28,6 +28,57 @@ require "rails_helper"
 #  fk_rails_...  (station_id => stations.id)
 #
 RSpec.describe Screen, type: :model do
+  describe "network identity" do
+    it "uses PostgreSQL network types" do
+      expect(described_class.columns_hash.fetch("mac_address").sql_type).to eq("macaddr")
+      expect(described_class.columns_hash.fetch("ip_address").sql_type).to eq("inet")
+    end
+
+    it "canonicalizes MAC addresses" do
+      screen = create(:screen, mac_address: "08-00-2B-01-02-03")
+
+      expect(screen.reload.mac_address.to_s).to eq("08:00:2b:01:02:03")
+    end
+
+    it "does not register a screen by default" do
+      expect(create(:screen).network_registered).to be(false)
+    end
+
+    it "accepts an IPv4 host address" do
+      expect(build(:screen, ip_address: "192.0.2.10")).to be_valid
+    end
+
+    it "rejects an IPv6 address" do
+      screen = build(:screen, ip_address: "2001:db8::1")
+
+      expect(screen).not_to be_valid
+      expect(screen.errors[:ip_address]).to include(I18n.t("errors.messages.invalid"))
+    end
+
+    it "rejects an IPv4 CIDR" do
+      screen = build(:screen, ip_address: "192.0.2.10/24")
+
+      expect(screen).not_to be_valid
+      expect(screen.errors[:ip_address]).to include(I18n.t("errors.messages.invalid"))
+    end
+
+    it "requires MAC addresses to be unique within a station" do
+      station = create(:station)
+      create(:screen, station: station, mac_address: "08:00:2b:01:02:03")
+
+      duplicate = build(:screen, station: station, mac_address: "08:00:2b:01:02:03")
+
+      expect(duplicate).not_to be_valid
+      expect(duplicate.errors[:mac_address]).to be_present
+    end
+
+    it "allows the same MAC address at different stations" do
+      create(:screen, mac_address: "08:00:2b:01:02:03")
+
+      expect(build(:screen, mac_address: "08:00:2b:01:02:03")).to be_valid
+    end
+  end
+
   it "allows saving without an owner" do
     expect(build(:screen)).to be_valid
   end

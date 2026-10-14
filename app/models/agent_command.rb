@@ -31,11 +31,11 @@
 #  fk_rails_...  (station_id => stations.id)
 #
 class AgentCommand < ApplicationRecord
-  TYPES = %w[start_stream restart_stream stop wake sleep screenshot record ensure_app install_apk].freeze
+  TYPES = %w[start_stream restart_stream stop wake sleep screenshot record ensure_app install_apk fetch_screens].freeze
   UPLOAD_TYPES = %w[screenshot record].freeze
 
   belongs_to :station
-  belongs_to :screen
+  belongs_to :screen, optional: true
 
   has_one_attached :artifact
 
@@ -44,7 +44,7 @@ class AgentCommand < ApplicationRecord
   validates :public_id, :command_type, :issued_at, presence: true
   validates :public_id, uniqueness: true
   validates :command_type, inclusion: { in: TYPES }
-  validate :screen_belongs_to_station
+  validate :screen_matches_command_scope
 
   def expects_upload?
     UPLOAD_TYPES.include?(command_type)
@@ -52,9 +52,11 @@ class AgentCommand < ApplicationRecord
 
   private
 
-  def screen_belongs_to_station
-    return if screen.blank? || station.blank?
-    return if screen.station_id == station_id
+  def screen_matches_command_scope
+    return errors.add(:screen, :invalid) if command_type == "fetch_screens" && screen.present?
+    return if command_type == "fetch_screens"
+    return errors.add(:screen, :blank) if screen.blank?
+    return if station.present? && screen.station_id == station_id
 
     errors.add(:screen, :invalid)
   end

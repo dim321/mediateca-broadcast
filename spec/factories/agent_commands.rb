@@ -39,5 +39,11 @@ FactoryBot.define do
     params { {} }
     issued_at { Time.utc(2026, 10, 9, 11, 1, 0) }
     status { "pending" }
+
+    trait :fetch_screens do
+      command_type { "fetch_screens" }
+      screen { nil }
+      params { {} }
+    end
   end
 end

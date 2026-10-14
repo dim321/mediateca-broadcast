@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_12_100300) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -112,7 +112,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_12_100300) do
 
   create_table "agent_commands", force: :cascade do |t|
     t.bigint "station_id", null: false
-    t.bigint "screen_id", null: false
+    t.bigint "screen_id"
     t.string "public_id", null: false
     t.string "command_type", null: false
     t.jsonb "params", default: {}, null: false
@@ -126,6 +126,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_12_100300) do
     t.index ["public_id"], name: "index_agent_commands_on_public_id", unique: true
     t.index ["screen_id"], name: "index_agent_commands_on_screen_id"
     t.index ["station_id", "status"], name: "index_agent_commands_on_station_id_and_status"
+    t.index ["station_id"], name: "index_agent_commands_on_pending_fetch_screens", unique: true, where: "(((status)::text = 'pending'::text) AND ((command_type)::text = 'fetch_screens'::text))"
     t.index ["station_id"], name: "index_agent_commands_on_station_id"
   end
 
@@ -416,9 +417,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_12_100300) do
     t.bigint "owner_organization_id"
     t.bigint "station_id", null: false
     t.datetime "updated_at", null: false
+    t.macaddr "mac_address"
+    t.inet "ip_address"
+    t.boolean "network_registered", default: false, null: false
     t.index ["owner_organization_id"], name: "index_screens_on_owner_organization_id"
+    t.index ["station_id", "mac_address"], name: "index_screens_on_station_id_and_mac_address", unique: true, where: "(mac_address IS NOT NULL)"
     t.index ["station_id", "name"], name: "index_screens_on_station_id_and_name", unique: true
     t.index ["station_id"], name: "index_screens_on_station_id"
+    t.check_constraint "ip_address IS NULL OR family(ip_address) = 4 AND masklen(ip_address) = 32", name: "screens_ip_address_is_ipv4_host"
   end
 
   create_table "service_themes", force: :cascade do |t|
