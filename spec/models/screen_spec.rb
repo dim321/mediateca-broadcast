@@ -8,7 +8,10 @@ require "rails_helper"
 #
 #  id                                    :bigint           not null, primary key
 #  inherit_operating_hours_from_location :boolean          default(TRUE), not null
+#  ip_address                            :inet
+#  mac_address                           :macaddr
 #  name                                  :string           not null
+#  network_registered                    :boolean          default(FALSE), not null
 #  operating_hours                       :jsonb            not null
 #  orientation                           :string           default("landscape"), not null
 #  created_at                            :datetime         not null
@@ -18,9 +21,10 @@ require "rails_helper"
 #
 # Indexes
 #
-#  index_screens_on_owner_organization_id  (owner_organization_id)
-#  index_screens_on_station_id             (station_id)
-#  index_screens_on_station_id_and_name    (station_id,name) UNIQUE
+#  index_screens_on_owner_organization_id       (owner_organization_id)
+#  index_screens_on_station_id                  (station_id)
+#  index_screens_on_station_id_and_mac_address  (station_id,mac_address) UNIQUE WHERE (mac_address IS NOT NULL)
+#  index_screens_on_station_id_and_name         (station_id,name) UNIQUE
 #
 # Foreign Keys
 #

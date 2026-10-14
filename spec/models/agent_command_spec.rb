@@ -2,6 +2,37 @@
 
 require "rails_helper"
 
+# == Schema Information
+#
+# Table name: agent_commands
+#
+#  id           :bigint           not null, primary key
+#  command_type :string           not null
+#  finished_at  :datetime
+#  issued_at    :datetime         not null
+#  params       :jsonb            not null
+#  result_error :string
+#  status       :string           default("pending"), not null
+#  succeeded    :boolean
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
+#  public_id    :string           not null
+#  screen_id    :bigint
+#  station_id   :bigint           not null
+#
+# Indexes
+#
+#  index_agent_commands_on_pending_fetch_screens  (station_id) UNIQUE WHERE (((status)::text = 'pending'::text) AND ((command_type)::text = 'fetch_screens'::text))
+#  index_agent_commands_on_public_id              (public_id) UNIQUE
+#  index_agent_commands_on_screen_id              (screen_id)
+#  index_agent_commands_on_station_id             (station_id)
+#  index_agent_commands_on_station_id_and_status  (station_id,status)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (screen_id => screens.id)
+#  fk_rails_...  (station_id => stations.id)
+#
 RSpec.describe AgentCommand, type: :model do
   describe "command types" do
     it "separates screen and station commands" do

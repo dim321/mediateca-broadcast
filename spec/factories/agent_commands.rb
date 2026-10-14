@@ -15,11 +15,12 @@
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
 #  public_id    :string           not null
-#  screen_id    :bigint           not null
+#  screen_id    :bigint
 #  station_id   :bigint           not null
 #
 # Indexes
 #
+#  index_agent_commands_on_pending_fetch_screens  (station_id) UNIQUE WHERE (((status)::text = 'pending'::text) AND ((command_type)::text = 'fetch_screens'::text))
 #  index_agent_commands_on_public_id              (public_id) UNIQUE
 #  index_agent_commands_on_screen_id              (screen_id)
 #  index_agent_commands_on_station_id             (station_id)
