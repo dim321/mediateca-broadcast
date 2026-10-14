@@ -18,9 +18,10 @@ module Agent
       end
 
       def call
-        rows = normalize
         AgentCommand.transaction do
-          rows.each { |row| apply(row) }
+          Array(results).each do |result|
+            apply(normalize_row(result.to_h.deep_stringify_keys))
+          end
         end
         nil
       end
@@ -28,10 +29,6 @@ module Agent
       private
 
       attr_reader :station, :results
-
-      def normalize
-        Array(results).map { |result| normalize_row(result.to_h.deep_stringify_keys) }
-      end
 
       def normalize_row(data)
         raise Invalid if data["command_id"].blank?
@@ -43,7 +40,8 @@ module Agent
           "command_id" => data["command_id"],
           "ok" => data["ok"],
           "error" => data["error"],
-          "finished_at" => finished_at
+          "finished_at" => finished_at,
+          "result" => data["result"]
         }
       rescue ArgumentError
         raise Invalid
@@ -54,12 +52,26 @@ module Agent
         return if command.nil?
         return if command.acked?
 
+        synchronize_screens(command, row)
+
         command.update!(
           status: "acked",
           succeeded: row["ok"],
           result_error: row["error"],
           finished_at: row["finished_at"]
         )
+      end
+
+      def synchronize_screens(command, row)
+        return unless command.command_type == "fetch_screens"
+        return unless row["ok"]
+
+        result = row["result"]
+        raise Invalid unless result.is_a?(Hash) && result["screens"].is_a?(Array)
+
+        Agent::Screens::Synchronize.call(station:, screens: result["screens"])
+      rescue Agent::Screens::NormalizeDiscovery::Invalid
+        raise Invalid
       end
     end
   end

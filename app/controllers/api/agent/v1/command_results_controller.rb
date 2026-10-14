@@ -16,7 +16,13 @@ module Api
         def result_rows
           rows = params.require(:results)
           rows.map do |row|
-            row.permit(:command_id, :ok, :error, :finished_at).to_h
+            row.permit(
+              :command_id,
+              :ok,
+              :error,
+              :finished_at,
+              result: { screens: [ :mac_address, :ip_address ] }
+            ).to_h
           end
         end
       end

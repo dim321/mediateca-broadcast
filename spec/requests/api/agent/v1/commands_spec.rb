@@ -47,6 +47,44 @@ RSpec.describe "Api::Agent::V1::Commands", type: :request do
     )
   end
 
+  it "returns a station-level fetch_screens command with the exact payload" do
+    command = create(
+      :agent_command,
+      :fetch_screens,
+      station:,
+      public_id: "cmd_fetch_screens",
+      issued_at: Time.utc(2026, 10, 9, 11, 1, 0)
+    )
+
+    get "/api/agent/v1/commands", headers: agent_authorization_headers(token), as: :json
+
+    expect(response).to have_http_status(:ok)
+    expect(response.parsed_body).to eq(
+      "commands" => [
+        {
+          "id" => command.public_id,
+          "screen_id" => nil,
+          "type" => "fetch_screens",
+          "params" => {},
+          "issued_at" => "2026-10-09T11:01:00Z"
+        }
+      ]
+    )
+  end
+
+  it "returns 304 for an unchanged fetch_screens command" do
+    create(:agent_command, :fetch_screens, station:)
+
+    get "/api/agent/v1/commands", headers: agent_authorization_headers(token), as: :json
+    etag = response.headers["ETag"]
+
+    get "/api/agent/v1/commands",
+      headers: agent_authorization_headers(token).merge("If-None-Match" => etag)
+
+    expect(response).to have_http_status(:not_modified)
+    expect(response.body).to be_empty
+  end
+
   it "returns 304 when If-None-Match repeats the queue etag" do
     get "/api/agent/v1/commands", headers: agent_authorization_headers(token), as: :json
     etag = response.headers["ETag"]
