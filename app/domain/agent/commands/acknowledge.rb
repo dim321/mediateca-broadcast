@@ -48,7 +48,7 @@ module Agent
       end
 
       def apply(row)
-        command = station.agent_commands.find_by(public_id: row["command_id"])
+        command = station.agent_commands.lock.find_by(public_id: row["command_id"])
         return if command.nil?
         return if command.acked?
 

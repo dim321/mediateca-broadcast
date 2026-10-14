@@ -55,6 +55,15 @@ RSpec.describe "Api::Agent::V1::CommandResults", type: :request do
     expect(response.parsed_body).to eq("error" => "invalid_result")
   end
 
+  it "returns 422 for a non-JSON form payload" do
+    post "/api/agent/v1/command_results",
+      params: { results: [ { command_id: "cmd_form", ok: true } ] },
+      headers: agent_authorization_headers(token)
+
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(response.parsed_body).to eq("error" => "invalid_result")
+  end
+
   it "acks a command and drops it from the queue" do
     command = create(:agent_command, station:, screen:, public_id: "cmd_restart_1")
 
