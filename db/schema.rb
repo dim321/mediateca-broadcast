@@ -44,9 +44,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
 
   create_table "advertising_order_line_days", force: :cascade do |t|
     t.bigint "advertising_order_line_id", null: false
-    t.datetime "created_at", null: false
     t.date "date", null: false
     t.integer "shows", null: false
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["advertising_order_line_id", "date"], name: "index_advertising_order_line_days_on_line_and_date", unique: true
     t.index ["advertising_order_line_id"], name: "index_advertising_order_line_days_on_advertising_order_line_id"
@@ -55,12 +55,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
 
   create_table "advertising_order_lines", force: :cascade do |t|
     t.bigint "advertising_order_id", null: false
-    t.datetime "created_at", null: false
     t.integer "price_per_day_cents", null: false
-    t.bigint "screen_id", null: false
     t.integer "total_shows", default: 0, null: false
     t.integer "total_sum_cents", default: 0, null: false
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "screen_id", null: false
     t.index ["advertising_order_id", "screen_id"], name: "index_advertising_order_lines_on_order_and_screen", unique: true
     t.index ["advertising_order_id"], name: "index_advertising_order_lines_on_advertising_order_id"
     t.index ["screen_id"], name: "index_advertising_order_lines_on_screen_id"
@@ -71,35 +71,35 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
 
   create_table "advertising_order_windows", force: :cascade do |t|
     t.bigint "advertising_order_id", null: false
-    t.datetime "created_at", null: false
-    t.time "ends_at", null: false
     t.time "starts_at", null: false
+    t.time "ends_at", null: false
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["advertising_order_id"], name: "index_advertising_order_windows_on_advertising_order_id"
     t.check_constraint "starts_at < ends_at", name: "advertising_order_windows_ends_after_starts"
   end
 
   create_table "advertising_orders", force: :cascade do |t|
-    t.string "business_sphere"
-    t.string "clip_title"
-    t.integer "coefficient_percent", default: 0, null: false
-    t.datetime "created_at", null: false
-    t.bigint "created_by_user_id", null: false
-    t.integer "discount_cents", default: 0, null: false
-    t.string "distribution_strategy", default: "linear", null: false
-    t.integer "document_version", default: 1, null: false
-    t.integer "duration_seconds"
-    t.bigint "media_asset_id"
     t.bigint "organization_id", null: false
-    t.string "placement_kind", default: "own_atmosphere", null: false
-    t.string "product_name", null: false
-    t.string "rejection_reason"
+    t.bigint "created_by_user_id", null: false
+    t.string "business_sphere"
+    t.bigint "media_asset_id"
     t.bigint "rotation_id", null: false
-    t.integer "shows_per_hour"
+    t.string "product_name", null: false
+    t.string "clip_title"
+    t.integer "duration_seconds"
+    t.string "placement_kind", default: "own_atmosphere", null: false
     t.string "status", default: "draft", null: false
+    t.integer "coefficient_percent", default: 0, null: false
+    t.integer "discount_cents", default: 0, null: false
     t.integer "total_shows", default: 0, null: false
     t.integer "total_sum_cents", default: 0, null: false
+    t.integer "document_version", default: 1, null: false
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "shows_per_hour"
+    t.string "distribution_strategy", default: "linear", null: false
+    t.string "rejection_reason"
     t.index ["created_by_user_id"], name: "index_advertising_orders_on_created_by_user_id"
     t.index ["media_asset_id"], name: "index_advertising_orders_on_media_asset_id"
     t.index ["organization_id"], name: "index_advertising_orders_on_organization_id"
@@ -158,26 +158,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
   end
 
   create_table "broadcast_point_groups", force: :cascade do |t|
-    t.integer "commercial_quota_percent"
-    t.string "commercial_quota_period"
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.bigint "organization_id", null: false
     t.datetime "updated_at", null: false
+    t.integer "commercial_quota_percent"
+    t.string "commercial_quota_period"
     t.index ["organization_id", "name"], name: "index_broadcast_point_groups_on_organization_id_and_name", unique: true
     t.index ["organization_id"], name: "index_broadcast_point_groups_on_organization_id"
   end
 
   create_table "broadcast_portrait_blocks", force: :cascade do |t|
     t.bigint "broadcast_portrait_id", null: false
-    t.datetime "created_at", null: false
-    t.string "kind", null: false
-    t.string "pick_strategy"
     t.integer "position", null: false
+    t.string "kind", null: false
     t.bigint "rotation_id"
-    t.bigint "service_theme_id"
+    t.string "pick_strategy"
     t.time "time_of_day"
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "service_theme_id"
     t.index ["broadcast_portrait_id", "position"], name: "index_broadcast_portrait_blocks_on_portrait_and_position", unique: true
     t.index ["broadcast_portrait_id"], name: "index_broadcast_portrait_blocks_on_broadcast_portrait_id"
     t.index ["rotation_id"], name: "index_broadcast_portrait_blocks_on_rotation_id"
@@ -186,16 +186,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
   end
 
   create_table "broadcast_portraits", force: :cascade do |t|
-    t.integer "block_frequencies_per_hour", null: false, array: true
-    t.datetime "created_at", null: false
-    t.boolean "is_default", default: false, null: false
+    t.string "name", null: false
     t.string "kind", default: "cyclic", null: false
     t.integer "max_commercial_in_row", default: 3, null: false
-    t.string "name", null: false
     t.integer "neutral_min_seconds", default: 10, null: false
+    t.boolean "is_default", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.bigint "screen_id"
     t.bigint "service_theme_id"
-    t.datetime "updated_at", null: false
+    t.integer "block_frequencies_per_hour", null: false, array: true
     t.index ["is_default"], name: "index_broadcast_portraits_one_default_template", unique: true, where: "((screen_id IS NULL) AND is_default)"
     t.index ["screen_id"], name: "index_broadcast_portraits_on_screen_id"
     t.index ["screen_id"], name: "index_broadcast_portraits_on_screen_id_unique", unique: true, where: "(screen_id IS NOT NULL)"
@@ -207,27 +207,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
   end
 
   create_table "directory_business_spheres", force: :cascade do |t|
-    t.datetime "created_at", null: false
     t.string "name", null: false
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index "lower((name)::text)", name: "index_directory_business_spheres_on_lower_name", unique: true
   end
 
   create_table "locations", force: :cascade do |t|
-    t.string "address", null: false
     t.datetime "created_at", null: false
     t.string "name", null: false
+    t.datetime "updated_at", null: false
     t.jsonb "operating_hours", default: {}, null: false
     t.string "time_zone", default: "UTC", null: false
-    t.datetime "updated_at", null: false
+    t.string "address", null: false
     t.index ["name"], name: "index_locations_on_name", unique: true
   end
 
   create_table "media_assets", force: :cascade do |t|
     t.string "content_kind", null: false
     t.string "content_type", null: false
-    t.datetime "content_validated_at"
-    t.bigint "content_validated_by_id"
     t.datetime "created_at", null: false
     t.integer "duration_seconds"
     t.jsonb "metadata", default: {}, null: false
@@ -236,6 +234,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
     t.datetime "updated_at", null: false
     t.bigint "uploaded_by_id"
     t.string "visibility", null: false
+    t.bigint "content_validated_by_id"
+    t.datetime "content_validated_at"
     t.index ["content_type"], name: "index_media_assets_on_content_type"
     t.index ["content_validated_by_id"], name: "index_media_assets_on_content_validated_by_id"
     t.index ["organization_id", "created_at"], name: "index_media_assets_on_organization_id_and_created_at", order: { created_at: :desc }
@@ -246,9 +246,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
   end
 
   create_table "media_plan_screens", force: :cascade do |t|
-    t.datetime "created_at", null: false
     t.bigint "media_plan_id", null: false
     t.bigint "screen_id", null: false
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["media_plan_id", "screen_id"], name: "index_media_plan_screens_on_plan_and_screen", unique: true
     t.index ["media_plan_id"], name: "index_media_plan_screens_on_media_plan_id"
@@ -256,18 +256,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
   end
 
   create_table "media_plans", force: :cascade do |t|
-    t.bigint "advertising_order_line_id"
     t.bigint "airtime_booking_id", null: false
     t.bigint "broadcast_point_group_id"
     t.datetime "created_at", null: false
     t.datetime "ends_at", null: false
     t.bigint "organization_id", null: false
-    t.string "placement_kind", default: "own_atmosphere", null: false
     t.bigint "rotation_id", null: false
-    t.integer "shows_per_hour"
     t.datetime "starts_at", null: false
     t.string "status", default: "active", null: false
     t.datetime "updated_at", null: false
+    t.string "placement_kind", default: "own_atmosphere", null: false
+    t.integer "shows_per_hour"
+    t.bigint "advertising_order_line_id"
     t.index ["advertising_order_line_id"], name: "index_media_plans_on_advertising_order_line_id"
     t.index ["airtime_booking_id"], name: "index_media_plans_on_airtime_booking_id"
     t.index ["broadcast_point_group_id"], name: "index_media_plans_on_broadcast_point_group_id"
@@ -303,9 +303,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
   end
 
   create_table "playlist_item_screens", force: :cascade do |t|
-    t.datetime "created_at", null: false
     t.bigint "playlist_item_id", null: false
     t.bigint "screen_id", null: false
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["playlist_item_id", "screen_id"], name: "index_playlist_item_screens_on_item_and_screen", unique: true
     t.index ["playlist_item_id"], name: "index_playlist_item_screens_on_playlist_item_id"
@@ -313,14 +313,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
   end
 
   create_table "playlist_items", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.integer "duration_seconds", null: false
-    t.bigint "media_asset_id", null: false
-    t.bigint "media_plan_id"
-    t.integer "offset_seconds", null: false
     t.bigint "playlist_id", null: false
     t.integer "position", null: false
+    t.bigint "media_asset_id", null: false
+    t.integer "offset_seconds", null: false
+    t.integer "duration_seconds", null: false
     t.string "source_kind", null: false
+    t.bigint "media_plan_id"
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["media_asset_id"], name: "index_playlist_items_on_media_asset_id"
     t.index ["media_plan_id"], name: "index_playlist_items_on_media_plan_id"
@@ -332,27 +332,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
   end
 
   create_table "playlists", force: :cascade do |t|
-    t.datetime "broadcast_day_starts_at"
-    t.datetime "created_at", null: false
-    t.string "etag"
-    t.string "fingerprint"
-    t.date "for_date", null: false
-    t.datetime "generated_at"
     t.bigint "station_id", null: false
-    t.string "status", default: "current", null: false
-    t.datetime "updated_at", null: false
+    t.date "for_date", null: false
     t.integer "version", default: 1, null: false
+    t.string "status", default: "current", null: false
+    t.datetime "generated_at"
+    t.string "etag"
+    t.datetime "broadcast_day_starts_at"
+    t.string "fingerprint"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["station_id", "for_date"], name: "index_playlists_on_station_id_and_for_date"
     t.index ["station_id", "for_date"], name: "index_playlists_unique_current_per_station_date", unique: true, where: "((status)::text = 'current'::text)"
     t.index ["station_id"], name: "index_playlists_on_station_id"
   end
 
   create_table "profiles", force: :cascade do |t|
-    t.string "brand"
-    t.bigint "business_sphere_id"
-    t.datetime "created_at", null: false
-    t.string "holding"
     t.bigint "organization_id", null: false
+    t.bigint "business_sphere_id"
+    t.string "brand"
+    t.string "holding"
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["business_sphere_id"], name: "index_profiles_on_business_sphere_id"
     t.index ["organization_id"], name: "index_profiles_on_organization_id", unique: true
@@ -374,8 +374,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.bigint "organization_id", null: false
-    t.boolean "system_managed", default: false, null: false
     t.datetime "updated_at", null: false
+    t.boolean "system_managed", default: false, null: false
     t.index ["organization_id", "name"], name: "index_rotations_on_organization_id_and_name", unique: true
     t.index ["organization_id"], name: "index_rotations_on_organization_id"
   end
@@ -410,13 +410,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
 
   create_table "screens", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.boolean "inherit_operating_hours_from_location", default: true, null: false
     t.string "name", null: false
-    t.jsonb "operating_hours", default: {}, null: false
     t.string "orientation", default: "landscape", null: false
-    t.bigint "owner_organization_id"
     t.bigint "station_id", null: false
     t.datetime "updated_at", null: false
+    t.bigint "owner_organization_id"
+    t.boolean "inherit_operating_hours_from_location", default: true, null: false
+    t.jsonb "operating_hours", default: {}, null: false
     t.macaddr "mac_address"
     t.inet "ip_address"
     t.boolean "network_registered", default: false, null: false
@@ -428,14 +428,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
   end
 
   create_table "service_themes", force: :cascade do |t|
+    t.bigint "organization_id", null: false
+    t.string "name", null: false
+    t.bigint "header_start_rotation_id", null: false
+    t.bigint "header_end_rotation_id", null: false
+    t.bigint "welcome_rotation_id", null: false
     t.bigint "close_rotation_id", null: false
     t.datetime "created_at", null: false
-    t.bigint "header_end_rotation_id", null: false
-    t.bigint "header_start_rotation_id", null: false
-    t.string "name", null: false
-    t.bigint "organization_id", null: false
     t.datetime "updated_at", null: false
-    t.bigint "welcome_rotation_id", null: false
     t.index ["close_rotation_id"], name: "index_service_themes_on_close_rotation_id"
     t.index ["header_end_rotation_id"], name: "index_service_themes_on_header_end_rotation_id"
     t.index ["header_start_rotation_id"], name: "index_service_themes_on_header_start_rotation_id"
@@ -487,17 +487,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email", null: false
-    t.string "first_name"
-    t.string "job_title"
-    t.string "last_name"
-    t.string "location"
     t.bigint "organization_id", null: false
     t.string "password_digest", null: false
-    t.string "phone"
     t.string "role", default: "manager", null: false
-    t.string "status", default: "active", null: false
-    t.string "telegram"
     t.datetime "updated_at", null: false
+    t.string "first_name"
+    t.string "last_name"
+    t.string "phone"
+    t.string "job_title"
+    t.string "telegram"
+    t.string "location"
+    t.string "status", default: "active", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["organization_id"], name: "index_users_on_organization_id"
     t.index ["role"], name: "index_users_on_role"
