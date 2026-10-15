@@ -6,7 +6,10 @@
 #
 #  id                                    :bigint           not null, primary key
 #  inherit_operating_hours_from_location :boolean          default(TRUE), not null
+#  ip_address                            :inet
+#  mac_address                           :macaddr
 #  name                                  :string           not null
+#  network_registered                    :boolean          default(FALSE), not null
 #  operating_hours                       :jsonb            not null
 #  orientation                           :string           default("landscape"), not null
 #  created_at                            :datetime         not null
@@ -16,9 +19,10 @@
 #
 # Indexes
 #
-#  index_screens_on_owner_organization_id  (owner_organization_id)
-#  index_screens_on_station_id             (station_id)
-#  index_screens_on_station_id_and_name    (station_id,name) UNIQUE
+#  index_screens_on_owner_organization_id       (owner_organization_id)
+#  index_screens_on_station_id                  (station_id)
+#  index_screens_on_station_id_and_mac_address  (station_id,mac_address) UNIQUE WHERE (mac_address IS NOT NULL)
+#  index_screens_on_station_id_and_name         (station_id,name) UNIQUE
 #
 # Foreign Keys
 #
@@ -28,7 +32,7 @@
 class Screen < ApplicationRecord
   def self.ransackable_attributes(_auth_object = nil)
     %w[id name orientation created_at updated_at owner_organization_id station_id
-       inherit_operating_hours_from_location]
+       inherit_operating_hours_from_location mac_address ip_address network_registered]
   end
 
   def self.ransackable_associations(_auth_object = nil)
@@ -64,10 +68,12 @@ class Screen < ApplicationRecord
   attribute :close_pick_strategy, :string, default: "sequential"
 
   validates :name, presence: true, uniqueness: { scope: :station_id }
+  validates :mac_address, uniqueness: { scope: :station_id }, allow_nil: true
   validate :owner_organization_must_be_client
   validate :template_must_be_a_template
   validate :service_theme_must_exist
   validate :operating_hours_shape
+  validate :ip_address_is_ipv4_host
 
   scope :operator_catalog, -> { all }
   scope :inheriting_operating_hours, -> { where(inherit_operating_hours_from_location: true) }
@@ -147,5 +153,21 @@ class Screen < ApplicationRecord
     return if ServiceTheme.exists?(id: service_theme_id)
 
     errors.add(:service_theme_id, :must_be_theme)
+  end
+
+  def ip_address_is_ipv4_host
+    raw_address = ip_address_before_type_cast
+    return if raw_address.blank?
+
+    address = IPAddr.new(raw_address.to_s)
+    return if address.ipv4? && address.prefix == 32 && !cidr_string?(raw_address)
+
+    errors.add(:ip_address, :invalid)
+  rescue IPAddr::InvalidAddressError, IPAddr::InvalidPrefixError
+    errors.add(:ip_address, :invalid)
+  end
+
+  def cidr_string?(address)
+    address.is_a?(String) && address.include?("/")
   end
 end

@@ -36,6 +36,126 @@ RSpec.describe "Admin stations", type: :request do
     expect(response).to redirect_to(admin_station_path(station))
   end
 
+  it "queues one station-level fetch_screens command" do
+    station = create(:station, location: location)
+
+    expect {
+      post admin_station_screen_refresh_path(station)
+    }.to change { station.agent_commands.count }.by(1)
+
+    expect(response).to have_http_status(:see_other)
+    expect(response).to redirect_to(admin_station_path(station))
+    expect(station.agent_commands.sole).to have_attributes(command_type: "fetch_screens", screen_id: nil)
+  end
+
+  it "reuses a pending fetch_screens command and reports that it is already queued" do
+    station = create(:station, location: location)
+    post admin_station_screen_refresh_path(station)
+
+    expect {
+      post admin_station_screen_refresh_path(station)
+    }.not_to change { station.agent_commands.count }
+
+    follow_redirect!
+    expect(response.body).to include(I18n.t("admin.stations.screen_refresh.already_queued"))
+  end
+
+  it "queues a new fetch_screens command after acknowledgement" do
+    station = create(:station, location: location)
+    post admin_station_screen_refresh_path(station)
+    station.agent_commands.sole.update!(status: "acked")
+
+    expect {
+      post admin_station_screen_refresh_path(station)
+    }.to change { station.agent_commands.count }.by(1)
+
+    expect(station.agent_commands.pending.where(command_type: "fetch_screens").count).to eq(1)
+  end
+
+  it "does not reuse another station's pending fetch_screens command" do
+    station = create(:station, location: location)
+    other_station = create(:station, location: location)
+    Agent::Commands::FetchScreens.call(station: other_station)
+
+    expect {
+      post admin_station_screen_refresh_path(station)
+    }.to change { station.agent_commands.count }.by(1)
+  end
+
+  it "shows station screens with the screen refresh action" do
+    station = create(:station, location: location)
+    screen = create(:screen, station:, name: "Lobby TV")
+
+    get admin_station_path(station)
+
+    document = Nokogiri::HTML(response.body)
+    screens_section = document.at_css("[data-testid='station-screens']")
+    refresh_form = document.at_css("form[action='#{admin_station_screen_refresh_path(station)}'][method='post']")
+    screen_link = document.at_css("a[href='#{admin_screen_path(screen)}']")
+
+    expect(response).to have_http_status(:ok)
+    expect(screens_section.at_css("h2")&.text).to include(I18n.t("admin.stations.screens.title"))
+    expect(refresh_form).to be_present
+    expect(refresh_form.text).to include(I18n.t("admin.stations.screens.refresh"))
+    expect(screen_link&.text).to include(screen.name)
+  end
+
+  it "shows station screen addresses, registration status, and column headings" do
+    station = create(:station, location: location)
+    create(
+      :screen,
+      station:,
+      mac_address: "08-00-2B-01-02-03",
+      ip_address: "192.0.2.10",
+      network_registered: true
+    )
+
+    get admin_station_path(station)
+
+    screens_section = Nokogiri::HTML(response.body).at_css("[data-testid='station-screens']")
+
+    expect(response.body).to include("08:00:2b:01:02:03")
+    expect(response.body).to include("192.0.2.10")
+    expect(response.body).to include(I18n.t("admin.crud.yes"))
+    expect(screens_section.css("th[scope='col']").map(&:text)).to contain_exactly(
+      Screen.human_attribute_name(:name),
+      Screen.human_attribute_name(:mac_address),
+      Screen.human_attribute_name(:ip_address),
+      Screen.human_attribute_name(:network_registered)
+    )
+  end
+
+  it "orders station screens case-insensitively by name and then id" do
+    station = create(:station, location: location)
+    first_alpha = create(:screen, station:, name: "alpha")
+    beta = create(:screen, station:, name: "Beta")
+    second_alpha = create(:screen, station:, name: "Alpha")
+
+    get admin_station_path(station)
+
+    body = response.body
+    expect(body.index(admin_screen_path(first_alpha))).to be < body.index(admin_screen_path(second_alpha))
+    expect(body.index(admin_screen_path(second_alpha))).to be < body.index(admin_screen_path(beta))
+  end
+
+  it "shows none for missing station screen addresses" do
+    station = create(:station, location: location)
+    create(:screen, station:, mac_address: nil, ip_address: nil)
+
+    get admin_station_path(station)
+
+    screens_section = Nokogiri::HTML(response.body).at_css("[data-testid='station-screens']")
+    expect(screens_section.text.scan(I18n.t("admin.crud.none")).size).to eq(2)
+  end
+
+  it "shows the station screens empty state" do
+    station = create(:station, location: location)
+
+    get admin_station_path(station)
+
+    expect(response.body).to include(I18n.t("admin.stations.screens.empty"))
+  end
+
   it "shows the latest telemetry snapshot" do
     station = create(:station, location: location)
     screen = create(:screen, station:)

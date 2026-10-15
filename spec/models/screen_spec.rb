@@ -8,7 +8,10 @@ require "rails_helper"
 #
 #  id                                    :bigint           not null, primary key
 #  inherit_operating_hours_from_location :boolean          default(TRUE), not null
+#  ip_address                            :inet
+#  mac_address                           :macaddr
 #  name                                  :string           not null
+#  network_registered                    :boolean          default(FALSE), not null
 #  operating_hours                       :jsonb            not null
 #  orientation                           :string           default("landscape"), not null
 #  created_at                            :datetime         not null
@@ -18,9 +21,10 @@ require "rails_helper"
 #
 # Indexes
 #
-#  index_screens_on_owner_organization_id  (owner_organization_id)
-#  index_screens_on_station_id             (station_id)
-#  index_screens_on_station_id_and_name    (station_id,name) UNIQUE
+#  index_screens_on_owner_organization_id       (owner_organization_id)
+#  index_screens_on_station_id                  (station_id)
+#  index_screens_on_station_id_and_mac_address  (station_id,mac_address) UNIQUE WHERE (mac_address IS NOT NULL)
+#  index_screens_on_station_id_and_name         (station_id,name) UNIQUE
 #
 # Foreign Keys
 #
@@ -28,6 +32,76 @@ require "rails_helper"
 #  fk_rails_...  (station_id => stations.id)
 #
 RSpec.describe Screen, type: :model do
+  describe "network identity" do
+    it "uses PostgreSQL network types" do
+      expect(described_class.columns_hash.fetch("mac_address").sql_type).to eq("macaddr")
+      expect(described_class.columns_hash.fetch("ip_address").sql_type).to eq("inet")
+    end
+
+    it "canonicalizes MAC addresses" do
+      screen = create(:screen, mac_address: "08-00-2B-01-02-03")
+
+      expect(screen.reload.mac_address.to_s).to eq("08:00:2b:01:02:03")
+    end
+
+    it "does not register a screen by default" do
+      expect(create(:screen).network_registered).to be(false)
+    end
+
+    it "accepts an IPv4 host address" do
+      expect(build(:screen, ip_address: "192.0.2.10")).to be_valid
+    end
+
+    it "rejects an IPv6 address" do
+      screen = build(:screen, ip_address: "2001:db8::1")
+
+      expect(screen).not_to be_valid
+      expect(screen.errors[:ip_address]).to include(I18n.t("errors.messages.invalid"))
+    end
+
+    it "rejects an IPv4 CIDR" do
+      screen = build(:screen, ip_address: "192.0.2.10/24")
+
+      expect(screen).not_to be_valid
+      expect(screen.errors[:ip_address]).to include(I18n.t("errors.messages.invalid"))
+    end
+
+    it "requires MAC addresses to be unique within a station" do
+      station = create(:station)
+      create(:screen, station: station, mac_address: "08:00:2b:01:02:03")
+
+      duplicate = build(:screen, station: station, mac_address: "08:00:2b:01:02:03")
+
+      expect(duplicate).not_to be_valid
+      expect(duplicate.errors[:mac_address]).to be_present
+    end
+
+    it "allows the same MAC address at different stations" do
+      create(:screen, mac_address: "08:00:2b:01:02:03")
+
+      expect(build(:screen, mac_address: "08:00:2b:01:02:03")).to be_valid
+    end
+
+    it "enforces MAC uniqueness within a station at the database level" do
+      station = create(:station)
+      create(:screen, station: station, mac_address: "08:00:2b:01:02:03")
+
+      duplicate = create(:screen, station: station)
+
+      expect {
+        duplicate.update_columns(mac_address: "08:00:2b:01:02:03")
+      }.to raise_error(ActiveRecord::RecordNotUnique)
+    end
+
+    it "rejects IPv6 at the database level" do
+      screen = create(:screen)
+
+      expect {
+        screen.update_columns(ip_address: "2001:db8::1")
+      }.to raise_error(ActiveRecord::StatementInvalid)
+    end
+  end
+
   it "allows saving without an owner" do
     expect(build(:screen)).to be_valid
   end

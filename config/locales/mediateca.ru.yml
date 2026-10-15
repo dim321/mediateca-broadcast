@@ -511,7 +511,10 @@ ru:
         name: Название
       screen:
         inherit_operating_hours_from_location: Наследовать часы работы локации
+        ip_address: IP-адрес
+        mac_address: MAC-адрес
         name: Название
+        network_registered: Зарегистрирован в сети
         operating_hours: Часы работы
         orientation: Ориентация
         template_id: Портрет эфира
@@ -869,14 +872,14 @@ ru:
         search_title: Ничего не найдено
         title: Пока пусто
       new: Создать
-      no: "Нет"
+      "no": "Нет"
       none: "—"
       search: Поиск
       search_submit: Найти
       token_blank: Не задан
       token_set: Задан
       updated: Запись обновлена.
-      yes: "Да"
+      "yes": "Да"
     chrome:
       actions: Действия
       back: Назад к списку
@@ -982,6 +985,13 @@ ru:
       regen_confirm: Пересобрать плейлисты этой станции на горизонт кэша?
       regen_enqueued: Пересборка плейлиста поставлена в очередь.
       regenerate_playlists: Пересобрать плейлисты
+      screen_refresh:
+        queued: Обновление экранов поставлено в очередь.
+        already_queued: Обновление экранов уже ожидает выполнения.
+      screens:
+        title: Экраны станции
+        refresh: Обновить экраны
+        empty: У этой станции пока нет экранов.
       configure_tv_monitor: Отдавать tv_monitor станции
       tv_monitor_hint: Пустой объект не отправляем. Снятие флажка возвращает дефолты station (health 30 с, авторестарт включён, telemetry 60 с). При включённом авторестарте команда stop может быть сразу отменена watchdog.
       tv_monitor_health: Интервал health, секунды

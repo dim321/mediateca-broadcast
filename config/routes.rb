@@ -45,6 +45,8 @@ Rails.application.routes.draw do
       resources :screen_tags
       resources :broadcast_portraits
       resources :stations do
+        resource :screen_refresh, only: :create, controller: "station_screen_refreshes"
+
         member do
           post :regenerate_playlists
         end

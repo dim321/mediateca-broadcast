@@ -10,6 +10,7 @@ module Admin
 
     def show
       @station = Station.includes(:location, screens: :broadcast_portrait).find(params[:id])
+      @screens = @station.screens.sort_by { |screen| [ screen.name.downcase, screen.id ] }
       @playlist_date = playlist_date_for(@station)
       @playlist = @station.playlists.current.includes(items: [ :media_asset, :screens ]).find_by(for_date: @playlist_date)
       @telemetry = @station.telemetry_snapshot

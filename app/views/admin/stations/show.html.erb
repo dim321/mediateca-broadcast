@@ -82,6 +82,45 @@
   <% end %>
 </div>
 
+<div class="mt-6 bg-white border border-gray-200 rounded-lg p-6" data-testid="station-screens">
+  <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <h2 class="text-lg font-medium text-gray-900"><%= t("admin.stations.screens.title") %></h2>
+    <%= button_to t("admin.stations.screens.refresh"),
+          admin_station_screen_refresh_path(@station),
+          method: :post,
+          class: admin_secondary_button_class %>
+  </div>
+
+  <% if @screens.any? %>
+    <div class="relative overflow-x-auto">
+      <table class="w-full text-sm text-left text-gray-500">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+          <tr>
+            <th scope="col" class="px-4 py-3"><%= Screen.human_attribute_name(:name) %></th>
+            <th scope="col" class="px-4 py-3"><%= Screen.human_attribute_name(:mac_address) %></th>
+            <th scope="col" class="px-4 py-3"><%= Screen.human_attribute_name(:ip_address) %></th>
+            <th scope="col" class="px-4 py-3"><%= Screen.human_attribute_name(:network_registered) %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @screens.each do |screen| %>
+            <tr class="bg-white border-b">
+              <th scope="row" class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
+                <%= link_to screen.name, admin_screen_path(screen), class: "text-blue-700 hover:underline" %>
+              </th>
+              <td class="px-4 py-3"><%= screen.mac_address&.to_s || t("admin.crud.none") %></td>
+              <td class="px-4 py-3"><%= screen.ip_address&.to_s || t("admin.crud.none") %></td>
+              <td class="px-4 py-3"><%= admin_boolean(screen.network_registered) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-sm text-gray-500"><%= t("admin.stations.screens.empty") %></p>
+  <% end %>
+</div>
+
 <div class="mt-6 bg-white border border-gray-200 rounded-lg p-6">
   <h2 class="mb-4 text-lg font-medium text-gray-900"><%= t("admin.stations.telemetry") %></h2>
   <% if @telemetry %>

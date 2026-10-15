@@ -507,7 +507,10 @@ en:
         name: Name
       screen:
         inherit_operating_hours_from_location: Inherit location operating hours
+        ip_address: IP address
+        mac_address: MAC address
         name: Name
+        network_registered: Network registered
         operating_hours: Operating hours
         orientation: Orientation
         template_id: Broadcast portrait
@@ -861,14 +864,14 @@ en:
         search_title: No matches
         title: Nothing here yet
       new: New
-      no: "No"
+      "no": "No"
       none: "—"
       search: Search
       search_submit: Search
       token_blank: Not set
       token_set: Set
       updated: Record updated.
-      yes: "Yes"
+      "yes": "Yes"
     chrome:
       actions: Actions
       back: Back to list
@@ -972,6 +975,13 @@ en:
       regen_confirm: Regenerate playlists for this station over the cache horizon?
       regen_enqueued: Playlist regeneration queued.
       regenerate_playlists: Regenerate playlists
+      screen_refresh:
+        queued: Screen refresh queued.
+        already_queued: A screen refresh is already pending.
+      screens:
+        title: Station screens
+        refresh: Refresh screens
+        empty: This station has no screens.
       configure_tv_monitor: Send tv_monitor to the station
       tv_monitor_hint: An empty object is never sent. Clearing the box restores station defaults (health 30s, auto-restart on, telemetry 60s). With auto-restart on, a stop command can be undone by the watchdog.
       tv_monitor_health: Health interval, seconds

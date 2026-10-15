@@ -43,7 +43,7 @@
   <%= form_with url: admin_screen_agent_commands_path(@screen), scope: :agent_command, class: "space-y-4" do |f| %>
     <div>
       <%= f.label :command_type, t("admin.agent_commands.type"), class: admin_label_class %>
-      <%= f.select :command_type, AgentCommand::TYPES, {}, class: admin_select_class %>
+      <%= f.select :command_type, AgentCommand::SCREEN_TYPES, {}, class: admin_select_class %>
     </div>
     <div>
       <%= f.label :url, t("admin.agent_commands.url"), class: admin_label_class %>
