@@ -4,6 +4,7 @@ require "rails_helper"
 
 RSpec.describe "Admin stations", type: :request do
   include ActiveJob::TestHelper
+  include ActiveSupport::Testing::TimeHelpers
 
   let(:operator_org) { create(:organization, :operator) }
   let(:operator) { create(:user, :manager, organization: operator_org) }
@@ -380,5 +381,21 @@ RSpec.describe "Admin stations", type: :request do
     }.to have_enqueued_job(Playlists::GenerateForDateJob).at_least(:once)
 
     expect(response).to have_http_status(:ok)
+  end
+
+  it "prints the wired screen port in the existing config preview" do
+    travel_to(wiring_time) do
+      station = wiring_station
+      screen = wired_screen(station, ip: "192.168.33.182", name: "Entrance")
+      asset = create(:media_asset, :ready, :with_png_file)
+      cover_horizon_with_slot(station, screen, asset:)
+
+      get admin_station_path(station)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("&quot;stream_port&quot;: 8091")
+      expect(response.body).to include("192.168.33.182:5555")
+      expect(response.body).not_to include("station_stream_channel")
+    end
   end
 end
