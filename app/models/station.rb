@@ -34,6 +34,7 @@ class Station < ApplicationRecord
 
   has_many :screens, dependent: :destroy
   has_many :playlists, dependent: :restrict_with_exception, inverse_of: :station
+  has_many :stream_channels, class_name: "StationStreamChannel", dependent: :delete_all, inverse_of: :station
   has_one :tv_monitor, class_name: "StationTvMonitor", dependent: :destroy
   has_one :telemetry_snapshot, class_name: "StationTelemetrySnapshot", dependent: :destroy
   has_many :screen_telemetry_snapshots, dependent: :destroy
