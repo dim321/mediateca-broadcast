@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_16_143000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -444,6 +444,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
     t.index ["welcome_rotation_id"], name: "index_service_themes_on_welcome_rotation_id"
   end
 
+  create_table "station_stream_channels", force: :cascade do |t|
+    t.bigint "station_id", null: false
+    t.string "timeline_digest", limit: 64, null: false
+    t.integer "stream_port", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["station_id", "stream_port"], name: "index_station_stream_channels_on_station_id_and_stream_port", unique: true
+    t.index ["station_id", "timeline_digest"], name: "idx_on_station_id_timeline_digest_de27fa898a", unique: true
+    t.index ["station_id"], name: "index_station_stream_channels_on_station_id"
+    t.check_constraint "stream_port >= 8091 AND stream_port <= 8190", name: "station_stream_channels_stream_port_in_pool"
+  end
+
   create_table "station_telemetry_snapshots", force: :cascade do |t|
     t.bigint "station_id", null: false
     t.datetime "reported_at", null: false
@@ -561,6 +573,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
   add_foreign_key "service_themes", "rotations", column: "header_end_rotation_id", on_delete: :restrict
   add_foreign_key "service_themes", "rotations", column: "header_start_rotation_id", on_delete: :restrict
   add_foreign_key "service_themes", "rotations", column: "welcome_rotation_id", on_delete: :restrict
+  add_foreign_key "station_stream_channels", "stations", on_delete: :cascade
   add_foreign_key "station_telemetry_snapshots", "stations"
   add_foreign_key "station_tv_monitors", "stations"
   add_foreign_key "stations", "locations"

@@ -154,5 +154,31 @@ RSpec.describe "Api::Agent::V2::Packages", type: :request do
       expect(response).to have_http_status(:unauthorized)
       expect(response.parsed_body).to eq("error" => "unauthorized")
     end
+
+    it "does not add screen wiring fields to the package" do
+      location = create(:location, time_zone: "UTC")
+      station = create(:station, location:, offline_cache_hours: 24)
+      screen = wired_screen(station, ip: "192.168.33.182")
+      token = station.assign_agent_token!
+      asset = create(:media_asset, :ready, :with_png_file)
+      create_day_playlist(station, screen, for_date: Date.new(2026, 9, 2), asset:)
+      create_day_playlist(station, screen, for_date: Date.new(2026, 9, 3), asset:)
+
+      get "/api/agent/v2/package", headers: agent_authorization_headers(token), as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(deep_keys(response.parsed_body)).not_to include("adb_serial", "mac", "stream_port")
+    end
+  end
+
+  def deep_keys(value)
+    case value
+    when Hash
+      value.keys + value.values.flat_map { |nested| deep_keys(nested) }
+    when Array
+      value.flat_map { |nested| deep_keys(nested) }
+    else
+      []
+    end
   end
 end
