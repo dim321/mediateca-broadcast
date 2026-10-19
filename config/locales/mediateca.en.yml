@@ -600,6 +600,7 @@ en:
         position: Position
         screens: Screens
         source_kind: Source
+        starts_at: Starts at
       playlist_item_screen:
         screen: Screen
   broadcast_point_groups:
@@ -990,6 +991,7 @@ en:
       template_blank: Default template
       template_keep: Keep current
       agent_package_v2: Agent package (v2)
+      show_agent_package_json: Show JSON
       agent_config_v1: Agent config (v1)
       telemetry: Telemetry
       telemetry_empty: No snapshot yet.

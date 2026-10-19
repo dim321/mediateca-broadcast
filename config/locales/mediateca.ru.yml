@@ -604,6 +604,7 @@ ru:
         position: Позиция
         screens: Экраны
         source_kind: Источник
+        starts_at: Старт
       playlist_item_screen:
         screen: Экран
   broadcast_point_groups:
@@ -1000,6 +1001,7 @@ ru:
       template_blank: Шаблон по умолчанию
       template_keep: Не менять текущий
       agent_package_v2: Пакет агента (v2)
+      show_agent_package_json: Показать JSON
       agent_config_v1: Конфиг агента (v1)
       telemetry: Телеметрия
       telemetry_empty: Снимка ещё не было.

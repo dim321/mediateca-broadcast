@@ -190,16 +190,27 @@ RSpec.describe "Admin stations", type: :request do
     expect(response.body).to include("404")
   end
 
-  it "renders the current playlist source_kind and offset on show" do
-    station = create(:station, location: location)
-    playlist = create(:playlist, station: station, for_date: Date.new(2026, 9, 2), status: "current")
+  it "renders the current playlist starts_at without offset, source, or media plan columns" do
+    bangkok = create(:location, time_zone: "Asia/Bangkok")
+    station = create(:station, location: bangkok)
+    anchor = Time.find_zone!("Asia/Bangkok").local(2026, 9, 2, 0, 0, 0)
+    playlist = create(
+      :playlist,
+      station: station,
+      for_date: Date.new(2026, 9, 2),
+      status: "current",
+      broadcast_day_starts_at: anchor
+    )
     create(:playlist_item, playlist: playlist, offset_seconds: 90, source_kind: "filler", position: 1)
 
     get admin_station_path(station), params: { date: "2026-09-02" }
 
     expect(response).to have_http_status(:success)
-    expect(response.body).to include("90")
-    expect(response.body).to include(I18n.t("enums.playlist_item.source_kind.filler"))
+    expect(response.body).to include((anchor + 90.seconds).in_time_zone("Asia/Bangkok").iso8601)
+    expect(response.body).to include(I18n.t("activerecord.attributes.playlist_item.starts_at"))
+    expect(response.body).not_to include(I18n.t("activerecord.attributes.playlist_item.offset_seconds"))
+    expect(response.body).not_to include(I18n.t("activerecord.attributes.playlist_item.source_kind"))
+    expect(response.body).not_to include(I18n.t("activerecord.attributes.playlist_item.media_plan"))
   end
 
   it "does not render a portrait template select on new" do
@@ -347,16 +358,20 @@ RSpec.describe "Admin stations", type: :request do
     expect(station.reload.tv_monitor).to be_nil
   end
 
-  it "renders agent v2 package JSON on show" do
+  it "hides agent v2 package JSON behind a collapsed details disclosure" do
     station = create(:station, location: location)
 
     get admin_station_path(station)
 
     expect(response).to have_http_status(:ok)
     expect(response.body).to include(I18n.t("admin.stations.agent_package_v2"))
-    expect(response.body).to include("entries")
-    expect(response.body).to include("screen_map")
-    expect(response.body).to include("etag")
+
+    details = Nokogiri::HTML(response.body).at_css('[data-testid="agent-package-json"]')
+    expect(details).to be_present
+    expect(details.name).to eq("details")
+    expect(details["open"]).to be_nil
+    expect(details.at_css("summary").text).to include(I18n.t("admin.stations.show_agent_package_json"))
+    expect(details.at_css("pre").text).to include("entries", "screen_map", "etag")
   end
 
   it "renders agent v1 config JSON on show" do
