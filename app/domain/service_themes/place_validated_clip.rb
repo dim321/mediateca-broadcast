@@ -26,8 +26,10 @@ module ServiceThemes
     attr_reader :theme, :role, :media_asset
 
     def placeable?
+      expected = ServiceTheme.content_type_for_role(role)
       media_asset.content_validated? &&
-        media_asset.content_type_service? &&
+        expected.present? &&
+        media_asset.content_type == expected &&
         media_asset.organization_id == theme.organization_id
     end
   end

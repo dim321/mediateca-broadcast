@@ -35,6 +35,12 @@ RSpec.describe ServiceThemes::AddClip do
     expect(theme.welcome_rotation.rotation_items.find_by(media_asset: asset)).to be_nil
   end
 
+  it "stores a neutral clip when uploading to the neutral folder" do
+    asset = described_class.call(theme: theme, role: :neutral, file: png, uploaded_by: user)
+
+    expect(asset).to have_attributes(content_type: "neutral", visibility: "network", organization: operator)
+  end
+
   it "rejects an unknown role" do
     expect {
       described_class.call(theme: theme, role: :commercial, file: png, uploaded_by: user)

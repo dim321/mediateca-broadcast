@@ -28,6 +28,21 @@ RSpec.describe ServiceThemes::PlaceValidatedClip do
     end
   end
 
+  it "adds a validated neutral clip to the neutral folder" do
+    neutral_asset = create(:media_asset, :ready, :with_png_file, :content_validated,
+      organization: operator, content_type: "neutral", visibility: "network", uploaded_by: user)
+
+    expect {
+      described_class.call(theme: theme, role: :neutral, media_asset: neutral_asset)
+    }.to change(RotationItem, :count).by(1)
+  end
+
+  it "rejects a validated service clip in the neutral folder" do
+    expect {
+      described_class.call(theme: theme, role: :neutral, media_asset: asset)
+    }.to raise_error(MediaAssets::Error, I18n.t("media_assets.content_validation.not_validated"))
+  end
+
   it "rejects an unmarked service clip" do
     unmarked = create(:media_asset, :ready, :with_png_file, organization: operator, content_type: "service", visibility: "network")
 
