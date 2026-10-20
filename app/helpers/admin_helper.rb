@@ -236,13 +236,17 @@ module AdminHelper
     t("admin.#{resource}.#{action}", default: t("admin.crud.#{action}"))
   end
 
-  def admin_validated_service_clip_options(rotation)
-    MediaAsset.content_type_service
+  def admin_validated_theme_clip_options(rotation, content_type:)
+    MediaAsset.public_send(:"content_type_#{content_type}")
       .where(organization_id: rotation.organization_id)
       .where.not(content_validated_at: nil)
       .where.not(content_validated_by_id: nil)
       .where.not(id: rotation.rotation_items.select(:media_asset_id))
       .includes(file_attachment: :blob)
       .filter_map { |asset| [ asset.file.filename.to_s, asset.id ] if asset.file.attached? }
+  end
+
+  def admin_validated_service_clip_options(rotation)
+    admin_validated_theme_clip_options(rotation, content_type: :service)
   end
 end
