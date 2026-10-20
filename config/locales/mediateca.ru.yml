@@ -427,10 +427,6 @@ ru:
               commercial_quota_incomplete: процент и период коммерческой квоты должны быть заданы вместе
               commercial_quota_requires_homogeneous_owner: коммерческая квота требует, чтобы все экраны принадлежали одному владельцу, совпадающему с организацией группы
               commercial_quota_requires_operating_hours: коммерческая квота требует часов работы у каждой локации экрана
-        screen:
-          attributes:
-            owner_organization:
-              must_be_client: должна быть клиентской организацией
         service_theme:
           attributes:
             organization:
@@ -473,6 +469,12 @@ ru:
               must_be_template: можно задать только у шаблона без экрана
         screen:
           attributes:
+            base:
+              audio_pseudo_screen_required: нельзя удалить обязательный экран аудиостанции
+            station_id:
+              audio_station_full: у аудиостанции уже есть экран
+            owner_organization:
+              must_be_client: должна быть клиентской организацией
             template_id:
               must_be_template: должен быть шаблоном портрета эфира
             service_theme_id:

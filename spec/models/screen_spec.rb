@@ -152,6 +152,37 @@ RSpec.describe Screen, type: :model do
     end
   end
 
+  describe "audio stations" do
+    it "rejects a second screen on an audio station" do
+      station = create(:station, :audio)
+      expect(station.screens.count).to eq(1)
+
+      second = station.screens.build(name: "extra", orientation: "landscape")
+
+      expect(second).not_to be_valid
+      expect(second.errors[:station_id]).to include(
+        I18n.t("activerecord.errors.models.screen.attributes.station_id.audio_station_full")
+      )
+    end
+
+    it "rejects destroying the sole screen of an audio station" do
+      station = create(:station, :audio)
+      screen = station.screens.first
+
+      expect { screen.destroy! }.to raise_error(ActiveRecord::RecordNotDestroyed)
+      expect(screen.errors[:base]).to include(
+        I18n.t("activerecord.errors.models.screen.attributes.base.audio_pseudo_screen_required")
+      )
+    end
+
+    it "allows destroying a screen on a video station" do
+      station = create(:station, medium: "video")
+      screen = create(:screen, station: station)
+
+      expect { screen.destroy! }.not_to raise_error
+    end
+  end
+
   describe "#effective_operating_hours" do
     it "inherits location hours by default" do
       location = create(:location, operating_hours: { "mon" => [ { "start" => "09:00", "end" => "18:00" } ] })

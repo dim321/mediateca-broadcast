@@ -70,6 +70,7 @@ class Screen < ApplicationRecord
 
   validates :name, presence: true, uniqueness: { scope: :station_id }
   validates :mac_address, uniqueness: { scope: :station_id }, allow_nil: true
+  validate :audio_station_may_have_only_one_screen, on: :create
   validate :owner_organization_must_be_client
   validate :template_must_be_a_template
   validate :service_theme_must_exist
@@ -83,6 +84,7 @@ class Screen < ApplicationRecord
 
   before_validation :assign_default_name, on: :create
   before_validation :clear_operator_owner
+  before_destroy :prevent_destroying_sole_audio_screen
 
   def location_id
     super.presence || station&.location_id
@@ -141,6 +143,21 @@ class Screen < ApplicationRecord
     return if owner_organization.client?
 
     errors.add(:owner_organization, :must_be_client)
+  end
+
+  def audio_station_may_have_only_one_screen
+    return unless station&.audio?
+    return unless station.screens.where.not(id: id).exists?
+
+    errors.add(:station_id, :audio_station_full)
+  end
+
+  def prevent_destroying_sole_audio_screen
+    return unless station&.audio?
+    return if station.screens.where.not(id: id).exists?
+
+    errors.add(:base, :audio_pseudo_screen_required)
+    throw :abort
   end
 
   def template_must_be_a_template

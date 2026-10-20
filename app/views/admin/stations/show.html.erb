@@ -84,10 +84,15 @@
 <div class="mt-6 bg-white border border-gray-200 rounded-lg p-6" data-testid="station-screens">
   <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
     <h2 class="text-lg font-medium text-gray-900"><%= t("admin.stations.screens.title") %></h2>
-    <%= button_to t("admin.stations.screens.refresh"),
-          admin_station_screen_refresh_path(@station),
-          method: :post,
-          class: admin_secondary_button_class %>
+    <div class="flex flex-wrap gap-2">
+      <% unless @station.audio? && @station.screens.exists? %>
+        <%= link_to t("admin.crud.new"), new_admin_screen_path(station_id: @station.id), class: admin_primary_button_class %>
+      <% end %>
+      <%= button_to t("admin.stations.screens.refresh"),
+            admin_station_screen_refresh_path(@station),
+            method: :post,
+            class: admin_secondary_button_class %>
+    </div>
   </div>
 
   <% if @screens.any? %>

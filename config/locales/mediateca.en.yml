@@ -423,10 +423,6 @@ en:
               commercial_quota_incomplete: commercial quota percent and period must be set together
               commercial_quota_requires_homogeneous_owner: commercial quota requires all screens to share one owner matching the group organization
               commercial_quota_requires_operating_hours: commercial quota requires operating hours on every screen location
-        screen:
-          attributes:
-            owner_organization:
-              must_be_client: must be a client organization
         service_theme:
           attributes:
             organization:
@@ -469,6 +465,12 @@ en:
               must_be_template: can only be set on a template without a screen
         screen:
           attributes:
+            base:
+              audio_pseudo_screen_required: cannot remove the required screen from an audio station
+            station_id:
+              audio_station_full: audio station already has its screen
+            owner_organization:
+              must_be_client: must be a client organization
             template_id:
               must_be_template: must be a broadcast portrait template
             service_theme_id:
