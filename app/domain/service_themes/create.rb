@@ -18,7 +18,8 @@ module ServiceThemes
           header_start_rotation: rotations.fetch(:header_start),
           header_end_rotation: rotations.fetch(:header_end),
           welcome_rotation: rotations.fetch(:welcome),
-          close_rotation: rotations.fetch(:close)
+          close_rotation: rotations.fetch(:close),
+          neutral_rotation: rotations.fetch(:neutral)
         )
         theme.save!
         theme
@@ -46,7 +47,7 @@ module ServiceThemes
     end
 
     def build_rotations
-      ServiceTheme::ROTATION_ROLES.keys.index_with do |role|
+      ServiceTheme::FOLDER_ROLES.index_with do |role|
         organization.rotations.create!(
           name: rotation_name(role),
           system_managed: true

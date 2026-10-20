@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_16_143000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_20_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -436,9 +436,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_143000) do
     t.bigint "close_rotation_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "neutral_rotation_id", null: false
     t.index ["close_rotation_id"], name: "index_service_themes_on_close_rotation_id"
     t.index ["header_end_rotation_id"], name: "index_service_themes_on_header_end_rotation_id"
     t.index ["header_start_rotation_id"], name: "index_service_themes_on_header_start_rotation_id"
+    t.index ["neutral_rotation_id"], name: "index_service_themes_on_neutral_rotation_id"
     t.index ["organization_id", "name"], name: "index_service_themes_on_organization_id_and_name", unique: true
     t.index ["organization_id"], name: "index_service_themes_on_organization_id"
     t.index ["welcome_rotation_id"], name: "index_service_themes_on_welcome_rotation_id"
@@ -572,6 +574,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_143000) do
   add_foreign_key "service_themes", "rotations", column: "close_rotation_id", on_delete: :restrict
   add_foreign_key "service_themes", "rotations", column: "header_end_rotation_id", on_delete: :restrict
   add_foreign_key "service_themes", "rotations", column: "header_start_rotation_id", on_delete: :restrict
+  add_foreign_key "service_themes", "rotations", column: "neutral_rotation_id", on_delete: :restrict
   add_foreign_key "service_themes", "rotations", column: "welcome_rotation_id", on_delete: :restrict
   add_foreign_key "station_stream_channels", "stations", on_delete: :cascade
   add_foreign_key "station_telemetry_snapshots", "stations"

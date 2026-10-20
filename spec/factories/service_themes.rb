@@ -39,5 +39,6 @@ FactoryBot.define do
     header_end_rotation { association :rotation, :system_managed, organization: organization }
     welcome_rotation { association :rotation, :system_managed, organization: organization }
     close_rotation { association :rotation, :system_managed, organization: organization }
+    neutral_rotation { association :rotation, :system_managed, organization: organization }
   end
 end
