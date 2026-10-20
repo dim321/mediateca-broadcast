@@ -45,32 +45,31 @@
   <% end %>
 
   <% items = @playlist&.items&.sort_by(&:position) || [] %>
+  <% zone = @station.location.time_zone %>
   <% if items.any? %>
     <div class="relative overflow-x-auto">
       <table class="w-full text-sm text-left text-gray-500">
         <thead class="text-xs text-gray-700 uppercase bg-gray-50">
           <tr>
             <th scope="col" class="px-4 py-3"><%= PlaylistItem.human_attribute_name(:position) %></th>
-            <th scope="col" class="px-4 py-3"><%= PlaylistItem.human_attribute_name(:offset_seconds) %></th>
+            <th scope="col" class="px-4 py-3"><%= PlaylistItem.human_attribute_name(:starts_at) %></th>
             <th scope="col" class="px-4 py-3"><%= PlaylistItem.human_attribute_name(:duration_seconds) %></th>
-            <th scope="col" class="px-4 py-3"><%= PlaylistItem.human_attribute_name(:source_kind) %></th>
             <th scope="col" class="px-4 py-3"><%= PlaylistItem.human_attribute_name(:media_asset) %></th>
-            <th scope="col" class="px-4 py-3"><%= PlaylistItem.human_attribute_name(:media_plan) %></th>
             <th scope="col" class="px-4 py-3"><%= PlaylistItem.human_attribute_name(:screens) %></th>
           </tr>
         </thead>
         <tbody>
           <% items.each do |item| %>
+            <% anchor = @playlist.broadcast_day_starts_at %>
+            <% starts_at = anchor && (anchor + item.offset_seconds.seconds).in_time_zone(zone) %>
             <tr class="bg-white border-b">
               <td class="px-4 py-3"><%= item.position %></td>
-              <td class="px-4 py-3"><%= item.offset_seconds %></td>
+              <td class="px-4 py-3"><%= starts_at&.iso8601 || t("admin.crud.none") %></td>
               <td class="px-4 py-3"><%= item.duration_seconds %></td>
-              <td class="px-4 py-3"><%= admin_enum_label(item, :source_kind) %></td>
               <td class="px-4 py-3">
                 <%= item.media_asset_id %>
                 <%= admin_attachment_name(item.media_asset.file) %>
               </td>
-              <td class="px-4 py-3"><%= item.media_plan_id.presence || t("admin.crud.none") %></td>
               <td class="px-4 py-3"><%= item.screens.map(&:id).sort.join(", ") %></td>
             </tr>
           <% end %>
@@ -169,7 +168,12 @@
 
 <div class="mt-6 bg-white border border-gray-200 rounded-lg p-6">
   <h2 class="mb-4 text-lg font-medium text-gray-900"><%= t("admin.stations.agent_package_v2") %></h2>
-  <pre class="overflow-x-auto rounded-lg bg-gray-50 p-4 text-xs text-gray-900 whitespace-pre"><%= JSON.pretty_generate(@agent_package) %></pre>
+  <details data-testid="agent-package-json" class="group">
+    <summary class="<%= admin_secondary_button_class %> cursor-pointer list-none w-fit [&::-webkit-details-marker]:hidden">
+      <%= t("admin.stations.show_agent_package_json") %>
+    </summary>
+    <pre class="mt-4 overflow-x-auto rounded-lg bg-gray-50 p-4 text-xs text-gray-900 whitespace-pre"><%= JSON.pretty_generate(@agent_package) %></pre>
+  </details>
 </div>
 
 <div class="mt-6 bg-white border border-gray-200 rounded-lg p-6">
