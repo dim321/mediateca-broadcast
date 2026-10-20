@@ -1232,6 +1232,10 @@ en:
     play_log:
       source:
         agent: Agent
+    station:
+      medium:
+        video: Video
+        audio: Audio
     screen:
       orientation:
         landscape: Landscape
@@ -1366,6 +1370,7 @@ en:
         updated_at: Updated at
         agent_token_digest: Agent token
         location: Location
+        medium: Station medium
         name: Name
         offline_cache_hours: Offline cache hours
         screens: Screens

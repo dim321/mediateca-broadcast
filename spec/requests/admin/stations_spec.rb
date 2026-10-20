@@ -12,6 +12,56 @@ RSpec.describe "Admin stations", type: :request do
 
   before { sign_in_as(operator) }
 
+  it "creates an audio station with one pseudo-screen" do
+    expect {
+      post admin_stations_path, params: {
+        station: {
+          location_id: location.id,
+          name: "Audio lobby",
+          offline_cache_hours: 24,
+          medium: "audio"
+        }
+      }
+    }.to change(Station, :count).by(1)
+
+    station = Station.find_by!(name: "Audio lobby")
+    expect(response).to redirect_to(admin_station_path(station))
+    expect(station).to be_audio
+    expect(station.screens.count).to eq(1)
+  end
+
+  it "does not change medium on update even when medium is submitted" do
+    station = create(:station, location: location, medium: "video")
+
+    patch admin_station_path(station), params: {
+      station: {
+        location_id: location.id,
+        name: "Renamed video",
+        offline_cache_hours: 24,
+        medium: "audio"
+      }
+    }
+
+    expect(response).to redirect_to(admin_station_path(station))
+    expect(station.reload).to have_attributes(name: "Renamed video", medium: "video")
+  end
+
+  it "shows medium on new as editable and on edit as read-only" do
+    station = create(:station, location: location, medium: "audio")
+
+    get new_admin_station_path
+
+    new_form = Nokogiri::HTML(response.body).at_css("form[action='#{admin_stations_path}']")
+    expect(new_form.at_css("input[name='station[medium]'][value='video']")).to be_present
+    expect(new_form.at_css("input[name='station[medium]'][value='audio']")).to be_present
+
+    get edit_admin_station_path(station)
+
+    edit_form = Nokogiri::HTML(response.body).at_css("form[action='#{admin_station_path(station)}']")
+    expect(edit_form.at_css("input[name='station[medium]']")).to be_nil
+    expect(response.body).to include(I18n.t("enums.station.medium.audio"))
+  end
+
   it "creates a station without copying a portrait" do
     create(:broadcast_portrait, :default, name: "Grid")
 

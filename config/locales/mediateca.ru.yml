@@ -1242,6 +1242,10 @@ ru:
     play_log:
       source:
         agent: Агент
+    station:
+      medium:
+        video: Видео
+        audio: Аудио
     screen:
       orientation:
         landscape: Альбомная
@@ -1373,6 +1377,7 @@ ru:
         updated_at: Обновлено
         agent_token_digest: Токен агента
         location: Локация
+        medium: Тип станции
         name: Название
         offline_cache_hours: Часы офлайн-кэша
         screens: Экраны
