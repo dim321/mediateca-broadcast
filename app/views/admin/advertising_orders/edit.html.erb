@@ -33,4 +33,5 @@
       cancel_url: admin_advertising_order_path(@advertising_order),
       time_zone: @form_organization.time_zone,
       show_screen_picker: true,
+      medium_refresh_path: edit_admin_advertising_order_path(@advertising_order),
       submit_label: (@advertising_order.rejected? ? t("advertising_orders.form.resubmit") : nil) %>

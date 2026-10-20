@@ -63,6 +63,16 @@ RSpec.describe Advertising::ActivateOrder do
     expect(order.reload).to be_active
   end
 
+  it "rejects activation when clips do not match order medium" do
+    setup_order!(order: order, dates: [ Date.new(2026, 6, 3) ])
+    order.update!(medium: "audio")
+
+    expect {
+      described_class.call(order: order)
+    }.to raise_error(Advertising::Error, I18n.t("advertising.errors.clip_wrong_medium", medium: "audio"))
+    expect(order.reload).to be_draft
+  end
+
   it "skips days with zero operating hours" do
     weekdays = create_group_with_hours!(organization: organization, hours: AdvertisingNetwork::WEEKDAY_HOURS)
     setup_order!(

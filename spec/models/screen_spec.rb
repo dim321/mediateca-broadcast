@@ -175,6 +175,32 @@ RSpec.describe Screen, type: :model do
       )
     end
 
+    it "rejects reassigning the sole audio screen to another station" do
+      audio_station = create(:station, :audio)
+      video_station = create(:station, medium: "video")
+      screen = audio_station.screens.sole
+
+      screen.station = video_station
+
+      expect(screen).not_to be_valid
+      expect(screen.errors[:base]).to include(
+        I18n.t("activerecord.errors.models.screen.attributes.base.audio_pseudo_screen_required")
+      )
+    end
+
+    it "rejects moving a screen onto a full audio station on update" do
+      audio_station = create(:station, :audio)
+      video_station = create(:station, medium: "video")
+      screen = create(:screen, station: video_station)
+
+      screen.station = audio_station
+
+      expect(screen).not_to be_valid
+      expect(screen.errors[:station_id]).to include(
+        I18n.t("activerecord.errors.models.screen.attributes.station_id.audio_station_full")
+      )
+    end
+
     it "allows destroying a screen on a video station" do
       station = create(:station, medium: "video")
       screen = create(:screen, station: station)

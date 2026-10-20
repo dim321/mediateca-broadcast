@@ -35,5 +35,6 @@
         time_zone: @form_organization.time_zone,
         organization_id: @form_organization.id,
         business_sphere_preview: @form_organization.profile&.business_sphere&.name,
-        show_screen_picker: true %>
+        show_screen_picker: true,
+        medium_refresh_path: new_admin_advertising_order_path(organization_id: @form_organization.id) %>
 <% end %>

@@ -2,6 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["radio", "warning", "clipCheckbox", "screenCheckbox"]
+  static values = { refreshPath: String }
 
   connect() {
     const medium = this.currentMedium()
@@ -9,7 +10,9 @@ export default class extends Controller {
   }
 
   changed(event) {
-    this.applyMedium(event.target.value, { showWarning: true })
+    const medium = event.target.value
+    this.applyMedium(medium, { showWarning: true })
+    this.reloadDependentFrame(medium)
   }
 
   currentMedium() {
@@ -51,6 +54,23 @@ export default class extends Controller {
         this.warningTarget.classList.add("hidden")
       }
     }
+  }
+
+  reloadDependentFrame(medium) {
+    if (!this.hasRefreshPathValue) return
+
+    const frame = document.getElementById("order_medium_dependent")
+    if (!frame) return
+
+    const url = new URL(this.refreshPathValue, window.location.origin)
+    url.searchParams.set("medium", medium)
+
+    const gridFrom = document.querySelector('input[name="grid_from"]')
+    const gridTo = document.querySelector('input[name="grid_to"]')
+    if (gridFrom?.value) url.searchParams.set("grid_from", gridFrom.value)
+    if (gridTo?.value) url.searchParams.set("grid_to", gridTo.value)
+
+    frame.src = url.toString()
   }
 
   clipMatchesMedium(kind, medium) {

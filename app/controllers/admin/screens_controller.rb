@@ -53,6 +53,15 @@ module Admin
 
     def update
       @screen = Screen.find(params[:id])
+      station = Station.find_by(id: screen_params[:station_id])
+      if audio_station_screen_full?(station, except_screen: @screen)
+        @screen.assign_attributes(screen_params)
+        @screen.errors.add(:station_id, :audio_station_full)
+        assign_service_theme_fields(@screen)
+        render :edit, status: :unprocessable_content
+        return
+      end
+
       if @screen.update(screen_params)
         if @screen.template_id.present?
           Portraits::CopyTemplate.call(screen: @screen, template: @screen.assigned_template, replace: true)
@@ -103,8 +112,12 @@ module Admin
       Station.find_by(id: station_id) if station_id.present?
     end
 
-    def audio_station_screen_full?(station)
-      station&.audio? && station.screens.exists?
+    def audio_station_screen_full?(station, except_screen: nil)
+      return false unless station&.audio?
+
+      scope = station.screens
+      scope = scope.where.not(id: except_screen.id) if except_screen
+      scope.exists?
     end
 
     def audio_station_full_message

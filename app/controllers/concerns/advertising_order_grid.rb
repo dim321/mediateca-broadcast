@@ -8,6 +8,11 @@ module AdvertisingOrderGrid
   def persist_grid!(order)
     @grid_dates ||= grid_dates
     persist_windows!(order)
+    if screen_ids_explicitly_submitted? && form_screen_ids.empty?
+      order.advertising_order_lines.destroy_all
+      return
+    end
+
     payload = computed_lines_payload(order)
     return if payload.empty?
 
@@ -66,8 +71,10 @@ module AdvertisingOrderGrid
   end
 
   def form_screen_ids
-    ids = Array(order_params[:screen_ids]).map(&:to_i).reject(&:zero?)
-    return ids if ids.any?
+    raw_order = params[:advertising_order]
+    if raw_order.respond_to?(:key?) && raw_order.key?(:screen_ids)
+      return Array(order_params[:screen_ids]).map(&:to_i).reject(&:zero?)
+    end
 
     ids = line_rows.filter_map { |row| row[:screen_id].to_i if row[:screen_id].present? }.reject(&:zero?)
     return ids if ids.any?
@@ -125,10 +132,10 @@ module AdvertisingOrderGrid
   end
 
   def order_medium_for_picker
-    if @advertising_order.present?
+    if @advertising_order&.persisted?
       @advertising_order.medium
     else
-      order_params[:medium].presence || "video"
+      params[:medium].presence || order_params[:medium].presence || @advertising_order&.medium || "video"
     end
   end
 
@@ -136,8 +143,69 @@ module AdvertisingOrderGrid
     return if @advertising_order.blank?
     return if @advertising_order.active?
 
-    medium = order_params[:medium].presence
-    @advertising_order.medium = medium if medium
+    medium = if @advertising_order.persisted?
+      order_params[:medium].presence
+    else
+      params[:medium].presence || order_params[:medium].presence
+    end
+    @advertising_order.medium = medium if medium.present?
+  end
+
+  def order_medium_frame_request?
+    request.headers["Turbo-Frame"] == "order_medium_dependent"
+  end
+
+  def apply_draft_order_update!(resubmitting: false)
+    clip_media_assets = find_media_assets if clip_ids_submitted?
+
+    AdvertisingOrder.transaction do
+      @advertising_order.update!(header_update_attrs)
+      remove_incompatible_order_lines! if order_medium_changing?
+      sync_submitted_clips!(clip_media_assets)
+      clear_order_clips! if order_medium_changing? && !clip_ids_submitted?
+      persist_grid!(@advertising_order)
+      Advertising::ResubmitOrder.call(order: @advertising_order) if resubmitting
+    end
+  end
+
+  def sync_submitted_clips!(clip_media_assets)
+    return unless clip_ids_submitted?
+
+    if clip_media_assets.any?
+      Advertising::UpdateOrderClips.call(
+        order: @advertising_order,
+        media_assets: clip_media_assets,
+        enqueue_regen: false
+      )
+    else
+      clear_order_clips!
+    end
+  end
+
+  def order_medium_changing?
+    raw = params[:advertising_order]
+    return false unless raw.respond_to?(:key?) && raw.key?(:medium)
+
+    new_medium = order_params[:medium].presence
+    new_medium.present? && new_medium != @advertising_order.medium
+  end
+
+  def remove_incompatible_order_lines!
+    medium = @advertising_order.medium
+    @advertising_order.advertising_order_lines
+      .joins(screen: :station)
+      .where.not(stations: { medium: medium })
+      .destroy_all
+  end
+
+  def screen_ids_explicitly_submitted?
+    raw = params[:advertising_order]
+    raw.respond_to?(:key?) && raw.key?(:screen_ids)
+  end
+
+  def clear_order_clips!
+    @advertising_order.rotation.rotation_items.destroy_all
+    @advertising_order.update!(media_asset_id: nil, clip_title: nil, duration_seconds: nil)
   end
 
   def scope_order_form_media_assets(relation)
@@ -243,8 +311,8 @@ module AdvertisingOrderGrid
   end
 
   def clip_ids_submitted?
-    ids = Array(order_params[:media_asset_ids]).map(&:presence).compact
-    return true if ids.any?
+    raw = params[:advertising_order]
+    return true if raw.respond_to?(:key?) && raw.key?(:media_asset_ids)
 
     (@advertising_order&.draft? || @advertising_order&.rejected?) && order_params[:media_asset_id].present?
   end

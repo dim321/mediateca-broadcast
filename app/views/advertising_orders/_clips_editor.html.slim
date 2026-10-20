@@ -3,6 +3,7 @@
 - field_name = local_assigns.fetch(:field_name, 'advertising_order[media_asset_ids][]')
 - show_hint = local_assigns.fetch(:show_hint, true)
 div data-controller='order-media-assets'
+  = hidden_field_tag 'advertising_order[media_asset_ids][]', '', id: nil, data: { order_media_assets_target: 'sentinel' }
   label.block.text-sm.font-medium for='advertising_order_available_media_asset' = t('advertising_orders.form.clips')
   - if show_hint
     p.text-sm.text-base-content/60.mt-1 = t('advertising_orders.form.clips_cycling_hint')
