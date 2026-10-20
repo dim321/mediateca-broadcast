@@ -431,6 +431,10 @@ en:
           attributes:
             organization:
               must_be_operator: must be an operator organization
+        station:
+          attributes:
+            medium:
+              immutable: cannot be changed after creation
         location:
           attributes:
             operating_hours:

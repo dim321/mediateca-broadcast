@@ -14,6 +14,7 @@ require "rails_helper"
 #  distribution_strategy :string           default("linear"), not null
 #  document_version      :integer          default(1), not null
 #  duration_seconds      :integer
+#  medium                :string           default("video"), not null
 #  placement_kind        :string           default("own_atmosphere"), not null
 #  product_name          :string           not null
 #  rejection_reason      :string

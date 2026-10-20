@@ -8,6 +8,7 @@ require 'rails_helper'
 #
 #  id                  :bigint           not null, primary key
 #  agent_token_digest  :string
+#  medium              :string           default("video"), not null
 #  name                :string           not null
 #  offline_cache_hours :integer          default(24), not null
 #  created_at          :datetime         not null
@@ -51,6 +52,25 @@ RSpec.describe Station, type: :model do
       create(:screen, station: station, name: 'Витрина')
 
       expect(station.next_screen_name).to eq('Локация 1-Станция A-screen-2')
+    end
+  end
+
+  describe 'medium' do
+    it 'defaults to video' do
+      station = create(:station)
+      expect(station.medium).to eq('video')
+    end
+
+    it 'creates exactly one screen when medium is audio' do
+      station = create(:station, medium: 'audio')
+      expect(station.screens.count).to eq(1)
+    end
+
+    it 'rejects changing medium after create' do
+      station = create(:station, medium: 'video')
+      station.medium = 'audio'
+      expect(station).not_to be_valid
+      expect(station.errors[:medium]).to be_present
     end
   end
 end

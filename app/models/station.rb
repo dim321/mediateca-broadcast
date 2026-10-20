@@ -6,6 +6,7 @@
 #
 #  id                  :bigint           not null, primary key
 #  agent_token_digest  :string
+#  medium              :string           default("video"), not null
 #  name                :string           not null
 #  offline_cache_hours :integer          default(24), not null
 #  created_at          :datetime         not null
@@ -22,8 +23,10 @@
 #  fk_rails_...  (location_id => locations.id)
 #
 class Station < ApplicationRecord
+  enum :medium, { video: "video", audio: "audio" }, default: :video
+
   def self.ransackable_attributes(_auth_object = nil)
-    %w[id agent_token_digest name offline_cache_hours created_at updated_at location_id]
+    %w[id agent_token_digest name offline_cache_hours medium created_at updated_at location_id]
   end
 
   def self.ransackable_associations(_auth_object = nil)
@@ -42,6 +45,10 @@ class Station < ApplicationRecord
 
   validates :name, presence: true, uniqueness: { scope: :location_id }
   validates :offline_cache_hours, numericality: { only_integer: true, greater_than: 0 }
+
+  validate :medium_must_not_change, on: :update
+
+  after_create :ensure_audio_pseudo_screen!
 
   def next_screen_name
     screen_name_for(next_screen_number)
@@ -65,6 +72,19 @@ class Station < ApplicationRecord
   end
 
   private
+
+  def medium_must_not_change
+    return unless medium_changed?
+
+    errors.add(:medium, :immutable)
+  end
+
+  def ensure_audio_pseudo_screen!
+    return unless audio?
+    return if screens.exists?
+
+    screens.create!(name: next_screen_name)
+  end
 
   def screen_name_for(number)
     "#{location.name}-#{name}-screen-#{number}"

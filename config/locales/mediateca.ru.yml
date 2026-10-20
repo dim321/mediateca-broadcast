@@ -435,6 +435,10 @@ ru:
           attributes:
             organization:
               must_be_operator: должна быть организацией-оператором
+        station:
+          attributes:
+            medium:
+              immutable: нельзя изменить после создания
         location:
           attributes:
             operating_hours:

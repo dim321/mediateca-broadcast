@@ -6,6 +6,7 @@
 #
 #  id                  :bigint           not null, primary key
 #  agent_token_digest  :string
+#  medium              :string           default("video"), not null
 #  name                :string           not null
 #  offline_cache_hours :integer          default(24), not null
 #  created_at          :datetime         not null
@@ -25,5 +26,10 @@ FactoryBot.define do
   factory :station do
     location
     sequence(:name) { |n| "Station #{n}" }
+    medium { "video" }
+
+    trait :audio do
+      medium { "audio" }
+    end
   end
 end
