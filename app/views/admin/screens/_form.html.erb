@@ -90,6 +90,11 @@
               {}, class: admin_select_class %>
       </div>
     <% end %>
+    <div>
+      <%= f.label :neutral_pick_strategy, t("admin.service_themes.folder_labels.neutral"), class: admin_label_class %>
+      <%= f.select :neutral_pick_strategy, admin_enum_options(BroadcastPortraitBlock, :pick_strategy),
+            {}, class: admin_select_class %>
+    </div>
   </div>
 
   <div class="mb-5 flex items-center gap-2">

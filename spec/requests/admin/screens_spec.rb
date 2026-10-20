@@ -244,7 +244,8 @@ RSpec.describe "Admin screens", type: :request do
           orientation: "landscape",
           service_theme_id: theme.id,
           header_start_pick_strategy: "random",
-          welcome_pick_strategy: "ordered"
+          welcome_pick_strategy: "ordered",
+          neutral_pick_strategy: "random"
         }
       }
 
@@ -253,6 +254,7 @@ RSpec.describe "Admin screens", type: :request do
       expect(portrait.service_theme).to eq(theme)
       expect(portrait.blocks.find_by!(kind: "service_header_start").pick_strategy).to eq("random")
       expect(portrait.blocks.find_by!(kind: "service_welcome").pick_strategy).to eq("ordered")
+      expect(portrait.blocks.find_by!(kind: "filler").pick_strategy).to eq("random")
       expect(portrait.blocks.find_by!(kind: "service_welcome").rotation).to eq(theme.welcome_rotation)
     end
 

@@ -115,7 +115,7 @@ RSpec.describe BroadcastPortraitBlock, type: :model do
       expect(block.rotation).to eq(theme.header_start_rotation)
     end
 
-    it "rejects a service theme on commercial, filler, and insertion blocks" do
+    it "rejects a service theme on commercial and insertion blocks" do
       theme = create(:service_theme)
       commercial = build(:broadcast_portrait_block, :commercial, service_theme: theme)
       filler = build(:broadcast_portrait_block, :filler, service_theme: theme)
@@ -123,10 +123,17 @@ RSpec.describe BroadcastPortraitBlock, type: :model do
 
       expect(commercial).not_to be_valid
       expect(commercial.errors[:service_theme_id]).to be_present
-      expect(filler).not_to be_valid
-      expect(filler.errors[:service_theme_id]).to be_present
+      expect(filler).to be_valid
       expect(insertion).not_to be_valid
       expect(insertion.errors[:service_theme_id]).to be_present
+    end
+
+    it "assigns the neutral rotation when a service theme is set on a filler block" do
+      theme = create(:service_theme)
+      filler = build(:broadcast_portrait_block, :filler, service_theme: theme)
+
+      expect(filler).to be_valid
+      expect(filler.rotation).to eq(theme.neutral_rotation)
     end
 
     it "requires rotation and pick strategy on welcome and close blocks" do

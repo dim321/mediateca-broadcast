@@ -73,6 +73,7 @@ module Admin
         :header_end_pick_strategy,
         :welcome_pick_strategy,
         :close_pick_strategy,
+        :neutral_pick_strategy,
         :inherit_operating_hours_from_location,
         tag_ids: [],
         operating_hours: hours
@@ -97,6 +98,9 @@ module Admin
         strategy = portrait.blocks.detect { |block| block.kind == kind }&.pick_strategy
         screen.public_send(:"#{role}_pick_strategy=", strategy) if strategy.present?
       end
+
+      filler = portrait.blocks.detect(&:filler?)
+      screen.neutral_pick_strategy = filler.pick_strategy if filler&.pick_strategy.present?
     end
 
     def apply_service_theme!

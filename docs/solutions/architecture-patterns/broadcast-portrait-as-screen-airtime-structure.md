@@ -1,7 +1,7 @@
 ---
 title: Broadcast portrait as screen airtime structure
 date: 2026-09-17
-last_updated: 2026-09-22
+last_updated: 2026-10-20
 category: architecture-patterns
 module: broadcast-portraits
 problem_type: architecture_pattern
@@ -73,7 +73,7 @@ related_components:
 - `max_commercial_in_row` — потолок клипов рекламы подряд в слоте.
 - `neutral_min_seconds` — 5 или 10 (по умолчанию 10).
 - `kind` портрета: в схеме `cyclic` / `timed`, валидация сейчас допускает только `cyclic`.
-- Опциональный `service_theme_id` — материализация четырёх сервисных блоков (`Portraits::ApplyServiceTheme`).
+- Опциональный `service_theme_id` — материализация четырёх сервисных блоков и theme-owned `filler` (нейтралка из `ServiceTheme#neutral_rotation`) через `Portraits::ApplyServiceTheme`. Снятие темы удаляет сервисные блоки и filler с `service_theme_id`.
 
 ## What the portrait is not
 

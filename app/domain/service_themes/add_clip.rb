@@ -33,7 +33,7 @@ module ServiceThemes
       MediaAsset.new(
         organization: theme.organization,
         uploaded_by: uploaded_by,
-        content_type: :service,
+        content_type: ServiceTheme.content_type_for_role(role) || :service,
         visibility: :network
       ).tap { |asset| asset.file.attach(file) if file.present? }
     end

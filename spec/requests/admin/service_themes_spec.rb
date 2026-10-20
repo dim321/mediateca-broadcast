@@ -39,11 +39,11 @@ RSpec.describe "Admin service themes", type: :request do
       expect(response.body).not_to include('class="btn')
     end
 
-    it "creates a theme with four empty system-managed rotations (AE1)" do
+    it "creates a theme with five empty system-managed rotations (AE1)" do
       expect {
         post admin_service_themes_path, params: { service_theme: { name: "  Салон красоты  " } }
       }.to change(ServiceTheme, :count).by(1)
-        .and change(Rotation, :count).by(4)
+        .and change(Rotation, :count).by(5)
 
       theme = ServiceTheme.find_by!(name: "Салон красоты")
       expect(response).to redirect_to(admin_service_theme_path(theme))
@@ -62,7 +62,7 @@ RSpec.describe "Admin service themes", type: :request do
       expect(response).to have_http_status(:unprocessable_content)
     end
 
-    it "shows four folders on the theme" do
+    it "shows five folders on the theme" do
       theme = ServiceThemes::Create.call(organization: operator_org, name: "Рыбный отдел")
 
       get admin_service_theme_path(theme)
@@ -72,6 +72,7 @@ RSpec.describe "Admin service themes", type: :request do
       expect(response.body).to include(I18n.t("enums.broadcast_portrait_block.kind.service_header_start"))
       expect(response.body).to include(I18n.t("enums.broadcast_portrait_block.kind.service_welcome"))
       expect(response.body).to include(I18n.t("enums.broadcast_portrait_block.kind.service_close"))
+      expect(response.body).to include(I18n.t("admin.service_themes.folder_labels.neutral"))
     end
 
     it "embeds hidden service content type and network visibility on clip upload" do

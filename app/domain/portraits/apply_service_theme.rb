@@ -42,18 +42,36 @@ module Portraits
         )
         block.save!
       end
+      upsert_filler_from_theme!
       portrait.update!(service_theme: theme)
     end
 
     def clear_theme!
       portrait.blocks.where(kind: ServiceTheme::ROTATION_ROLES.values).find_each(&:destroy!)
+      portrait.blocks.where(kind: "filler").where.not(service_theme_id: nil).find_each(&:destroy!)
       portrait.update!(service_theme: nil)
     end
 
+    def upsert_filler_from_theme!
+      block = portrait.blocks.find_or_initialize_by(kind: "filler")
+      if block.new_record?
+        block.position = portrait.blocks.maximum(:position).to_i + 1
+      end
+      block.assign_attributes(
+        service_theme: theme,
+        rotation: theme.neutral_rotation,
+        pick_strategy: strategy_for(:neutral),
+        time_of_day: nil
+      )
+      block.save!
+    end
+
     def strategy_for(role)
-      raw = pick_strategies[role].presence ||
-        pick_strategies[ServiceTheme::ROTATION_ROLES.fetch(role)].presence ||
-        DEFAULT_STRATEGY
+      raw = pick_strategies[role].presence
+      if ServiceTheme::ROTATION_ROLES.key?(role)
+        raw ||= pick_strategies[ServiceTheme::ROTATION_ROLES.fetch(role)].presence
+      end
+      raw ||= DEFAULT_STRATEGY
       return raw if BroadcastPortraitBlock.pick_strategies.key?(raw)
 
       DEFAULT_STRATEGY

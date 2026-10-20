@@ -39,12 +39,18 @@ class ServiceTheme < ApplicationRecord
     close: "service_close"
   }.freeze
 
+  FOLDER_ROLES = (ROTATION_ROLES.keys + [ :neutral ]).freeze
+
+  CONTENT_TYPE_BY_ROLE = FOLDER_ROLES.index_with { |role|
+    role == :neutral ? "neutral" : "service"
+  }.freeze
+
   def self.ransackable_attributes(_auth_object = nil)
     %w[id name created_at updated_at organization_id]
   end
 
   def self.ransackable_associations(_auth_object = nil)
-    %w[organization header_start_rotation header_end_rotation welcome_rotation close_rotation]
+    %w[organization header_start_rotation header_end_rotation welcome_rotation close_rotation neutral_rotation]
   end
 
   belongs_to :organization
@@ -52,6 +58,7 @@ class ServiceTheme < ApplicationRecord
   belongs_to :header_end_rotation, class_name: "Rotation"
   belongs_to :welcome_rotation, class_name: "Rotation"
   belongs_to :close_rotation, class_name: "Rotation"
+  belongs_to :neutral_rotation, class_name: "Rotation"
 
   has_many :broadcast_portraits, dependent: :restrict_with_exception
   has_many :broadcast_portrait_blocks, dependent: :restrict_with_exception
@@ -60,7 +67,13 @@ class ServiceTheme < ApplicationRecord
   validate :organization_must_be_operator
 
   def rotations
-    [ header_start_rotation, header_end_rotation, welcome_rotation, close_rotation ]
+    [
+      header_start_rotation,
+      header_end_rotation,
+      welcome_rotation,
+      close_rotation,
+      neutral_rotation
+    ]
   end
 
   def processing_clips?
@@ -76,7 +89,14 @@ class ServiceTheme < ApplicationRecord
     when :header_end, :service_header_end then header_end_rotation
     when :welcome, :service_welcome then welcome_rotation
     when :close, :service_close then close_rotation
+    when :neutral then neutral_rotation
     end
+  end
+
+  def self.content_type_for_role(role)
+    CONTENT_TYPE_BY_ROLE.fetch(role.to_sym)
+  rescue KeyError
+    nil
   end
 
   private
