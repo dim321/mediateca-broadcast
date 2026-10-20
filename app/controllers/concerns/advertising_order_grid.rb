@@ -132,10 +132,13 @@ module AdvertisingOrderGrid
   end
 
   def order_medium_for_picker
-    if @advertising_order&.persisted?
+    requested = params[:medium].presence || order_params[:medium].presence
+    if order_medium_frame_request? && requested.present?
+      requested
+    elsif @advertising_order&.persisted?
       @advertising_order.medium
     else
-      params[:medium].presence || order_params[:medium].presence || @advertising_order&.medium || "video"
+      requested || @advertising_order&.medium || "video"
     end
   end
 
@@ -143,7 +146,9 @@ module AdvertisingOrderGrid
     return if @advertising_order.blank?
     return if @advertising_order.active?
 
-    medium = if @advertising_order.persisted?
+    medium = if order_medium_frame_request?
+      params[:medium].presence || order_params[:medium].presence
+    elsif @advertising_order.persisted?
       order_params[:medium].presence
     else
       params[:medium].presence || order_params[:medium].presence
@@ -157,12 +162,13 @@ module AdvertisingOrderGrid
 
   def apply_draft_order_update!(resubmitting: false)
     clip_media_assets = find_media_assets if clip_ids_submitted?
+    medium_changing = order_medium_changing?
 
     AdvertisingOrder.transaction do
       @advertising_order.update!(header_update_attrs)
-      remove_incompatible_order_lines! if order_medium_changing?
+      remove_incompatible_order_lines! if medium_changing
       sync_submitted_clips!(clip_media_assets)
-      clear_order_clips! if order_medium_changing? && !clip_ids_submitted?
+      clear_order_clips! if medium_changing && !clip_ids_submitted?
       persist_grid!(@advertising_order)
       Advertising::ResubmitOrder.call(order: @advertising_order) if resubmitting
     end
@@ -187,7 +193,10 @@ module AdvertisingOrderGrid
     return false unless raw.respond_to?(:key?) && raw.key?(:medium)
 
     new_medium = order_params[:medium].presence
-    new_medium.present? && new_medium != @advertising_order.medium
+    return false if new_medium.blank?
+
+    previous_medium = @advertising_order.attribute_in_database(:medium)
+    new_medium != previous_medium
   end
 
   def remove_incompatible_order_lines!
