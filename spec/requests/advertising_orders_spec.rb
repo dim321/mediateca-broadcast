@@ -542,6 +542,76 @@ RSpec.describe "AdvertisingOrders", type: :request do
       hours = JSON.parse(row["data-hours"])
       expect(hours.fetch("2026-06-03")).to eq((9..20).to_a)
     end
+
+    context "when filtering by medium" do
+      let(:audio_asset) do
+        create(:media_asset, :ready, :content_validated, :with_mp3_file, organization: organization, duration_seconds: 30)
+      end
+
+      def audio_order_screen
+        station = create(:station, :audio)
+        screen = station.screens.first
+        create(:broadcast_portrait, :for_screen, screen: screen, block_frequencies_per_hour: [ 1, 2, 3 ])
+        screen
+      end
+
+      it "omits audio screens and clips on the default video new form" do
+        video_screen = order_screen
+        audio_screen = audio_order_screen
+        asset
+        audio_asset.file.blob.update!(filename: "promo-audio.mp3")
+
+        get new_advertising_order_path
+
+        html = Nokogiri::HTML(response.body)
+        screen_ids = html.css("[data-order-screen-picker-target='row']").map { |row| row["data-screen-id"].to_i }
+        expect(screen_ids).to include(video_screen.id)
+        expect(screen_ids).not_to include(audio_screen.id)
+
+        option_text = html.at_css("#advertising_order_available_media_asset").css("option").map(&:text).join
+        expect(option_text).to include(asset.file.filename.to_s)
+        expect(option_text).not_to include("promo-audio.mp3")
+      end
+
+      it "shows only audio screens and clips on an audio draft edit form" do
+        video_screen = order_screen
+        audio_screen = audio_order_screen
+        order = Advertising::CreateOrder.call(
+          organization: organization,
+          created_by: user,
+          media_assets: [ audio_asset ],
+          product_name: "Radio spot",
+          medium: :audio
+        )
+        fill_order_grid!(order, screen: audio_screen, dates: [ Date.new(2026, 6, 3) ], shows: 9)
+
+        get edit_advertising_order_path(order)
+
+        html = Nokogiri::HTML(response.body)
+        picker_ids = html.css("[data-order-screen-picker-target='row']").map { |row| row["data-screen-id"].to_i }
+        expect(picker_ids).to include(audio_screen.id)
+        expect(picker_ids).not_to include(video_screen.id)
+
+        option_text = html.at_css("#advertising_order_available_media_asset").css("option").map(&:text).join
+        expect(option_text).not_to include(asset.file.filename.to_s)
+      end
+
+      it "filters the picker when medium is posted on validation failure" do
+        audio_screen = audio_order_screen
+        post advertising_orders_path, params: {
+          advertising_order: {
+            medium: "audio",
+            product_name: "",
+            screen_ids: [ audio_screen.id ]
+          }
+        }
+
+        html = Nokogiri::HTML(response.body)
+        picker_ids = html.css("[data-order-screen-picker-target='row']").map { |row| row["data-screen-id"].to_i }
+        expect(picker_ids).to include(audio_screen.id)
+        expect(picker_ids).not_to include(order_screen.id)
+      end
+    end
   end
 
   describe "GET /advertising_orders/:id/edit" do

@@ -195,17 +195,22 @@ module Admin
       @grid_dates = grid_dates
       return if @form_organization.blank?
 
-      @media_assets = @form_organization.media_assets.ready.with_attached_file.order(created_at: :desc)
+      @media_assets = scope_order_form_media_assets(
+        @form_organization.media_assets.ready.with_attached_file.order(created_at: :desc)
+      )
       load_order_screens
     end
 
     def header_update_attrs
-      {
+      attrs = {
         product_name: order_params[:product_name],
         placement_kind: order_params[:placement_kind].presence || @advertising_order.placement_kind,
         shows_per_hour: order_header_shows_per_hour,
         distribution_strategy: order_params[:distribution_strategy].presence || @advertising_order.distribution_strategy
       }.compact
+      raw_order = params[:advertising_order]
+      attrs[:medium] = order_params[:medium] if raw_order&.key?(:medium)
+      attrs
     end
 
     def media_assets_ready_scope
@@ -268,6 +273,7 @@ module Admin
       @order_params ||= params.fetch(:advertising_order, {}).permit(
         :organization_id,
         :product_name,
+        :medium,
         :media_asset_id,
         { media_asset_ids: [] },
         :placement_kind,

@@ -119,8 +119,36 @@ module AdvertisingOrderGrid
   end
 
   def load_order_screens
-    @order_screens = Fleet::ScreensForOrderPicker.call
+    sync_order_medium_from_params
+    @order_screens = Fleet::ScreensForOrderPicker.call(medium: order_medium_for_picker)
     @selected_screen_ids = selected_screen_ids
+  end
+
+  def order_medium_for_picker
+    if @advertising_order.present?
+      @advertising_order.medium
+    else
+      order_params[:medium].presence || "video"
+    end
+  end
+
+  def sync_order_medium_from_params
+    return if @advertising_order.blank?
+    return if @advertising_order.active?
+
+    medium = order_params[:medium].presence
+    @advertising_order.medium = medium if medium
+  end
+
+  def scope_order_form_media_assets(relation)
+    case order_medium_for_picker.to_s
+    when "audio"
+      relation.where(content_kind: "audio")
+    when "video"
+      relation.where.not(content_kind: "audio")
+    else
+      relation
+    end
   end
 
   def load_occupancy
