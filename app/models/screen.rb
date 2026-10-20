@@ -66,6 +66,7 @@ class Screen < ApplicationRecord
   attribute :header_end_pick_strategy, :string, default: "sequential"
   attribute :welcome_pick_strategy, :string, default: "sequential"
   attribute :close_pick_strategy, :string, default: "sequential"
+  attribute :neutral_pick_strategy, :string, default: "sequential"
 
   validates :name, presence: true, uniqueness: { scope: :station_id }
   validates :mac_address, uniqueness: { scope: :station_id }, allow_nil: true
@@ -116,7 +117,8 @@ class Screen < ApplicationRecord
       header_start: header_start_pick_strategy,
       header_end: header_end_pick_strategy,
       welcome: welcome_pick_strategy,
-      close: close_pick_strategy
+      close: close_pick_strategy,
+      neutral: neutral_pick_strategy
     }
   end
 
