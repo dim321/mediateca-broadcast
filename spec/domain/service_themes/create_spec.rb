@@ -5,14 +5,15 @@ require "rails_helper"
 RSpec.describe ServiceThemes::Create do
   let(:operator) { create(:organization, :operator) }
 
-  it "creates a theme with five empty system-managed rotations including neutral" do
+  it "creates a theme with five empty system-managed rotations including neutral", :aggregate_failures do
     theme = described_class.call(organization: operator, name: "Салон красоты")
 
     expect(theme).to be_persisted
     expect(theme.name).to eq("Салон красоты")
+    expect(theme.rotations).to match(
+      all(be_system_managed).and(all(satisfy { |r| r.rotation_items.empty? }))
+    )
     expect(theme.rotations.size).to eq(5)
-    expect(theme.rotations).to all(be_system_managed)
-    expect(theme.rotations.map { |rotation| rotation.rotation_items.count }).to all(eq(0))
     expect(theme.header_start_rotation.name).to eq("Салон красоты · header_start")
     expect(theme.neutral_rotation.name).to eq("Салон красоты · neutral")
     expect(theme.rotation_for(:service_welcome)).to eq(theme.welcome_rotation)
