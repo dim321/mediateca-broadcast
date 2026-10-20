@@ -72,9 +72,13 @@ class BroadcastPortraitBlock < ApplicationRecord
   private
 
   def assign_rotation_from_service_theme
-    return unless service_kind? && service_theme
+    return unless service_theme
 
-    self.rotation = service_theme.rotation_for(kind)
+    if service_kind?
+      self.rotation = service_theme.rotation_for(kind)
+    elsif filler?
+      self.rotation = service_theme.neutral_rotation
+    end
   end
 
   def service_theme_must_exist
@@ -103,7 +107,6 @@ class BroadcastPortraitBlock < ApplicationRecord
       errors.add(:rotation_id, :blank) if rotation.blank?
       errors.add(:pick_strategy, :blank) if pick_strategy.blank?
     when "filler"
-      reject_service_theme
       errors.add(:rotation_id, :blank) if rotation.blank?
       errors.add(:pick_strategy, :blank) if pick_strategy.blank?
       errors.add(:time_of_day, :present) if time_of_day.present?
