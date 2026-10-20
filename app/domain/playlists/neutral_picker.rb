@@ -42,13 +42,23 @@ module Playlists
     end
 
     def eligible?(item)
-      return false unless item.media_asset.broadcast_delivery_attachment
+      asset = item.media_asset
+      return false unless asset.broadcast_delivery_attachment
+      return false unless medium_matches?(asset)
 
       duration = duration_for(item)
       return false if duration.blank? || duration <= 0
       return false if min_seconds.present? && duration < min_seconds
 
       true
+    end
+
+    def medium_matches?(asset)
+      if station.audio?
+        asset.audio?
+      else
+        !asset.audio?
+      end
     end
 
     def duration_for(item)

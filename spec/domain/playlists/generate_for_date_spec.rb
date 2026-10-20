@@ -67,6 +67,36 @@ RSpec.describe Playlists::GenerateForDate do
     expect(source_kinds_at(playlist, 900)).to eq(%w[filler])
   end
 
+  it "emits only audio playlist items on an audio station" do
+    location = create(:location, time_zone: "Asia/Krasnoyarsk", operating_hours: PlaylistGeneration::KRASNOYARSK_WED_HOURS)
+    station = create(:station, :audio, location: location)
+    org = create(:organization, :client)
+    filler = create(:rotation, organization: org)
+    video = create(
+      :media_asset, :ready, :content_validated, :with_mp4_file, :with_broadcast_ts,
+      organization: org
+    )
+    audio_filler = create(:media_asset, :ready, :content_validated, :with_mp3_file, organization: org)
+    create(:rotation_item, rotation: filler, media_asset: video, display_duration_seconds: 15)
+    create(:rotation_item, rotation: filler, media_asset: audio_filler, display_duration_seconds: 15)
+    ads = create(:rotation, organization: org)
+    audio_ad = create(:media_asset, :ready, :content_validated, :with_mp3_file, organization: org)
+    create(:rotation_item, rotation: ads, media_asset: audio_ad, display_duration_seconds: 15)
+    create_cyclic_portrait!(station, filler_rotation: filler)
+    occupy_with_clips!(
+      screen: station.screens.first,
+      organization: org,
+      rotation: ads,
+      starts_at: local_slot(9),
+      ends_at: local_slot(21)
+    )
+
+    playlist = generate!(station).playlist
+    kinds = playlist.items.map { |item| item.media_asset.content_kind }.uniq
+
+    expect(kinds).to eq([ "audio" ])
+  end
+
   it "keeps commercial clips on their own screens and shares filler (AE4)" do
     station = create_playlist_station!
     screen_a = create(:screen, station: station)

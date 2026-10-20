@@ -8,7 +8,7 @@ RSpec.describe Playlists::NeutralPicker do
   let(:for_date) { PlaylistGeneration::WEDNESDAY }
   let(:rotation) { create_clip_rotation!(organization: organization, count: 2, duration: 15) }
 
-  def picker(strategy:, min_seconds: 10, rotation: self.rotation)
+  def picker(strategy:, min_seconds: 10, rotation: self.rotation, station: self.station)
     described_class.new(
       rotation: rotation,
       strategy: strategy,
@@ -16,6 +16,18 @@ RSpec.describe Playlists::NeutralPicker do
       for_date: for_date,
       min_seconds: min_seconds
     )
+  end
+
+  def create_mixed_audio_video_rotation!(organization:)
+    rotation = create(:rotation, organization: organization)
+    video = create(
+      :media_asset, :ready, :content_validated, :with_mp4_file, :with_broadcast_ts,
+      organization: organization
+    )
+    audio = create(:media_asset, :ready, :content_validated, :with_mp3_file, organization: organization)
+    create(:rotation_item, rotation: rotation, media_asset: video, display_duration_seconds: 15)
+    create(:rotation_item, rotation: rotation, media_asset: audio, display_duration_seconds: 15)
+    rotation
   end
 
   it "rotates sequential catalog by days since epoch and wraps" do
@@ -73,6 +85,27 @@ RSpec.describe Playlists::NeutralPicker do
     instance = picker(strategy: "ordered", rotation: rotation)
 
     expect(instance.take(3).map { |pick| pick.fetch(:media_asset) }).to eq(assets)
+  end
+
+  it "skips video assets on an audio station" do
+    mixed = create_mixed_audio_video_rotation!(organization: organization)
+    audio_station = create(:station, :audio, location: station.location)
+
+    kinds = picker(strategy: "ordered", rotation: mixed, station: audio_station).take(10)
+      .map { |pick| pick.fetch(:media_asset).content_kind }
+      .uniq
+
+    expect(kinds).to eq([ "audio" ])
+  end
+
+  it "skips audio assets on a video station" do
+    mixed = create_mixed_audio_video_rotation!(organization: organization)
+
+    kinds = picker(strategy: "ordered", rotation: mixed).take(10)
+      .map { |pick| pick.fetch(:media_asset).content_kind }
+      .uniq
+
+    expect(kinds).to eq([ "video" ])
   end
 
   it "continues the cursor across successive take calls" do
