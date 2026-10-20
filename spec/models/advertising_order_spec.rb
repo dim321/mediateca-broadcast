@@ -55,6 +55,7 @@ RSpec.describe AdvertisingOrder, type: :model do
     it "defaults to draft own-atmosphere with document version 1" do
       order = create(:advertising_order)
       expect(order).to be_draft
+      expect(order).to be_video
       expect(order).to be_own_atmosphere
       expect(order.document_version).to eq(1)
       expect(order.coefficient_percent).to eq(0)
@@ -100,6 +101,24 @@ RSpec.describe AdvertisingOrder, type: :model do
 
       expect(order).not_to be_valid
       expect(order.errors[:rejection_reason]).to be_present
+    end
+
+    it "forbids changing medium on an active order" do
+      order = create(:advertising_order, medium: :video)
+      order.update_column(:status, "active")
+
+      order.medium = :audio
+
+      expect(order).not_to be_valid
+      expect(order.errors[:medium]).to be_present
+    end
+
+    it "allows changing medium on a draft order" do
+      order = create(:advertising_order, medium: :video)
+
+      order.medium = :audio
+
+      expect(order).to be_valid
     end
   end
 

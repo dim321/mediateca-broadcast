@@ -437,6 +437,8 @@ en:
               invalid: has an invalid weekly schedule shape
         advertising_order:
           attributes:
+            medium:
+              immutable_when_active: cannot change after the order is active
             rotation:
               wrong_organization: must belong to your organization
               must_be_system_managed: must be a system-managed order rotation
@@ -446,6 +448,8 @@ en:
               not_in_portrait_intersection: is not allowed for the selected screens
         advertising_order_line:
           attributes:
+            screen:
+              wrong_medium: screen does not match the order medium
             broadcast_point_group:
               wrong_organization: must belong to your organization
               missing_operating_hours: must have operating hours on every location
@@ -1408,6 +1412,7 @@ en:
       clips_duplicate: each clip may appear only once
       clip_foreign: clip must belong to the order organization
       clip_not_ready: clip is not broadcast-ready
+      clip_wrong_medium: clip does not match the order medium (%{medium})
       content_not_validated: clip content has not been validated
       order_clips_not_editable: clips can be updated only on draft, rejected, or active orders
       order_not_resubmittable: only a rejected order can be sent back for review

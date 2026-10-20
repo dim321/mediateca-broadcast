@@ -187,4 +187,24 @@ RSpec.describe Advertising::UpdateOrderClips do
       described_class.call(order: order, media_assets: [ clip_b ])
     }.to raise_error(Advertising::Error, I18n.t("advertising.errors.order_clips_not_editable"))
   end
+
+  it "rejects audio clips on a video order" do
+    video_order = create(:advertising_order, medium: "video", organization: organization)
+    audio = create(:media_asset, :ready, :with_mp3_file, organization: organization, duration_seconds: 10)
+
+    expect {
+      described_class.call(order: video_order, media_assets: [ audio ])
+    }.to raise_error(Advertising::Error, I18n.t("advertising.errors.clip_wrong_medium", medium: "video"))
+  end
+
+  it "accepts audio clips on an audio order" do
+    audio_order = create(:advertising_order, medium: "audio", organization: organization)
+    audio = create(:media_asset, :ready, :with_mp3_file, organization: organization, duration_seconds: 10)
+
+    expect {
+      described_class.call(order: audio_order, media_assets: [ audio ])
+    }.not_to raise_error
+
+    expect(audio_order.reload.rotation.ordered_items.sole.media_asset).to eq(audio)
+  end
 end

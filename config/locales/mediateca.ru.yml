@@ -441,6 +441,8 @@ ru:
               invalid: имеет некорректную форму недельного расписания
         advertising_order:
           attributes:
+            medium:
+              immutable_when_active: нельзя менять после активации заказа
             rotation:
               wrong_organization: должна принадлежать вашей организации
               must_be_system_managed: должна быть системной ротацией заказа
@@ -450,6 +452,8 @@ ru:
               not_in_portrait_intersection: не входит в допустимые частоты выбранных экранов
         advertising_order_line:
           attributes:
+            screen:
+              wrong_medium: экран не соответствует типу заказа
             broadcast_point_group:
               wrong_organization: должна принадлежать вашей организации
               missing_operating_hours: должна иметь часы работы у всех локаций
@@ -1415,6 +1419,7 @@ ru:
       clips_duplicate: каждый ролик может быть указан только один раз
       clip_foreign: ролик должен принадлежать организации заказа
       clip_not_ready: ролик не готов к эфиру
+      clip_wrong_medium: ролик не соответствует типу заказа (%{medium})
       content_not_validated: ролик не прошёл проверку содержимого
       order_clips_not_editable: ролики можно менять только в черновике, отклонённом или активном заказе
       order_not_resubmittable: повторно отправить на модерацию можно только отклонённый заказ

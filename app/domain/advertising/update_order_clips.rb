@@ -18,7 +18,7 @@ module Advertising
     def call
       validate_order_status!
       validate_content_validated! if order.active?
-      validate_media_assets!(media_assets, organization: order.organization)
+      validate_media_assets!(media_assets, organization: order.organization, medium: order.medium)
 
       AdvertisingOrder.transaction do
         sync_rotation_items

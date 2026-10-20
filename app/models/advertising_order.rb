@@ -91,6 +91,8 @@ class AdvertisingOrder < ApplicationRecord
     weekends: "weekends"
   }, default: :linear, validate: true
 
+  enum :medium, { video: "video", audio: "audio" }, default: :video
+
   validates :product_name, presence: true
   validates :shows_per_hour, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
   validates :discount_cents, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
@@ -103,6 +105,7 @@ class AdvertisingOrder < ApplicationRecord
   validates :rejection_reason, absence: true, unless: :rejected?
   validate :rotation_matches_organization
   validate :rotation_is_system_managed
+  validate :medium_frozen_when_active, on: :update
 
   before_validation :snapshot_clip_from_media_asset
   before_validation :snapshot_business_sphere_from_profile, on: :create
@@ -140,5 +143,12 @@ class AdvertisingOrder < ApplicationRecord
     return if rotation.system_managed?
 
     errors.add(:rotation, :must_be_system_managed)
+  end
+
+  def medium_frozen_when_active
+    return unless active?
+    return unless medium_changed?
+
+    errors.add(:medium, :immutable_when_active)
   end
 end

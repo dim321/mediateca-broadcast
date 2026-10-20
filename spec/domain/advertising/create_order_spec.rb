@@ -128,4 +128,19 @@ RSpec.describe Advertising::CreateOrder do
 
     expect(order).to be_chess
   end
+
+  it "persists the requested medium on create" do
+    audio = create(:media_asset, :ready, :with_mp3_file, organization: organization, duration_seconds: 10)
+    order = create_order!(medium: :audio, media_assets: [ audio ])
+
+    expect(order).to be_audio
+  end
+
+  it "rejects audio clips on a video order" do
+    audio = create(:media_asset, :ready, :with_mp3_file, organization: organization, duration_seconds: 10)
+
+    expect {
+      create_order!(medium: :video, media_assets: [ audio ])
+    }.to raise_error(Advertising::Error, I18n.t("advertising.errors.clip_wrong_medium", medium: "video"))
+  end
 end

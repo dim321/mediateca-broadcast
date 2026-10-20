@@ -40,6 +40,16 @@ RSpec.describe AdvertisingOrderLine, type: :model do
       expect(duplicate).not_to be_valid
       expect(duplicate.errors[:screen_id]).to be_present
     end
+
+    it "rejects a screen whose station medium differs from the order" do
+      order = create(:advertising_order, medium: :audio)
+      video_screen = create(:screen, owner_organization: order.organization)
+
+      line = build(:advertising_order_line, advertising_order: order, screen: video_screen)
+
+      expect(line).not_to be_valid
+      expect(line.errors[:screen]).to be_present
+    end
   end
 
   describe "grid helper" do
