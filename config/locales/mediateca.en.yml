@@ -525,6 +525,7 @@ en:
         orientation: Orientation
         template_id: Broadcast portrait
       station:
+        medium: Station medium
         name: Name
       tag:
         name: Name
@@ -549,6 +550,7 @@ en:
         business_sphere: Business sphere
         holding: Holding
       advertising_order:
+        medium: Order medium
         business_sphere: Business sphere
         clip_title: Clip title
         coefficient_percent: Coefficient %

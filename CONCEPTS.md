@@ -41,6 +41,15 @@ Binding of a rotation to screens (`media_plan_screens`; broadcast point group op
 ### Advertising order
 Commercial order document (counterparty, product, ordered clip catalog, hourly rate and day windows on the order, per-screen day grid). Clips live on the order's system-managed rotation (`rotation_items` in list order); hourly slots cycle that catalog. Each order line is one screen. Activation occupies intersecting operating-hour windows as overlapping claims; two commercial orders may share a screen hour. Slots keep a nullable reference to their order line; manually created slots have none. The order is the commercial truth; the slot remains the airtime truth. Authored either by the client's manager in the client cabinet or by the operator on the client's behalf in the admin panel — the order always belongs to the client organization, while `created_by_user_id` records the actual author.
 
+### Station medium
+`video` or `audio` on a station; set only at create and immutable afterward. Selects agent topology: Android TV screens and the existing video station agent versus a local mpv audio agent with exactly one pseudo-screen. Screen rows have no medium column — effective medium is `screen.station.medium`.
+
+### Audio pseudo-screen
+The single `Screen` auto-created on an audio station. Serves as the booking and playlist target for audio ads; not a physical display. Further screens on that station are forbidden; destroying the sole pseudo-screen is forbidden so order lines and agent config keep a stable screen identity.
+
+### Order medium
+`video` or `audio` on an advertising order; editable in draft/rejected, frozen when the order is active. Filters attachable clips (`MediaAsset#content_kind`) and selectable screens (by `station.medium`). Mixing audio and video targets in one order is rejected; switching medium clears incompatible clip and screen selections.
+
 ### Organization profile
 A 1:1 companion of an Organization holding descriptive attributes filled by the operator in the admin panel: business sphere (chosen from the operator-managed `Directory::BusinessSphere` directory), brand, and holding (a holding groups several brands, e.g. holding "Командор" contains brands Командор, Аллея, Хороший). An advertising order snapshots the business sphere name from the profile at creation; later profile or directory edits do not rewrite issued order documents.
 
@@ -91,6 +100,8 @@ The calendar view of busy intervals on a group’s screens for placement UI. Sho
 - Occupy and reschedule take a screen lock before the screen overlap guard; the guard, not same-org media plan conflict detection, is authoritative for FWW.
 - A playlist is a daily projection of occupied slots plus per-screen portraits (merged per station); it does not occupy airtime. A rotation is a clip catalog bound by a media plan or portrait block. A service theme groups four rotations for operator service clips on a screen portrait.
 - Activating an advertising order writes one MediaPlan per line, per uncovered day, per merged intersection of the order's wall-clock windows and the screen's effective operating hours. Playlist generation projects those plans; it does not read the order grid.
+- An audio station owns exactly one pseudo-screen; order lines and playlists still key off normal `Screen` rows.
+- Order medium must align with selected clips and screens: video orders exclude audio clips and audio-station screens; audio orders accept only audio clips and audio-station screens.
 
 ## Flagged ambiguities
 

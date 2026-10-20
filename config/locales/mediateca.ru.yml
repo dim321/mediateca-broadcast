@@ -529,6 +529,7 @@ ru:
         orientation: Ориентация
         template_id: Портрет эфира
       station:
+        medium: Тип станции
         name: Название
       tag:
         name: Название
@@ -553,6 +554,7 @@ ru:
         business_sphere: Сфера деятельности
         holding: Холдинг
       advertising_order:
+        medium: Тип заказа
         business_sphere: Сфера деятельности
         clip_title: Название ролика
         coefficient_percent: Коэффициент, %
