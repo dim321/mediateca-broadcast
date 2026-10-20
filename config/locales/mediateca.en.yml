@@ -757,6 +757,10 @@ en:
         filter_tags: Tags
         filter_frequencies: Allowed blocks per hour
         filter_hours: Operating hours
+      medium_legend: Order medium
+      medium_video: Video
+      medium_audio: Audio
+      medium_switch_cleared: Incompatible clips and screens were cleared from your selection.
       clips: Clips
       clips_cycling_hint: Clips rotate through hourly slots; when there are fewer clips than shows per hour, the list cycles from the start.
       add_clip: Add clip

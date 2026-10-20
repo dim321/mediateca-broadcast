@@ -43,7 +43,8 @@ module Admin
         product_name: order_params[:product_name],
         placement_kind: order_params[:placement_kind].presence || :own_atmosphere,
         shows_per_hour: order_header_shows_per_hour,
-        distribution_strategy: order_params[:distribution_strategy].presence || :linear
+        distribution_strategy: order_params[:distribution_strategy].presence || :linear,
+        medium: order_params[:medium].presence || :video
       )
       persist_grid!(@advertising_order)
       redirect_to admin_advertising_order_path(@advertising_order),

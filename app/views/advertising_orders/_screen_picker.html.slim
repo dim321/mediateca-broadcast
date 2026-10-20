@@ -54,7 +54,7 @@
                       order_screen_selected?(screen),
                       id: "order_screen_#{screen.id}",
                       class: 'checkbox checkbox-sm',
-                      data: { action: 'order-screen-picker#selectionChanged' }
+                      data: { order_medium_target: 'screenCheckbox', station_medium: screen.station.medium, action: 'order-screen-picker#selectionChanged' }
                 td = screen.location&.name
                 td = screen.location&.address
                 td = screen.tags.map(&:name).presence&.join(', ')

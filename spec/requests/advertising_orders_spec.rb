@@ -524,6 +524,13 @@ RSpec.describe "AdvertisingOrders", type: :request do
       expect(thead.text).to include(month_label)
     end
 
+    it "renders medium radios on the new form" do
+      get new_advertising_order_path
+
+      expect(response.body).to include(I18n.t("advertising_orders.form.medium_legend"))
+      expect(response.body).to include('data-controller="order-grid order-windows order-medium order-screen-picker"')
+    end
+
     it "labels the media asset select in Russian" do
       get new_advertising_order_path
 
