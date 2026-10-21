@@ -7,9 +7,9 @@ orders so commercial placement can target either:
 
 - **video** stations — existing Android TV screens driven by the Go station
   agent (`mediateca-station`); or
-- **audio** stations — a mini-PC that plays only audio ads via a new Ruby/Spinel
-  agent and mpv, with exactly one Hub **pseudo-screen** registered on the
-  station.
+- **audio** stations — a mini-PC that plays only audio ads via a Go agent
+  and host mpv (`mediateca-audio-station`), with exactly one Hub
+  **pseudo-screen** registered on the station.
 
 This document covers Hub schema, cabinet/admin UX, validation, playlist
 eligibility, and package behaviour. The audio agent itself is specified in

@@ -2,33 +2,31 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build `mediateca-audio-station`, a Ruby process compiled with Spinel that plays Hub timed-playlist audio on a mini-PC via mpv for one pseudo-screen.
+**Goal:** Build `mediateca-audio-station`, a Go process that plays a Hub timed playlist on one pseudo-screen by spawning host `mpv` against cached audio files.
 
-**Architecture:** Long-running daemon: poll Hub config + v2 package → cache media files → pure schedule → kill/spawn mpv → durable play_event queue. No ADB, no LAN HTTP media server. Hub repo is not modified by this work (Hub medium work is a separate plan).
+**Architecture:** One systemd daemon on a Linux mini-PC polls the existing Broadcast Hub, stores the timed v2 package, downloads media to `data_dir/media`, and starts or stops `mpv --no-video`. Wall-clock `starts_at` uses the same timeline rules as `mediateca-station`. The hub repository is not modified. The Ruby/Spinel tree in `mediateca-audio-station-ruby` is an archive and is not extended.
 
-**Tech Stack:** Ruby (CRuby for tests), [Spinel](https://github.com/matz/spinel) AOT (`spin` / `spinel`), host `mpv`, YAML config, `Net::HTTP`, `Process.spawn` / Open3 (not `IO.popen`), systemd.
+**Tech Stack:** Go 1.22+, `gopkg.in/yaml.v3`, standard-library HTTP, host `mpv` (tests use a fake spawner). `CGO_ENABLED=0`.
 
-**Spec:** `docs/superpowers/specs/2026-10-20-audio-station-agent-design.md` in the hub repo (`mediateca-broadcast`). Copy or submodule that file into the new repo’s `docs/` for offline reading. If a test and the spec disagree, stop and report; do not change the Hub API.
+**Spec:** `docs/superpowers/specs/2026-10-20-audio-station-agent-design.md` in the hub repo (`mediateca-broadcast`). Copy that file into this repo’s `docs/superpowers/specs/` when the README task lands. If a test and the spec disagree, stop and report it; do not change the hub.
 
-**Repository:** Create a **new** git repo. Do not add agent source trees into `mediateca-broadcast`.
+**Repository:** `/home/dim/Projects/MyPets/mediateca-audio-station` (module `mediateca-audio-station`). Do not add Go files to `mediateca-broadcast`. Do not commit into `mediateca-audio-station-ruby`.
 
-```bash
-mkdir -p /home/dim/Projects/MyPets/mediateca-audio-station
-cd /home/dim/Projects/MyPets/mediateca-audio-station
-git init
-```
-
-Every path below is relative to that directory. Prefer Spinel-safe Ruby (no `eval`, no `IO.popen`, no runtime `define_method`).
+Every path below is relative to `mediateca-audio-station`. Run `gofmt -w` on every Go file you write before running tests.
 
 ## Global Constraints
 
 - Hub endpoints only: `GET /api/agent/v1/config`, `GET /api/agent/v2/package`, `POST /api/agent/v1/play_events`.
-- Bearer token on `/api/agent/*` only; never on media downloads.
-- Config file mode must not allow group/world bits (`0077`); else exit non-zero.
-- Late threshold default 2s; poll default 60s.
-- Play event only after successful mpv spawn; timestamp immediately before spawn.
-- mpv is an external host binary (`mpv_path`).
-- Target OS: Linux amd64 mini-PC.
+- Bearer token on `/api/agent/*` only; never on media downloads; strip `Authorization` on redirects; at most five redirects.
+- Config file mode must not allow group/world bits (`0077`); else exit non-zero. Also exit non-zero when `mpv_path` cannot be resolved.
+- Late threshold default `2s`; poll default `1m`. Both are Go durations.
+- Play event only after a successful mpv spawn; `started_at` is sampled immediately before spawn.
+- Played key is `screen_id:media_id:starts_at` using the package RFC3339 string.
+- mpv is an external host binary. Argument vector, not a shell.
+- One configured `screen_id`. No LAN HTTP server. No ADB.
+- Target OS: Linux amd64 mini-PC. Tests pass without mpv.
+- Never log `agent_token` or the `Authorization` header.
+- Schedule rules match `mediateca-station` `internal/schedule` (late window, conflict by smaller `position`, 1s join, missing file waits inside the window).
 
 ---
 
@@ -36,163 +34,166 @@ Every path below is relative to that directory. Prefer Spinel-safe Ruby (no `eva
 
 | Path | Responsibility |
 | --- | --- |
-| `README.md` | Install Spinel build, mpv, systemd, sample config |
-| `bin/mediateca-audio-station.rb` | `-config` flag, exit codes, call `Agent.run` |
-| `lib/audio_station/config.rb` | YAML load + validation + mode check |
-| `lib/audio_station/hub.rb` | HTTP client |
-| `lib/audio_station/cache.rb` | download + prune |
-| `lib/audio_station/schedule.rb` | pure timeline decisions |
-| `lib/audio_station/player.rb` | mpv spawn/kill |
-| `lib/audio_station/report.rb` | events queue + played set |
-| `lib/audio_station/agent.rb` | wire loops |
-| `test/` or `spec/` | CRuby tests (Minitest or RSpec — pick one; this plan uses Minitest for Spinel `spin test` friendliness) |
-| `packaging/mediateca-audio-station.service` | systemd unit |
-| `docs/design.md` | copy of Hub audio-agent design |
+| `go.mod` | Module `mediateca-audio-station`. |
+| `internal/fsutil/atomic.go` | Temp-file plus rename writes. |
+| `internal/config/config.go` | YAML load and validation. |
+| `internal/hub/client.go` | Config, v2 package, one play event. |
+| `internal/schedule/timeline.go` | Pure timeline decisions. No hub, player, or disk. |
+| `internal/report/queue.go` | `events.jsonl`, `played.json`, HTTP outcome table. |
+| `internal/player/mpv.go` | Spawn and signal mpv. |
+| `internal/cache/cache.go` | Download `media.url`, sidecars, delete unreferenced ids. |
+| `internal/agent/agent.go` | Poll, tick, drain. |
+| `cmd/audio-station/main.go` | `-config` flag and process exit. |
+| `.github/workflows/ci.yml` | gofmt, vet, golangci-lint, govulncheck, build, race test. |
+| `.golangci.yml` | Same linter set as `mediateca-station`. |
+| `packaging/mediateca-audio-station.service` | systemd unit. |
+| `README.md` | Operator install for the mini-PC. |
 
-Disk under `cache_dir` (or sibling `state_dir` if you split; MVP: all under `cache_dir` parent `data_dir` from config):
+Disk layout under `data_dir`:
 
 | Path | Contents |
 | --- | --- |
-| `package.json` | last package body |
-| `config.json` | last hub config body |
-| `media/<id>` | complete file |
-| `media/<id>.partial` | incomplete download |
-| `events.jsonl` | queued play events |
-| `played.json` | dedupe keys |
+| `config.json` | Last hub config HTTP 200 body. |
+| `package.json` | Last hub package HTTP 200 body. |
+| `package.etagheader` | Raw `ETag` response header, sent back as `If-None-Match`. |
+| `media/<id>` | Complete file. |
+| `media/<id>.url` | Package `media.url` that produced the file. |
+| `media/<id>.mime` | MIME type. |
+| `media/<id>.partial` | Incomplete download. Never played. |
+| `events.jsonl` | Queued play events. |
+| `played.json` | JSON array of `screen:media:starts_at` keys. |
 
 ---
 
-### Task 1: Scaffold project + Config
+### Task 1: Module and atomic writes
 
 **Files:**
-- Create: `README.md` (stub OK)
-- Create: `bin/mediateca-audio-station.rb`
-- Create: `lib/audio_station/config.rb`
-- Create: `test/config_test.rb`
-- Create: sample `testdata/config.valid.yaml`
+- Create: `go.mod`
+- Create: `internal/fsutil/atomic.go`
+- Create: `internal/fsutil/atomic_test.go`
 
 **Interfaces:**
-- Produces: `AudioStation::Config.load(path) -> Config` with readers: `hub_base_url`, `agent_token`, `cache_dir`, `screen_id`, `poll_interval`, `late_threshold`, `mpv_path`, `audio_device` (optional)
+- Produces: `fsutil.WriteAtomic(path string, data []byte) error`. Creates parent dirs `0700`, writes a temp file in that dir, mode `0600`, fsync, rename. Later tasks store JSON with this function.
 
-- [ ] **Step 1: Failing test — rejects world-readable config**
-
-```ruby
-# test/config_test.rb
-require "minitest/autorun"
-require "tmpdir"
-require "fileutils"
-require_relative "../lib/audio_station/config"
-
-class ConfigTest < Minitest::Test
-  def test_rejects_world_readable_config
-    Dir.mktmpdir do |dir|
-      path = File.join(dir, "config.yaml")
-      File.write(path, <<~YAML)
-        hub_base_url: "https://hub.example"
-        agent_token: "secret-token-value"
-        cache_dir: "#{dir}/cache"
-        screen_id: 1
-      YAML
-      File.chmod(0o644, path)
-
-      assert_raises(AudioStation::Config::Error) do
-        AudioStation::Config.load(path)
-      end
-    end
-  end
-
-  def test_loads_valid_config
-    Dir.mktmpdir do |dir|
-      path = File.join(dir, "config.yaml")
-      File.write(path, <<~YAML)
-        hub_base_url: "https://hub.example"
-        agent_token: "secret-token-value"
-        cache_dir: "#{dir}/cache"
-        screen_id: 42
-        poll_interval: 60
-        late_threshold: 2
-        mpv_path: "mpv"
-      YAML
-      File.chmod(0o600, path)
-
-      cfg = AudioStation::Config.load(path)
-      assert_equal "https://hub.example", cfg.hub_base_url
-      assert_equal 42, cfg.screen_id
-      assert_equal 2, cfg.late_threshold
-    end
-  end
-end
-```
-
-- [ ] **Step 2: Run — expect FAIL**
+- [ ] **Step 1: Create the module**
 
 ```bash
-ruby -Ilib:test test/config_test.rb
+cd /home/dim/Projects/MyPets/mediateca-audio-station
+go mod init mediateca-audio-station
 ```
 
-- [ ] **Step 3: Implement Config**
+Expected: `go.mod` contains `module mediateca-audio-station`. If the `go` line is older than `1.22`, set it to `go 1.22`.
 
-```ruby
-# lib/audio_station/config.rb
-require "yaml"
+- [ ] **Step 2: Write the failing test**
 
-module AudioStation
-  class Config
-    class Error < StandardError; end
+`internal/fsutil/atomic_test.go`
 
-    ATTRS = %i[
-      hub_base_url agent_token cache_dir screen_id
-      poll_interval late_threshold mpv_path audio_device
-    ].freeze
+```go
+package fsutil
 
-    attr_reader(*ATTRS)
+import (
+	"os"
+	"path/filepath"
+	"testing"
+)
 
-    def self.load(path)
-      raise Error, "missing config" unless File.file?(path)
-
-      mode = File.stat(path).mode & 0o777
-      raise Error, "config must not be group/world accessible" if (mode & 0o077) != 0
-
-      raw = YAML.safe_load(File.read(path), permitted_classes: [], aliases: false)
-      raise Error, "config root must be a mapping" unless raw.is_a?(Hash)
-
-      new(raw)
-    end
-
-    def initialize(raw)
-      @hub_base_url = raw.fetch("hub_base_url").to_s.sub(%r{/\z}, "")
-      @agent_token = raw.fetch("agent_token").to_s
-      @cache_dir = raw.fetch("cache_dir").to_s
-      @screen_id = Integer(raw.fetch("screen_id"))
-      @poll_interval = Integer(raw.fetch("poll_interval", 60))
-      @late_threshold = Integer(raw.fetch("late_threshold", 2))
-      @mpv_path = raw.fetch("mpv_path", "mpv").to_s
-      @audio_device = raw["audio_device"]&.to_s
-
-      validate!
-    end
-
-    private
-
-    def validate!
-      raise Error, "hub_base_url blank" if hub_base_url.empty?
-      raise Error, "agent_token blank" if agent_token.empty?
-      raise Error, "cache_dir blank" if cache_dir.empty?
-      raise Error, "screen_id must be positive" unless screen_id.positive?
-      raise Error, "poll_interval must be positive" unless poll_interval.positive?
-      raise Error, "late_threshold must be non-negative" if late_threshold.negative?
-      raise Error, "mpv_path blank" if mpv_path.empty?
-    end
-  end
-end
+func TestWriteAtomicReplacesAndLeavesNoTemp(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "nested", "package.json")
+	if err := WriteAtomic(path, []byte("one")); err != nil {
+		t.Fatal(err)
+	}
+	if err := WriteAtomic(path, []byte("two")); err != nil {
+		t.Fatal(err)
+	}
+	got, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != "two" {
+		t.Fatalf("got %q", got)
+	}
+	entries, err := os.ReadDir(filepath.Dir(path))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(entries) != 1 || entries[0].Name() != "package.json" {
+		t.Fatalf("dir entries: %v", entries)
+	}
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Mode().Perm()&0o077 != 0 {
+		t.Fatalf("mode %o is group or world readable", info.Mode().Perm())
+	}
+}
 ```
 
-- [ ] **Step 4: PASS + commit**
+- [ ] **Step 3: Run test to verify it fails**
 
 ```bash
-git add lib test README.md
+go test ./internal/fsutil/
+```
+
+Expected: FAIL, `WriteAtomic` undefined.
+
+- [ ] **Step 4: Write minimal implementation**
+
+`internal/fsutil/atomic.go`
+
+```go
+package fsutil
+
+import (
+	"os"
+	"path/filepath"
+)
+
+func WriteAtomic(path string, data []byte) error {
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		return err
+	}
+	f, err := os.CreateTemp(dir, filepath.Base(path)+".tmp-*")
+	if err != nil {
+		return err
+	}
+	tmp := f.Name()
+	defer os.Remove(tmp)
+	if _, err := f.Write(data); err != nil {
+		f.Close()
+		return err
+	}
+	if err := f.Sync(); err != nil {
+		f.Close()
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+	if err := os.Chmod(tmp, 0o600); err != nil {
+		return err
+	}
+	return os.Rename(tmp, path)
+}
+```
+
+- [ ] **Step 5: Run test to verify it passes**
+
+```bash
+gofmt -w internal/fsutil/atomic.go internal/fsutil/atomic_test.go
+go test ./internal/fsutil/
+```
+
+Expected: `ok mediateca-audio-station/internal/fsutil`.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add go.mod internal/fsutil
 git commit -m "$(cat <<'EOF'
-feat: config load with secret file mode check
+feat: atomic file writes for station state
 
 EOF
 )"
@@ -200,93 +201,264 @@ EOF
 
 ---
 
-### Task 2: Schedule (pure)
+### Task 2: Config file
 
 **Files:**
-- Create: `lib/audio_station/schedule.rb`
-- Create: `test/schedule_test.rb`
+- Create: `internal/config/config.go`
+- Create: `internal/config/config_test.go`
 
 **Interfaces:**
-- Produces: `AudioStation::Schedule.decision(entries:, screen_id:, now:, late_threshold:) -> Decision`
-- `Decision` kinds: `:play` (entry), `:skip_late` (entry), `:idle`, `:skip_missing_file` handled by agent after cache check — schedule only decides which entry is due
+- Produces: `config.Load(path string) (config.File, error)`
+- `config.File` fields: `HubBaseURL string`, `AgentToken string`, `DataDir string`, `ScreenID int`, `LateThreshold time.Duration`, `PollInterval time.Duration`, `MPVPath string`, `AudioDevice string`
 
-- [ ] **Step 1: Failing tests**
+- [ ] **Step 1: Write the failing test**
 
-```ruby
-require "minitest/autorun"
-require "time"
-require_relative "../lib/audio_station/schedule"
+`internal/config/config_test.go`
 
-class ScheduleTest < Minitest::Test
-  Entry = Data.define(:screen_ids, :starts_at, :duration_seconds, :media_id)
+```go
+package config
 
-  def test_play_when_on_time
-    starts = Time.parse("2026-10-20T10:00:00Z")
-    now = starts + 1
-    entry = Entry.new([7], starts, 10, 19)
-    d = AudioStation::Schedule.decision(
-      entries: [entry], screen_id: 7, now: now, late_threshold: 2
-    )
-    assert_equal :play, d.action
-    assert_equal entry, d.entry
-  end
+import (
+	"os"
+	"path/filepath"
+	"testing"
+	"time"
+)
 
-  def test_skip_when_late
-    starts = Time.parse("2026-10-20T10:00:00Z")
-    now = starts + 3
-    entry = Entry.new([7], starts, 10, 19)
-    d = AudioStation::Schedule.decision(
-      entries: [entry], screen_id: 7, now: now, late_threshold: 2
-    )
-    assert_equal :skip_late, d.action
-  end
+func writeConfig(t *testing.T, body string, mode os.FileMode) string {
+	t.Helper()
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+	if err := os.WriteFile(path, []byte(body), mode); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
 
-  def test_idle_when_no_entry_for_screen
-    starts = Time.parse("2026-10-20T10:00:00Z")
-    entry = Entry.new([9], starts, 10, 19)
-    d = AudioStation::Schedule.decision(
-      entries: [entry], screen_id: 7, now: starts, late_threshold: 2
-    )
-    assert_equal :idle, d.action
-  end
-end
+func TestRejectsGroupReadableConfig(t *testing.T) {
+	mpv := filepath.Join(t.TempDir(), "mpv")
+	if err := os.WriteFile(mpv, []byte("#!/bin/sh\n"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	path := writeConfig(t, `
+hub_base_url: "https://hub.example"
+agent_token: "secret-token-value"
+data_dir: "/var/lib/mediateca-audio-station"
+screen_id: 42
+mpv_path: "`+mpv+`"
+`, 0o640)
+	if _, err := Load(path); err == nil {
+		t.Fatal("expected error")
+	}
+}
+
+func TestLoadsDefaults(t *testing.T) {
+	mpv := filepath.Join(t.TempDir(), "mpv")
+	if err := os.WriteFile(mpv, []byte("#!/bin/sh\n"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	path := writeConfig(t, `
+hub_base_url: "https://hub.example/"
+agent_token: "secret-token-value"
+data_dir: "/var/lib/mediateca-audio-station"
+screen_id: 42
+mpv_path: "`+mpv+`"
+audio_device: "alsa/default"
+`, 0o600)
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.HubBaseURL != "https://hub.example" {
+		t.Fatalf("base %q", cfg.HubBaseURL)
+	}
+	if cfg.ScreenID != 42 || cfg.LateThreshold != 2*time.Second || cfg.PollInterval != time.Minute {
+		t.Fatalf("%+v", cfg)
+	}
+	if cfg.MPVPath != mpv || cfg.AudioDevice != "alsa/default" {
+		t.Fatalf("%+v", cfg)
+	}
+}
+
+func TestRejectsMissingMPV(t *testing.T) {
+	path := writeConfig(t, `
+hub_base_url: "https://hub.example"
+agent_token: "secret-token-value"
+data_dir: "/var/lib/mediateca-audio-station"
+screen_id: 42
+mpv_path: "mpv-does-not-exist-audio-station"
+`, 0o600)
+	if _, err := Load(path); err == nil {
+		t.Fatal("expected missing mpv error")
+	}
+}
+
+func TestRejectsPathOnHubURL(t *testing.T) {
+	mpv := filepath.Join(t.TempDir(), "mpv")
+	if err := os.WriteFile(mpv, []byte("#!/bin/sh\n"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	path := writeConfig(t, `
+hub_base_url: "https://hub.example/api"
+agent_token: "secret-token-value"
+data_dir: "/var/lib/mediateca-audio-station"
+screen_id: 42
+mpv_path: "`+mpv+`"
+`, 0o600)
+	if _, err := Load(path); err == nil {
+		t.Fatal("expected path error")
+	}
+}
 ```
 
-- [ ] **Step 2: Implement**
-
-```ruby
-module AudioStation
-  module Schedule
-    Decision = Data.define(:action, :entry)
-
-    module_function
-
-    def decision(entries:, screen_id:, now:, late_threshold:)
-      mine = entries.select { |e| Array(e.screen_ids).include?(screen_id) }
-      current = mine.find do |e|
-        t0 = e.starts_at
-        t1 = t0 + e.duration_seconds
-        now >= t0 && now < t1
-      end
-      return Decision.new(:idle, nil) unless current
-
-      if now - current.starts_at > late_threshold
-        Decision.new(:skip_late, current)
-      else
-        Decision.new(:play, current)
-      end
-    end
-  end
-end
-```
-
-Map package JSON into Entry structs in Hub client (Task 3), not here.
-
-- [ ] **Step 3: PASS + commit**
+- [ ] **Step 2: Run test to verify it fails**
 
 ```bash
+go test ./internal/config/
+```
+
+Expected: FAIL, package `config` does not exist.
+
+- [ ] **Step 3: Write minimal implementation**
+
+`internal/config/config.go`
+
+```go
+package config
+
+import (
+	"fmt"
+	"os"
+	"os/exec"
+	"strings"
+	"time"
+
+	"gopkg.in/yaml.v3"
+)
+
+type File struct {
+	HubBaseURL    string
+	AgentToken    string
+	DataDir       string
+	ScreenID      int
+	LateThreshold time.Duration
+	PollInterval  time.Duration
+	MPVPath       string
+	AudioDevice   string
+}
+
+type fileYAML struct {
+	HubBaseURL    string `yaml:"hub_base_url"`
+	AgentToken    string `yaml:"agent_token"`
+	DataDir       string `yaml:"data_dir"`
+	ScreenID      int    `yaml:"screen_id"`
+	LateThreshold string `yaml:"late_threshold"`
+	PollInterval  string `yaml:"poll_interval"`
+	MPVPath       string `yaml:"mpv_path"`
+	AudioDevice   string `yaml:"audio_device"`
+}
+
+func Load(path string) (File, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		return File{}, err
+	}
+	if info.Mode().Perm()&0o077 != 0 {
+		return File{}, fmt.Errorf("config %s is group or world readable", path)
+	}
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return File{}, err
+	}
+	var doc fileYAML
+	if err := yaml.Unmarshal(raw, &doc); err != nil {
+		return File{}, err
+	}
+	cfg := File{
+		HubBaseURL:    strings.TrimRight(doc.HubBaseURL, "/"),
+		AgentToken:    doc.AgentToken,
+		DataDir:       doc.DataDir,
+		ScreenID:      doc.ScreenID,
+		LateThreshold: 2 * time.Second,
+		PollInterval:  time.Minute,
+		MPVPath:       doc.MPVPath,
+		AudioDevice:   doc.AudioDevice,
+	}
+	if cfg.MPVPath == "" {
+		cfg.MPVPath = "mpv"
+	}
+	if doc.LateThreshold != "" {
+		parsed, err := time.ParseDuration(doc.LateThreshold)
+		if err != nil {
+			return File{}, fmt.Errorf("late_threshold: %w", err)
+		}
+		cfg.LateThreshold = parsed
+	}
+	if doc.PollInterval != "" {
+		parsed, err := time.ParseDuration(doc.PollInterval)
+		if err != nil {
+			return File{}, fmt.Errorf("poll_interval: %w", err)
+		}
+		cfg.PollInterval = parsed
+	}
+	if err := cfg.validate(); err != nil {
+		return File{}, err
+	}
+	return cfg, nil
+}
+
+func (f File) validate() error {
+	if f.HubBaseURL == "" || !(strings.HasPrefix(f.HubBaseURL, "http://") || strings.HasPrefix(f.HubBaseURL, "https://")) {
+		return fmt.Errorf("hub_base_url is invalid")
+	}
+	rest := strings.TrimPrefix(strings.TrimPrefix(f.HubBaseURL, "https://"), "http://")
+	if rest == "" || strings.Contains(rest, "/") {
+		return fmt.Errorf("hub_base_url must not include a path")
+	}
+	if f.AgentToken == "" {
+		return fmt.Errorf("agent_token is required")
+	}
+	if f.DataDir == "" {
+		return fmt.Errorf("data_dir is required")
+	}
+	if f.ScreenID <= 0 {
+		return fmt.Errorf("screen_id must be positive")
+	}
+	if f.PollInterval <= 0 {
+		return fmt.Errorf("poll_interval must be positive")
+	}
+	if f.LateThreshold < 0 {
+		return fmt.Errorf("late_threshold must be non-negative")
+	}
+	if strings.Contains(f.MPVPath, "/") {
+		if _, err := os.Stat(f.MPVPath); err != nil {
+			return fmt.Errorf("mpv_path: %w", err)
+		}
+		return nil
+	}
+	if _, err := exec.LookPath(f.MPVPath); err != nil {
+		return fmt.Errorf("mpv_path: %w", err)
+	}
+	return nil
+}
+```
+
+- [ ] **Step 4: Fetch the YAML module and run tests**
+
+```bash
+gofmt -w internal/config/config.go internal/config/config_test.go
+go get gopkg.in/yaml.v3@v3.0.1
+go test ./internal/config/
+```
+
+Expected: `ok mediateca-audio-station/internal/config`.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add go.mod go.sum internal/config
 git commit -m "$(cat <<'EOF'
-feat: pure schedule decisions for wall-clock clips
+feat: load audio station config and refuse loose permissions
 
 EOF
 )"
@@ -297,337 +469,290 @@ EOF
 ### Task 3: Hub client
 
 **Files:**
-- Create: `lib/audio_station/hub.rb`
-- Create: `test/hub_test.rb`
+- Create: `internal/hub/client.go`
+- Create: `internal/hub/client_test.go`
 
 **Interfaces:**
-- Produces: `Hub#fetch_config -> Hash`, `Hub#fetch_package -> Package`, `Hub#post_play_event(event) -> :ok|:reject|:retry`
-- `Package` with `entries` (Schedule::Entry-compatible), `etag`, raw body helpers as needed
+- Consumes: nothing from earlier tasks except the module path.
+- Produces:
+  - `hub.New(baseURL, token string) *hub.Client`
+  - `(*Client).FetchConfig(ctx) (Config, error)` — `ErrUnauthorized` on 401
+  - `(*Client).FetchPackage(ctx, ifNoneMatch string) (Package, notModified bool, error)` — `Package.HeaderETag` is the raw `ETag` header
+  - `(*Client).PostPlayEvent(ctx, screenID, mediaID int, startedAt time.Time) (status int, body string, error)`
+  - Types `Config`, `Screen`, `Package`, `Entry`, `Media` with the JSON tags in the spec
 
-- [ ] **Step 1: Failing test with WEBrick or stub IO**
+- [ ] **Step 1: Write the failing test**
 
-Use a local TCP server in the test that returns:
+`internal/hub/client_test.go`
 
-```json
-{
-  "version": "abc",
-  "etag": "abc",
-  "generated_at": "2026-10-20T12:00:00Z",
-  "valid_until": "2026-10-21T12:00:00Z",
-  "entries": [
-    {
-      "position": 1,
-      "starts_at": "2026-10-20T10:00:00Z",
-      "duration_seconds": 10,
-      "screen_ids": [7],
-      "media": { "id": 19, "url": "/rails/active_storage/blobs/redirect/x", "mime_type": "audio/mpeg" }
-    }
-  ]
+```go
+package hub
+
+import (
+	"context"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+	"time"
+)
+
+func TestFetchPackageSendsBearerAndStoresETag(t *testing.T) {
+	var gotAuth, gotNone string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotAuth = r.Header.Get("Authorization")
+		gotNone = r.Header.Get("If-None-Match")
+		if r.URL.Path != "/api/agent/v2/package" {
+			t.Errorf("path %s", r.URL.Path)
+		}
+		w.Header().Set("ETag", `"abc"`)
+		w.WriteHeader(http.StatusOK)
+		_, _ = io.WriteString(w, `{"version":"abc","etag":"abc","entries":[{"position":1,"starts_at":"2026-10-20T10:00:00Z","duration_seconds":10,"screen_ids":[42],"media":{"id":19,"url":"/clip.mp3","mime_type":"audio/mpeg"}}]}`)
+	}))
+	defer srv.Close()
+
+	pkg, notMod, err := New(srv.URL, "tok").FetchPackage(context.Background(), `"prev"`)
+	if err != nil || notMod {
+		t.Fatal(err, notMod)
+	}
+	if gotAuth != "Bearer tok" || gotNone != `"prev"` {
+		t.Fatalf("auth %q none %q", gotAuth, gotNone)
+	}
+	if pkg.HeaderETag != `"abc"` || len(pkg.Entries) != 1 || pkg.Entries[0].Media.ID != 19 {
+		t.Fatalf("%+v", pkg)
+	}
+}
+
+func TestFetchPackageNotModified(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotModified)
+	}))
+	defer srv.Close()
+	_, notMod, err := New(srv.URL, "tok").FetchPackage(context.Background(), `"abc"`)
+	if err != nil || !notMod {
+		t.Fatal(err, notMod)
+	}
+}
+
+func TestPostPlayEventBody(t *testing.T) {
+	var body string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/agent/v1/play_events" || r.Method != http.MethodPost {
+			t.Errorf("path %s method %s", r.URL.Path, r.Method)
+		}
+		raw, _ := io.ReadAll(r.Body)
+		body = string(raw)
+		w.WriteHeader(http.StatusCreated)
+		_, _ = io.WriteString(w, `{"play_log_ids":[101]}`)
+	}))
+	defer srv.Close()
+	started := time.Date(2026, 9, 2, 2, 0, 1, 0, time.UTC)
+	status, resp, err := New(srv.URL, "tok").PostPlayEvent(context.Background(), 42, 19, started)
+	if err != nil || status != 201 {
+		t.Fatal(err, status, resp)
+	}
+	if !strings.Contains(body, `"screen_id":42`) || !strings.Contains(body, `"media_asset_id":19`) || !strings.Contains(body, `"started_at":"2026-09-02T02:00:01Z"`) {
+		t.Fatalf("body %s", body)
+	}
+}
+
+func TestUnauthorized(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+		_, _ = io.WriteString(w, `{"error":"unauthorized"}`)
+	}))
+	defer srv.Close()
+	_, err := New(srv.URL, "tok").FetchConfig(context.Background())
+	if err != ErrUnauthorized {
+		t.Fatal(err)
+	}
 }
 ```
 
-Assert Bearer header present on package GET; assert media download helper does **not** attach Bearer when implemented in Cache.
-
-- [ ] **Step 2: Implement with Net::HTTP**
-
-Paths:
-
-- `GET #{hub_base_url}/api/agent/v1/config`
-- `GET #{hub_base_url}/api/agent/v2/package`
-- `POST #{hub_base_url}/api/agent/v1/play_events`
-
-Parse `starts_at` as UTC Time. Build entry objects with `screen_ids`, `starts_at`, `duration_seconds`, `media_id`, `media_url`, `mime_type`.
-
-Mirror the video agent’s play_event JSON fields from Hub request specs in `mediateca-broadcast` (`spec/requests/api/agent/v1/play_events_spec.rb`) — copy required keys exactly (do not invent).
-
-- [ ] **Step 3: PASS + commit**
+- [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-git commit -m "$(cat <<'EOF'
-feat: hub HTTP client for config, package, play events
-
-EOF
-)"
+go test ./internal/hub/
 ```
 
----
+Expected: FAIL, package `hub` does not exist.
 
-### Task 4: Cache
+- [ ] **Step 3: Write minimal implementation**
 
-**Files:**
-- Create: `lib/audio_station/cache.rb`
-- Create: `test/cache_test.rb`
+`internal/hub/client.go`
 
-**Interfaces:**
-- Produces: `Cache#path_for(media_id)`, `Cache#ensure!(media_id, url) -> path or nil`, `Cache#prune!(keep_ids)`
+```go
+package hub
 
-- [ ] **Step 1: Tests**
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"errors"
+	"io"
+	"net/http"
+	"strings"
+	"time"
+)
 
-- Successful download writes `media/<id>` and removes `.partial`
-- Failed download leaves no playable file
-- `prune!` deletes ids not in `keep_ids`
+var ErrUnauthorized = errors.New("unauthorized")
 
-- [ ] **Step 2: Implement**
+type Screen struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Orientation string `json:"orientation"`
+}
 
-Download with `Net::HTTP` **without** Authorization. Write to `.partial`, fsync, rename. Create `cache_dir/media` as needed.
+type Config struct {
+	StationID         int      `json:"station_id"`
+	OfflineCacheHours int      `json:"offline_cache_hours"`
+	Screens           []Screen `json:"screens"`
+}
 
-- [ ] **Step 3: PASS + commit**
+type Media struct {
+	ID       int    `json:"id"`
+	URL      string `json:"url"`
+	MimeType string `json:"mime_type"`
+}
+
+type Entry struct {
+	Position        int     `json:"position"`
+	StartsAt        *string `json:"starts_at"`
+	DurationSeconds int     `json:"duration_seconds"`
+	ScreenIDs       []int   `json:"screen_ids"`
+	Media           Media   `json:"media"`
+}
+
+type Package struct {
+	Version    string  `json:"version"`
+	ETag       string  `json:"etag"`
+	Entries    []Entry `json:"entries"`
+	HeaderETag string  `json:"-"`
+}
+
+type Client struct {
+	BaseURL string
+	Token   string
+	HTTP    *http.Client
+}
+
+func New(baseURL, token string) *Client {
+	return &Client{
+		BaseURL: strings.TrimRight(baseURL, "/"),
+		Token:   token,
+		HTTP:    &http.Client{Timeout: 30 * time.Second},
+	}
+}
+
+func (c *Client) FetchConfig(ctx context.Context) (Config, error) {
+	resp, err := c.do(ctx, http.MethodGet, "/api/agent/v1/config", "", nil)
+	if err != nil {
+		return Config{}, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusUnauthorized {
+		return Config{}, ErrUnauthorized
+	}
+	if resp.StatusCode != http.StatusOK {
+		return Config{}, errStatus(resp.StatusCode)
+	}
+	var cfg Config
+	if err := json.NewDecoder(resp.Body).Decode(&cfg); err != nil {
+		return Config{}, err
+	}
+	return cfg, nil
+}
+
+func (c *Client) FetchPackage(ctx context.Context, ifNoneMatch string) (Package, bool, error) {
+	resp, err := c.do(ctx, http.MethodGet, "/api/agent/v2/package", ifNoneMatch, nil)
+	if err != nil {
+		return Package{}, false, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusUnauthorized {
+		return Package{}, false, ErrUnauthorized
+	}
+	if resp.StatusCode == http.StatusNotModified {
+		return Package{}, true, nil
+	}
+	if resp.StatusCode != http.StatusOK {
+		return Package{}, false, errStatus(resp.StatusCode)
+	}
+	var pkg Package
+	if err := json.NewDecoder(resp.Body).Decode(&pkg); err != nil {
+		return Package{}, false, err
+	}
+	pkg.HeaderETag = resp.Header.Get("ETag")
+	return pkg, false, nil
+}
+
+func (c *Client) PostPlayEvent(ctx context.Context, screenID, mediaID int, startedAt time.Time) (int, string, error) {
+	payload := map[string]any{
+		"events": []map[string]any{{
+			"screen_id":      screenID,
+			"media_asset_id": mediaID,
+			"started_at":     startedAt.UTC().Format(time.RFC3339),
+		}},
+	}
+	raw, err := json.Marshal(payload)
+	if err != nil {
+		return 0, "", err
+	}
+	resp, err := c.do(ctx, http.MethodPost, "/api/agent/v1/play_events", "", raw)
+	if err != nil {
+		return 0, "", err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return resp.StatusCode, "", err
+	}
+	return resp.StatusCode, string(body), nil
+}
+
+func (c *Client) do(ctx context.Context, method, path, ifNoneMatch string, body []byte) (*http.Response, error) {
+	var reader io.Reader
+	if body != nil {
+		reader = bytes.NewReader(body)
+	}
+	req, err := http.NewRequestWithContext(ctx, method, c.BaseURL+path, reader)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+c.Token)
+	req.Header.Set("Accept", "application/json")
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	if ifNoneMatch != "" {
+		req.Header.Set("If-None-Match", ifNoneMatch)
+	}
+	return c.HTTP.Do(req)
+}
+
+type statusError struct{ code int }
+
+func (e statusError) Error() string { return "hub status" }
+
+func errStatus(code int) error { return statusError{code: code} }
+```
+
+- [ ] **Step 4: Run test to verify it passes**
 
 ```bash
-git commit -m "$(cat <<'EOF'
-feat: media cache download and prune
-
-EOF
-)"
+gofmt -w internal/hub/client.go internal/hub/client_test.go
+go test ./internal/hub/
 ```
 
----
-
-### Task 5: Player (mpv)
-
-**Files:**
-- Create: `lib/audio_station/player.rb`
-- Create: `test/player_test.rb`
-- Create: `testdata/fake_mpv` (executable script)
-
-**Interfaces:**
-- Produces: `Player#start(path) -> true|false`, `Player#stop`
-
-- [ ] **Step 1: Fake mpv script**
-
-```bash
-#!/bin/sh
-echo "$@" >> "${FAKE_MPV_LOG}"
-exit 0
-```
-
-- [ ] **Step 2: Test start argv**
-
-```ruby
-def test_start_invokes_mpv_no_video
-  log = File.join(Dir.tmpdir, "fake-mpv-#{Process.pid}.log")
-  File.write(log, "")
-  ENV["FAKE_MPV_LOG"] = log
-  player = AudioStation::Player.new(mpv_path: File.expand_path("testdata/fake_mpv"), audio_device: nil)
-  path = File.join(Dir.tmpdir, "clip.mp3")
-  File.write(path, "x")
-  assert player.start(path)
-  args = File.read(log)
-  assert_includes args, "--no-video"
-  assert_includes args, path
-ensure
-  player&.stop
-end
-```
-
-- [ ] **Step 3: Implement**
-
-```ruby
-module AudioStation
-  class Player
-    def initialize(mpv_path:, audio_device: nil)
-      @mpv_path = mpv_path
-      @audio_device = audio_device
-      @pid = nil
-    end
-
-    def start(path)
-      stop
-      args = [@mpv_path, "--no-video", "--really-quiet", path]
-      args.insert(1, "--audio-device=#{@audio_device}") if @audio_device && !@audio_device.empty?
-      @pid = Process.spawn(*args)
-      true
-    rescue SystemCallError
-      @pid = nil
-      false
-    end
-
-    def stop
-      return unless @pid
-
-      Process.kill("TERM", @pid)
-      Process.wait(@pid)
-    rescue Errno::ESRCH, Errno::ECHILD
-      # already gone
-    ensure
-      @pid = nil
-    end
-  end
-end
-```
-
-Spinel note: use `Process.spawn` / Open3 package; do not use `IO.popen`.
-
-- [ ] **Step 4: PASS + commit**
-
-```bash
-chmod +x testdata/fake_mpv
-git commit -m "$(cat <<'EOF'
-feat: mpv player start/stop via Process.spawn
-
-EOF
-)"
-```
-
----
-
-### Task 6: Report queue
-
-**Files:**
-- Create: `lib/audio_station/report.rb`
-- Create: `test/report_test.rb`
-
-**Interfaces:**
-- Produces: `Report#enqueue(event)`, `Report#drain!(hub) -> counts`, durable `events.jsonl` + `played.json`
-
-- [ ] **Step 1: Tests for persist across new Report instance, dedupe key `screen:media:starts_at`**
-- [ ] **Step 2: Implement JSONL append + rewrite on success; map Hub POST outcomes `:ok` remove, `:reject` drop, `:retry` keep**
-- [ ] **Step 3: Commit**
-
-```bash
-git commit -m "$(cat <<'EOF'
-feat: durable play event queue with dedupe
-
-EOF
-)"
-```
-
----
-
-### Task 7: Agent loop + CLI
-
-**Files:**
-- Create: `lib/audio_station/agent.rb`
-- Create: `bin/mediateca-audio-station.rb`
-- Create: `test/agent_test.rb` (stub Hub + fake mpv)
-
-**Interfaces:**
-- Produces: `AudioStation::Agent.run(config)` blocking loop; CLI exits 2 on config error
-
-- [ ] **Step 1: Loop sketch**
-
-```ruby
-def run
-  loop do
-    pkg = @hub.fetch_package
-    @cache.prune!(pkg.media_ids)
-    pkg.each_media { |id, url| @cache.ensure!(id, absolute_url(url)) }
-
-    decision = Schedule.decision(
-      entries: pkg.entries,
-      screen_id: @config.screen_id,
-      now: Time.now.utc,
-      late_threshold: @config.late_threshold
-    )
-
-    case decision.action
-    when :play
-      path = @cache.path_for(decision.entry.media_id)
-      if path && File.file?(path)
-        played_at = Time.now.utc
-        if @player.start(path)
-          @report.enqueue(build_event(decision.entry, played_at))
-        end
-      end
-    when :skip_late
-      # log once per entry key
-    end
-
-    @report.drain!(@hub)
-    sleep tick_sleep # short tick (e.g. 0.5–1s), not only poll_interval; also refresh package every poll_interval
-  end
-end
-```
-
-Separate **poll timer** (config/package refresh) from **schedule tick** (playback decisions). Match video-agent behaviour: poll every `poll_interval`, schedule on a faster tick.
-
-- [ ] **Step 2: CLI**
-
-```ruby
-#!/usr/bin/env ruby
-require_relative "../lib/audio_station/agent"
-require_relative "../lib/audio_station/config"
-
-config_path = nil
-ARGV.each_cons(2) { |a, b| config_path = b if a == "-config" }
-abort "usage: mediateca-audio-station -config PATH" unless config_path
-
-begin
-  cfg = AudioStation::Config.load(config_path)
-rescue AudioStation::Config::Error => e
-  warn e.message
-  exit 2
-end
-
-AudioStation::Agent.run(cfg)
-```
-
-- [ ] **Step 3: Integration test with stub Hub returning one entry + fake mpv — assert play_event enqueued**
-- [ ] **Step 4: Commit**
-
-```bash
-git commit -m "$(cat <<'EOF'
-feat: agent loop wiring poll, cache, schedule, mpv, report
-
-EOF
-)"
-```
-
----
-
-### Task 8: Spinel build + systemd + README
-
-**Files:**
-- Create: `spin` project files per Spinel docs (`spin new` then move sources, or hand-write `Spin.toml` / project layout for the installed Spinel tag)
-- Create: `packaging/mediateca-audio-station.service`
-- Modify: `README.md`
-- Create: `docs/design.md` (copy from Hub spec)
-
-- [ ] **Step 1: Document Spinel version**
-
-In README: exact Spinel release tag used (e.g. `2026.09.12` or newer). Install steps: `make deps && make && sudo make install` from Spinel source.
-
-- [ ] **Step 2: Compile gate**
-
-```bash
-spin build
-# or: spinel bin/mediateca-audio-station.rb -o build/mediateca-audio-station
-./build/bin/mediateca-audio-station -config /path/to/config.yaml
-```
-
-Fix any Spinel refusals (replace unsupported constructs). Keep CRuby tests green.
-
-- [ ] **Step 3: systemd unit**
-
-```ini
-[Unit]
-Description=Mediateca audio station agent
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-Type=simple
-ExecStart=/usr/local/bin/mediateca-audio-station -config /etc/mediateca-audio-station/config.yaml
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-```
-
-- [ ] **Step 4: README operator sections**
-
-1. Install mpv + chrony  
-2. Create user, directories, `chmod 600` config  
-3. Install binary  
-4. Enable systemd  
-5. Map `screen_id` to Hub audio pseudo-screen  
+Expected: `ok mediateca-audio-station/internal/hub`.
 
 - [ ] **Step 5: Commit**
 
 ```bash
+git add internal/hub
 git commit -m "$(cat <<'EOF'
-chore: Spinel build, systemd unit, operator README
+feat: hub client for config, package, and play events
 
 EOF
 )"
@@ -635,27 +760,1452 @@ EOF
 
 ---
 
-## Spec coverage checklist
+### Task 4: Schedule
+
+**Files:**
+- Create: `internal/schedule/timeline.go`
+- Create: `internal/schedule/timeline_test.go`
+
+**Interfaces:**
+- Produces the same API as `mediateca-station/internal/schedule`:
+  - `ParseEntry(startsAt *string, durationSeconds int, screenIDs []int, mediaID int, rawURL, mime string, position int) (Entry, error)`
+  - `Commands(now time.Time, late time.Duration, screenID int, entries []Entry, played PlayedFunc, ready ReadyFunc, onScreen *Key) []Command`
+  - `WakeAt(now time.Time, late time.Duration, screenID int, entries []Entry, played PlayedFunc, ready ReadyFunc) time.Time`
+  - `EntryKey(screenID int, entry Entry) Key`
+  - `KindStart`, `KindStop`, `KindSkip`
+- This package imports only the standard library.
+
+Copy `timeline.go` and `timeline_test.go` from `mediateca-station` at the versions below. Do not import that module. Change the test MIME string only if you want; behavior must stay identical. The audio agent calls `Commands` for its single `screen_id`.
+
+- [ ] **Step 1: Write the failing test**
+
+`internal/schedule/timeline_test.go` — paste the video agent's file unchanged (`package schedule`, helpers `entry`, `nonePlayed`, `alwaysReady`, `neverReady`, `kinds`, and tests `TestParseEntryRejectsIncomplete`, `TestStartAtExactAndAtThreshold`, `TestSkipOneNanosecondPastThreshold`, `TestMissingFileWaitsInsideWindowAndSkipsAfter`, `TestOtherScreenNeverStarts`, `TestConflictPlaysSmallerPosition`, `TestTightJoinDoesNotStop`, `TestGapForceStops`, `TestEmptyPackageStops`, `TestSameCoveringKeyDoesNotRestart`, `TestDifferentCoveringKeyStops`, `TestWakeRetriesUnplayedClipInsideWindow`). Source of record: `mediateca-station/internal/schedule/timeline_test.go`.
+
+- [ ] **Step 2: Run test to verify it fails**
+
+```bash
+go test ./internal/schedule/
+```
+
+Expected: FAIL, `Commands` undefined.
+
+- [ ] **Step 3: Write the implementation**
+
+`internal/schedule/timeline.go` — paste `mediateca-station/internal/schedule/timeline.go` unchanged (`Entry`, `Key`, `Kind`, `Command`, `Commands`, `WakeAt`, `startOrSkip`, `holdForJoin`, `split`, `coveringEntry`). A conflict loser is skipped. A file that is not ready inside the late window returns no command. One nanosecond past `starts_at+late` is `KindSkip` reason `late`, or `missing_file` when the file is also not ready. A gap longer than 1s between clips emits `KindStop` before the next start. A join of `end` to the next `starts_at` within 1s does not emit `KindStop`.
+
+- [ ] **Step 4: Run test to verify it passes**
+
+```bash
+gofmt -w internal/schedule/timeline.go internal/schedule/timeline_test.go
+go test ./internal/schedule/
+```
+
+Expected: `ok mediateca-audio-station/internal/schedule`.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add internal/schedule
+git commit -m "$(cat <<'EOF'
+feat: wall-clock timeline shared with the video agent
+
+EOF
+)"
+```
+
+---
+
+### Task 5: Play-event queue
+
+**Files:**
+- Create: `internal/report/queue.go`
+- Create: `internal/report/queue_test.go`
+
+**Interfaces:**
+- Consumes: `fsutil.WriteAtomic`
+- Produces:
+  - `report.Open(dir string) (*Queue, error)`
+  - `(*Queue).Played(key string) bool`
+  - `(*Queue).Enqueue(ev Event, playedKey string) error`
+  - `(*Queue).Peek() (Event, bool, error)`
+  - `(*Queue).RemoveFirst() error`
+  - `report.OutcomeFor(status int, netErr bool) Outcome` with `OutcomeRetry`, `OutcomeRemove` (201), `OutcomeDrop` (404, 422), `OutcomePause` (401)
+  - `Event{ScreenID int, MediaAssetID int, StartedAt time.Time}`
+
+- [ ] **Step 1: Write the failing test**
+
+`internal/report/queue_test.go`
+
+```go
+package report
+
+import (
+	"os"
+	"path/filepath"
+	"testing"
+	"time"
+)
+
+func TestEnqueueSurvivesReopen(t *testing.T) {
+	dir := t.TempDir()
+	q, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	started := time.Date(2026, 9, 2, 2, 0, 1, 0, time.UTC)
+	if err := q.Enqueue(Event{ScreenID: 42, MediaAssetID: 19, StartedAt: started}, "42:19:2026-09-02T02:00:00Z"); err != nil {
+		t.Fatal(err)
+	}
+	q2, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !q2.Played("42:19:2026-09-02T02:00:00Z") {
+		t.Fatal("played key missing")
+	}
+	ev, ok, err := q2.Peek()
+	if err != nil || !ok || ev.MediaAssetID != 19 || !ev.StartedAt.Equal(started) {
+		t.Fatalf("%+v ok=%v err=%v", ev, ok, err)
+	}
+	if err := q2.RemoveFirst(); err != nil {
+		t.Fatal(err)
+	}
+	_, ok, err = q2.Peek()
+	if err != nil || ok {
+		t.Fatal(err, ok)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "played.json")); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestOutcomeTable(t *testing.T) {
+	if OutcomeFor(201, false) != OutcomeRemove || OutcomeFor(401, false) != OutcomePause {
+		t.Fatal("201/401")
+	}
+	if OutcomeFor(404, false) != OutcomeDrop || OutcomeFor(422, false) != OutcomeDrop {
+		t.Fatal("drop")
+	}
+	if OutcomeFor(500, false) != OutcomeRetry || OutcomeFor(0, true) != OutcomeRetry {
+		t.Fatal("retry")
+	}
+}
+
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+```bash
+go test ./internal/report/
+```
+
+Expected: FAIL, `Open` undefined.
+
+- [ ] **Step 3: Write minimal implementation**
+
+`internal/report/queue.go`
+
+```go
+package report
+
+import (
+	"bufio"
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"sync"
+	"time"
+
+	"mediateca-audio-station/internal/fsutil"
+)
+
+type Outcome int
+
+const (
+	OutcomeRetry Outcome = iota
+	OutcomeRemove
+	OutcomeDrop
+	OutcomePause
+)
+
+func OutcomeFor(status int, netErr bool) Outcome {
+	if netErr {
+		return OutcomeRetry
+	}
+	switch status {
+	case 201:
+		return OutcomeRemove
+	case 401:
+		return OutcomePause
+	case 404, 422:
+		return OutcomeDrop
+	default:
+		return OutcomeRetry
+	}
+}
+
+type Event struct {
+	ScreenID     int
+	MediaAssetID int
+	StartedAt    time.Time
+}
+
+type stored struct {
+	ScreenID     int    `json:"screen_id"`
+	MediaAssetID int    `json:"media_asset_id"`
+	StartedAt    string `json:"started_at"`
+	PlayedKey    string `json:"played_key"`
+}
+
+type Queue struct {
+	mu      sync.Mutex
+	dir     string
+	played  map[string]struct{}
+	events  string
+	playedP string
+}
+
+func Open(dir string) (*Queue, error) {
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		return nil, err
+	}
+	q := &Queue{
+		dir:     dir,
+		played:  map[string]struct{}{},
+		events:  filepath.Join(dir, "events.jsonl"),
+		playedP: filepath.Join(dir, "played.json"),
+	}
+	if raw, err := os.ReadFile(q.playedP); err == nil && len(raw) > 0 {
+		var keys []string
+		if err := json.Unmarshal(raw, &keys); err != nil {
+			return nil, err
+		}
+		for _, key := range keys {
+			q.played[key] = struct{}{}
+		}
+	}
+	lines, err := q.readLines()
+	if err != nil {
+		return nil, err
+	}
+	for _, line := range lines {
+		if line.PlayedKey != "" {
+			q.played[line.PlayedKey] = struct{}{}
+		}
+	}
+	return q, nil
+}
+
+func (q *Queue) Played(key string) bool {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	_, ok := q.played[key]
+	return ok
+}
+
+func (q *Queue) Enqueue(ev Event, playedKey string) error {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	line, err := json.Marshal(stored{
+		ScreenID:     ev.ScreenID,
+		MediaAssetID: ev.MediaAssetID,
+		StartedAt:    ev.StartedAt.UTC().Format(time.RFC3339),
+		PlayedKey:    playedKey,
+	})
+	if err != nil {
+		return err
+	}
+	f, err := os.OpenFile(q.events, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600)
+	if err != nil {
+		return err
+	}
+	if _, err := f.Write(append(line, '\n')); err != nil {
+		f.Close()
+		return err
+	}
+	if err := f.Sync(); err != nil {
+		f.Close()
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+	q.played[playedKey] = struct{}{}
+	return q.writePlayed()
+}
+
+func (q *Queue) Peek() (Event, bool, error) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	lines, err := q.readLines()
+	if err != nil || len(lines) == 0 {
+		return Event{}, false, err
+	}
+	started, err := time.Parse(time.RFC3339, lines[0].StartedAt)
+	if err != nil {
+		return Event{}, false, err
+	}
+	return Event{ScreenID: lines[0].ScreenID, MediaAssetID: lines[0].MediaAssetID, StartedAt: started}, true, nil
+}
+
+func (q *Queue) RemoveFirst() error {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	lines, err := q.readLines()
+	if err != nil || len(lines) == 0 {
+		return err
+	}
+	var buf []byte
+	for _, line := range lines[1:] {
+		raw, err := json.Marshal(line)
+		if err != nil {
+			return err
+		}
+		buf = append(buf, raw...)
+		buf = append(buf, '\n')
+	}
+	return fsutil.WriteAtomic(q.events, buf)
+}
+
+func (q *Queue) writePlayed() error {
+	keys := make([]string, 0, len(q.played))
+	for key := range q.played {
+		keys = append(keys, key)
+	}
+	raw, err := json.Marshal(keys)
+	if err != nil {
+		return err
+	}
+	return fsutil.WriteAtomic(q.playedP, raw)
+}
+
+func (q *Queue) readLines() ([]stored, error) {
+	f, err := os.Open(q.events)
+	if os.IsNotExist(err) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	var lines []stored
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		text := scanner.Bytes()
+		if len(text) == 0 {
+			continue
+		}
+		var line stored
+		if err := json.Unmarshal(text, &line); err != nil {
+			return nil, err
+		}
+		lines = append(lines, line)
+	}
+	return lines, scanner.Err()
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+```bash
+gofmt -w internal/report/queue.go internal/report/queue_test.go
+go test ./internal/report/
+```
+
+Expected: `ok mediateca-audio-station/internal/report`.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add internal/report
+git commit -m "$(cat <<'EOF'
+feat: durable play-event queue with dedupe
+
+EOF
+)"
+```
+
+---
+
+### Task 6: mpv player
+
+**Files:**
+- Create: `internal/player/mpv.go`
+- Create: `internal/player/mpv_test.go`
+
+**Interfaces:**
+- Produces:
+  - `player.New(mpvPath, audioDevice string) *Player`
+  - `(*Player).Start(ctx context.Context, path string) error` — stops any current child, then spawns
+  - `(*Player).Stop(ctx context.Context) error`
+  - `(*Player).SetSpawner(Spawner)` for tests
+  - `Spawner.Spawn(argv ...string) (Proc, error)`
+  - `Proc.Signal(os.Signal) error`, `Proc.Wait() error`, `Proc.Pid() int` is not required
+- Argv: `mpvPath`, `--no-video`, `--no-terminal`, `--really-quiet`, optional `--audio-device=<device>`, `--`, `path`
+
+- [ ] **Step 1: Write the failing test**
+
+`internal/player/mpv_test.go`
+
+```go
+package player
+
+import (
+	"context"
+	"errors"
+	"os"
+	"syscall"
+	"testing"
+	"time"
+)
+
+type fakeProc struct {
+	sig   os.Signal
+	wait  chan struct{}
+	kill  chan struct{}
+}
+
+func newFakeProc() *fakeProc {
+	return &fakeProc{wait: make(chan struct{}), kill: make(chan struct{})}
+}
+
+func (p *fakeProc) Signal(s os.Signal) error {
+	p.sig = s
+	select {
+	case <-p.kill:
+	default:
+		close(p.kill)
+	}
+	return nil
+}
+
+func (p *fakeProc) Wait() error {
+	<-p.kill
+	close(p.wait)
+	return nil
+}
+
+type fakeSpawn struct {
+	argv [][]string
+	proc *fakeProc
+	err  error
+}
+
+func (f *fakeSpawn) Spawn(argv ...string) (Proc, error) {
+	cp := append([]string(nil), argv...)
+	f.argv = append(f.argv, cp)
+	if f.err != nil {
+		return nil, f.err
+	}
+	f.proc = newFakeProc()
+	return f.proc, nil
+}
+
+func TestStartArgvIncludesNoVideoAndDevice(t *testing.T) {
+	sp := &fakeSpawn{}
+	p := New("/usr/bin/mpv", "alsa/hdmi:CARD=PCH,DEV=0")
+	p.SetSpawner(sp)
+	if err := p.Start(context.Background(), "/var/lib/media/19"); err != nil {
+		t.Fatal(err)
+	}
+	got := sp.argv[0]
+	want := []string{"/usr/bin/mpv", "--no-video", "--no-terminal", "--really-quiet", "--audio-device=alsa/hdmi:CARD=PCH,DEV=0", "--", "/var/lib/media/19"}
+	if len(got) != len(want) {
+		t.Fatalf("%q", got)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("argv %q", got)
+		}
+	}
+	if err := p.Stop(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if sp.proc.sig != syscall.SIGTERM {
+		t.Fatalf("signal %v", sp.proc.sig)
+	}
+}
+
+func TestStartOmitsEmptyDevice(t *testing.T) {
+	sp := &fakeSpawn{}
+	p := New("mpv", "")
+	p.SetSpawner(sp)
+	if err := p.Start(context.Background(), "/clip.mp3"); err != nil {
+		t.Fatal(err)
+	}
+	for _, arg := range sp.argv[0] {
+		if len(arg) >= 14 && arg[:14] == "--audio-device" {
+			t.Fatalf("device leaked: %q", sp.argv[0])
+		}
+	}
+	_ = p.Stop(context.Background())
+}
+
+func TestSpawnError(t *testing.T) {
+	sp := &fakeSpawn{err: errors.New("missing")}
+	p := New("mpv", "")
+	p.SetSpawner(sp)
+	if err := p.Start(context.Background(), "/clip.mp3"); err == nil {
+		t.Fatal("expected error")
+	}
+}
+
+func TestStopWithoutStart(t *testing.T) {
+	p := New("mpv", "")
+	p.SetSpawner(&fakeSpawn{})
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if err := p.Stop(ctx); err != nil {
+		t.Fatal(err)
+	}
+}
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+```bash
+go test ./internal/player/
+```
+
+Expected: FAIL, `New` undefined.
+
+- [ ] **Step 3: Write minimal implementation**
+
+`internal/player/mpv.go`
+
+```go
+package player
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"os/exec"
+	"sync"
+	"syscall"
+	"time"
+)
+
+type Proc interface {
+	Signal(os.Signal) error
+	Wait() error
+}
+
+type Spawner interface {
+	Spawn(argv ...string) (Proc, error)
+}
+
+type execProc struct{ cmd *exec.Cmd }
+
+func (p *execProc) Signal(s os.Signal) error {
+	if p.cmd.Process == nil {
+		return nil
+	}
+	return p.cmd.Process.Signal(s)
+}
+
+func (p *execProc) Wait() error { return p.cmd.Wait() }
+
+type execSpawner struct{}
+
+func (execSpawner) Spawn(argv ...string) (Proc, error) {
+	cmd := exec.Command(argv[0], argv[1:]...)
+	if err := cmd.Start(); err != nil {
+		return nil, err
+	}
+	return &execProc{cmd: cmd}, nil
+}
+
+type running struct {
+	proc Proc
+	done chan struct{}
+}
+
+type Player struct {
+	MPVPath     string
+	AudioDevice string
+	spawn       Spawner
+	mu          sync.Mutex
+	run         *running
+}
+
+func New(mpvPath, audioDevice string) *Player {
+	return &Player{MPVPath: mpvPath, AudioDevice: audioDevice, spawn: execSpawner{}}
+}
+
+func (p *Player) SetSpawner(s Spawner) { p.spawn = s }
+
+func (p *Player) Start(ctx context.Context, path string) error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if err := p.stopLocked(ctx); err != nil {
+		return err
+	}
+	argv := []string{p.MPVPath, "--no-video", "--no-terminal", "--really-quiet"}
+	if p.AudioDevice != "" {
+		argv = append(argv, "--audio-device="+p.AudioDevice)
+	}
+	argv = append(argv, "--", path)
+	proc, err := p.spawn.Spawn(argv...)
+	if err != nil {
+		return err
+	}
+	done := make(chan struct{})
+	go func() {
+		_ = proc.Wait()
+		close(done)
+	}()
+	p.run = &running{proc: proc, done: done}
+	return nil
+}
+
+func (p *Player) Stop(ctx context.Context) error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return p.stopLocked(ctx)
+}
+
+func (p *Player) stopLocked(ctx context.Context) error {
+	if p.run == nil {
+		return nil
+	}
+	_ = p.run.proc.Signal(syscall.SIGTERM)
+	timer := time.NewTimer(2 * time.Second)
+	defer timer.Stop()
+	select {
+	case <-p.run.done:
+	case <-timer.C:
+		_ = p.run.proc.Signal(syscall.SIGKILL)
+		<-p.run.done
+	case <-ctx.Done():
+		_ = p.run.proc.Signal(syscall.SIGKILL)
+		return fmt.Errorf("stop mpv: %w", ctx.Err())
+	}
+	p.run = nil
+	return nil
+}
+```
+
+`Start` must not hold the lock while a previous `Wait` needs the same lock. `stopLocked` waits on `done`, which is closed by the goroutine that calls `Wait`. That goroutine does not take `p.mu`. Holding `p.mu` in `stopLocked` is safe.
+
+- [ ] **Step 4: Run test to verify it passes**
+
+```bash
+gofmt -w internal/player/mpv.go internal/player/mpv_test.go
+go test ./internal/player/
+```
+
+Expected: `ok mediateca-audio-station/internal/player`.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add internal/player
+git commit -m "$(cat <<'EOF'
+feat: spawn and stop host mpv without a shell
+
+EOF
+)"
+```
+
+---
+
+### Task 7: Media cache
+
+**Files:**
+- Create: `internal/cache/cache.go`
+- Create: `internal/cache/cache_test.go`
+
+**Interfaces:**
+- Produces:
+  - `cache.New(dir string) *Cache` — `Dir` is `data_dir/media`
+  - `cache.Resolve(base, raw string) (string, error)`
+  - `(*Cache).Ready(id int, rawURL string) bool` — regular file plus `.url` sidecar equal to `rawURL`
+  - `(*Cache).Path(id int) string`
+  - `(*Cache).Reconcile(ctx, base string, items []Item) error` — at most 2 downloads; delete ids not in `items` only as part of this call
+- Downloads use `http.Client` with `CheckRedirect` that deletes `Authorization` and errors after 5 hops. No bearer token is set on the request.
+
+- [ ] **Step 1: Write the failing test**
+
+`internal/cache/cache_test.go`
+
+```go
+package cache
+
+import (
+	"context"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"testing"
+)
+
+func TestResolveJoinsRelativeURL(t *testing.T) {
+	got, err := Resolve("https://hub.example", "/rails/active_storage/blobs/redirect/x")
+	if err != nil || got != "https://hub.example/rails/active_storage/blobs/redirect/x" {
+		t.Fatal(got, err)
+	}
+}
+
+func TestDownloadFollowsRedirectWithoutBearer(t *testing.T) {
+	var sawAuth bool
+	fileSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "" {
+			sawAuth = true
+		}
+		_, _ = w.Write([]byte("audio-bytes"))
+	}))
+	defer fileSrv.Close()
+	hub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "" {
+			sawAuth = true
+		}
+		http.Redirect(w, r, fileSrv.URL+"/file", http.StatusFound)
+	}))
+	defer hub.Close()
+
+	dir := t.TempDir()
+	c := New(dir)
+	err := c.Reconcile(context.Background(), hub.URL, []Item{{ID: 19, URL: "/clip.mp3", Mime: "audio/mpeg"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if sawAuth {
+		t.Fatal("bearer sent on media download")
+	}
+	if !c.Ready(19, "/clip.mp3") {
+		t.Fatal("not ready")
+	}
+	body, err := os.ReadFile(c.Path(19))
+	if err != nil || string(body) != "audio-bytes" {
+		t.Fatalf("%q %v", body, err)
+	}
+}
+
+func TestPartialIsNotReadyAndPruneKeepsUnknownOnSkippedReconcile(t *testing.T) {
+	dir := t.TempDir()
+	c := New(dir)
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(c.Path(7)+".partial", []byte("x"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if c.Ready(7, "/old") {
+		t.Fatal("partial must not be ready")
+	}
+}
+
+func TestReconcileDeletesUnreferenced(t *testing.T) {
+	dir := t.TempDir()
+	c := New(dir)
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(c.Path(7), []byte("old"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(c.Path(7)+".url", []byte("/old"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte("new"))
+	}))
+	defer srv.Close()
+	if err := c.Reconcile(context.Background(), srv.URL, []Item{{ID: 19, URL: "/new.mp3", Mime: "audio/mpeg"}}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(c.Path(7)); !os.IsNotExist(err) {
+		t.Fatal("old id kept", err)
+	}
+	if !c.Ready(19, "/new.mp3") {
+		t.Fatal("new id missing")
+	}
+}
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+```bash
+go test ./internal/cache/
+```
+
+Expected: FAIL, `New` undefined.
+
+- [ ] **Step 3: Write minimal implementation**
+
+Copy `mediateca-station/internal/cache/cache.go` into `internal/cache/cache.go` unchanged (`Item`, `New`, `Resolve`, `Ready`, `Path`, `Reconcile`, `ensure`, `download`, `deleteMissing`). The `CheckRedirect` hook deletes `Authorization`. Rename of `.partial` happens only after the body is fully read and synced. `.url` stores the package-relative `media.url`, not the resolved absolute URL. `Ready` compares that sidecar.
+
+- [ ] **Step 4: Run test to verify it passes**
+
+```bash
+gofmt -w internal/cache/cache.go internal/cache/cache_test.go
+go test ./internal/cache/
+```
+
+Expected: `ok mediateca-audio-station/internal/cache`.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add internal/cache
+git commit -m "$(cat <<'EOF'
+feat: cache package media without the agent token
+
+EOF
+)"
+```
+
+---
+
+### Task 8: Agent loop
+
+**Files:**
+- Create: `internal/agent/agent.go`
+- Create: `internal/agent/agent_test.go`
+
+**Interfaces:**
+- Consumes: `config.File`, `hub.Client` methods, `cache.Cache`, `schedule.Commands` / `ParseEntry` / `EntryKey`, `report.Queue` / `OutcomeFor`, `player.Player.Start` / `Stop`
+- Produces: `agent.Run(ctx context.Context, cfg config.File) error` and unexported `newAgent` used by tests
+
+Behavior:
+
+- `poll` writes `config.json` only after a 200 body decodes. A 401 writes nothing and sets the reporter pause. A 200 or 304 clears the pause.
+- `poll` writes `package.json` and `package.etagheader` only after a 200 body decodes, then swaps the in-memory package, then `cache.Reconcile`. HTTP 304 does not reconcile and does not delete media.
+- Startup loads those three files when present and can `tick` before any live poll.
+- `tick` builds `[]schedule.Entry` via `ParseEntry`. A parse error is logged (`ignored_entry`) and the entry is dropped.
+- If a stored hub config exists and `cfg.ScreenID` is absent from its `screens`, `tick` calls `player.Stop` and does not start. Log the mismatch once per distinct id list.
+- `started_at` is `a.now()` sampled immediately before `Start`. Enqueue only when `Start` returns nil. On error, `Stop` and do not mark played.
+- mpv path is `cache.Path(mediaID)`, and `cache.Ready(id, media.URL)` is the `ready` func passed to `Commands`.
+- Remember the last successful `schedule.Key` in memory. A `KindStop` clears it after `Stop`.
+- `drain` posts `Peek`, then `OutcomeRemove` calls `RemoveFirst`, `OutcomeDrop` calls `RemoveFirst` and logs the body, `OutcomePause` sets the pause and returns, `OutcomeRetry` returns. While paused, `drain` returns immediately.
+- Logs passed a `*slog.Logger` must not contain `cfg.AgentToken`.
+
+- [ ] **Step 1: Write the failing test**
+
+`internal/agent/agent_test.go` must include these cases. Use a fake hub and a fake player. Seed `media/19` plus `19.url` containing `/clip.mp3` and `19.mime` containing `audio/mpeg`.
+
+```go
+func TestTickStartsOnceAndHidesToken(t *testing.T) {
+	dir := t.TempDir()
+	start := time.Date(2026, 9, 2, 2, 0, 0, 0, time.UTC)
+	seedReady(t, dir, 19, "/clip.mp3")
+	p := &fakePlayer{}
+	a, buf := newTestAgent(t, testCfg(dir), &fakeHub{}, p)
+	a.now = func() time.Time { return start }
+	a.pkg = ptrPkg(pkgAt(start, 19, []int{42}))
+	a.tick(context.Background())
+	if p.starts != 1 || p.paths[0] != filepath.Join(dir, "media", "19") {
+		t.Fatalf("starts %d paths %v", p.starts, p.paths)
+	}
+	if !a.queue.Played("42:19:2026-09-02T02:00:00Z") {
+		t.Fatal("played key missing")
+	}
+	a.tick(context.Background())
+	if p.starts != 1 {
+		t.Fatalf("repeated start %d", p.starts)
+	}
+	if bytes.Contains(buf.Bytes(), []byte("super-secret-token")) {
+		t.Fatal("token logged")
+	}
+}
+
+func TestFailedStartRetriesInsideWindow(t *testing.T) {
+	dir := t.TempDir()
+	start := time.Date(2026, 9, 2, 2, 0, 0, 0, time.UTC)
+	seedReady(t, dir, 19, "/clip.mp3")
+	p := &fakePlayer{err: errors.New("spawn")}
+	a, _ := newTestAgent(t, testCfg(dir), &fakeHub{}, p)
+	a.now = func() time.Time { return start }
+	a.pkg = ptrPkg(pkgAt(start, 19, []int{42}))
+	a.tick(context.Background())
+	if p.starts != 1 || a.queue.Played("42:19:2026-09-02T02:00:00Z") {
+		t.Fatalf("starts %d played %v", p.starts, a.queue.Played("42:19:2026-09-02T02:00:00Z"))
+	}
+	p.err = nil
+	a.tick(context.Background())
+	if p.starts != 2 {
+		t.Fatalf("starts %d", p.starts)
+	}
+}
+
+func TestRestartMidClipDoesNotResume(t *testing.T) {
+	dir := t.TempDir()
+	start := time.Date(2026, 9, 2, 2, 0, 0, 0, time.UTC)
+	seedReady(t, dir, 19, "/clip.mp3")
+	p := &fakePlayer{}
+	a, _ := newTestAgent(t, testCfg(dir), &fakeHub{}, p)
+	a.now = func() time.Time { return start.Add(5 * time.Second) }
+	a.pkg = ptrPkg(pkgAt(start, 19, []int{42}))
+	a.tick(context.Background())
+	if p.starts != 0 {
+		t.Fatalf("resumed starts=%d", p.starts)
+	}
+}
+
+func TestStoredConfigOmittingScreenDoesNotPlay(t *testing.T) {
+	dir := t.TempDir()
+	start := time.Date(2026, 9, 2, 2, 0, 0, 0, time.UTC)
+	seedReady(t, dir, 19, "/clip.mp3")
+	raw := `{"station_id":3,"screens":[{"id":7,"name":"Other","orientation":"landscape"}]}`
+	if err := os.WriteFile(filepath.Join(dir, "config.json"), []byte(raw), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	p := &fakePlayer{}
+	a, _ := newTestAgent(t, testCfg(dir), &fakeHub{}, p)
+	a.now = func() time.Time { return start }
+	a.pkg = ptrPkg(pkgAt(start, 19, []int{42}))
+	a.tick(context.Background())
+	if p.starts != 0 {
+		t.Fatalf("played against hub config starts=%d", p.starts)
+	}
+}
+
+func TestPoll401DoesNotReplacePackage(t *testing.T) {
+	dir := t.TempDir()
+	start := time.Date(2026, 9, 2, 2, 0, 0, 0, time.UTC)
+	seedReady(t, dir, 19, "/clip.mp3")
+	h := &fakeHub{cfgErr: hub.ErrUnauthorized}
+	p := &fakePlayer{}
+	a, _ := newTestAgent(t, testCfg(dir), h, p)
+	a.pkg = ptrPkg(pkgAt(start, 19, []int{42}))
+	a.poll(context.Background())
+	if a.pkg.Entries[0].Media.ID != 19 {
+		t.Fatal("package replaced")
+	}
+	if !a.paused {
+		t.Fatal("reporter not paused")
+	}
+}
+```
+
+`testCfg` sets `ScreenID: 42`, `AgentToken: "super-secret-token"`, `DataDir: dir`, `LateThreshold: 2 * time.Second`, `HubBaseURL: "https://hub.example"`, `MPVPath: "mpv"`. `pkgAt` sets `DurationSeconds: 30`, `Media.URL: "/clip.mp3"`, `MimeType: "audio/mpeg"`, `StartsAt` RFC3339. `fakePlayer.Start` appends the path and returns `err`. `newTestAgent` builds a `slog` text handler over `bytes.Buffer` and calls `newAgent`, which must load `config.json` when the file exists.
+
+- [ ] **Step 2: Run test to verify it fails**
+
+```bash
+go test ./internal/agent/
+```
+
+Expected: FAIL, `newAgent` undefined.
+
+- [ ] **Step 3: Write minimal implementation**
+
+`internal/agent/agent.go`
+
+```go
+package agent
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"log/slog"
+	"os"
+	"path/filepath"
+	"sync"
+	"time"
+
+	"mediateca-audio-station/internal/cache"
+	"mediateca-audio-station/internal/config"
+	"mediateca-audio-station/internal/fsutil"
+	"mediateca-audio-station/internal/hub"
+	"mediateca-audio-station/internal/player"
+	"mediateca-audio-station/internal/report"
+	"mediateca-audio-station/internal/schedule"
+)
+
+type hubAPI interface {
+	FetchConfig(ctx context.Context) (hub.Config, error)
+	FetchPackage(ctx context.Context, ifNoneMatch string) (hub.Package, bool, error)
+	PostPlayEvent(ctx context.Context, screenID, mediaID int, startedAt time.Time) (int, string, error)
+}
+
+type audioPlayer interface {
+	Start(ctx context.Context, path string) error
+	Stop(ctx context.Context) error
+}
+
+type Agent struct {
+	cfg     config.File
+	hub     hubAPI
+	player  audioPlayer
+	cache   *cache.Cache
+	queue   *report.Queue
+	log     *slog.Logger
+	now     func() time.Time
+	mu      sync.Mutex
+	pkg     *hub.Package
+	etag    string
+	screens map[int]struct{}
+	hasCfg  bool
+	on      *schedule.Key
+	paused  bool
+	logged  string
+	wake    chan struct{}
+}
+
+func Run(ctx context.Context, cfg config.File) error {
+	a, err := newAgent(cfg, hub.New(cfg.HubBaseURL, cfg.AgentToken), player.New(cfg.MPVPath, cfg.AudioDevice), slog.Default())
+	if err != nil {
+		return err
+	}
+	var wg sync.WaitGroup
+	wg.Add(3)
+	go func() { defer wg.Done(); a.pollLoop(ctx) }()
+	go func() { defer wg.Done(); a.scheduleLoop(ctx) }()
+	go func() { defer wg.Done(); a.drainLoop(ctx) }()
+	wg.Wait()
+	return nil
+}
+
+func newAgent(cfg config.File, h hubAPI, p audioPlayer, log *slog.Logger) (*Agent, error) {
+	if err := os.MkdirAll(cfg.DataDir, 0o700); err != nil {
+		return nil, err
+	}
+	q, err := report.Open(cfg.DataDir)
+	if err != nil {
+		return nil, err
+	}
+	a := &Agent{
+		cfg: cfg, hub: h, player: p, log: log, queue: q,
+		cache:   cache.New(filepath.Join(cfg.DataDir, "media")),
+		now:     time.Now,
+		screens: map[int]struct{}{},
+		wake:    make(chan struct{}, 1),
+	}
+	a.load()
+	return a, nil
+}
+
+func (a *Agent) load() {
+	if raw, err := os.ReadFile(filepath.Join(a.cfg.DataDir, "config.json")); err == nil {
+		var cfg hub.Config
+		if json.Unmarshal(raw, &cfg) == nil {
+			a.setScreens(cfg)
+		}
+	}
+	if raw, err := os.ReadFile(filepath.Join(a.cfg.DataDir, "package.json")); err == nil {
+		var pkg hub.Package
+		if json.Unmarshal(raw, &pkg) == nil {
+			a.pkg = &pkg
+		}
+	}
+	if raw, err := os.ReadFile(filepath.Join(a.cfg.DataDir, "package.etagheader")); err == nil {
+		a.etag = string(raw)
+	}
+}
+
+func (a *Agent) pollLoop(ctx context.Context) {
+	a.poll(ctx)
+	tick := time.NewTicker(a.cfg.PollInterval)
+	defer tick.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-tick.C:
+			a.poll(ctx)
+		}
+	}
+}
+
+func (a *Agent) poll(ctx context.Context) {
+	cfg, err := a.hub.FetchConfig(ctx)
+	if err != nil {
+		if errors.Is(err, hub.ErrUnauthorized) {
+			a.mu.Lock()
+			a.paused = true
+			a.mu.Unlock()
+			a.log.Error("hub token rejected")
+		} else {
+			a.log.Error("hub config", "err", err.Error())
+		}
+		return
+	}
+	body, err := json.Marshal(cfg)
+	if err != nil {
+		return
+	}
+	if err := fsutil.WriteAtomic(filepath.Join(a.cfg.DataDir, "config.json"), body); err != nil {
+		a.log.Error("store config", "err", err.Error())
+		return
+	}
+	a.mu.Lock()
+	a.paused = false
+	a.setScreens(cfg)
+	etag := a.etag
+	a.mu.Unlock()
+	a.log.Info("hub config", "offline_cache_hours", cfg.OfflineCacheHours, "screens", len(cfg.Screens))
+
+	pkg, notMod, err := a.hub.FetchPackage(ctx, etag)
+	if err != nil {
+		if errors.Is(err, hub.ErrUnauthorized) {
+			a.mu.Lock()
+			a.paused = true
+			a.mu.Unlock()
+			a.log.Error("hub token rejected")
+		} else {
+			a.log.Error("hub package", "err", err.Error())
+		}
+		return
+	}
+	a.mu.Lock()
+	a.paused = false
+	a.mu.Unlock()
+	if notMod {
+		a.log.Info("hub package", "status", 304)
+		return
+	}
+	raw, err := json.Marshal(pkg)
+	if err != nil {
+		return
+	}
+	if err := fsutil.WriteAtomic(filepath.Join(a.cfg.DataDir, "package.json"), raw); err != nil {
+		a.log.Error("store package", "err", err.Error())
+		return
+	}
+	if err := fsutil.WriteAtomic(filepath.Join(a.cfg.DataDir, "package.etagheader"), []byte(pkg.HeaderETag)); err != nil {
+		a.log.Error("store etag", "err", err.Error())
+		return
+	}
+	a.mu.Lock()
+	a.pkg = &pkg
+	a.etag = pkg.HeaderETag
+	a.mu.Unlock()
+	if err := a.cache.Reconcile(ctx, a.cfg.HubBaseURL, itemsOf(pkg)); err != nil {
+		a.log.Error("cache", "err", err.Error())
+	}
+	a.log.Info("hub package", "status", 200, "entries", len(pkg.Entries))
+	select {
+	case a.wake <- struct{}{}:
+	default:
+	}
+}
+
+func itemsOf(pkg hub.Package) []cache.Item {
+	seen := map[int]struct{}{}
+	var items []cache.Item
+	for _, entry := range pkg.Entries {
+		if _, ok := seen[entry.Media.ID]; ok || entry.Media.ID == 0 {
+			continue
+		}
+		seen[entry.Media.ID] = struct{}{}
+		items = append(items, cache.Item{ID: entry.Media.ID, URL: entry.Media.URL, Mime: entry.Media.MimeType})
+	}
+	return items
+}
+
+func (a *Agent) setScreens(cfg hub.Config) {
+	a.screens = map[int]struct{}{}
+	ids := make([]int, 0, len(cfg.Screens))
+	for _, screen := range cfg.Screens {
+		a.screens[screen.ID] = struct{}{}
+		ids = append(ids, screen.ID)
+	}
+	a.hasCfg = true
+	key := fmt.Sprint(ids)
+	if key == a.logged {
+		return
+	}
+	a.logged = key
+	if len(cfg.Screens) != 1 || (len(cfg.Screens) == 1 && cfg.Screens[0].ID != a.cfg.ScreenID) {
+		a.log.Error("hub screen list does not match configured screen_id", "configured", a.cfg.ScreenID, "hub_ids", ids)
+	}
+}
+
+func (a *Agent) allowed() bool {
+	_, ok := a.screens[a.cfg.ScreenID]
+	return ok
+}
+
+func (a *Agent) scheduleLoop(ctx context.Context) {
+	for {
+		a.tick(ctx)
+		wait := a.cfg.PollInterval
+		a.mu.Lock()
+		if a.pkg != nil {
+			wake := schedule.WakeAt(a.now(), a.cfg.LateThreshold, a.cfg.ScreenID, a.timeline(), a.queue.Played, a.cache.Ready)
+			if d := wake.Sub(a.now()); d > 0 && d < wait {
+				wait = d
+			}
+		}
+		a.mu.Unlock()
+		timer := time.NewTimer(wait)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			_ = a.player.Stop(context.Background())
+			return
+		case <-a.wake:
+			timer.Stop()
+		case <-timer.C:
+		}
+	}
+}
+
+func (a *Agent) tick(ctx context.Context) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if a.pkg == nil {
+		return
+	}
+	if a.hasCfg && !a.allowed() {
+		_ = a.player.Stop(ctx)
+		a.on = nil
+		return
+	}
+	var on *schedule.Key
+	if a.on != nil {
+		key := *a.on
+		on = &key
+	}
+	cmds := schedule.Commands(a.now(), a.cfg.LateThreshold, a.cfg.ScreenID, a.timeline(), a.queue.Played, a.cache.Ready, on)
+	for _, cmd := range cmds {
+		switch cmd.Kind {
+		case schedule.KindStop:
+			if err := a.player.Stop(ctx); err != nil {
+				a.log.Error("mpv stop", "err", err.Error())
+			}
+			a.on = nil
+			a.log.Info("clip stop")
+		case schedule.KindSkip:
+			a.log.Info("clip skip", "reason", cmd.Reason, "media_id", cmd.Entry.Media.ID)
+		case schedule.KindStart:
+			path := a.cache.Path(cmd.Entry.Media.ID)
+			started := a.now().UTC()
+			if err := a.player.Start(ctx, path); err != nil {
+				a.log.Error("mpv spawn", "err", err.Error())
+				_ = a.player.Stop(ctx)
+				continue
+			}
+			key := schedule.EntryKey(a.cfg.ScreenID, cmd.Entry)
+			if err := a.queue.Enqueue(report.Event{
+				ScreenID: a.cfg.ScreenID, MediaAssetID: cmd.Entry.Media.ID, StartedAt: started,
+			}, key.String()); err != nil {
+				a.log.Error("enqueue play event", "err", err.Error())
+				continue
+			}
+			a.on = &key
+			a.log.Info("clip start", "media_id", cmd.Entry.Media.ID)
+		}
+	}
+}
+
+func (a *Agent) timeline() []schedule.Entry {
+	if a.pkg == nil {
+		return nil
+	}
+	var out []schedule.Entry
+	for _, entry := range a.pkg.Entries {
+		parsed, err := schedule.ParseEntry(entry.StartsAt, entry.DurationSeconds, entry.ScreenIDs, entry.Media.ID, entry.Media.URL, entry.Media.MimeType, entry.Position)
+		if err != nil {
+			a.log.Error("ignored_entry")
+			continue
+		}
+		out = append(out, parsed)
+	}
+	return out
+}
+
+func (a *Agent) drainLoop(ctx context.Context) {
+	a.drain(ctx)
+	tick := time.NewTicker(a.cfg.PollInterval)
+	defer tick.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-tick.C:
+			a.drain(ctx)
+		}
+	}
+}
+
+func (a *Agent) drain(ctx context.Context) {
+	a.mu.Lock()
+	paused := a.paused
+	a.mu.Unlock()
+	if paused {
+		return
+	}
+	ev, ok, err := a.queue.Peek()
+	if err != nil || !ok {
+		return
+	}
+	status, body, postErr := a.hub.PostPlayEvent(ctx, ev.ScreenID, ev.MediaAssetID, ev.StartedAt)
+	switch report.OutcomeFor(status, postErr != nil) {
+	case report.OutcomeRemove:
+		_ = a.queue.RemoveFirst()
+	case report.OutcomeDrop:
+		a.log.Error("drop play event", "status", status, "body", body)
+		_ = a.queue.RemoveFirst()
+	case report.OutcomePause:
+		a.mu.Lock()
+		a.paused = true
+		a.mu.Unlock()
+		a.log.Error("hub token rejected")
+	default:
+		a.log.Error("play event retry", "status", status)
+	}
+}
+```
+
+`schedule` and `report` still do not import `player` or `hub`. `cache.Reconcile` runs only after a package 200 is stored. A 401 returns before any write. `setScreens` is called with `a.mu` held from `poll` after the config file is stored, and from `load` before `Run` starts other goroutines.
+
+There is a lock bug to avoid: `tick` holds `a.mu` and calls `a.player.Start`. That is fine. `poll` must not call `setScreens` while also expecting `tick` to take `a.mu` inside `setScreens`. `setScreens` does not lock; callers that race with `tick` hold `a.mu`. `load` runs before goroutines start.
+
+`TestPoll401DoesNotReplacePackage` sets `a.pkg` then calls `poll`. `FetchConfig` returns `hub.ErrUnauthorized`, so `poll` returns before `FetchPackage` and before replacing `a.pkg`, and sets `a.paused`. The test reads `a.paused` without the mutex; that is acceptable in the test.
+
+- [ ] **Step 4: Run test to verify it passes**
+
+```bash
+gofmt -w internal/agent/agent.go internal/agent/agent_test.go
+go test ./internal/agent/
+```
+
+Expected: `ok mediateca-audio-station/internal/agent`.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add internal/agent
+git commit -m "$(cat <<'EOF'
+feat: poll, schedule, and report loop for one audio screen
+
+EOF
+)"
+```
+
+---
+
+### Task 9: Process entry, CI, systemd, README
+
+**Files:**
+- Create: `cmd/audio-station/main.go`
+- Create: `.github/workflows/ci.yml`
+- Create: `.golangci.yml`
+- Create: `packaging/mediateca-audio-station.service`
+- Create: `README.md`
+- Create: `docs/superpowers/specs/2026-10-20-audio-station-agent-design.md` (copy of the hub spec)
+- Create: `.gitignore` with `config.yaml` and the binary name `mediateca-audio-station`
+
+**Interfaces:**
+- Consumes: `config.Load`, `agent.Run`
+
+- [ ] **Step 1: Process entry**
+
+`cmd/audio-station/main.go`
+
+```go
+package main
+
+import (
+	"context"
+	"flag"
+	"log/slog"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"mediateca-audio-station/internal/agent"
+	"mediateca-audio-station/internal/config"
+)
+
+func main() {
+	path := flag.String("config", "", "path to config.yaml")
+	flag.Parse()
+	if *path == "" {
+		slog.Error("missing -config")
+		os.Exit(1)
+	}
+	cfg, err := config.Load(*path)
+	if err != nil {
+		slog.Error("config", "err", err.Error())
+		os.Exit(1)
+	}
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+	if err := agent.Run(ctx, cfg); err != nil && ctx.Err() == nil {
+		slog.Error("audio-station", "err", err.Error())
+		os.Exit(1)
+	}
+}
+```
+
+`agent.Run` returns nil when `ctx` is cancelled. A missing `-config` or a `config.Load` error exits 1. Playback errors stay inside `Run` and must not be returned as a process-ending error.
+
+- [ ] **Step 2: CI**
+
+`.golangci.yml` — copy `mediateca-station/.golangci.yml` (version 2; enable `bodyclose`, `errcheck`, `ineffassign`, `staticcheck`, `unused`; exclude `errcheck` on `_test.go`).
+
+`.github/workflows/ci.yml` — four jobs on `ubuntu-latest`, `contents: read`, trigger `push` and `pull_request`:
+
+- `gofmt -l .` fails when output is non-empty; `go vet ./...`; `golangci/golangci-lint-action` `v2.13.2` with `--timeout=5m`
+- `go install golang.org/x/vuln/cmd/govulncheck@v1.9.0` then `govulncheck ./...`
+- `go build -o /dev/null ./cmd/audio-station`
+- `go test -race -count=1 ./...`
+
+`actions/setup-go` uses `go-version-file: go.mod`.
+
+- [ ] **Step 3: systemd unit**
+
+`packaging/mediateca-audio-station.service` — the unit from the spec (`User=mediateca-audio`, `Restart=always`, `RestartSec=2`, `NoNewPrivileges=true`, `After=network-online.target chronyd.service`).
+
+- [ ] **Step 4: README**
+
+Operator page, not a hub guide. Include:
+
+1. This binary is a client of an existing hub. It does not create playlists.
+2. Build: `CGO_ENABLED=0 go build -o mediateca-audio-station ./cmd/audio-station`
+3. Install `mpv` and an NTP client. Point `After=` / `Wants=` at the NTP unit the image ships (`chronyd.service`, `chrony.service`, or `systemd-timesyncd.service`). Do not start the agent before the clock has stepped.
+4. User `mediateca-audio` owns `/var/lib/mediateca-audio-station` (`0700`) and `/etc/mediateca-audio-station/config.yaml` (`0600`).
+5. Sample YAML from the spec (`screen_id` is the Hub pseudo-screen).
+6. `journalctl -u mediateca-audio-station` and what `late`, `missing_file`, and token rejection look like.
+7. Tests: `go test ./...` needs no mpv binary.
+
+- [ ] **Step 5: Run the full suite**
+
+```bash
+gofmt -w cmd/audio-station/main.go
+CGO_ENABLED=0 go build -o /tmp/mediateca-audio-station ./cmd/audio-station
+go test -race -count=1 ./...
+/tmp/mediateca-audio-station
+```
+
+Expected: tests pass. The binary with no flags exits 1 and logs `missing -config`.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add cmd .github .golangci.yml packaging README.md docs .gitignore
+git commit -m "$(cat <<'EOF'
+chore: audio station binary, CI, and operator README
+
+EOF
+)"
+```
+
+---
+
+## Spec coverage
 
 | Spec requirement | Task |
 | --- | --- |
-| Config YAML + 0077 refuse | 1 |
-| Pure schedule late/on-time | 2 |
-| v1 config / v2 package / play_events | 3 |
-| Cache + prune, no Bearer on media | 4 |
-| mpv `--no-video`, kill+spawn | 5 |
-| Durable play events | 6 |
-| Agent wire-up | 7 |
-| Spinel binary + systemd | 8 |
-
-## Hub coupling
-
-- Implement against a running Hub (or recorded fixtures) from `mediateca-broadcast` after Hub medium Task 7 so packages contain audio URLs.
-- Do not open Hub PRs from this repo except documentation cross-links.
+| Go module, atomic state files | 1 |
+| YAML config, mode `0077`, Go durations, `mpv_path` lookup, single `screen_id` | 2 |
+| v1 config, v2 package ETag, play_events body, 401 | 3 |
+| Late window, conflict, 1s join, missing file, empty package | 4 |
+| Durable queue, 201/401/404/422 | 5 |
+| mpv argv, no shell, SIGTERM, optional audio device | 6 |
+| Cache, redirect without bearer, prune only on successful reconcile | 7 |
+| Poll/tick/drain, no resume mid-clip, hub screen allow-list, token not logged | 8 |
+| systemd, CI, README, exit on bad config | 9 |
 
 ## Out of scope
 
-- Hub schema/UI  
-- Multiple screen_ids / multi mpv  
-- Bundling mpv into the binary  
-- Audio transcode on Hub  
+- Hub schema, cabinet, or admin changes
+- Editing `mediateca-station` or `mediateca-audio-station-ruby`
+- Multiple `screen_id` values, ADB, LAN HTTP, bundling mpv
+- Audio transcode
