@@ -3,9 +3,11 @@
 - submit_label = local_assigns[:submit_label].presence || t('.submit')
 - sphere_text = advertising_order.business_sphere.presence || local_assigns[:business_sphere_preview]
 - show_picker = local_assigns.fetch(:show_screen_picker, false)
-- stimulus_controllers = ['order-grid', 'order-windows']
+- stimulus_controllers = ['order-grid', 'order-windows', 'order-medium']
 - stimulus_controllers << 'order-screen-picker' if show_picker
-- form_data = { controller: stimulus_controllers.join(' '), action: 'order-grid:recompute->order-grid#recompute order-screen-picker:recompute->order-windows#updateAutomaticWindow pointerdown->order-grid#startSelection pointermove@window->order-grid#moveSelection pointerup@window->order-grid#endSelection pointercancel@window->order-grid#cancelSelection keydown@window->order-grid#selectionKeydown:capture' }
+- default_refresh_path = advertising_order.persisted? ? edit_advertising_order_path(advertising_order) : new_advertising_order_path
+- refresh_path = local_assigns.fetch(:medium_refresh_path, default_refresh_path)
+- form_data = { controller: stimulus_controllers.join(' '), action: 'order-grid:recompute->order-grid#recompute order-screen-picker:recompute->order-windows#updateAutomaticWindow pointerdown->order-grid#startSelection pointermove@window->order-grid#moveSelection pointerup@window->order-grid#endSelection pointercancel@window->order-grid#cancelSelection keydown@window->order-grid#selectionKeydown:capture', order_medium_refresh_path_value: refresh_path }
 = form_with model: advertising_order, url: local_assigns[:form_url], class: 'space-y-6', data: form_data do |f|
   = hidden_field_tag :grid_from, @grid_dates.first
   = hidden_field_tag :grid_to, @grid_dates.last
@@ -26,6 +28,22 @@
       = AdvertisingOrder.human_attribute_name(:business_sphere)
       | :
       =< sphere_text
+  fieldset.fieldset
+    legend.fieldset-legend = t('.medium_legend')
+    .flex.gap-4.mt-1
+      label.flex.items-center.gap-2.cursor-pointer
+        = f.radio_button :medium, 'video',
+            class: 'radio radio-sm',
+            disabled: advertising_order.active?,
+            data: { order_medium_target: 'radio', action: 'change->order-medium#changed' }
+        span = t('.medium_video')
+      label.flex.items-center.gap-2.cursor-pointer
+        = f.radio_button :medium, 'audio',
+            class: 'radio radio-sm',
+            disabled: advertising_order.active?,
+            data: { order_medium_target: 'radio', action: 'change->order-medium#changed' }
+        span = t('.medium_audio')
+    p.text-sm.text-warning.hidden data-order-medium-target='warning' = t('.medium_switch_cleared')
   div.grid.gap-4.md:grid-cols-2
     div
       = f.label :product_name, class: 'block text-sm font-medium'
@@ -33,13 +51,7 @@
     div
       = f.label :placement_kind, class: 'block text-sm font-medium'
       = f.select :placement_kind, AdvertisingOrder.placement_kinds.keys.map { |kind| [t("enums.advertising_order.placement_kind.#{kind}"), kind] }, {}, class: 'select select-bordered w-full mt-1', disabled: advertising_order.active?
-    - if advertising_order.new_record? || advertising_order.draft? || advertising_order.rejected? || advertising_order.active?
-      div.md:col-span-2
-        = render 'advertising_orders/clips_editor',
-            selected_assets: order_form_selected_media_assets(advertising_order),
-            available_assets: order_form_available_media_assets(advertising_order, @media_assets)
-  - if show_picker
-    = render 'advertising_orders/screen_picker'
+  = render 'advertising_orders/medium_dependent', advertising_order: advertising_order, show_screen_picker: show_picker
   - frequency_options = order_shows_per_hour_select_options(advertising_order)
   div
     = f.label :shows_per_hour, t('.shows_per_hour'), class: 'block text-sm font-medium'

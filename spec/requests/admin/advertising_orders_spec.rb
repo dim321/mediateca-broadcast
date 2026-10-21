@@ -589,6 +589,27 @@ RSpec.describe "Admin advertising orders", type: :request do
       expect(response.body).to include(client.name)
     end
 
+    it "omits audio screens and clips on the default video new form" do
+      video_screen = catalog_screen_on_group
+      audio_station = create(:station, :audio)
+      audio_screen = audio_station.screens.first
+      create(:broadcast_portrait, :for_screen, screen: audio_screen, block_frequencies_per_hour: [ 1, 2, 3 ])
+      audio_clip = create(:media_asset, :ready, :content_validated, :with_mp3_file, organization: client)
+      audio_clip.file.blob.update!(filename: "client-audio.mp3")
+      asset.file.blob.update!(filename: "client-video.png")
+
+      get new_admin_advertising_order_path, params: { organization_id: client.id }
+
+      html = Nokogiri::HTML(response.body)
+      screen_ids = html.css("[data-order-screen-picker-target='row']").map { |row| row["data-screen-id"].to_i }
+      expect(screen_ids).to include(video_screen.id)
+      expect(screen_ids).not_to include(audio_screen.id)
+
+      option_text = html.at_css("#advertising_order_available_media_asset").css("option").map(&:text).join
+      expect(option_text).to include("client-video.png")
+      expect(option_text).not_to include("client-audio.mp3")
+    end
+
     it "does not change coefficient or discount from form params" do
       order = Advertising::CreateOrder.call(
         organization: client,

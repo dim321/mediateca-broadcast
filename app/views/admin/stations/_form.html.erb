@@ -15,6 +15,28 @@
     <%= f.label :offline_cache_hours, class: admin_label_class %>
     <%= f.number_field :offline_cache_hours, class: admin_input_class %>
   </div>
+  <% if station.new_record? %>
+    <fieldset class="mb-5">
+      <legend class="<%= admin_label_class %>"><%= Station.human_attribute_name(:medium) %></legend>
+      <div class="space-y-2">
+        <% admin_enum_options(Station, :medium).each do |label, value| %>
+          <div class="flex items-center">
+            <%= f.radio_button :medium, value, class: "h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500" %>
+            <%= f.label :medium, label, value: value, class: "ml-2 text-sm text-gray-700" %>
+          </div>
+        <% end %>
+      </div>
+    </fieldset>
+  <% else %>
+    <div class="mb-5">
+      <%= f.label :medium, class: admin_label_class %>
+      <p class="mt-1">
+        <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-600/20">
+          <%= admin_enum_label(station, :medium) %>
+        </span>
+      </p>
+    </div>
+  <% end %>
   <% monitor = station.tv_monitor || station.build_tv_monitor %>
   <fieldset class="mb-5 space-y-4">
     <div>

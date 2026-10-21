@@ -24,6 +24,13 @@ module Admin
         organization: @form_organization,
         placement_kind: :commercial
       )
+      sync_order_medium_from_params
+      if order_medium_frame_request?
+        prepare_form
+        return render partial: "advertising_orders/medium_dependent",
+          locals: { advertising_order: @advertising_order, show_screen_picker: true }
+      end
+
       prepare_form
     end
 
@@ -43,7 +50,8 @@ module Admin
         product_name: order_params[:product_name],
         placement_kind: order_params[:placement_kind].presence || :own_atmosphere,
         shows_per_hour: order_header_shows_per_hour,
-        distribution_strategy: order_params[:distribution_strategy].presence || :linear
+        distribution_strategy: order_params[:distribution_strategy].presence || :linear,
+        medium: order_params[:medium].presence || :video
       )
       persist_grid!(@advertising_order)
       redirect_to admin_advertising_order_path(@advertising_order),
@@ -67,6 +75,12 @@ module Admin
       return if redirect_rejected_edit
 
       @form_organization = @advertising_order.organization
+      if order_medium_frame_request?
+        prepare_form
+        return render partial: "advertising_orders/medium_dependent",
+          locals: { advertising_order: @advertising_order, show_screen_picker: !@advertising_order.active? }
+      end
+
       prepare_form
     end
 
@@ -78,18 +92,7 @@ module Admin
 
       resubmitting = @advertising_order.rejected?
       clip_media_assets = find_media_assets if clip_ids_submitted?
-      AdvertisingOrder.transaction do
-        @advertising_order.update!(header_update_attrs)
-        if clip_media_assets
-          Advertising::UpdateOrderClips.call(
-            order: @advertising_order,
-            media_assets: clip_media_assets,
-            enqueue_regen: false
-          )
-        end
-        persist_grid!(@advertising_order)
-        Advertising::ResubmitOrder.call(order: @advertising_order) if resubmitting
-      end
+      apply_draft_order_update!(resubmitting: resubmitting)
       Advertising::UpdateOrderClips.enqueue_regen_for(@advertising_order) if clip_media_assets && @advertising_order.active?
       notice = resubmitting ? "advertising_orders.update.resubmitted" : "advertising_orders.update.updated"
       redirect_to admin_advertising_order_path(@advertising_order), notice: t(notice)
@@ -195,17 +198,22 @@ module Admin
       @grid_dates = grid_dates
       return if @form_organization.blank?
 
-      @media_assets = @form_organization.media_assets.ready.with_attached_file.order(created_at: :desc)
+      @media_assets = scope_order_form_media_assets(
+        @form_organization.media_assets.ready.with_attached_file.order(created_at: :desc)
+      )
       load_order_screens
     end
 
     def header_update_attrs
-      {
+      attrs = {
         product_name: order_params[:product_name],
         placement_kind: order_params[:placement_kind].presence || @advertising_order.placement_kind,
         shows_per_hour: order_header_shows_per_hour,
         distribution_strategy: order_params[:distribution_strategy].presence || @advertising_order.distribution_strategy
       }.compact
+      raw_order = params[:advertising_order]
+      attrs[:medium] = order_params[:medium] if raw_order&.key?(:medium)
+      attrs
     end
 
     def media_assets_ready_scope
@@ -268,6 +276,7 @@ module Admin
       @order_params ||= params.fetch(:advertising_order, {}).permit(
         :organization_id,
         :product_name,
+        :medium,
         :media_asset_id,
         { media_asset_ids: [] },
         :placement_kind,

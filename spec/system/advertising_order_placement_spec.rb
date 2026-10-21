@@ -257,4 +257,20 @@ RSpec.describe "Advertising order placement", type: :system do
       end
     end
   end
+
+  it "clears a selected video clip when switching to audio", :js do
+    asset
+    create(:media_asset, :ready, :with_mp3_file, organization: organization, duration_seconds: 30)
+    sign_in_through_ui
+
+    visit new_advertising_order_path(grid_from: "2026-06-03", grid_to: "2026-06-03")
+    select asset.file.filename.to_s, from: "advertising_order_available_media_asset"
+    click_button I18n.t("advertising_orders.form.add_clip")
+    expect(page).to have_css('[data-order-media-assets-target="list"] [data-order-media-assets-target="row"]', count: 1)
+
+    choose "advertising_order_medium_audio"
+
+    expect(page).to have_content(I18n.t("advertising_orders.form.medium_switch_cleared"))
+    expect(page).to have_css('[data-order-media-assets-target="list"] [data-order-media-assets-target="row"]', count: 0)
+  end
 end

@@ -524,6 +524,13 @@ RSpec.describe "AdvertisingOrders", type: :request do
       expect(thead.text).to include(month_label)
     end
 
+    it "renders medium radios on the new form" do
+      get new_advertising_order_path
+
+      expect(response.body).to include(I18n.t("advertising_orders.form.medium_legend"))
+      expect(response.body).to include('data-controller="order-grid order-windows order-medium order-screen-picker"')
+    end
+
     it "labels the media asset select in Russian" do
       get new_advertising_order_path
 
@@ -541,6 +548,121 @@ RSpec.describe "AdvertisingOrders", type: :request do
       row = html.at_css("[data-order-screen-picker-target='row'][data-screen-id='#{screen.id}']")
       hours = JSON.parse(row["data-hours"])
       expect(hours.fetch("2026-06-03")).to eq((9..20).to_a)
+    end
+
+    context "when filtering by medium" do
+      let(:audio_asset) do
+        create(:media_asset, :ready, :content_validated, :with_mp3_file, organization: organization, duration_seconds: 30)
+      end
+
+      def audio_order_screen
+        station = create(:station, :audio)
+        screen = station.screens.first
+        create(:broadcast_portrait, :for_screen, screen: screen, block_frequencies_per_hour: [ 1, 2, 3 ])
+        screen
+      end
+
+      it "omits audio screens and clips on the default video new form" do
+        video_screen = order_screen
+        audio_screen = audio_order_screen
+        asset
+        audio_asset.file.blob.update!(filename: "promo-audio.mp3")
+
+        get new_advertising_order_path
+
+        html = Nokogiri::HTML(response.body)
+        screen_ids = html.css("[data-order-screen-picker-target='row']").map { |row| row["data-screen-id"].to_i }
+        expect(screen_ids).to include(video_screen.id)
+        expect(screen_ids).not_to include(audio_screen.id)
+
+        option_text = html.at_css("#advertising_order_available_media_asset").css("option").map(&:text).join
+        expect(option_text).to include(asset.file.filename.to_s)
+        expect(option_text).not_to include("promo-audio.mp3")
+      end
+
+      it "shows only audio screens and clips on an audio draft edit form" do
+        video_screen = order_screen
+        audio_screen = audio_order_screen
+        order = Advertising::CreateOrder.call(
+          organization: organization,
+          created_by: user,
+          media_assets: [ audio_asset ],
+          product_name: "Radio spot",
+          medium: :audio
+        )
+        fill_order_grid!(order, screen: audio_screen, dates: [ Date.new(2026, 6, 3) ], shows: 9)
+
+        get edit_advertising_order_path(order)
+
+        html = Nokogiri::HTML(response.body)
+        picker_ids = html.css("[data-order-screen-picker-target='row']").map { |row| row["data-screen-id"].to_i }
+        expect(picker_ids).to include(audio_screen.id)
+        expect(picker_ids).not_to include(video_screen.id)
+
+        option_text = html.at_css("#advertising_order_available_media_asset").css("option").map(&:text).join
+        expect(option_text).not_to include(asset.file.filename.to_s)
+      end
+
+      it "reloads clips and screens when medium is passed on a new form GET" do
+        audio_screen = audio_order_screen
+        audio_asset
+        audio_asset.file.blob.update!(filename: "promo-audio.mp3")
+
+        get new_advertising_order_path, params: { medium: "audio" }
+
+        html = Nokogiri::HTML(response.body)
+        expect(html.at_css("turbo-frame#order_medium_dependent")).to be_present
+        picker_ids = html.css("[data-order-screen-picker-target='row']").map { |row| row["data-screen-id"].to_i }
+        expect(picker_ids).to include(audio_screen.id)
+        expect(picker_ids).not_to include(order_screen.id)
+        option_text = html.at_css("#advertising_order_available_media_asset").css("option").map(&:text).join
+        expect(option_text).to include("promo-audio.mp3")
+        expect(option_text).not_to include(asset.file.filename.to_s)
+      end
+
+      it "filters the picker when medium is posted on validation failure" do
+        audio_screen = audio_order_screen
+        post advertising_orders_path, params: {
+          advertising_order: {
+            medium: "audio",
+            product_name: "",
+            screen_ids: [ audio_screen.id ]
+          }
+        }
+
+        html = Nokogiri::HTML(response.body)
+        picker_ids = html.css("[data-order-screen-picker-target='row']").map { |row| row["data-screen-id"].to_i }
+        expect(picker_ids).to include(audio_screen.id)
+        expect(picker_ids).not_to include(order_screen.id)
+      end
+
+      it "reloads audio picker options on edit turbo frame GET with medium query" do
+        video_screen = order_screen
+        audio_screen = audio_order_screen
+        audio_asset.file.blob.update!(filename: "promo-audio.mp3")
+        order = Advertising::CreateOrder.call(
+          organization: organization,
+          created_by: user,
+          media_assets: [ asset ],
+          product_name: "Video spot"
+        )
+        fill_order_grid!(order, screen: video_screen, dates: [ Date.new(2026, 6, 3) ], shows: 9)
+
+        get edit_advertising_order_path(order),
+          params: { medium: "audio", grid_from: "2026-06-03", grid_to: "2026-06-03" },
+          headers: { "Turbo-Frame" => "order_medium_dependent" }
+
+        expect(response).to have_http_status(:ok)
+        html = Nokogiri::HTML(response.body)
+        expect(html.at_css("turbo-frame#order_medium_dependent")).to be_present
+        picker_ids = html.css("[data-order-screen-picker-target='row']").map { |row| row["data-screen-id"].to_i }
+        expect(picker_ids).to include(audio_screen.id)
+        expect(picker_ids).not_to include(video_screen.id)
+        option_text = html.at_css("#advertising_order_available_media_asset").css("option").map(&:text).join
+        expect(option_text).to include("promo-audio.mp3")
+        expect(option_text).not_to include(asset.file.filename.to_s)
+        expect(order.reload.medium).to eq("video")
+      end
     end
   end
 
@@ -625,6 +747,53 @@ RSpec.describe "AdvertisingOrders", type: :request do
 
   describe "PATCH /advertising_orders/:id" do
     before { sign_in_as(user) }
+
+    it "clears incompatible clips and lines when medium switches on update" do
+      video_screen = order_screen
+      order = Advertising::CreateOrder.call(
+        organization: organization,
+        created_by: user,
+        media_assets: [ asset ],
+        product_name: "Video spot"
+      )
+      fill_order_grid!(order, screen: video_screen, dates: [ Date.new(2026, 6, 3) ], shows: 9)
+      expect(order.rotation.rotation_items).not_to be_empty
+      expect(order.advertising_order_lines).not_to be_empty
+
+      patch advertising_order_path(order), params: order_params(
+        medium: "audio",
+        product_name: "Video spot",
+        media_assets: [],
+        screen_ids: [],
+        lines: {}
+      )
+
+      order.reload
+      expect(order.medium).to eq("audio")
+      expect(order.rotation.rotation_items).to be_empty
+      expect(order.advertising_order_lines).to be_empty
+    end
+
+    it "clears clips when medium switches without media_asset_ids in params" do
+      video_screen = order_screen
+      order = Advertising::CreateOrder.call(
+        organization: organization,
+        created_by: user,
+        media_assets: [ asset ],
+        product_name: "Video spot"
+      )
+      fill_order_grid!(order, screen: video_screen, dates: [ Date.new(2026, 6, 3) ], shows: 9)
+
+      base = order_params(medium: "audio", product_name: "Video spot", screen_ids: [], lines: {})
+      base[:advertising_order].delete(:media_asset_ids)
+
+      patch advertising_order_path(order), params: base
+
+      order.reload
+      expect(order.medium).to eq("audio")
+      expect(order.rotation.rotation_items).to be_empty
+      expect(order.advertising_order_lines).to be_empty
+    end
 
     it "updates the draft grid and totals" do
       order = Advertising::CreateOrder.call(

@@ -19,4 +19,15 @@ RSpec.describe Fleet::ScreensForOrderPicker do
     expect(loaded.association(:tags).loaded?).to be(true)
     expect(loaded.association(:broadcast_portrait).loaded?).to be(true)
   end
+
+  it "returns only screens for the given medium" do
+    video_station = create(:station, medium: "video")
+    audio_station = create(:station, :audio)
+    video_screen = create(:screen, station: video_station)
+    audio_screen = audio_station.screens.first
+
+    result = described_class.call(medium: "audio")
+    expect(result).to include(audio_screen)
+    expect(result).not_to include(video_screen)
+  end
 end

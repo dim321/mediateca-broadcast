@@ -19,7 +19,8 @@ module Advertising
           shows_per_hour: source.shows_per_hour,
           distribution_strategy: source.distribution_strategy,
           coefficient_percent: source.coefficient_percent,
-          discount_cents: source.discount_cents
+          discount_cents: source.discount_cents,
+          medium: source.medium
         )
         copy_snapshot_attributes!(order)
         copy_windows!(order)

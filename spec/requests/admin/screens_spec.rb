@@ -60,6 +60,91 @@ RSpec.describe "Admin screens", type: :request do
     end
   end
 
+  describe "audio stations" do
+    let!(:audio_station) { create(:station, :audio, name: "Аудио", location: location) }
+
+    it "redirects new when the audio station already has a screen" do
+      get new_admin_screen_path, params: { station_id: audio_station.id }
+
+      expect(response).to redirect_to(admin_station_path(audio_station))
+      follow_redirect!
+      expect(response.body).to include(
+        I18n.t("activerecord.errors.models.screen.attributes.station_id.audio_station_full")
+      )
+    end
+
+    it "rejects creating a second screen for an audio station" do
+      expect {
+        post admin_screens_path, params: {
+          screen: {
+            location_id: location.id,
+            station_id: audio_station.id,
+            name: "Лишний",
+            orientation: "landscape"
+          }
+        }
+      }.not_to change(Screen, :count)
+
+      expect(response).to redirect_to(admin_station_path(audio_station))
+      follow_redirect!
+      expect(response.body).to include(
+        I18n.t("activerecord.errors.models.screen.attributes.station_id.audio_station_full")
+      )
+    end
+
+    it "rejects reassigning the sole audio screen to a video station" do
+      screen = audio_station.screens.sole
+
+      patch admin_screen_path(screen), params: {
+        screen: {
+          location_id: location.id,
+          station_id: station.id,
+          name: screen.name,
+          orientation: screen.orientation
+        }
+      }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(screen.reload.station).to eq(audio_station)
+      expect(response.body).to include(
+        I18n.t("activerecord.errors.models.screen.attributes.base.audio_pseudo_screen_required")
+      )
+    end
+
+    it "rejects moving a screen onto a full audio station" do
+      video_screen = create(:screen, station: station, name: "Видео экран")
+
+      patch admin_screen_path(video_screen), params: {
+        screen: {
+          location_id: location.id,
+          station_id: audio_station.id,
+          name: video_screen.name,
+          orientation: video_screen.orientation
+        }
+      }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(video_screen.reload.station).to eq(station)
+      expect(response.body).to include(
+        I18n.t("activerecord.errors.models.screen.attributes.station_id.audio_station_full")
+      )
+    end
+
+    it "rejects destroying the sole screen of an audio station" do
+      screen = audio_station.screens.sole
+
+      expect {
+        delete admin_screen_path(screen)
+      }.not_to change(Screen, :count)
+
+      expect(response).to redirect_to(admin_screens_path)
+      follow_redirect!
+      expect(response.body).to include(
+        I18n.t("activerecord.errors.models.screen.attributes.base.audio_pseudo_screen_required")
+      )
+    end
+  end
+
   describe "POST /admin/screens" do
     it "creates a screen with an explicit name" do
       expect {

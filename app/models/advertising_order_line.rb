@@ -35,4 +35,14 @@ class AdvertisingOrderLine < ApplicationRecord
   validates :total_shows, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :total_sum_cents, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :screen_id, uniqueness: { scope: :advertising_order_id }
+  validate :screen_medium_matches_order
+
+  private
+
+  def screen_medium_matches_order
+    return if advertising_order.blank? || screen.blank?
+    return if screen.station.medium == advertising_order.medium
+
+    errors.add(:screen, :wrong_medium)
+  end
 end

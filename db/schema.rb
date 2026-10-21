@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_20_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_20_130100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -100,12 +100,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_120000) do
     t.integer "shows_per_hour"
     t.string "distribution_strategy", default: "linear", null: false
     t.string "rejection_reason"
+    t.string "medium", default: "video", null: false
     t.index ["created_by_user_id"], name: "index_advertising_orders_on_created_by_user_id"
     t.index ["media_asset_id"], name: "index_advertising_orders_on_media_asset_id"
     t.index ["organization_id"], name: "index_advertising_orders_on_organization_id"
     t.index ["rotation_id"], name: "index_advertising_orders_on_rotation_id", unique: true
     t.index ["status"], name: "index_advertising_orders_on_status"
     t.check_constraint "discount_cents >= 0", name: "advertising_orders_discount_cents_non_negative"
+    t.check_constraint "medium::text = ANY (ARRAY['video'::character varying, 'audio'::character varying]::text[])", name: "advertising_orders_medium_video_or_audio"
     t.check_constraint "total_shows >= 0", name: "advertising_orders_total_shows_non_negative"
     t.check_constraint "total_sum_cents >= 0", name: "advertising_orders_total_sum_cents_non_negative"
   end
@@ -487,8 +489,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_120000) do
     t.string "name", null: false
     t.integer "offline_cache_hours", default: 24, null: false
     t.datetime "updated_at", null: false
+    t.string "medium", default: "video", null: false
     t.index ["location_id", "name"], name: "index_stations_on_location_id_and_name", unique: true
     t.index ["location_id"], name: "index_stations_on_location_id"
+    t.check_constraint "medium::text = ANY (ARRAY['video'::character varying, 'audio'::character varying]::text[])", name: "stations_medium_video_or_audio"
   end
 
   create_table "tags", force: :cascade do |t|

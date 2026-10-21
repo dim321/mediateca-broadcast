@@ -2,6 +2,7 @@
 
 module Advertising
   class ActivateOrder < BaseService
+    include ValidatesMediaAssets
     OccupiedWindow = Data.define(:line, :starts_at, :ends_at, :plan)
     ConflictedWindow = Data.define(:line, :starts_at, :ends_at, :error)
     Result = Data.define(:occupied_windows, :conflicted_windows, :quota_exceeded)
@@ -11,7 +12,11 @@ module Advertising
     end
 
     def call
-      raise Error, I18n.t("advertising.errors.clip_not_ready") unless clips_broadcast_ready?
+      validate_media_assets!(
+        order.rotation.ordered_items.filter_map(&:media_asset),
+        organization: order.organization,
+        medium: order.medium
+      )
       raise Error, I18n.t("advertising.errors.content_not_validated") unless clips_content_validated?
 
       occupied = []
@@ -79,11 +84,6 @@ module Advertising
 
     def time_zone
       order.organization.time_zone
-    end
-
-    def clips_broadcast_ready?
-      items = order.rotation.rotation_items.includes(:media_asset)
-      items.any? && items.all? { |item| item.media_asset.reload.broadcast_ready? }
     end
 
     def clips_content_validated?

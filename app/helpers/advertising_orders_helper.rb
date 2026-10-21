@@ -168,7 +168,13 @@ module AdvertisingOrdersHelper
 
   def order_form_available_media_assets(advertising_order, media_assets)
     selected_ids = order_form_selected_media_assets(advertising_order).map(&:id)
-    Array(media_assets).reject { |asset| selected_ids.include?(asset.id) }
+    Array(media_assets)
+      .reject { |asset| selected_ids.include?(asset.id) }
+      .select { |asset| order_asset_matches_medium?(advertising_order, asset) }
+  end
+
+  def order_asset_matches_medium?(order, asset)
+    order.audio? ? asset.audio? : !asset.audio?
   end
 
   def order_screen_hours_label(screen)

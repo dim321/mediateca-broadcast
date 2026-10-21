@@ -12,7 +12,8 @@ module Advertising
       shows_per_hour: nil,
       distribution_strategy: :linear,
       coefficient_percent: 0,
-      discount_cents: 0
+      discount_cents: 0,
+      medium: :video
     )
       @organization = organization
       @created_by = created_by
@@ -23,10 +24,11 @@ module Advertising
       @distribution_strategy = distribution_strategy
       @coefficient_percent = coefficient_percent
       @discount_cents = discount_cents
+      @medium = medium
     end
 
     def call
-      validate_media_assets!(media_assets, organization: organization)
+      validate_media_assets!(media_assets, organization: organization, medium: medium)
 
       AdvertisingOrder.transaction do
         rotation = organization.rotations.create!(
@@ -42,7 +44,8 @@ module Advertising
           shows_per_hour: shows_per_hour,
           distribution_strategy: distribution_strategy,
           coefficient_percent: coefficient_percent,
-          discount_cents: discount_cents
+          discount_cents: discount_cents,
+          medium: medium
         )
         media_assets.each do |asset|
           rotation.rotation_items.create!(
@@ -58,6 +61,6 @@ module Advertising
     private
 
     attr_reader :organization, :created_by, :media_assets, :product_name, :placement_kind,
-      :shows_per_hour, :distribution_strategy, :coefficient_percent, :discount_cents
+      :shows_per_hour, :distribution_strategy, :coefficient_percent, :discount_cents, :medium
   end
 end

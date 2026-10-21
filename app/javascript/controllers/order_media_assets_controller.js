@@ -40,6 +40,7 @@ export default class extends Controller {
     const label = row.querySelector("[data-order-media-assets-target='label']")
 
     input.value = option.value
+    input.dataset.contentKind = option.dataset.contentKind || ""
     label.textContent = option.text
     row.dataset.label = option.text
 

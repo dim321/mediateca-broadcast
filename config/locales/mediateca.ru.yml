@@ -427,20 +427,22 @@ ru:
               commercial_quota_incomplete: процент и период коммерческой квоты должны быть заданы вместе
               commercial_quota_requires_homogeneous_owner: коммерческая квота требует, чтобы все экраны принадлежали одному владельцу, совпадающему с организацией группы
               commercial_quota_requires_operating_hours: коммерческая квота требует часов работы у каждой локации экрана
-        screen:
-          attributes:
-            owner_organization:
-              must_be_client: должна быть клиентской организацией
         service_theme:
           attributes:
             organization:
               must_be_operator: должна быть организацией-оператором
+        station:
+          attributes:
+            medium:
+              immutable: нельзя изменить после создания
         location:
           attributes:
             operating_hours:
               invalid: имеет некорректную форму недельного расписания
         advertising_order:
           attributes:
+            medium:
+              immutable_when_active: нельзя менять после активации заказа
             rotation:
               wrong_organization: должна принадлежать вашей организации
               must_be_system_managed: должна быть системной ротацией заказа
@@ -450,6 +452,8 @@ ru:
               not_in_portrait_intersection: не входит в допустимые частоты выбранных экранов
         advertising_order_line:
           attributes:
+            screen:
+              wrong_medium: экран не соответствует типу заказа
             broadcast_point_group:
               wrong_organization: должна принадлежать вашей организации
               missing_operating_hours: должна иметь часы работы у всех локаций
@@ -469,6 +473,12 @@ ru:
               must_be_template: можно задать только у шаблона без экрана
         screen:
           attributes:
+            base:
+              audio_pseudo_screen_required: нельзя удалить обязательный экран аудиостанции
+            station_id:
+              audio_station_full: у аудиостанции уже есть экран
+            owner_organization:
+              must_be_client: должна быть клиентской организацией
             template_id:
               must_be_template: должен быть шаблоном портрета эфира
             service_theme_id:
@@ -519,6 +529,7 @@ ru:
         orientation: Ориентация
         template_id: Портрет эфира
       station:
+        medium: Тип станции
         name: Название
       tag:
         name: Название
@@ -543,6 +554,7 @@ ru:
         business_sphere: Сфера деятельности
         holding: Холдинг
       advertising_order:
+        medium: Тип заказа
         business_sphere: Сфера деятельности
         clip_title: Название ролика
         coefficient_percent: Коэффициент, %
@@ -753,6 +765,10 @@ ru:
         filter_tags: Теги
         filter_frequencies: Количество показов в час
         filter_hours: Часы работы
+      medium_legend: Тип заказа
+      medium_video: Видео
+      medium_audio: Аудио
+      medium_switch_cleared: Несовместимые ролики и экраны сняты с выбора.
       clips: Ролики
       clips_cycling_hint: Ролики по очереди заполняют слоты в часе; при меньшем числе роликов, чем показов в час, список повторяется с начала.
       add_clip: Добавить ролик
@@ -1228,6 +1244,10 @@ ru:
     play_log:
       source:
         agent: Агент
+    station:
+      medium:
+        video: Видео
+        audio: Аудио
     screen:
       orientation:
         landscape: Альбомная
@@ -1359,6 +1379,7 @@ ru:
         updated_at: Обновлено
         agent_token_digest: Токен агента
         location: Локация
+        medium: Тип станции
         name: Название
         offline_cache_hours: Часы офлайн-кэша
         screens: Экраны
@@ -1409,6 +1430,7 @@ ru:
       clips_duplicate: каждый ролик может быть указан только один раз
       clip_foreign: ролик должен принадлежать организации заказа
       clip_not_ready: ролик не готов к эфиру
+      clip_wrong_medium: ролик не соответствует типу заказа (%{medium})
       content_not_validated: ролик не прошёл проверку содержимого
       order_clips_not_editable: ролики можно менять только в черновике, отклонённом или активном заказе
       order_not_resubmittable: повторно отправить на модерацию можно только отклонённый заказ

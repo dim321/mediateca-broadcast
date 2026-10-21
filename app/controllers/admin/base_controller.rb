@@ -24,8 +24,9 @@ module Admin
     def destroy_with_restriction(record, success_path, notice:, alert: nil)
       record.destroy!
       redirect_to success_path, notice: notice, status: :see_other
-    rescue ActiveRecord::DeleteRestrictionError, ActiveRecord::InvalidForeignKey
-      redirect_to success_path, alert: alert || t("admin.crud.destroy_restricted"), status: :see_other
+    rescue ActiveRecord::DeleteRestrictionError, ActiveRecord::InvalidForeignKey, ActiveRecord::RecordNotDestroyed
+      message = record.errors.full_messages.to_sentence.presence
+      redirect_to success_path, alert: alert || message || t("admin.crud.destroy_restricted"), status: :see_other
     end
 
     def authenticate_admin

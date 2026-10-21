@@ -423,20 +423,22 @@ en:
               commercial_quota_incomplete: commercial quota percent and period must be set together
               commercial_quota_requires_homogeneous_owner: commercial quota requires all screens to share one owner matching the group organization
               commercial_quota_requires_operating_hours: commercial quota requires operating hours on every screen location
-        screen:
-          attributes:
-            owner_organization:
-              must_be_client: must be a client organization
         service_theme:
           attributes:
             organization:
               must_be_operator: must be an operator organization
+        station:
+          attributes:
+            medium:
+              immutable: cannot be changed after creation
         location:
           attributes:
             operating_hours:
               invalid: has an invalid weekly schedule shape
         advertising_order:
           attributes:
+            medium:
+              immutable_when_active: cannot change after the order is active
             rotation:
               wrong_organization: must belong to your organization
               must_be_system_managed: must be a system-managed order rotation
@@ -446,6 +448,8 @@ en:
               not_in_portrait_intersection: is not allowed for the selected screens
         advertising_order_line:
           attributes:
+            screen:
+              wrong_medium: screen does not match the order medium
             broadcast_point_group:
               wrong_organization: must belong to your organization
               missing_operating_hours: must have operating hours on every location
@@ -465,6 +469,12 @@ en:
               must_be_template: can only be set on a template without a screen
         screen:
           attributes:
+            base:
+              audio_pseudo_screen_required: cannot remove the required screen from an audio station
+            station_id:
+              audio_station_full: audio station already has its screen
+            owner_organization:
+              must_be_client: must be a client organization
             template_id:
               must_be_template: must be a broadcast portrait template
             service_theme_id:
@@ -515,6 +525,7 @@ en:
         orientation: Orientation
         template_id: Broadcast portrait
       station:
+        medium: Station medium
         name: Name
       tag:
         name: Name
@@ -539,6 +550,7 @@ en:
         business_sphere: Business sphere
         holding: Holding
       advertising_order:
+        medium: Order medium
         business_sphere: Business sphere
         clip_title: Clip title
         coefficient_percent: Coefficient %
@@ -747,6 +759,10 @@ en:
         filter_tags: Tags
         filter_frequencies: Allowed blocks per hour
         filter_hours: Operating hours
+      medium_legend: Order medium
+      medium_video: Video
+      medium_audio: Audio
+      medium_switch_cleared: Incompatible clips and screens were cleared from your selection.
       clips: Clips
       clips_cycling_hint: Clips rotate through hourly slots; when there are fewer clips than shows per hour, the list cycles from the start.
       add_clip: Add clip
@@ -1218,6 +1234,10 @@ en:
     play_log:
       source:
         agent: Agent
+    station:
+      medium:
+        video: Video
+        audio: Audio
     screen:
       orientation:
         landscape: Landscape
@@ -1352,6 +1372,7 @@ en:
         updated_at: Updated at
         agent_token_digest: Agent token
         location: Location
+        medium: Station medium
         name: Name
         offline_cache_hours: Offline cache hours
         screens: Screens
@@ -1402,6 +1423,7 @@ en:
       clips_duplicate: each clip may appear only once
       clip_foreign: clip must belong to the order organization
       clip_not_ready: clip is not broadcast-ready
+      clip_wrong_medium: clip does not match the order medium (%{medium})
       content_not_validated: clip content has not been validated
       order_clips_not_editable: clips can be updated only on draft, rejected, or active orders
       order_not_resubmittable: only a rejected order can be sent back for review

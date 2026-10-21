@@ -49,6 +49,22 @@ RSpec.describe Advertising::CopyOrder do
     order.reload
   end
 
+  it "copies audio medium from the source order" do
+    audio_asset = create(:media_asset, :ready, :with_mp3_file, organization: organization, duration_seconds: 30)
+    source = Advertising::CreateOrder.call(
+      organization: organization,
+      created_by: author,
+      media_assets: [ audio_asset ],
+      product_name: "Radio",
+      medium: :audio
+    )
+
+    copy = described_class.call(source: source, created_by: copier)
+
+    expect(copy.medium).to eq("audio")
+    expect(copy.rotation.ordered_items.map(&:media_asset)).to eq([ audio_asset ])
+  end
+
   it "copies the order attributes and leaves the source dates behind" do
     source = source_order
 

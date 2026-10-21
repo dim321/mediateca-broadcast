@@ -66,7 +66,11 @@ module Admin
     private
 
     def station_params
-      params.expect(station: [ :location_id, :name, :offline_cache_hours ])
+      if action_name == "create"
+        params.expect(station: [ :location_id, :name, :offline_cache_hours, :medium ])
+      else
+        params.expect(station: [ :location_id, :name, :offline_cache_hours ])
+      end
     end
 
     def configure_tv_monitor?

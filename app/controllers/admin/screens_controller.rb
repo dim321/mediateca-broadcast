@@ -15,13 +15,27 @@ module Admin
     end
 
     def new
+      station = station_for_screen_guard
+      if audio_station_screen_full?(station)
+        redirect_to admin_station_path(station), alert: audio_station_full_message, status: :see_other
+        return
+      end
+
       @screen = Screen.new(
         inherit_operating_hours_from_location: true,
-        template_id: default_template_id
+        template_id: default_template_id,
+        station_id: station&.id,
+        location_id: station&.location_id
       )
     end
 
     def create
+      station = Station.find_by(id: screen_params[:station_id])
+      if audio_station_screen_full?(station)
+        redirect_to admin_station_path(station), alert: audio_station_full_message, status: :see_other
+        return
+      end
+
       @screen = Screen.new(screen_params)
       if @screen.save
         Portraits::CopyTemplate.call(screen: @screen, template: @screen.assigned_template)
@@ -39,6 +53,15 @@ module Admin
 
     def update
       @screen = Screen.find(params[:id])
+      station = Station.find_by(id: screen_params[:station_id])
+      if audio_station_screen_full?(station, except_screen: @screen)
+        @screen.assign_attributes(screen_params)
+        @screen.errors.add(:station_id, :audio_station_full)
+        assign_service_theme_fields(@screen)
+        render :edit, status: :unprocessable_content
+        return
+      end
+
       if @screen.update(screen_params)
         if @screen.template_id.present?
           Portraits::CopyTemplate.call(screen: @screen, template: @screen.assigned_template, replace: true)
@@ -82,6 +105,23 @@ module Admin
 
     def default_template_id
       BroadcastPortrait.templates.find_by(is_default: true)&.id
+    end
+
+    def station_for_screen_guard
+      station_id = params[:station_id].presence || params.dig(:screen, :station_id)
+      Station.find_by(id: station_id) if station_id.present?
+    end
+
+    def audio_station_screen_full?(station, except_screen: nil)
+      return false unless station&.audio?
+
+      scope = station.screens
+      scope = scope.where.not(id: except_screen.id) if except_screen
+      scope.exists?
+    end
+
+    def audio_station_full_message
+      I18n.t("activerecord.errors.models.screen.attributes.station_id.audio_station_full")
     end
 
     def hours_changed?

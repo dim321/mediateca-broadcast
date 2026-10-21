@@ -80,6 +80,17 @@ FactoryBot.define do
       end
     end
 
+    trait :with_mp3_file do
+      content_kind { "audio" }
+      after(:build) do |record|
+        record.file.attach(
+          io: StringIO.new("fake-mp3-bytes"),
+          filename: "source.mp3",
+          content_type: "audio/mpeg"
+        )
+      end
+    end
+
     trait :with_broadcast_ts do
       after(:build) do |record|
         path = Rails.root.join("spec/fixtures/files/broadcast.ts")

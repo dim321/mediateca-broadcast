@@ -4,6 +4,14 @@
   <dl class="grid grid-cols-1 gap-4">
     <div><dt class="text-sm font-medium text-gray-500"><%= Station.human_attribute_name(:name) %></dt><dd class="mt-1 text-sm text-gray-900"><%= @station.name %></dd></div>
     <div><dt class="text-sm font-medium text-gray-500"><%= Station.human_attribute_name(:location) %></dt><dd class="mt-1 text-sm text-gray-900"><%= admin_link_to_record(@station.location) %></dd></div>
+    <div>
+      <dt class="text-sm font-medium text-gray-500"><%= Station.human_attribute_name(:medium) %></dt>
+      <dd class="mt-1">
+        <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-600/20">
+          <%= admin_enum_label(@station, :medium) %>
+        </span>
+      </dd>
+    </div>
     <div><dt class="text-sm font-medium text-gray-500"><%= Station.human_attribute_name(:offline_cache_hours) %></dt><dd class="mt-1 text-sm text-gray-900"><%= @station.offline_cache_hours %></dd></div>
     <div><dt class="text-sm font-medium text-gray-500"><%= Station.human_attribute_name(:agent_token_digest) %></dt><dd class="mt-1 text-sm text-gray-900"><%= @station.agent_token_digest.present? ? t("admin.crud.token_set") : t("admin.crud.token_blank") %></dd></div>
   </dl>
@@ -84,10 +92,15 @@
 <div class="mt-6 bg-white border border-gray-200 rounded-lg p-6" data-testid="station-screens">
   <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
     <h2 class="text-lg font-medium text-gray-900"><%= t("admin.stations.screens.title") %></h2>
-    <%= button_to t("admin.stations.screens.refresh"),
-          admin_station_screen_refresh_path(@station),
-          method: :post,
-          class: admin_secondary_button_class %>
+    <div class="flex flex-wrap gap-2">
+      <% unless @station.audio? && @station.screens.exists? %>
+        <%= link_to t("admin.crud.new"), new_admin_screen_path(station_id: @station.id), class: admin_primary_button_class %>
+      <% end %>
+      <%= button_to t("admin.stations.screens.refresh"),
+            admin_station_screen_refresh_path(@station),
+            method: :post,
+            class: admin_secondary_button_class %>
+    </div>
   </div>
 
   <% if @screens.any? %>

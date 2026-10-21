@@ -2,11 +2,16 @@
 
 module Fleet
   class ScreensForOrderPicker < BaseService
+    def initialize(medium: nil)
+      @medium = medium.presence
+    end
+
     def call
-      Screen.operator_catalog
+      scope = Screen.operator_catalog
         .includes(:tags, :broadcast_portrait, :broadcast_point_groups, station: :location)
         .joins(station: :location)
-        .order("locations.name", "stations.name", "screens.name")
+      scope = scope.where(stations: { medium: @medium }) if @medium
+      scope.order("locations.name", "stations.name", "screens.name")
     end
   end
 end

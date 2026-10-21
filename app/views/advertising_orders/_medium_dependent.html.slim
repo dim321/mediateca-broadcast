@@ -1,0 +1,9 @@
+= turbo_frame_tag "order_medium_dependent" do
+  - show_picker = local_assigns.fetch(:show_screen_picker, false)
+  - if advertising_order.new_record? || advertising_order.draft? || advertising_order.rejected? || advertising_order.active?
+    .md:col-span-2
+      = render 'advertising_orders/clips_editor',
+          selected_assets: order_form_selected_media_assets(advertising_order),
+          available_assets: order_form_available_media_assets(advertising_order, @media_assets)
+  - if show_picker
+    = render 'advertising_orders/screen_picker'
