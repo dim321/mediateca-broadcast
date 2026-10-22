@@ -78,7 +78,7 @@ gem "rails-i18n", "~> 8.0"
 gem "lograge", "~> 0.15.1", group: :production
 
 gem "slim-rails", "~> 4.0"
-gem "view_component", "~> 4.6"
+gem "view_component", "~> 4.16"
 
 gem "capybara", "~> 3.40", group: :test
 
