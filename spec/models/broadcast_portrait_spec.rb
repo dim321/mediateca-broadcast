@@ -76,6 +76,12 @@ RSpec.describe BroadcastPortrait, type: :model do
       expect(portrait.errors[:block_frequencies_per_hour]).to be_present
     end
 
+    it "persists thirty shows per hour" do
+      portrait = create(:broadcast_portrait, block_frequencies_per_hour: [ 2, 3, 4, 6, 30 ])
+
+      expect(portrait.reload.block_frequencies_per_hour).to eq([ 2, 3, 4, 6, 30 ])
+    end
+
     it "maps legacy scalars onto the catalog (8 -> 6)" do
       expect(described_class.catalog_value_for(4)).to eq(4)
       expect(described_class.catalog_value_for(8)).to eq(6)
