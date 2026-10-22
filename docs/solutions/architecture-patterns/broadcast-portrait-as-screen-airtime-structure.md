@@ -59,7 +59,7 @@ related_components:
 | `kind` | Роль |
 |--------|------|
 | `commercial` | Структурный слот под рекламу из медиапланов; без ротации / pick / time |
-| `filler` | Нейтралка: ротация + `pick_strategy`; учитывается `neutral_min_seconds` |
+| `filler` | Нейтралка: ротация (своя или `neutral_rotation` тематики) + `pick_strategy`; учитывается `neutral_min_seconds`. Генератор добивает этой ротацией свободные промежутки рабочих окон между уже поставленными роликами |
 | `insertion` | Точечная вставка: ротация + обязательный `time_of_day` |
 | `service_header_start` / `service_header_end` | Обёртка рекламного пакета |
 | `service_welcome` / `service_close` | Приветствие / завершение дня: без `time_of_day` — open/close окон работы; с временем — замена слота как у `insertion`, `source_kind` остаётся `service` |

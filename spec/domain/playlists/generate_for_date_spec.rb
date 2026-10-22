@@ -67,6 +67,34 @@ RSpec.describe Playlists::GenerateForDate do
     expect(source_kinds_at(playlist, 900)).to eq(%w[filler])
   end
 
+  it "fills the gap after a commercial with clips from the portrait neutral theme" do
+    station = create_playlist_station!(hours: { "wed" => [ { "start" => "09:00", "end" => "10:00" } ] })
+    screen = create(:screen, station: station)
+    org = create(:organization, :client)
+    theme = create(:service_theme)
+    neutral = create(:media_asset, :ready, :content_validated, :with_png_file, organization: theme.organization)
+    create(:rotation_item, rotation: theme.neutral_rotation, media_asset: neutral, display_duration_seconds: 10)
+    create_cyclic_portrait!(station, filler_rotation: theme.neutral_rotation, frequencies: [ 1 ])
+    screen.broadcast_portrait.blocks.find_by!(kind: "filler").update!(service_theme: theme)
+    occupy_order_claim!(
+      screen: screen, organization: org,
+      rotation: create_clip_rotation!(organization: org, duration: 10),
+      starts_at: local_slot(9), ends_at: local_slot(10), shows_per_hour: 1
+    )
+
+    hour = generate!(station).playlist.items.sort_by(&:offset_seconds).select do |item|
+      item_screen_ids(item).include?(screen.id)
+    end
+    commercial = hour.find(&:media_plan?)
+    following = hour.find { |item| item.offset_seconds == commercial.offset_seconds + commercial.duration_seconds }
+
+    expect(following).to be_filler
+    expect(following.media_asset_id).to eq(neutral.id)
+    expect(hour.count(&:filler?)).to be > 1
+    covered = hour.sum(&:duration_seconds)
+    expect(covered).to be > (50.minutes).to_i
+  end
+
   it "emits only audio playlist items on an audio station" do
     location = create(:location, time_zone: "Asia/Krasnoyarsk", operating_hours: PlaylistGeneration::KRASNOYARSK_WED_HOURS)
     station = create(:station, :audio, location: location)
@@ -311,14 +339,15 @@ RSpec.describe Playlists::GenerateForDate do
     first_slot = generate!(station).playlist.items.sort_by(&:offset_seconds).select do |item|
       item.offset_seconds < 1200 && item_screen_ids(item).include?(screen.id)
     end
-    kinds = first_slot.map(&:source_kind)
+    scheduled = first_slot.reject(&:filler?)
+    kinds = scheduled.map(&:source_kind)
 
     expect(kinds.first).to eq("service")
     expect(kinds.last).to eq("service")
     expect(kinds.count("service")).to eq(2)
     expect(kinds.count("media_plan")).to eq(2)
-    expect(first_slot.first.media_asset_id).to eq(start_rot.ordered_items.first.media_asset_id)
-    expect(first_slot.last.media_asset_id).to eq(end_rot.ordered_items.first.media_asset_id)
+    expect(scheduled.first.media_asset_id).to eq(start_rot.ordered_items.first.media_asset_id)
+    expect(scheduled.last.media_asset_id).to eq(end_rot.ordered_items.first.media_asset_id)
   end
 
   it "lets a 12:00 insertion replace that slot without shifting later cyclic items (AE6)" do

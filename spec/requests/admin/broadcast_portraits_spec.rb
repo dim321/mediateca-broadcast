@@ -81,6 +81,7 @@ RSpec.describe "Admin broadcast portraits", type: :request do
       expect(response.body).to include(ordinary.name)
       expect(response.body).to include("Салон красоты")
       expect(response.body).to include("broadcast_portrait[blocks][][service_theme_id]")
+      expect(response.body).to include("Нейтральный контент")
       expect(response.body).not_to include(hidden.name)
     end
 
@@ -188,6 +189,32 @@ RSpec.describe "Admin broadcast portraits", type: :request do
       }
 
       expect(portrait.reload.service_theme).to be_nil
+    end
+
+    it "creates a filler block bound to a service theme neutral folder" do
+      theme = create(:service_theme, organization: operator_org, name: "Салон")
+
+      expect {
+        post admin_broadcast_portraits_path, params: {
+          broadcast_portrait: portrait_attrs.merge(
+            name: "Neutral grid",
+            is_default: false,
+            blocks: [
+              { position: 1, kind: "commercial" },
+              { position: 2, kind: "filler", service_theme_id: theme.id, pick_strategy: "random" }
+            ]
+          )
+        }
+      }.to change(BroadcastPortrait, :count).by(1)
+
+      portrait = BroadcastPortrait.find_by!(name: "Neutral grid")
+      filler = portrait.blocks.find_by!(kind: "filler")
+      expect(response).to redirect_to(admin_broadcast_portrait_path(portrait))
+      expect(filler).to have_attributes(
+        service_theme: theme,
+        rotation: theme.neutral_rotation,
+        pick_strategy: "random"
+      )
     end
 
     it "creates a template with a welcome block bound to a service theme folder" do

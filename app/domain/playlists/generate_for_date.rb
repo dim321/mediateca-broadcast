@@ -70,22 +70,37 @@ module Playlists
         fingerprint: fingerprint,
         etag: Digest::SHA256.hexdigest(JSON.generate(etag_payload(positioned)))
       )
-      positioned.each { |entry| create_item!(playlist, entry) }
+      insert_items!(playlist, positioned)
       playlist.items.includes(:screens, :media_asset).load
       playlist
     end
 
-    def create_item!(playlist, entry)
-      item = playlist.items.build(
+    def insert_items!(playlist, entries)
+      return if entries.empty?
+
+      now = Time.current
+      inserted = PlaylistItem.insert_all!(entries.map { |entry| item_attributes(playlist, entry, now) }, returning: %w[id position])
+      ids = inserted.rows.to_h { |id, position| [ position, id ] }
+      screen_rows = entries.flat_map do |entry|
+        entry[:screen_ids].map do |screen_id|
+          { playlist_item_id: ids.fetch(entry[:position]), screen_id: screen_id, created_at: now, updated_at: now }
+        end
+      end
+      PlaylistItemScreen.insert_all!(screen_rows) if screen_rows.any?
+    end
+
+    def item_attributes(playlist, entry, now)
+      {
+        playlist_id: playlist.id,
         position: entry[:position],
         media_asset_id: entry[:media_asset_id],
         offset_seconds: entry[:offset_seconds],
         duration_seconds: entry[:duration_seconds],
         source_kind: entry[:source_kind],
-        media_plan_id: entry[:media_plan_id]
-      )
-      entry[:screen_ids].each { |screen_id| item.playlist_item_screens.build(screen_id: screen_id) }
-      item.save!
+        media_plan_id: entry[:media_plan_id],
+        created_at: now,
+        updated_at: now
+      }
     end
 
     def etag_payload(entries)
@@ -114,7 +129,8 @@ module Playlists
       cycle = cycle_blocks(portrait)
       timed = timed_slot_events(portrait)
       slots = build_slots(windows, screen, portrait)
-      day_bound_emissions(screen, portrait, windows, pickers) + slots.flat_map do |slot_start, slot_end, index, count, covering|
+      scheduled = day_bound_emissions(screen, portrait, windows, pickers)
+      scheduled += slots.flat_map do |slot_start, slot_end, index, count, covering|
         matching = timed
           .select { |event| slot_start <= event[:at] && event[:at] < slot_end }
           .map { |event| event[:block] }
@@ -132,6 +148,7 @@ module Playlists
           emit_cycle_block(block, screen, portrait, slot_start, pickers)
         end
       end
+      fill_neutral_gaps(scheduled, screen, portrait, windows, pickers)
     end
 
     def emit_timed_slot_block(block, screen, portrait, slot_start, pickers)
@@ -287,6 +304,58 @@ module Playlists
       end
 
       emit_filler(filler, screen, portrait, slot_start, pickers)
+    end
+
+    def fill_neutral_gaps(emissions, screen, portrait, windows, pickers)
+      block = cycle_blocks(portrait).find(&:filler?)
+      return emissions unless block
+
+      extras = []
+      occupied = merged_ranges(emissions)
+      windows.each do |window|
+        cursor = offset_seconds(window[:start])
+        finish = offset_seconds(window[:end])
+        next if finish <= cursor
+
+        occupied.each do |start_at, end_at|
+          next if end_at <= cursor
+          break if start_at >= finish
+
+          pack_neutral_gap(extras, block, screen, portrait, pickers, cursor, start_at) if start_at > cursor
+          cursor = [ end_at, cursor ].max
+          break if cursor >= finish
+        end
+        pack_neutral_gap(extras, block, screen, portrait, pickers, cursor, finish) if cursor < finish
+      end
+      emissions + extras
+    end
+
+    def merged_ranges(emissions)
+      emissions
+        .map { |entry| [ entry[:offset_seconds], entry[:offset_seconds] + entry[:duration_seconds] ] }
+        .sort_by(&:first)
+        .each_with_object([]) do |(start_at, end_at), merged|
+          if merged.empty? || start_at > merged.last[1]
+            merged << [ start_at, end_at ]
+          else
+            merged.last[1] = [ merged.last[1], end_at ].max
+          end
+        end
+    end
+
+    def pack_neutral_gap(extras, block, screen, portrait, pickers, from, to)
+      min_seconds = portrait.neutral_min_seconds
+      while to - from >= min_seconds
+        pick = take_from_block(block, screen, pickers, min_seconds: min_seconds)
+        if pick.nil?
+          warn_once("filler rotation #{block.rotation_id} has no eligible clips")
+          break
+        end
+        break if pick[:duration_seconds] > (to - from)
+
+        extras << emission(pick, screen, from, "filler")
+        from += pick[:duration_seconds]
+      end
     end
 
     def emit_filler(block, screen, portrait, slot_start, pickers)

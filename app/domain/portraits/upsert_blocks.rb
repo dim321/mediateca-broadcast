@@ -34,6 +34,8 @@ module Portraits
       kind = attrs[:kind].to_s
       if ServiceTheme::ROTATION_ROLES.value?(kind)
         attrs[:rotation_id] = nil if attrs[:service_theme_id].blank?
+      elsif kind == "filler"
+        attrs[:rotation_id] = nil if attrs[:service_theme_id].present?
       else
         attrs[:service_theme_id] = nil
       end
