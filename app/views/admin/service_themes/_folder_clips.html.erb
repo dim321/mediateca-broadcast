@@ -1,0 +1,28 @@
+<div id="<%= dom_id(rotation, :clips) %>"
+     data-controller="folder-clips"
+     data-folder-clips-empty-message-value="<%= t("admin.service_themes.folder_empty") %>">
+  <% items = rotation.ordered_items %>
+  <% if items.empty? %>
+    <p class="text-sm text-gray-500"><%= t("admin.service_themes.folder_empty") %></p>
+  <% else %>
+    <div class="relative overflow-x-auto">
+      <table class="w-full text-sm text-left text-gray-500">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+          <tr>
+            <th scope="col" class="px-4 py-3"><%= t("admin.service_themes.clip_file") %></th>
+            <th scope="col" class="px-4 py-3"><%= t("admin.service_themes.clip_duration") %></th>
+            <th scope="col" class="px-4 py-3"><span class="sr-only"><%= t("admin.service_themes.remove_submit") %></span></th>
+          </tr>
+        </thead>
+        <tbody id="<%= dom_id(rotation, :clip_rows) %>">
+          <% items.each do |item| %>
+            <%= render "admin/service_themes/folder_clip_row",
+                  service_theme: service_theme,
+                  item: item,
+                  animate: local_assigns[:entering]&.id == item.id %>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</div>

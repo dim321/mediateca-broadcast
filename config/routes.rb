@@ -33,7 +33,7 @@ Rails.application.routes.draw do
       resources :rotations
       resources :rotation_items
       resources :service_themes do
-        resources :clips, only: :create, controller: "service_theme_clips" do
+        resources :clips, only: %i[create destroy], controller: "service_theme_clips" do
           collection do
             post :place
           end

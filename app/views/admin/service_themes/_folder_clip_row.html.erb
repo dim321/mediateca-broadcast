@@ -1,0 +1,21 @@
+<tr id="<%= dom_id(item) %>"
+    class="bg-white border-b"
+    data-folder-clips-target="row"
+    <% if local_assigns[:animate] %>data-animate="enter"<% end %>>
+  <td class="px-4 py-3">
+    <%= link_to admin_attachment_name(item.media_asset.file),
+          admin_media_asset_path(item.media_asset),
+          class: "text-blue-700 hover:underline" %>
+  </td>
+  <td class="px-4 py-3 tabular-nums" id="<%= dom_id(item.media_asset, :duration) %>">
+    <% seconds = item.media_asset.duration_seconds %>
+    <%= seconds.present? ? t("admin.service_themes.clip_duration_seconds", count: seconds) : t("admin.crud.none") %>
+  </td>
+  <td class="px-4 py-3 text-right">
+    <%= button_to t("admin.service_themes.remove_submit"),
+          admin_service_theme_clip_path(service_theme, item),
+          method: :delete,
+          form: { class: "inline" },
+          class: "#{admin_danger_button_class} whitespace-nowrap" %>
+  </td>
+</tr>

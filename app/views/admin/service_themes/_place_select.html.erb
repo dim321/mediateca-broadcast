@@ -1,0 +1,5 @@
+<%= select_tag :media_asset_id,
+      options_for_select(admin_validated_theme_clip_options(rotation, content_type: content_type)),
+      include_blank: t("admin.service_themes.place_prompt"),
+      id: dom_id(rotation, :place_select),
+      class: admin_select_class %>

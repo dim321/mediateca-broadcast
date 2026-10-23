@@ -8,3 +8,42 @@
 @source "../../javascript/admin.js";
 @source "../../javascript/admin/**/*.js";
 @source "../../views/kaminari/admin/**/*.erb";
+
+@keyframes folder-clip-enter {
+  from {
+    opacity: 0;
+    background-color: #dcfce7;
+  }
+
+  to {
+    opacity: 1;
+    background-color: #fff;
+  }
+}
+
+@keyframes folder-clip-leave {
+  from {
+    opacity: 1;
+    background-color: #fff;
+  }
+
+  to {
+    opacity: 0;
+    background-color: #fee2e2;
+  }
+}
+
+.folder-clip-row--enter {
+  animation: folder-clip-enter 280ms ease;
+}
+
+.folder-clip-row--leave {
+  animation: folder-clip-leave 220ms ease forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .folder-clip-row--enter,
+  .folder-clip-row--leave {
+    animation: none;
+  }
+}

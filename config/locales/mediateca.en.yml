@@ -1030,7 +1030,11 @@ en:
       clear_search: Clear search
       clips_count: Clips
       clip_file: File
+      clip_duration: Duration
+      clip_duration_seconds: "%{count} s"
+      clip_not_in_folder: This clip is not in this theme's folders.
       clip_placed: Clip added to the folder
+      clip_removed: Clip removed from the folder.
       clip_uploaded: Clip added to the folder.
       created: Service theme created.
       destroy_confirm: Delete this theme and its service rotations?
@@ -1059,6 +1063,7 @@ en:
       upload_submit: Upload
       place_prompt: Validated clip
       place_submit: Add to folder
+      remove_submit: Remove from folder
     tags:
       clear_search: Clear search
       created: Tag created.

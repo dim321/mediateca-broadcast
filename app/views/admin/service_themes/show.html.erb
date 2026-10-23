@@ -58,43 +58,12 @@
         <% end %>
         <%= form_with url: place_admin_service_theme_clips_path(@service_theme), class: "mt-4 flex flex-col gap-2 sm:flex-row sm:items-end" do %>
           <%= hidden_field_tag :role, role %>
-          <%= select_tag :media_asset_id,
-                options_for_select(admin_validated_theme_clip_options(rotation, content_type: content_type)),
-                include_blank: t("admin.service_themes.place_prompt"),
-                class: admin_select_class %>
+          <%= render "admin/service_themes/place_select", rotation: rotation, content_type: content_type %>
           <%= submit_tag t("admin.service_themes.place_submit"), class: admin_primary_button_class %>
         <% end %>
       </div>
 
-      <% items = rotation.ordered_items %>
-      <% if items.empty? %>
-        <p class="text-sm text-gray-500"><%= t("admin.service_themes.folder_empty") %></p>
-      <% else %>
-        <div class="relative overflow-x-auto">
-          <table class="w-full text-sm text-left text-gray-500">
-            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-              <tr>
-                <th scope="col" class="px-4 py-3"><%= t("admin.service_themes.clip_file") %></th>
-                <th scope="col" class="px-4 py-3"><%= MediaAsset.human_attribute_name(:processing_status) %></th>
-              </tr>
-            </thead>
-            <tbody>
-              <% items.each do |item| %>
-                <tr class="bg-white border-b">
-                  <td class="px-4 py-3">
-                    <%= link_to admin_attachment_name(item.media_asset.file),
-                          admin_media_asset_path(item.media_asset),
-                          class: "text-blue-700 hover:underline" %>
-                  </td>
-                  <td class="px-4 py-3" id="<%= dom_id(item.media_asset, :processing_status) %>">
-                    <%= admin_enum_label(item.media_asset, :processing_status) %>
-                  </td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
-        </div>
-      <% end %>
+      <%= render "admin/service_themes/folder_clips", service_theme: @service_theme, rotation: rotation %>
     </section>
   <% end %>
 </div>
