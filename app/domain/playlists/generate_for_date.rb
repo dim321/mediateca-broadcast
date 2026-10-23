@@ -129,23 +129,25 @@ module Playlists
       cycle = cycle_blocks(portrait)
       timed = timed_slot_events(portrait)
       slots = build_slots(windows, screen, portrait)
-      scheduled = day_bound_emissions(screen, portrait, windows, pickers)
+      scheduled, prelude_until = day_bound_emissions(screen, portrait, windows, pickers)
+      opening = windows.first[:start]
       scheduled += slots.flat_map do |slot_start, slot_end, index, count, covering|
+        emit_at = slot_start == opening ? prelude_until : slot_start
         matching = timed
           .select { |event| slot_start <= event[:at] && event[:at] < slot_end }
           .map { |event| event[:block] }
           .sort_by(&:position)
         if matching.any?
           cycle_index += 1 if cycle.any?
-          matching.flat_map { |block| emit_timed_slot_block(block, screen, portrait, slot_start, pickers) }
+          matching.flat_map { |block| emit_timed_slot_block(block, screen, portrait, emit_at, pickers) }
         elsif Playlists::HourGrid.catalog_frequencies(covering).any?
-          emit_beat_slot(screen, portrait, slot_start, index, count, covering, pickers)
+          emit_beat_slot(screen, portrait, emit_at, index, count, covering, pickers)
         elsif cycle.empty?
           []
         else
           block = cycle[cycle_index % cycle.size]
           cycle_index += 1
-          emit_cycle_block(block, screen, portrait, slot_start, pickers)
+          emit_cycle_block(block, screen, portrait, emit_at, pickers)
         end
       end
       fill_neutral_gaps(scheduled, screen, portrait, windows, pickers)
@@ -176,7 +178,7 @@ module Playlists
       when "commercial"
         emit_commercial(screen, portrait, slot_start, pickers)
       when "filler"
-        emit_filler(block, screen, portrait, slot_start, pickers)
+        []
       when "service_header_start", "service_header_end"
         emit_service_cycle(block, screen, slot_start, pickers)
       else
@@ -186,7 +188,7 @@ module Playlists
 
     def emit_commercial(screen, portrait, slot_start, pickers)
       plans = occupying_plans_for(screen, slot_start)
-      return emit_commercial_fallback(screen, portrait, slot_start, pickers) if plans.empty?
+      return emit_commercial_fallback(portrait) if plans.empty?
 
       if plans.one? && plans.first.advertising_order_line_id.nil?
         return emit_single_plan_commercial(plans.first, screen, portrait, slot_start, pickers)
@@ -214,7 +216,7 @@ module Playlists
         plan.commercial? && plan.shows_per_hour.present? && !Playlists::HourGrid.catalog_frequency?(plan.shows_per_hour)
       end
       players = hitters + extras
-      return emit_commercial_fallback(screen, portrait, slot_start, pickers) if players.empty?
+      return emit_commercial_fallback(portrait) if players.empty?
 
       emit_mixed_commercial(players, screen, portrait, slot_start, pickers, clips_per_plan: 1)
     end
@@ -296,14 +298,11 @@ module Playlists
       interleaved
     end
 
-    def emit_commercial_fallback(screen, portrait, slot_start, pickers)
-      filler = cycle_blocks(portrait).find(&:filler?)
-      unless filler
-        warn_once("no occupying plan and no filler block")
-        return []
-      end
+    def emit_commercial_fallback(portrait)
+      return [] if cycle_blocks(portrait).any?(&:filler?)
 
-      emit_filler(filler, screen, portrait, slot_start, pickers)
+      warn_once("no occupying plan and no filler block")
+      []
     end
 
     def fill_neutral_gaps(emissions, screen, portrait, windows, pickers)
@@ -344,26 +343,32 @@ module Playlists
     end
 
     def pack_neutral_gap(extras, block, screen, portrait, pickers, from, to)
-      min_seconds = portrait.neutral_min_seconds
-      while to - from >= min_seconds
-        pick = take_from_block(block, screen, pickers, min_seconds: min_seconds)
-        if pick.nil?
-          warn_once("filler rotation #{block.rotation_id} has no eligible clips")
-          break
-        end
-        break if pick[:duration_seconds] > (to - from)
+      window = to - from
+      return if window < portrait.neutral_min_seconds
 
+      catalog = neutral_catalog(pickers, block, screen, portrait)
+      if catalog.empty?
+        warn_once("filler rotation #{block.rotation_id} has no eligible clips")
+        return
+      end
+
+      NeutralGapFill.call(clips: catalog, window_seconds: window).each do |pick|
         extras << emission(pick, screen, from, "filler")
-        from += pick[:duration_seconds]
+        from += pick.fetch(:duration_seconds)
       end
     end
 
-    def emit_filler(block, screen, portrait, slot_start, pickers)
-      pick = take_from_block(block, screen, pickers, min_seconds: portrait.neutral_min_seconds)
-      return [ emission(pick, screen, slot_start, "filler") ] if pick
+    def neutral_catalog(pickers, block, screen, portrait)
+      return [] if block.rotation.nil?
 
-      warn_once("filler rotation #{block.rotation_id} has no eligible clips")
-      []
+      key = [ :neutral_catalog, screen.id, block.rotation_id, portrait.neutral_min_seconds ]
+      pickers[key] ||= NeutralPicker.new(
+        rotation: block.rotation,
+        strategy: block.pick_strategy.presence || "sequential",
+        station: station,
+        for_date: for_date,
+        min_seconds: portrait.neutral_min_seconds
+      ).eligible_picks
     end
 
     def emit_service_cycle(block, screen, slot_start, pickers)
@@ -479,10 +484,12 @@ module Playlists
       open_at = windows.first[:start]
       close_at = windows.last[:end]
       emissions = []
+      cursor = open_at
       header_blocks(portrait, "service_welcome").reject { |block| block.time_of_day.present? }.each do |block|
         pick = take_from_block(block, screen, pickers, min_seconds: nil)
         if pick
-          emissions << emission(pick, screen, open_at, "service")
+          emissions << emission(pick, screen, cursor, "service")
+          cursor += pick[:duration_seconds]
         else
           warn_once("service welcome has no eligible clips")
         end
@@ -495,7 +502,7 @@ module Playlists
           warn_once("service close has no eligible clips")
         end
       end
-      emissions
+      [ emissions, cursor ]
     end
 
     def header_blocks(portrait, kind)

@@ -2,7 +2,9 @@
 
 module Playlists
   class Fingerprint < BaseService
-    PICKER_VERSION = "v1"
+    # Bump when emission order changes so stored playlists rebuild.
+    # v2: day-bound welcome finishes before the opening commercial block.
+    PICKER_VERSION = "v2"
 
     def initialize(station:, for_date:)
       @station = station

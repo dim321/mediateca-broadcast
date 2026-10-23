@@ -95,6 +95,24 @@ RSpec.describe Playlists::GenerateForDate do
     expect(covered).to be > (50.minutes).to_i
   end
 
+  it "fills an empty minute with the longest neutral clip, then the next longest that fits" do
+    station = create_playlist_station!(hours: { "wed" => [ { "start" => "09:00", "end" => "09:01" } ] })
+    create(:screen, station: station)
+    org = create(:organization, :client)
+    filler = create(:rotation, organization: org)
+    medium = create(:media_asset, :ready, :content_validated, :with_png_file, organization: org)
+    long = create(:media_asset, :ready, :content_validated, :with_png_file, organization: org)
+    create(:rotation_item, rotation: filler, media_asset: medium, display_duration_seconds: 25, position: 1)
+    create(:rotation_item, rotation: filler, media_asset: long, display_duration_seconds: 30, position: 2)
+    create_cyclic_portrait!(station, filler_rotation: filler, frequencies: [ 1 ])
+
+    fillers = generate!(station).playlist.items.select(&:filler?).sort_by(&:offset_seconds)
+
+    expect(fillers.map(&:duration_seconds)).to eq([ 30, 25 ])
+    expect(fillers.map(&:media_asset_id)).to eq([ long.id, medium.id ])
+    expect(fillers.sum(&:duration_seconds)).to eq(55)
+  end
+
   it "emits only audio playlist items on an audio station" do
     location = create(:location, time_zone: "Asia/Krasnoyarsk", operating_hours: PlaylistGeneration::KRASNOYARSK_WED_HOURS)
     station = create(:station, :audio, location: location)
@@ -514,6 +532,51 @@ RSpec.describe Playlists::GenerateForDate do
     expect(after).to be_present
     expect(before.media_asset_id).to eq(start_rot.ordered_items.first.media_asset_id)
     expect(after.media_asset_id).to eq(end_rot.ordered_items.first.media_asset_id)
+  end
+
+  it "plays day-bound welcome before the opening commercial block, then neutral until the next ad" do
+    station = create_playlist_station!
+    owner = create(:organization, :client)
+    placer = create(:organization, :client)
+    screen = create(:screen, station: station, owner_organization: owner)
+    filler = create_clip_rotation!(organization: owner, duration: 30)
+    welcome = create_clip_rotation!(organization: owner, duration: 10)
+    start_rot = create_clip_rotation!(organization: owner, duration: 6)
+    end_rot = create_clip_rotation!(organization: owner, duration: 3)
+    ads = create_clip_rotation!(organization: placer, duration: 5)
+    create_cyclic_portrait!(
+      station,
+      filler_rotation: filler,
+      frequencies: [ 2 ],
+      welcome_rotation: welcome,
+      header_start_rotation: start_rot,
+      header_end_rotation: end_rot
+    )
+    occupy_with_clips!(
+      screen: screen,
+      organization: placer,
+      rotation: ads,
+      starts_at: local_slot(9),
+      ends_at: local_slot(21),
+      placement_kind: :commercial,
+      shows_per_hour: 2,
+      group_organization: owner
+    )
+
+    playlist = generate!(station).playlist
+    screen_items = playlist.items.select { |item| item_screen_ids(item) == [ screen.id ] }.sort_by(&:offset_seconds)
+    opening = screen_items.select { |item| item.offset_seconds < 30.minutes.to_i }
+    signature = opening.first(5).map { |item| [ item.offset_seconds, item.source_kind, item.media_asset_id, item.duration_seconds ] }
+
+    expect(signature).to eq([
+      [ 0, "service", welcome.ordered_items.first.media_asset_id, 10 ],
+      [ 10, "service", start_rot.ordered_items.first.media_asset_id, 6 ],
+      [ 16, "media_plan", ads.ordered_items.first.media_asset_id, 5 ],
+      [ 21, "service", end_rot.ordered_items.first.media_asset_id, 3 ],
+      [ 24, "filler", filler.ordered_items.first.media_asset_id, 30 ]
+    ])
+    next_header = screen_items.find { |item| item.offset_seconds == 30.minutes.to_i }
+    expect([ next_header.source_kind, next_header.media_asset_id ]).to eq([ "service", start_rot.ordered_items.first.media_asset_id ])
   end
 
   it "places welcome and close on each screen's effective hours (AE4)" do

@@ -18,6 +18,14 @@ module Playlists
       Array.new(count) { next_pick }
     end
 
+    def eligible_picks
+      rotation.ordered_items.filter_map.with_index do |item, index|
+        next unless eligible?(item)
+
+        { media_asset: item.media_asset, duration_seconds: duration_for(item), position: index }
+      end
+    end
+
     private
 
     attr_reader :rotation, :strategy, :station, :for_date, :min_seconds, :sequence
