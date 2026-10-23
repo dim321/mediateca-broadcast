@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 const FIELD_VISIBILITY = {
   commercial: { rotation: false, theme: false, pick: false, time: false },
-  filler: { rotation: true, theme: false, pick: true, time: false },
+  filler: { rotation: true, theme: true, pick: true, time: false },
   insertion: { rotation: true, theme: false, pick: true, time: true },
   service_header_start: { rotation: false, theme: true, pick: true, time: false },
   service_header_end: { rotation: false, theme: true, pick: true, time: false },
@@ -60,6 +60,10 @@ export default class extends Controller {
     this.toggleRow(this.rowFrom(event))
   }
 
+  themeChanged(event) {
+    this.toggleRow(this.rowFrom(event))
+  }
+
   rowFrom(event) {
     return event.currentTarget.closest("[data-portrait-blocks-target='row']")
   }
@@ -85,6 +89,14 @@ export default class extends Controller {
     this.toggleField(row, "theme", visibility.theme)
     this.toggleField(row, "pick", visibility.pick)
     this.toggleField(row, "time", visibility.time)
+    if (kind === "filler" && this.themeChosen(row)) this.toggleField(row, "rotation", false)
+
+    const hint = row.querySelector("[data-portrait-blocks-neutral-hint]")
+    if (hint) hint.hidden = kind !== "filler"
+  }
+
+  themeChosen(row) {
+    return row.querySelector("[data-portrait-blocks-theme]")?.value !== ""
   }
 
   toggleField(row, name, visible) {

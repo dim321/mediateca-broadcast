@@ -12,12 +12,15 @@
 
   <div data-portrait-blocks-field="theme">
     <label class="<%= admin_label_class %>"><%= BroadcastPortraitBlock.human_attribute_name(:service_theme) %></label>
-    <select name="broadcast_portrait[blocks][][service_theme_id]" class="<%= admin_select_class %>" data-portrait-blocks-theme>
+    <select name="broadcast_portrait[blocks][][service_theme_id]" class="<%= admin_select_class %>" data-portrait-blocks-theme data-action="change->portrait-blocks#themeChanged">
       <option value=""></option>
       <% service_themes.each do |theme| %>
         <option value="<%= theme.id %>" <%= "selected" if block.service_theme_id == theme.id %>><%= theme.name %></option>
       <% end %>
     </select>
+    <p class="mt-1 text-xs text-gray-500" hidden data-portrait-blocks-neutral-hint>
+      <%= t("admin.broadcast_portraits.neutral_theme_hint") %>
+    </p>
   </div>
 
   <div data-portrait-blocks-field="rotation">

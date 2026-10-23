@@ -70,6 +70,24 @@ RSpec.describe Portraits::UpsertBlocks do
     expect(screen_portrait.reload.service_theme).to be_nil
   end
 
+  it "binds a filler block to the theme neutral rotation" do
+    theme = create(:service_theme)
+
+    described_class.call(
+      portrait: portrait,
+      blocks: [
+        { position: 1, kind: "filler", service_theme_id: theme.id, pick_strategy: "random" }
+      ]
+    )
+
+    filler = portrait.blocks.find_by!(kind: "filler")
+    expect(filler).to have_attributes(
+      service_theme: theme,
+      rotation: theme.neutral_rotation,
+      pick_strategy: "random"
+    )
+  end
+
   it "binds a service block to the matching theme rotation" do
     theme = create(:service_theme)
 

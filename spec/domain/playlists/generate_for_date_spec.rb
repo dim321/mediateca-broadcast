@@ -67,6 +67,52 @@ RSpec.describe Playlists::GenerateForDate do
     expect(source_kinds_at(playlist, 900)).to eq(%w[filler])
   end
 
+  it "fills the gap after a commercial with clips from the portrait neutral theme" do
+    station = create_playlist_station!(hours: { "wed" => [ { "start" => "09:00", "end" => "10:00" } ] })
+    screen = create(:screen, station: station)
+    org = create(:organization, :client)
+    theme = create(:service_theme)
+    neutral = create(:media_asset, :ready, :content_validated, :with_png_file, organization: theme.organization)
+    create(:rotation_item, rotation: theme.neutral_rotation, media_asset: neutral, display_duration_seconds: 10)
+    create_cyclic_portrait!(station, filler_rotation: theme.neutral_rotation, frequencies: [ 1 ])
+    screen.broadcast_portrait.blocks.find_by!(kind: "filler").update!(service_theme: theme)
+    occupy_order_claim!(
+      screen: screen, organization: org,
+      rotation: create_clip_rotation!(organization: org, duration: 10),
+      starts_at: local_slot(9), ends_at: local_slot(10), shows_per_hour: 1
+    )
+
+    hour = generate!(station).playlist.items.sort_by(&:offset_seconds).select do |item|
+      item_screen_ids(item).include?(screen.id)
+    end
+    commercial = hour.find(&:media_plan?)
+    following = hour.find { |item| item.offset_seconds == commercial.offset_seconds + commercial.duration_seconds }
+
+    expect(following).to be_filler
+    expect(following.media_asset_id).to eq(neutral.id)
+    expect(hour.count(&:filler?)).to be > 1
+    covered = hour.sum(&:duration_seconds)
+    expect(covered).to be > (50.minutes).to_i
+  end
+
+  it "fills an empty minute with the longest neutral clip, then the next longest that fits" do
+    station = create_playlist_station!(hours: { "wed" => [ { "start" => "09:00", "end" => "09:01" } ] })
+    create(:screen, station: station)
+    org = create(:organization, :client)
+    filler = create(:rotation, organization: org)
+    medium = create(:media_asset, :ready, :content_validated, :with_png_file, organization: org)
+    long = create(:media_asset, :ready, :content_validated, :with_png_file, organization: org)
+    create(:rotation_item, rotation: filler, media_asset: medium, display_duration_seconds: 25, position: 1)
+    create(:rotation_item, rotation: filler, media_asset: long, display_duration_seconds: 30, position: 2)
+    create_cyclic_portrait!(station, filler_rotation: filler, frequencies: [ 1 ])
+
+    fillers = generate!(station).playlist.items.select(&:filler?).sort_by(&:offset_seconds)
+
+    expect(fillers.map(&:duration_seconds)).to eq([ 30, 25 ])
+    expect(fillers.map(&:media_asset_id)).to eq([ long.id, medium.id ])
+    expect(fillers.sum(&:duration_seconds)).to eq(55)
+  end
+
   it "emits only audio playlist items on an audio station" do
     location = create(:location, time_zone: "Asia/Krasnoyarsk", operating_hours: PlaylistGeneration::KRASNOYARSK_WED_HOURS)
     station = create(:station, :audio, location: location)
@@ -311,14 +357,15 @@ RSpec.describe Playlists::GenerateForDate do
     first_slot = generate!(station).playlist.items.sort_by(&:offset_seconds).select do |item|
       item.offset_seconds < 1200 && item_screen_ids(item).include?(screen.id)
     end
-    kinds = first_slot.map(&:source_kind)
+    scheduled = first_slot.reject(&:filler?)
+    kinds = scheduled.map(&:source_kind)
 
     expect(kinds.first).to eq("service")
     expect(kinds.last).to eq("service")
     expect(kinds.count("service")).to eq(2)
     expect(kinds.count("media_plan")).to eq(2)
-    expect(first_slot.first.media_asset_id).to eq(start_rot.ordered_items.first.media_asset_id)
-    expect(first_slot.last.media_asset_id).to eq(end_rot.ordered_items.first.media_asset_id)
+    expect(scheduled.first.media_asset_id).to eq(start_rot.ordered_items.first.media_asset_id)
+    expect(scheduled.last.media_asset_id).to eq(end_rot.ordered_items.first.media_asset_id)
   end
 
   it "lets a 12:00 insertion replace that slot without shifting later cyclic items (AE6)" do
@@ -485,6 +532,51 @@ RSpec.describe Playlists::GenerateForDate do
     expect(after).to be_present
     expect(before.media_asset_id).to eq(start_rot.ordered_items.first.media_asset_id)
     expect(after.media_asset_id).to eq(end_rot.ordered_items.first.media_asset_id)
+  end
+
+  it "plays day-bound welcome before the opening commercial block, then neutral until the next ad" do
+    station = create_playlist_station!
+    owner = create(:organization, :client)
+    placer = create(:organization, :client)
+    screen = create(:screen, station: station, owner_organization: owner)
+    filler = create_clip_rotation!(organization: owner, duration: 30)
+    welcome = create_clip_rotation!(organization: owner, duration: 10)
+    start_rot = create_clip_rotation!(organization: owner, duration: 6)
+    end_rot = create_clip_rotation!(organization: owner, duration: 3)
+    ads = create_clip_rotation!(organization: placer, duration: 5)
+    create_cyclic_portrait!(
+      station,
+      filler_rotation: filler,
+      frequencies: [ 2 ],
+      welcome_rotation: welcome,
+      header_start_rotation: start_rot,
+      header_end_rotation: end_rot
+    )
+    occupy_with_clips!(
+      screen: screen,
+      organization: placer,
+      rotation: ads,
+      starts_at: local_slot(9),
+      ends_at: local_slot(21),
+      placement_kind: :commercial,
+      shows_per_hour: 2,
+      group_organization: owner
+    )
+
+    playlist = generate!(station).playlist
+    screen_items = playlist.items.select { |item| item_screen_ids(item) == [ screen.id ] }.sort_by(&:offset_seconds)
+    opening = screen_items.select { |item| item.offset_seconds < 30.minutes.to_i }
+    signature = opening.first(5).map { |item| [ item.offset_seconds, item.source_kind, item.media_asset_id, item.duration_seconds ] }
+
+    expect(signature).to eq([
+      [ 0, "service", welcome.ordered_items.first.media_asset_id, 10 ],
+      [ 10, "service", start_rot.ordered_items.first.media_asset_id, 6 ],
+      [ 16, "media_plan", ads.ordered_items.first.media_asset_id, 5 ],
+      [ 21, "service", end_rot.ordered_items.first.media_asset_id, 3 ],
+      [ 24, "filler", filler.ordered_items.first.media_asset_id, 30 ]
+    ])
+    next_header = screen_items.find { |item| item.offset_seconds == 30.minutes.to_i }
+    expect([ next_header.source_kind, next_header.media_asset_id ]).to eq([ "service", start_rot.ordered_items.first.media_asset_id ])
   end
 
   it "places welcome and close on each screen's effective hours (AE4)" do
