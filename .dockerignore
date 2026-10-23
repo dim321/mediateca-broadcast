@@ -46,6 +46,19 @@
 # Ignore development files
 /.devcontainer
 
+# Local-only trees. Docker does not read .gitignore, so agent worktrees
+# and editor caches would otherwise be copied into the runtime image.
+/.worktrees
+/.superpowers
+/.cursor
+/.agents
+/.specify
+/.vscode
+/coverage
+/spec
+/specs
+/docs
+
 # Ignore Docker-related files
 /.dockerignore
 /Dockerfile*

@@ -118,17 +118,124 @@ RSpec.describe "Admin service themes", type: :request do
       expect(theme.welcome_rotation.rotation_items.find_by(media_asset: asset)).to be_present
     end
 
-    it "live-updates processing status and refreshes while a clip is in flight" do
+    it "adds the clip to the folder list without reloading the page" do
+      theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
+      asset = create(:media_asset, :ready, :with_png_file, :content_validated,
+        organization: operator_org, content_type: :service, visibility: :network)
+
+      post place_admin_service_theme_clips_path(theme),
+        params: { role: "welcome", media_asset_id: asset.id },
+        as: :turbo_stream
+
+      item = theme.welcome_rotation.rotation_items.find_by!(media_asset: asset)
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq(Mime[:turbo_stream].to_s)
+      expect(response.body).to include(%(target="#{ActionView::RecordIdentifier.dom_id(theme.welcome_rotation, :clips)}"))
+      expect(response.body).to include(admin_service_theme_clip_path(theme, item))
+      expect(response.body).to include('data-animate="enter"')
+      expect(response.body).to include(I18n.t("admin.service_themes.clip_placed"))
+      expect(response.body).not_to include(%(value="#{asset.id}"))
+    end
+
+    it "appends another clip so only the new row can animate in" do
+      theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
+      first = create(:media_asset, :ready, :with_png_file, :content_validated,
+        organization: operator_org, content_type: :service, visibility: :network)
+      theme.welcome_rotation.rotation_items.create!(media_asset: first)
+      asset = create(:media_asset, :ready, :with_png_file, :content_validated,
+        organization: operator_org, content_type: :service, visibility: :network)
+
+      post place_admin_service_theme_clips_path(theme),
+        params: { role: "welcome", media_asset_id: asset.id },
+        as: :turbo_stream
+
+      item = theme.welcome_rotation.rotation_items.find_by!(media_asset: asset)
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(%(action="append"))
+      expect(response.body).to include(%(target="#{ActionView::RecordIdentifier.dom_id(theme.welcome_rotation, :clip_rows)}"))
+      expect(response.body).to include(admin_service_theme_clip_path(theme, item))
+      expect(response.body).to include('data-animate="enter"')
+      expect(response.body).not_to include(admin_media_asset_path(first))
+    end
+
+    it "shows a remove-from-folder button beside each clip" do
+      theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
+      asset = create(:media_asset, :ready, :with_png_file, :content_validated,
+        organization: operator_org, content_type: :service, visibility: :network)
+      item = theme.welcome_rotation.rotation_items.create!(media_asset: asset)
+
+      get admin_service_theme_path(theme)
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include('data-controller="folder-clips"')
+      expect(response.body).to include(I18n.t("admin.service_themes.remove_submit"))
+      expect(response.body).to include(admin_service_theme_clip_path(theme, item))
+      form = Nokogiri::HTML(response.body).at_css(%(form[action="#{admin_service_theme_clip_path(theme, item)}"]))
+      expect(form["data-turbo-confirm"]).to be_nil
+      expect(form.css("[data-turbo-confirm]")).to be_empty
+    end
+
+    it "removes a clip from a theme folder and keeps the media asset" do
+      theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
+      asset = create(:media_asset, :ready, :with_png_file, :content_validated,
+        organization: operator_org, content_type: :service, visibility: :network)
+      item = theme.welcome_rotation.rotation_items.create!(media_asset: asset)
+
+      expect {
+        delete admin_service_theme_clip_path(theme, item)
+      }.to change { theme.welcome_rotation.rotation_items.count }.by(-1)
+        .and not_change(MediaAsset, :count)
+
+      expect(response).to redirect_to(admin_service_theme_path(theme))
+      expect(flash[:notice]).to eq(I18n.t("admin.service_themes.clip_removed"))
+      expect(MediaAsset.find_by(id: asset.id)).to eq(asset)
+    end
+
+    it "refreshes the folder list in place without a confirmation step" do
+      theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
+      asset = create(:media_asset, :ready, :with_png_file, :content_validated,
+        organization: operator_org, content_type: :service, visibility: :network)
+      item = theme.welcome_rotation.rotation_items.create!(media_asset: asset)
+
+      delete admin_service_theme_clip_path(theme, item), as: :turbo_stream
+
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq(Mime[:turbo_stream].to_s)
+      expect(response.body).to include(%(action="remove"))
+      expect(response.body).to include(%(target="#{ActionView::RecordIdentifier.dom_id(item)}"))
+      expect(response.body).to include(%(value="#{asset.id}"))
+      expect(response.body).not_to include(admin_service_theme_clip_path(theme, item))
+    end
+
+    it "refuses to remove a clip that belongs to another theme" do
+      theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
+      other = ServiceThemes::Create.call(organization: operator_org, name: "Рыбный отдел")
+      asset = create(:media_asset, :ready, :with_png_file, :content_validated,
+        organization: operator_org, content_type: :service, visibility: :network)
+      foreign = other.welcome_rotation.rotation_items.create!(media_asset: asset)
+
+      expect {
+        delete admin_service_theme_clip_path(theme, foreign)
+      }.not_to change(RotationItem, :count)
+
+      expect(response).to redirect_to(admin_service_theme_path(theme))
+      expect(flash[:alert]).to eq(I18n.t("admin.service_themes.clip_not_in_folder"))
+    end
+
+    it "shows clip duration instead of processing status in the folder file list" do
       theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
       asset = create(:media_asset, :with_png_file, :content_validated, content_type: :service, processing_status: :processing,
-        organization: operator_org)
+        organization: operator_org, duration_seconds: 47)
       theme.welcome_rotation.rotation_items.create!(media_asset: asset)
 
       get admin_service_theme_path(theme)
 
       expect(response).to have_http_status(:success)
+      expect(response.body).to include(I18n.t("admin.service_themes.clip_duration"))
+      expect(response.body).to include(I18n.t("admin.service_themes.clip_duration_seconds", count: 47))
+      expect(response.body).to include(ActionView::RecordIdentifier.dom_id(asset, :duration))
+      expect(response.body).not_to include(MediaAsset.human_attribute_name(:processing_status))
       expect(response.body).to include("turbo-cable-stream-source")
-      expect(response.body).to include(ActionView::RecordIdentifier.dom_id(asset, :processing_status))
       expect(response.body).to include('http-equiv="refresh"')
     end
 

@@ -1040,7 +1040,11 @@ ru:
       clear_search: Сбросить поиск
       clips_count: Роликов
       clip_file: Файл
+      clip_duration: Длительность
+      clip_duration_seconds: "%{count} с"
+      clip_not_in_folder: Этого ролика нет в папках тематики.
       clip_placed: Ролик добавлен в папку
+      clip_removed: Ролик удалён из папки.
       clip_uploaded: Ролик добавлен в папку.
       created: Тематика создана.
       destroy_confirm: Удалить эту тематику и её служебные ротации?
@@ -1069,6 +1073,7 @@ ru:
       upload_submit: Загрузить
       place_prompt: Проверенный ролик
       place_submit: Добавить в папку
+      remove_submit: Удалить из папки
     tags:
       clear_search: Сбросить поиск
       created: Тег создан.
