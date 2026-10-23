@@ -21,10 +21,13 @@ RUN apt-get update -qq && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Set production environment variables and enable jemalloc for reduced memory usage and latency.
+# Bootsnap's gem cache lives under BUNDLE_PATH so it ships in the gems
+# layer. That layer stays cached across deploys; only application code changes.
 ENV RAILS_ENV="production" \
     BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="/usr/local/bundle" \
-    BUNDLE_WITHOUT="development" \
+    BUNDLE_WITHOUT="development:test" \
+    BOOTSNAP_CACHE_DIR="/usr/local/bundle/bootsnap-cache" \
     LD_PRELOAD="/usr/local/lib/libjemalloc.so"
 
 # Throw-away build stage to reduce size of final image
@@ -53,12 +56,12 @@ RUN npm ci --no-fund --no-audit
 # Copy application code
 COPY . .
 
-# Precompile bootsnap code for faster boot times.
-# -j 1 disable parallel compilation to avoid a QEMU bug: https://github.com/rails/bootsnap/issues/495
-RUN bundle exec bootsnap precompile -j 1 app/ lib/
-
-# Precompiling assets for production without requiring secret RAILS_MASTER_KEY
-RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+# Precompile assets without writing into BOOTSNAP_CACHE_DIR: a Rails boot
+# would add app iseq files there and force the gems layer to be re-pushed
+# on every code change. node_modules is only needed for Tailwind/daisyUI.
+RUN cp -a "${BOOTSNAP_CACHE_DIR}" /tmp/bootsnap-build && \
+    BOOTSNAP_CACHE_DIR=/tmp/bootsnap-build SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile && \
+    rm -rf node_modules tmp/cache /tmp/bootsnap-build
 
 
 
