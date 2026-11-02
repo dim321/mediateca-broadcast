@@ -3,7 +3,7 @@
 **Mediateca Broadcast** is an operator-run digital signage hub: organizations place media on shared screens, stations cache a daily on-air document, and device agents report playback. The client cabinet and operator admin cover media plans, commercial orders, broadcast portraits, and the station fleet.
 
 [![CI](https://github.com/dim321/mediateca-broadcast/actions/workflows/ci.yml/badge.svg)](https://github.com/dim321/mediateca-broadcast/actions/workflows/ci.yml)
-![Ruby](https://img.shields.io/badge/Ruby-4.0.2-red?logo=ruby)
+![Ruby](https://img.shields.io/badge/Ruby-4.0.9-red?logo=ruby)
 ![Rails](https://img.shields.io/badge/Rails-8.1-red?logo=rubyonrails)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-blue?logo=postgresql)
 
@@ -33,7 +33,7 @@ Domain glossary: [`CONCEPTS.md`](CONCEPTS.md). Role onboarding: [`docs/guides/on
 
 | Component | Technology |
 |-----------|------------|
-| Language / framework | Ruby **4.0.2**, Rails **~> 8.1.4** |
+| Language / framework | Ruby **4.0.9**, Rails **~> 8.1.4** |
 | Database | PostgreSQL **18** (`pg`) |
 | App server | Puma, Thruster (production) |
 | Background jobs | **Solid Queue** (not Sidekiq) |
@@ -78,7 +78,7 @@ Domain glossary: [`CONCEPTS.md`](CONCEPTS.md). Role onboarding: [`docs/guides/on
 
 | Dependency | Version / notes |
 |------------|-----------------|
-| Ruby | **4.0.2** (`.ruby-version`) |
+| Ruby | **4.0.9** (`.ruby-version`) |
 | Bundler | compatible with `Gemfile.lock` |
 | PostgreSQL | **18** (or compatible; omit `DB_HOST` for socket) |
 | Node.js | **22** (matches CI; for `npm ci` / daisyUI / Flowbite) |

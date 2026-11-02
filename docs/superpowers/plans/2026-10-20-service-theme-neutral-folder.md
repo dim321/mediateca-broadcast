@@ -6,7 +6,7 @@
 
 **Architecture:** FK `neutral_rotation_id` на `service_themes`. Сервисные kind остаются в `ROTATION_ROLES` (4 шт.). Роль `:neutral` — отдельная folder-role: клипы `content_type: neutral`, apply upsert’ит `filler` с `service_theme_id`. Генератор плейлиста не трогаем.
 
-**Tech Stack:** Ruby 4.0.2, Rails 8.1, PostgreSQL 18, RSpec, FactoryBot, Slim/ERB admin (Flowbite).
+**Tech Stack:** Ruby 4.0.9, Rails 8.1, PostgreSQL 18, RSpec, FactoryBot, Slim/ERB admin (Flowbite).
 
 **Спека:** `docs/superpowers/specs/2026-10-20-service-theme-neutral-folder-design.md`.
 

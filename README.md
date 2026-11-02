@@ -3,7 +3,7 @@
 **Mediateca Broadcast** — операторский хаб цифровой рекламы на экранах и аудиоустройствах: организации размещают заказы на трансляцию медиа-роликов на общих экранах, станции кэшируют суточные эфирные плейлисты, агенты на устройствах отчитываются о проигрывании. Клиентский кабинет и админка оператора покрывают медиапланы, коммерческие заказы, портреты эфира и флот станций.
 
 [![CI](https://github.com/dim321/mediateca-broadcast/actions/workflows/ci.yml/badge.svg)](https://github.com/dim321/mediateca-broadcast/actions/workflows/ci.yml)
-![Ruby](https://img.shields.io/badge/Ruby-4.0.2-red?logo=ruby)
+![Ruby](https://img.shields.io/badge/Ruby-4.0.9-red?logo=ruby)
 ![Rails](https://img.shields.io/badge/Rails-8.1-red?logo=rubyonrails)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-blue?logo=postgresql)
 
@@ -33,7 +33,7 @@
 
 | Компонент | Технология |
 |-----------|------------|
-| Язык / фреймворк | Ruby **4.0.2**, Rails **~> 8.1.4** |
+| Язык / фреймворк | Ruby **4.0.9**, Rails **~> 8.1.4** |
 | БД | PostgreSQL **18** (`pg`) |
 | Сервер | Puma, Thruster (production) |
 | Фоновые задачи | **Solid Queue** (не Sidekiq) |
@@ -78,7 +78,7 @@
 
 | Зависимость | Версия / примечание |
 |-------------|---------------------|
-| Ruby | **4.0.2** (`.ruby-version`) |
+| Ruby | **4.0.9** (`.ruby-version`) |
 | Bundler | совместимый с `Gemfile.lock` |
 | PostgreSQL | **18** (или совместимый; `DB_HOST` не задавайте — socket) |
 | Node.js | **22** (как в CI; для `npm ci` / daisyUI / Flowbite) |
