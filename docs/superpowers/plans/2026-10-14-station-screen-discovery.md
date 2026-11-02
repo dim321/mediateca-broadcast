@@ -6,7 +6,7 @@
 
 **Architecture:** Существующая очередь `AgentCommand` получает станционную команду с nullable `screen_id`. HTTP-протокол подтверждения остаётся общим, но нормализация адресов и синхронизация экранов вынесены в отдельные доменные сервисы. PostgreSQL 18 хранит адреса встроенными типами `macaddr` и `inet`, а ограничения и блокировка станции защищают конкурентные записи.
 
-**Tech Stack:** Ruby 4.0, Rails 8.1, PostgreSQL 18, RSpec, FactoryBot, ERB, Tailwind/Flowbite.
+**Tech Stack:** Ruby 4.0.9, Rails 8.1, PostgreSQL 18, RSpec, FactoryBot, ERB, Tailwind/Flowbite.
 
 ---
 

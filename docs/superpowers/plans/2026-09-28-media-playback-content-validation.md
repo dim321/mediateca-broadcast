@@ -6,7 +6,7 @@
 
 **Architecture:** Two nullable columns on `media_assets` record who validated the clip and when. `MediaAssets::MarkContentValidated` and `MediaAssets::RevokeContentValidation` are the only writers. Activate, active clip replace, and non-draft rotation-item writes refuse an unmarked asset. Revoke cancels active orders through `Advertising::CancelOrder`, then deletes rotation items that do not belong to an order and enqueues playlist regen after that transaction.
 
-**Tech Stack:** Ruby 4.0.2, Rails ~> 8.1, PostgreSQL 18, RSpec, FactoryBot, Pundit (cabinet only), Slim + daisyUI (cabinet), ERB + Flowbite utilities (admin), Stimulus, importmap, mpegts.js.
+**Tech Stack:** Ruby 4.0.9, Rails ~> 8.1, PostgreSQL 18, RSpec, FactoryBot, Pundit (cabinet only), Slim + daisyUI (cabinet), ERB + Flowbite utilities (admin), Stimulus, importmap, mpegts.js.
 
 ## Global Constraints
 

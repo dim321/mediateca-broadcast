@@ -8,7 +8,7 @@ Operator-run digital signage hub: organizations place media on shared screens, s
 
 ## Stack
 
-- Ruby 4.0.2, Rails ~> 8.1, PostgreSQL 18, Propshaft, importmap, Hotwire (Turbo + Stimulus), Tailwind CSS 4
+- Ruby 4.0.9, Rails ~> 8.1, PostgreSQL 18, Propshaft, importmap, Hotwire (Turbo + Stimulus), Tailwind CSS 4
 - Auth: bcrypt sessions + `Current.user` — not Devise
 - Jobs/cache/cable: Solid Queue, Solid Cache, Solid Cable (not Sidekiq)
 - Authz: Pundit in the client cabinet only

@@ -6,7 +6,7 @@
 
 **Architecture:** Enum columns with defaults and check constraints; audio stations auto-create one `Screen` and forbid more; order form radio filters clips/screens; `Playlists::NeutralPicker` (and any shared eligibility) filters by `station.medium`. Agent HTTP JSON stays unchanged.
 
-**Tech Stack:** Ruby 4.0.2, Rails ~> 8.1, PostgreSQL 18, Hotwire/Stimulus, Slim + daisyUI (cabinet), ERB + Flowbite (admin), RSpec + FactoryBot. Tests only in Docker (`RAILS_ENV=test`).
+**Tech Stack:** Ruby 4.0.9, Rails ~> 8.1, PostgreSQL 18, Hotwire/Stimulus, Slim + daisyUI (cabinet), ERB + Flowbite (admin), RSpec + FactoryBot. Tests only in Docker (`RAILS_ENV=test`).
 
 **Spec:** `docs/superpowers/specs/2026-10-20-station-medium-audio-video-design.md`
 

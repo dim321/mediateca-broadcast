@@ -6,7 +6,7 @@
 
 **Architecture:** `Agent::ConfigBuilder` под `station.with_lock` считает дайджест ленты каждого привязанного экрана и сверяет его с реестром `station_stream_channels`. Порт принадлежит дайджесту, не строке `screens`. Неполный горизонт плейлистов реестр не меняет. Сборка config только читает плейлисты и не ставит `GenerateForDateJob`.
 
-**Tech Stack:** Ruby 4.0.2, Rails 8.1, PostgreSQL 18, RSpec, FactoryBot.
+**Tech Stack:** Ruby 4.0.9, Rails 8.1, PostgreSQL 18, RSpec, FactoryBot.
 
 **Репозиторий:** только `mediateca-broadcast`. `mediateca-station` не трогать. Спека: `docs/superpowers/specs/2026-10-16-hub-screen-wiring-design.md`.
 
