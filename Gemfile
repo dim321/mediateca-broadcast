@@ -82,7 +82,7 @@ gem "view_component", "~> 4.16"
 
 gem "capybara", "~> 3.40", group: :test
 
-gem "cuprite", "~> 0.19", group: :test
+gem "cuprite", "~> 0.20", group: :test
 
 gem "ransack", "~> 6.0"
 gem "kaminari", "~> 1.2"
