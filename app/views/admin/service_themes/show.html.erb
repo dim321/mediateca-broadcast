@@ -17,6 +17,10 @@
       <dd class="mt-1 text-sm text-gray-900"><%= @service_theme.name %></dd>
     </div>
     <div>
+      <dt class="text-sm font-medium text-gray-500"><%= ServiceTheme.human_attribute_name(:medium) %></dt>
+      <dd class="mt-1 text-sm text-gray-900"><%= admin_enum_label(@service_theme, :medium) %></dd>
+    </div>
+    <div>
       <dt class="text-sm font-medium text-gray-500"><%= t("admin.service_themes.portraits_count") %></dt>
       <dd class="mt-1 text-sm text-gray-900"><%= @service_theme.broadcast_portraits.count %></dd>
     </div>
@@ -51,14 +55,17 @@
             <%= file_field_tag "clip[file]",
                   id: "clip_file_#{role}",
                   required: true,
-                  accept: "video/mp4,video/webm,video/mpeg,.mpg,.mpeg,image/*,audio/*",
+                  accept: @service_theme.file_accept,
                   class: "block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none" %>
           </div>
           <%= submit_tag t("admin.service_themes.upload_submit"), class: admin_primary_button_class %>
         <% end %>
         <%= form_with url: place_admin_service_theme_clips_path(@service_theme), class: "mt-4 flex flex-col gap-2 sm:flex-row sm:items-end" do %>
           <%= hidden_field_tag :role, role %>
-          <%= render "admin/service_themes/place_select", rotation: rotation, content_type: content_type %>
+          <%= render "admin/service_themes/place_select",
+                rotation: rotation,
+                content_type: content_type,
+                content_kinds: @service_theme.clip_content_kinds %>
           <%= submit_tag t("admin.service_themes.place_submit"), class: admin_primary_button_class %>
         <% end %>
       </div>

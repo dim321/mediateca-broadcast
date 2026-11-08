@@ -67,7 +67,7 @@ module Admin
         turbo_stream.replace(
           helpers.dom_id(rotation, :place_select),
           partial: "admin/service_themes/place_select",
-          locals: { rotation: rotation, content_type: content_type }
+          locals: { rotation: rotation, content_type: content_type, content_kinds: theme.clip_content_kinds }
         ),
         turbo_stream.replace("flash", partial: "admin/shared/flash")
       ]

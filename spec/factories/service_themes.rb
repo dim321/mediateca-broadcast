@@ -5,12 +5,14 @@
 # Table name: service_themes
 #
 #  id                       :bigint           not null, primary key
+#  medium                   :string           default("video"), not null
 #  name                     :string           not null
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
 #  close_rotation_id        :bigint           not null
 #  header_end_rotation_id   :bigint           not null
 #  header_start_rotation_id :bigint           not null
+#  neutral_rotation_id      :bigint           not null
 #  organization_id          :bigint           not null
 #  welcome_rotation_id      :bigint           not null
 #
@@ -19,6 +21,7 @@
 #  index_service_themes_on_close_rotation_id         (close_rotation_id)
 #  index_service_themes_on_header_end_rotation_id    (header_end_rotation_id)
 #  index_service_themes_on_header_start_rotation_id  (header_start_rotation_id)
+#  index_service_themes_on_neutral_rotation_id       (neutral_rotation_id)
 #  index_service_themes_on_organization_id           (organization_id)
 #  index_service_themes_on_organization_id_and_name  (organization_id,name) UNIQUE
 #  index_service_themes_on_welcome_rotation_id       (welcome_rotation_id)
@@ -28,6 +31,7 @@
 #  fk_rails_...  (close_rotation_id => rotations.id) ON DELETE => restrict
 #  fk_rails_...  (header_end_rotation_id => rotations.id) ON DELETE => restrict
 #  fk_rails_...  (header_start_rotation_id => rotations.id) ON DELETE => restrict
+#  fk_rails_...  (neutral_rotation_id => rotations.id) ON DELETE => restrict
 #  fk_rails_...  (organization_id => organizations.id) ON DELETE => restrict
 #  fk_rails_...  (welcome_rotation_id => rotations.id) ON DELETE => restrict
 #

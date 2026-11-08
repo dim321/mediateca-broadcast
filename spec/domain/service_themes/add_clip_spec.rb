@@ -10,6 +10,8 @@ RSpec.describe ServiceThemes::AddClip do
   let(:user) { create(:user, :manager, organization: operator) }
   let(:theme) { ServiceThemes::Create.call(organization: operator, name: "Салон красоты") }
   let(:png) { Rack::Test::UploadedFile.new(Rails.root.join("spec/fixtures/files/1x1.png"), "image/png") }
+  let(:video_file) { Rack::Test::UploadedFile.new(Rails.root.join("spec/fixtures/files/clip.mp4"), "video/mp4") }
+  let(:audio_file) { Rack::Test::UploadedFile.new(Rails.root.join("spec/fixtures/files/clip.mp3"), "audio/mpeg") }
 
   it "stores a service clip asset without adding it to the theme folder" do
     station = create(:station, location: create(:location, time_zone: "UTC"), offline_cache_hours: 24)
@@ -20,7 +22,7 @@ RSpec.describe ServiceThemes::AddClip do
 
     travel_to(Time.utc(2026, 9, 2, 12, 0, 0)) do
       expect {
-        described_class.call(theme: theme, role: :welcome, file: png, uploaded_by: user)
+        described_class.call(theme: theme, role: :welcome, file: video_file, uploaded_by: user)
       }.to change(MediaAsset, :count).by(1)
         .and not_change(RotationItem, :count)
     end
@@ -36,9 +38,29 @@ RSpec.describe ServiceThemes::AddClip do
   end
 
   it "stores a neutral clip when uploading to the neutral folder" do
-    asset = described_class.call(theme: theme, role: :neutral, file: png, uploaded_by: user)
+    asset = described_class.call(theme: theme, role: :neutral, file: video_file, uploaded_by: user)
 
     expect(asset).to have_attributes(content_type: "neutral", visibility: "network", organization: operator)
+  end
+
+  it "rejects an image or audio file on a video theme" do
+    expect {
+      described_class.call(theme: theme, role: :welcome, file: png, uploaded_by: user)
+    }.to raise_error(ActiveRecord::RecordInvalid)
+
+    expect {
+      described_class.call(theme: theme, role: :welcome, file: audio_file, uploaded_by: user)
+    }.to raise_error(ActiveRecord::RecordInvalid)
+
+    expect(MediaAsset.count).to eq(0)
+  end
+
+  it "stores an audio file on an audio theme" do
+    audio_theme = ServiceThemes::Create.call(organization: operator, name: "Голос зала", medium: "audio")
+
+    asset = described_class.call(theme: audio_theme, role: :welcome, file: audio_file, uploaded_by: user)
+
+    expect(asset).to be_audio
   end
 
   it "rejects an unknown role" do

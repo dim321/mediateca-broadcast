@@ -376,6 +376,7 @@ en:
               unsupported_type: is not a supported format
               blank: must be selected
               too_large: must be 1 GiB or smaller
+              wrong_medium: does not match the theme medium
         user:
           attributes:
             avatar:
@@ -427,6 +428,9 @@ en:
           attributes:
             organization:
               must_be_operator: must be an operator organization
+            medium:
+              inclusion: must be video or audio
+              immutable: cannot be changed after creation
         station:
           attributes:
             medium:
@@ -596,6 +600,7 @@ en:
       service_theme:
         name: Name
         organization: Organization
+        medium: Media type
       playlist:
         broadcast_day_starts_at: Broadcast day starts at
         etag: ETag
@@ -1054,6 +1059,7 @@ en:
       index:
         title: Service themes
       new: New service theme
+      medium_hint: The medium cannot be changed after creation. Folders accept only files of that type.
       portraits_count: Portraits using this theme
       search: Search by name
       search_submit: Search
@@ -1240,6 +1246,10 @@ en:
     play_log:
       source:
         agent: Agent
+    service_theme:
+      medium:
+        video: Video
+        audio: Audio
     station:
       medium:
         video: Video
@@ -1445,3 +1455,6 @@ en:
       frozen_field_changed: the product name and placement kind cannot be changed
       future_start_removed: a future start date must stay on the grid
       slot_conflict: the selected interval is already booked
+  service_themes:
+    errors:
+      wrong_medium: clip does not match the theme medium

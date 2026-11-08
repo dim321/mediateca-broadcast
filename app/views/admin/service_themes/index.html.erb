@@ -52,6 +52,9 @@
             <%= sort_link @q, :name %>
           </th>
           <th scope="col" class="px-6 py-3">
+            <%= sort_link @q, :medium, ServiceTheme.human_attribute_name(:medium) %>
+          </th>
+          <th scope="col" class="px-6 py-3">
             <%= sort_link @q, :created_at %>
           </th>
           <th scope="col" class="px-6 py-3">
@@ -65,6 +68,7 @@
             <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
               <%= link_to theme.name, admin_service_theme_path(theme), class: "text-blue-700 hover:underline" %>
             </th>
+            <td class="px-6 py-4"><%= admin_enum_label(theme, :medium) %></td>
             <td class="px-6 py-4"><%= l(theme.created_at, format: :short) %></td>
             <td class="px-6 py-4 text-right whitespace-nowrap">
               <%= link_to t("admin.chrome.show"), admin_service_theme_path(theme), class: "font-medium text-blue-700 hover:underline me-3" %>
