@@ -48,8 +48,39 @@ RSpec.describe "Admin service themes", type: :request do
       theme = ServiceTheme.find_by!(name: "Салон красоты")
       expect(response).to redirect_to(admin_service_theme_path(theme))
       expect(theme.organization).to eq(operator_org)
+      expect(theme).to be_video
       expect(theme.rotations).to all(be_system_managed)
       expect(theme.rotations.map { |rotation| rotation.rotation_items.count }).to all(eq(0))
+    end
+
+    it "renders a video/audio switch that defaults to video" do
+      get new_admin_service_theme_path
+
+      expect(response).to have_http_status(:success)
+      document = Nokogiri::HTML(response.body)
+      video = document.at_css('input[type="radio"][name="service_theme[medium]"][value="video"]')
+      audio = document.at_css('input[type="radio"][name="service_theme[medium]"][value="audio"]')
+      expect(video["checked"]).to eq("checked")
+      expect(audio["checked"]).to be_nil
+      expect(response.body).to include(I18n.t("admin.service_themes.medium_hint"))
+    end
+
+    it "creates an audio theme" do
+      expect {
+        post admin_service_themes_path, params: { service_theme: { name: "Голос зала", medium: "audio" } }
+      }.to change(ServiceTheme, :count).by(1)
+
+      theme = ServiceTheme.find_by!(name: "Голос зала")
+      expect(theme).to be_audio
+      expect(response).to redirect_to(admin_service_theme_path(theme))
+    end
+
+    it "rejects an unknown medium" do
+      expect {
+        post admin_service_themes_path, params: { service_theme: { name: "Салон", medium: "image" } }
+      }.not_to change(ServiceTheme, :count)
+
+      expect(response).to have_http_status(:unprocessable_content)
     end
 
     it "rejects a duplicate name with 422" do
@@ -89,10 +120,10 @@ RSpec.describe "Admin service themes", type: :request do
 
     it "uploads a service clip without adding it to the theme folder" do
       theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
-      png = fixture_file_upload("spec/fixtures/files/1x1.png", "image/png")
+      video = fixture_file_upload("spec/fixtures/files/clip.mp4", "video/mp4")
 
       expect {
-        post admin_service_theme_clips_path(theme), params: { role: "welcome", clip: { file: png } }
+        post admin_service_theme_clips_path(theme), params: { role: "welcome", clip: { file: video } }
       }.to change(MediaAsset, :count).by(1)
         .and not_change { theme.welcome_rotation.rotation_items.count }
 
@@ -105,9 +136,67 @@ RSpec.describe "Admin service themes", type: :request do
       )
     end
 
+    it "offers only video clips in a video theme folder" do
+      theme = ServiceThemes::Create.call(organization: operator_org, name: "Экран")
+      video = create(:media_asset, :ready, :with_mp4_file, :content_validated,
+        organization: operator_org, content_type: :service, visibility: :network)
+      audio = create(:media_asset, :ready, :with_mp3_file, :content_validated,
+        organization: operator_org, content_type: :service, visibility: :network)
+      image = create(:media_asset, :ready, :with_png_file, :content_validated,
+        organization: operator_org, content_type: :service, visibility: :network)
+
+      get admin_service_theme_path(theme)
+
+      expect(response.body).to include(ServiceTheme::FILE_ACCEPT.fetch("video"))
+      expect(response.body).to include(%(value="#{video.id}"))
+      expect(response.body).not_to include(%(value="#{audio.id}"))
+      expect(response.body).not_to include(%(value="#{image.id}"))
+      expect(response.body).not_to include("audio/")
+    end
+
+    it "offers only audio clips in an audio theme folder" do
+      theme = ServiceThemes::Create.call(organization: operator_org, name: "Голос", medium: "audio")
+      video = create(:media_asset, :ready, :with_mp4_file, :content_validated,
+        organization: operator_org, content_type: :service, visibility: :network)
+      audio = create(:media_asset, :ready, :with_mp3_file, :content_validated,
+        organization: operator_org, content_type: :service, visibility: :network)
+
+      get admin_service_theme_path(theme)
+
+      expect(response.body).to include(ServiceTheme::FILE_ACCEPT.fetch("audio"))
+      expect(response.body).to include(%(value="#{audio.id}"))
+      expect(response.body).not_to include(%(value="#{video.id}"))
+      expect(response.body).not_to include("video/mp4")
+    end
+
+    it "refuses to upload a file of the other medium" do
+      theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
+      audio = fixture_file_upload("spec/fixtures/files/clip.mp3", "audio/mpeg")
+
+      expect {
+        post admin_service_theme_clips_path(theme), params: { role: "welcome", clip: { file: audio } }
+      }.not_to change(MediaAsset, :count)
+
+      expect(response).to redirect_to(admin_service_theme_path(theme))
+      expect(flash[:alert]).to include(I18n.t("activerecord.errors.models.media_asset.attributes.file.wrong_medium"))
+    end
+
+    it "refuses to place a clip of the other medium" do
+      theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
+      audio = create(:media_asset, :ready, :with_mp3_file, :content_validated,
+        organization: operator_org, content_type: :service, visibility: :network)
+
+      expect {
+        post place_admin_service_theme_clips_path(theme), params: { role: "welcome", media_asset_id: audio.id }
+      }.not_to change(RotationItem, :count)
+
+      expect(response).to redirect_to(admin_service_theme_path(theme))
+      expect(flash[:alert]).to eq(I18n.t("service_themes.errors.wrong_medium"))
+    end
+
     it "places a validated service clip into a theme folder" do
       theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
-      asset = create(:media_asset, :ready, :with_png_file, :content_validated,
+      asset = create(:media_asset, :ready, :with_mp4_file, :content_validated,
         organization: operator_org, content_type: :service, visibility: :network)
 
       expect {
@@ -120,7 +209,7 @@ RSpec.describe "Admin service themes", type: :request do
 
     it "adds the clip to the folder list without reloading the page" do
       theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
-      asset = create(:media_asset, :ready, :with_png_file, :content_validated,
+      asset = create(:media_asset, :ready, :with_mp4_file, :content_validated,
         organization: operator_org, content_type: :service, visibility: :network)
 
       post place_admin_service_theme_clips_path(theme),
@@ -139,10 +228,10 @@ RSpec.describe "Admin service themes", type: :request do
 
     it "appends another clip so only the new row can animate in" do
       theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
-      first = create(:media_asset, :ready, :with_png_file, :content_validated,
+      first = create(:media_asset, :ready, :with_mp4_file, :content_validated,
         organization: operator_org, content_type: :service, visibility: :network)
       theme.welcome_rotation.rotation_items.create!(media_asset: first)
-      asset = create(:media_asset, :ready, :with_png_file, :content_validated,
+      asset = create(:media_asset, :ready, :with_mp4_file, :content_validated,
         organization: operator_org, content_type: :service, visibility: :network)
 
       post place_admin_service_theme_clips_path(theme),
@@ -160,7 +249,7 @@ RSpec.describe "Admin service themes", type: :request do
 
     it "shows a remove-from-folder button beside each clip" do
       theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
-      asset = create(:media_asset, :ready, :with_png_file, :content_validated,
+      asset = create(:media_asset, :ready, :with_mp4_file, :content_validated,
         organization: operator_org, content_type: :service, visibility: :network)
       item = theme.welcome_rotation.rotation_items.create!(media_asset: asset)
 
@@ -177,7 +266,7 @@ RSpec.describe "Admin service themes", type: :request do
 
     it "removes a clip from a theme folder and keeps the media asset" do
       theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
-      asset = create(:media_asset, :ready, :with_png_file, :content_validated,
+      asset = create(:media_asset, :ready, :with_mp4_file, :content_validated,
         organization: operator_org, content_type: :service, visibility: :network)
       item = theme.welcome_rotation.rotation_items.create!(media_asset: asset)
 
@@ -193,7 +282,7 @@ RSpec.describe "Admin service themes", type: :request do
 
     it "refreshes the folder list in place without a confirmation step" do
       theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
-      asset = create(:media_asset, :ready, :with_png_file, :content_validated,
+      asset = create(:media_asset, :ready, :with_mp4_file, :content_validated,
         organization: operator_org, content_type: :service, visibility: :network)
       item = theme.welcome_rotation.rotation_items.create!(media_asset: asset)
 
@@ -210,7 +299,7 @@ RSpec.describe "Admin service themes", type: :request do
     it "refuses to remove a clip that belongs to another theme" do
       theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
       other = ServiceThemes::Create.call(organization: operator_org, name: "Рыбный отдел")
-      asset = create(:media_asset, :ready, :with_png_file, :content_validated,
+      asset = create(:media_asset, :ready, :with_mp4_file, :content_validated,
         organization: operator_org, content_type: :service, visibility: :network)
       foreign = other.welcome_rotation.rotation_items.create!(media_asset: asset)
 
@@ -224,7 +313,7 @@ RSpec.describe "Admin service themes", type: :request do
 
     it "shows clip duration instead of processing status in the folder file list" do
       theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
-      asset = create(:media_asset, :with_png_file, :content_validated, content_type: :service, processing_status: :processing,
+      asset = create(:media_asset, :with_mp4_file, :content_validated, content_type: :service, processing_status: :processing,
         organization: operator_org, duration_seconds: 47)
       theme.welcome_rotation.rotation_items.create!(media_asset: asset)
 
@@ -241,7 +330,7 @@ RSpec.describe "Admin service themes", type: :request do
 
     it "stops auto-refresh when every clip is ready" do
       theme = ServiceThemes::Create.call(organization: operator_org, name: "Салон")
-      asset = create(:media_asset, :with_png_file, :ready, :content_validated, content_type: :service, organization: operator_org)
+      asset = create(:media_asset, :with_mp4_file, :ready, :content_validated, content_type: :service, organization: operator_org)
       theme.welcome_rotation.rotation_items.create!(media_asset: asset)
 
       get admin_service_theme_path(theme)
@@ -257,6 +346,14 @@ RSpec.describe "Admin service themes", type: :request do
 
       expect(response).to redirect_to(admin_service_theme_path(theme))
       expect(theme.reload.name).to eq("Рыбный отдел")
+    end
+
+    it "keeps the medium when the name is edited" do
+      theme = create(:service_theme, organization: operator_org, name: "Салон", medium: "audio")
+
+      patch admin_service_theme_path(theme), params: { service_theme: { name: "Голос", medium: "video" } }
+
+      expect(theme.reload).to have_attributes(name: "Голос", medium: "audio")
     end
 
     it "destroys an unused theme and its rotations" do

@@ -11,6 +11,9 @@ module ServiceThemes
     def call
       rotation = theme.rotation_for(role)
       raise ArgumentError, "unknown service theme role #{role.inspect}" if rotation.blank?
+      unless theme.accepts_content_kind?(media_asset.content_kind)
+        raise MediaAssets::Error, I18n.t("service_themes.errors.wrong_medium")
+      end
       raise MediaAssets::Error, I18n.t("media_assets.content_validation.not_validated") unless placeable?
 
       item = rotation.rotation_items.create!(

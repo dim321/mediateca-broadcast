@@ -13,13 +13,14 @@ module Admin
     end
 
     def new
-      @service_theme = ServiceTheme.new
+      @service_theme = ServiceTheme.new(medium: :video)
     end
 
     def create
       @service_theme = ServiceThemes::Create.call(
         organization: Current.user.organization,
-        name: service_theme_params[:name]
+        name: service_theme_params[:name],
+        medium: service_theme_params[:medium]
       )
       redirect_to admin_service_theme_path(@service_theme), notice: t("admin.service_themes.created"),
         status: :see_other
@@ -53,7 +54,9 @@ module Admin
     private
 
     def service_theme_params
-      permitted = params.expect(service_theme: [ :name ])
+      keys = %i[name]
+      keys << :medium if action_name == "create"
+      permitted = params.expect(service_theme: keys)
       permitted[:name] = permitted[:name].to_s.strip
       permitted
     end

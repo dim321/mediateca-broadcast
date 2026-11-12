@@ -15,6 +15,7 @@ module ServiceThemes
       asset = nil
       ServiceTheme.transaction do
         asset = build_asset
+        ensure_medium!(asset)
         asset.save!
       end
       asset
@@ -28,6 +29,15 @@ module ServiceThemes
     private
 
     attr_reader :theme, :role, :file, :uploaded_by
+
+    def ensure_medium!(asset)
+      asset.validate
+      return if asset.errors[:file].any?
+      return if theme.accepts_content_kind?(asset.content_kind)
+
+      asset.errors.add(:file, :wrong_medium)
+      raise ActiveRecord::RecordInvalid, asset
+    end
 
     def build_asset
       MediaAsset.new(

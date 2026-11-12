@@ -380,6 +380,7 @@ ru:
               unsupported_type: неподдерживаемый формат
               blank: необходимо выбрать
               too_large: должен быть не больше 1 ГиБ
+              wrong_medium: не соответствует типу тематики
         user:
           attributes:
             avatar:
@@ -431,6 +432,9 @@ ru:
           attributes:
             organization:
               must_be_operator: должна быть организацией-оператором
+            medium:
+              inclusion: должен быть «видео» или «аудио»
+              immutable: нельзя изменить после создания
         station:
           attributes:
             medium:
@@ -600,6 +604,7 @@ ru:
       service_theme:
         name: Название
         organization: Организация
+        medium: Тип медиа
       playlist:
         broadcast_day_starts_at: Начало эфирных суток
         etag: ETag
@@ -1064,6 +1069,7 @@ ru:
       index:
         title: Тематики
       new: Новая тематика
+      medium_hint: После создания тип изменить нельзя. В папки можно добавить только файлы этого типа.
       portraits_count: Портретов с этой темой
       search: Поиск по названию
       search_submit: Найти
@@ -1250,6 +1256,10 @@ ru:
     play_log:
       source:
         agent: Агент
+    service_theme:
+      medium:
+        video: Видео
+        audio: Аудио
     station:
       medium:
         video: Видео
@@ -1452,3 +1462,6 @@ ru:
       frozen_field_changed: название и тип размещения менять нельзя
       future_start_removed: дата начала ещё впереди и должна остаться в сетке
       slot_conflict: выбранный интервал уже занят
+  service_themes:
+    errors:
+      wrong_medium: ролик не соответствует типу тематики

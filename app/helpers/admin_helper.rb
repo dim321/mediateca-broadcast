@@ -236,9 +236,9 @@ module AdminHelper
     t("admin.#{resource}.#{action}", default: t("admin.crud.#{action}"))
   end
 
-  def admin_validated_theme_clip_options(rotation, content_type:)
+  def admin_validated_theme_clip_options(rotation, content_type:, content_kinds:)
     MediaAsset.public_send(:"content_type_#{content_type}")
-      .where(organization_id: rotation.organization_id)
+      .where(organization_id: rotation.organization_id, content_kind: content_kinds)
       .where.not(content_validated_at: nil)
       .where.not(content_validated_by_id: nil)
       .where.not(id: rotation.rotation_items.select(:media_asset_id))
@@ -246,7 +246,7 @@ module AdminHelper
       .filter_map { |asset| [ asset.file.filename.to_s, asset.id ] if asset.file.attached? }
   end
 
-  def admin_validated_service_clip_options(rotation)
-    admin_validated_theme_clip_options(rotation, content_type: :service)
+  def admin_validated_service_clip_options(rotation, content_kinds: ServiceTheme.clip_content_kinds_for("video"))
+    admin_validated_theme_clip_options(rotation, content_type: :service, content_kinds:)
   end
 end

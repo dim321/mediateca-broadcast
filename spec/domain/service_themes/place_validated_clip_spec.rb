@@ -10,7 +10,7 @@ RSpec.describe ServiceThemes::PlaceValidatedClip do
   let(:user) { create(:user, :traffic_manager, organization: operator) }
   let(:theme) { ServiceThemes::Create.call(organization: operator, name: "Салон красоты") }
   let(:asset) do
-    create(:media_asset, :ready, :with_png_file, :content_validated,
+    create(:media_asset, :ready, :with_mp4_file, :content_validated,
       organization: operator, content_type: "service", visibility: "network", uploaded_by: user)
   end
 
@@ -29,7 +29,7 @@ RSpec.describe ServiceThemes::PlaceValidatedClip do
   end
 
   it "adds a validated neutral clip to the neutral folder" do
-    neutral_asset = create(:media_asset, :ready, :with_png_file, :content_validated,
+    neutral_asset = create(:media_asset, :ready, :with_mp4_file, :content_validated,
       organization: operator, content_type: "neutral", visibility: "network", uploaded_by: user)
 
     expect {
@@ -44,11 +44,35 @@ RSpec.describe ServiceThemes::PlaceValidatedClip do
   end
 
   it "rejects an unmarked service clip" do
-    unmarked = create(:media_asset, :ready, :with_png_file, organization: operator, content_type: "service", visibility: "network")
+    unmarked = create(:media_asset, :ready, :with_mp4_file, organization: operator, content_type: "service", visibility: "network")
 
     expect {
       described_class.call(theme: theme, role: :welcome, media_asset: unmarked)
     }.to raise_error(MediaAssets::Error, I18n.t("media_assets.content_validation.not_validated"))
+  end
+
+  it "rejects a clip of the other medium" do
+    audio = create(:media_asset, :ready, :with_mp3_file, :content_validated,
+      organization: operator, content_type: "service", visibility: "network", uploaded_by: user)
+    image = create(:media_asset, :ready, :with_png_file, :content_validated,
+      organization: operator, content_type: "service", visibility: "network", uploaded_by: user)
+
+    expect {
+      described_class.call(theme: theme, role: :welcome, media_asset: audio)
+    }.to raise_error(MediaAssets::Error, I18n.t("service_themes.errors.wrong_medium"))
+    expect {
+      described_class.call(theme: theme, role: :welcome, media_asset: image)
+    }.to raise_error(MediaAssets::Error, I18n.t("service_themes.errors.wrong_medium"))
+  end
+
+  it "places an audio clip into an audio theme" do
+    audio_theme = ServiceThemes::Create.call(organization: operator, name: "Голос зала", medium: "audio")
+    audio = create(:media_asset, :ready, :with_mp3_file, :content_validated,
+      organization: operator, content_type: "service", visibility: "network", uploaded_by: user)
+
+    expect {
+      described_class.call(theme: audio_theme, role: :welcome, media_asset: audio)
+    }.to change(RotationItem, :count).by(1)
   end
 
   it "rejects an unknown role" do

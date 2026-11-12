@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_22_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_07_093000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -439,6 +439,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_22_120000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "neutral_rotation_id", null: false
+    t.string "medium", default: "video", null: false
     t.index ["close_rotation_id"], name: "index_service_themes_on_close_rotation_id"
     t.index ["header_end_rotation_id"], name: "index_service_themes_on_header_end_rotation_id"
     t.index ["header_start_rotation_id"], name: "index_service_themes_on_header_start_rotation_id"
@@ -446,6 +447,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_22_120000) do
     t.index ["organization_id", "name"], name: "index_service_themes_on_organization_id_and_name", unique: true
     t.index ["organization_id"], name: "index_service_themes_on_organization_id"
     t.index ["welcome_rotation_id"], name: "index_service_themes_on_welcome_rotation_id"
+    t.check_constraint "medium::text = ANY (ARRAY['video'::character varying, 'audio'::character varying]::text[])", name: "service_themes_medium_video_or_audio"
   end
 
   create_table "station_stream_channels", force: :cascade do |t|

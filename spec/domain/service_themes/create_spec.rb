@@ -18,6 +18,22 @@ RSpec.describe ServiceThemes::Create do
     expect(theme.neutral_rotation.name).to eq("Салон красоты · neutral")
     expect(theme.rotation_for(:service_welcome)).to eq(theme.welcome_rotation)
     expect(theme.rotation_for(:neutral)).to eq(theme.neutral_rotation)
+    expect(theme).to be_video
+  end
+
+  it "stores an audio medium when asked" do
+    theme = described_class.call(organization: operator, name: "Эфир", medium: "audio")
+
+    expect(theme).to be_audio
+  end
+
+  it "rejects an unknown medium and does not leave rotations" do
+    expect {
+      described_class.call(organization: operator, name: "Салон красоты", medium: "image")
+    }.to raise_error(ActiveRecord::RecordInvalid)
+
+    expect(Rotation.where("name LIKE ?", "Салон красоты%")).to be_empty
+    expect(ServiceTheme.count).to eq(0)
   end
 
   it "rejects a client organization and does not leave rotations" do

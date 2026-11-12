@@ -7,12 +7,14 @@ require "rails_helper"
 # Table name: service_themes
 #
 #  id                       :bigint           not null, primary key
+#  medium                   :string           default("video"), not null
 #  name                     :string           not null
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
 #  close_rotation_id        :bigint           not null
 #  header_end_rotation_id   :bigint           not null
 #  header_start_rotation_id :bigint           not null
+#  neutral_rotation_id      :bigint           not null
 #  organization_id          :bigint           not null
 #  welcome_rotation_id      :bigint           not null
 #
@@ -21,6 +23,7 @@ require "rails_helper"
 #  index_service_themes_on_close_rotation_id         (close_rotation_id)
 #  index_service_themes_on_header_end_rotation_id    (header_end_rotation_id)
 #  index_service_themes_on_header_start_rotation_id  (header_start_rotation_id)
+#  index_service_themes_on_neutral_rotation_id       (neutral_rotation_id)
 #  index_service_themes_on_organization_id           (organization_id)
 #  index_service_themes_on_organization_id_and_name  (organization_id,name) UNIQUE
 #  index_service_themes_on_welcome_rotation_id       (welcome_rotation_id)
@@ -30,6 +33,7 @@ require "rails_helper"
 #  fk_rails_...  (close_rotation_id => rotations.id) ON DELETE => restrict
 #  fk_rails_...  (header_end_rotation_id => rotations.id) ON DELETE => restrict
 #  fk_rails_...  (header_start_rotation_id => rotations.id) ON DELETE => restrict
+#  fk_rails_...  (neutral_rotation_id => rotations.id) ON DELETE => restrict
 #  fk_rails_...  (organization_id => organizations.id) ON DELETE => restrict
 #  fk_rails_...  (welcome_rotation_id => rotations.id) ON DELETE => restrict
 #
@@ -41,6 +45,38 @@ RSpec.describe ServiceTheme, type: :model do
     expect(duplicate).not_to be_valid
     expect(duplicate.errors[:name]).to be_present
     expect(build(:service_theme, organization: existing.organization, name: "Рыбный отдел")).to be_valid
+  end
+
+  it "defaults to video and accepts only video clips" do
+    theme = build(:service_theme)
+
+    expect(theme).to be_video
+    expect(theme.clip_content_kinds).to eq(%w[video])
+    expect(theme).to be_accepts_content_kind("video")
+    expect(theme).not_to be_accepts_content_kind("audio")
+    expect(theme).not_to be_accepts_content_kind("image")
+    expect(theme.file_accept).to include("video/mp4")
+    expect(theme.file_accept).not_to include("audio/")
+  end
+
+  it "accepts only audio clips when the medium is audio" do
+    theme = build(:service_theme, medium: "audio")
+
+    expect(theme.clip_content_kinds).to eq(%w[audio])
+    expect(theme).to be_accepts_content_kind("audio")
+    expect(theme).not_to be_accepts_content_kind("video")
+    expect(theme).not_to be_accepts_content_kind("image")
+    expect(theme.file_accept).to include("audio/mpeg")
+    expect(theme.file_accept).not_to include("video/")
+  end
+
+  it "refuses to change medium after creation" do
+    theme = create(:service_theme)
+
+    theme.medium = "audio"
+
+    expect(theme).not_to be_valid
+    expect(theme.errors[:medium]).to include(I18n.t("activerecord.errors.models.service_theme.attributes.medium.immutable"))
   end
 
   it "rejects a client organization" do
