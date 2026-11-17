@@ -84,6 +84,6 @@ gem "capybara", "~> 3.40", group: :test
 
 gem "cuprite", "~> 0.20", group: :test
 
-gem "ransack", "~> 6.0"
+gem "ransack", "~> 6.1"
 gem "kaminari", "~> 1.2"
 gem "csv"
