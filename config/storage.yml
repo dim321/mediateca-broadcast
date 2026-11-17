@@ -26,10 +26,17 @@ rustfs:
     server_side_encryption: AES256
 
 backups:
-  service: Disk
-  root: <%= Rails.root.join("storage") %>
+  # service: Disk
+  # root: <%= Rails.root.join("storage") %>
   # service: S3
   # access_key_id: <%= ENV['AWS_ACCESS_KEY_ID'] %>
   # secret_access_key: <%= ENV['AWS_SECRET_ACCESS_KEY'] %>
   # region: <%= ENV['AWS_REGION'] %>
   # bucket: allcrux-backups
+  service: S3
+  access_key_id: <%= ENV["AWS_ACCESS_KEY_ID"] %>
+  secret_access_key: <%= ENV["AWS_SECRET_ACCESS_KEY"] %>
+  region: <%= ENV.fetch("AWS_REGION", "ru-central-1") %>
+  endpoint: <%= ENV.fetch("AWS_ENDPOINT_URL_S3", "http://192.168.1.14:9010") %>
+  force_path_style: true
+  bucket: db_backup
