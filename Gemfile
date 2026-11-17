@@ -78,12 +78,12 @@ gem "rails-i18n", "~> 8.0"
 gem "lograge", "~> 0.15.1", group: :production
 
 gem "slim-rails", "~> 4.0"
-gem "view_component", "~> 4.16"
+gem "view_component", "~> 4.23"
 
 gem "capybara", "~> 3.40", group: :test
 
 gem "cuprite", "~> 0.20", group: :test
 
-gem "ransack", "~> 6.0"
+gem "ransack", "~> 6.1"
 gem "kaminari", "~> 1.2"
 gem "csv"
