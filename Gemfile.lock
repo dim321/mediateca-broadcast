@@ -261,6 +261,8 @@ GEM
       racc (~> 1.4)
     nokogiri (1.19.7-x86_64-linux-musl)
       racc (~> 1.4)
+    ops_backups (0.1.15)
+      rails (>= 6)
     ostruct (0.6.3)
     parallel (2.1.0)
     parser (3.3.11.1)
@@ -512,6 +514,7 @@ DEPENDENCIES
   kamal
   kaminari (~> 1.2)
   lograge (~> 0.16.0)
+  ops_backups (~> 0.1.15)
   pg (~> 1.7)
   propshaft
   puma (>= 5.0)
@@ -633,6 +636,7 @@ CHECKSUMS
   nokogiri (1.19.7-arm-linux-musl) sha256=28d0ff0c87b6bb2e56580323a6fb049d5d4a02b94f0958fdd47e9ac146991c77
   nokogiri (1.19.7-x86_64-linux-gnu) sha256=25865ccb462f714e712fdf8906fde07849cb6704a808e3d629d75baa5af5dd3b
   nokogiri (1.19.7-x86_64-linux-musl) sha256=464d1f3dfb0d53cf54c0c6a7e23e8e91cf68ec3cafc2b27dc4a7682f2d9bf546
+  ops_backups (0.1.15) sha256=74978a1520385d862943f1df3d41d37a8a5defbd3e6ca8b482b5860c275b3584
   ostruct (0.6.3) sha256=95a2ed4a4bd1d190784e666b47b2d3f078e4a9efda2fccf18f84ddc6538ed912
   parallel (2.1.0) sha256=b35258865c2e31134c5ecb708beaaf6772adf9d5efae28e93e99260877b09356
   parser (3.3.11.1) sha256=d17ace7aabe3e72c3cc94043714be27cc6f852f104d81aa284c2281aecc65d54
