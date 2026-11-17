@@ -107,7 +107,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_093000) do
     t.index ["rotation_id"], name: "index_advertising_orders_on_rotation_id", unique: true
     t.index ["status"], name: "index_advertising_orders_on_status"
     t.check_constraint "discount_cents >= 0", name: "advertising_orders_discount_cents_non_negative"
-    t.check_constraint "medium::text = ANY (ARRAY['video'::character varying, 'audio'::character varying]::text[])", name: "advertising_orders_medium_video_or_audio"
+    t.check_constraint "medium::text = ANY (ARRAY['video'::character varying::text, 'audio'::character varying::text])", name: "advertising_orders_medium_video_or_audio"
     t.check_constraint "total_shows >= 0", name: "advertising_orders_total_shows_non_negative"
     t.check_constraint "total_sum_cents >= 0", name: "advertising_orders_total_sum_cents_non_negative"
   end
@@ -280,6 +280,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_093000) do
     t.index ["status"], name: "index_media_plans_on_status"
   end
 
+  create_table "ops_backups", id: :serial, force: :cascade do |t|
+    t.string "name", null: false
+    t.string "tag", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
+  end
+
   create_table "organizations", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "kind", default: "client", null: false
@@ -447,7 +454,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_093000) do
     t.index ["organization_id", "name"], name: "index_service_themes_on_organization_id_and_name", unique: true
     t.index ["organization_id"], name: "index_service_themes_on_organization_id"
     t.index ["welcome_rotation_id"], name: "index_service_themes_on_welcome_rotation_id"
-    t.check_constraint "medium::text = ANY (ARRAY['video'::character varying, 'audio'::character varying]::text[])", name: "service_themes_medium_video_or_audio"
+    t.check_constraint "medium::text = ANY (ARRAY['video'::character varying::text, 'audio'::character varying::text])", name: "service_themes_medium_video_or_audio"
   end
 
   create_table "station_stream_channels", force: :cascade do |t|
@@ -494,7 +501,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_093000) do
     t.string "medium", default: "video", null: false
     t.index ["location_id", "name"], name: "index_stations_on_location_id_and_name", unique: true
     t.index ["location_id"], name: "index_stations_on_location_id"
-    t.check_constraint "medium::text = ANY (ARRAY['video'::character varying, 'audio'::character varying]::text[])", name: "stations_medium_video_or_audio"
+    t.check_constraint "medium::text = ANY (ARRAY['video'::character varying::text, 'audio'::character varying::text])", name: "stations_medium_video_or_audio"
   end
 
   create_table "tags", force: :cascade do |t|

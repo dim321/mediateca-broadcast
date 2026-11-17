@@ -87,3 +87,5 @@ gem "cuprite", "~> 0.20", group: :test
 gem "ransack", "~> 6.1"
 gem "kaminari", "~> 1.2"
 gem "csv"
+
+gem "ops_backups", "~> 0.1.15"
