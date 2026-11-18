@@ -50,8 +50,8 @@ env:
     - MEDIATECA_BROADCAST_DATABASE_PASSWORD
     - AWS_ACCESS_KEY_ID
     - AWS_SECRET_ACCESS_KEY
-    - AWS_ENDPOINT_URL_S3
-    - AWS_REGION
+    # ops_backups shells out to pg_dump with this URL. Rails applies it to primary only.
+    - DATABASE_URL
   clear:
     # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
     # When you start using multiple servers, you should split out job processing to a dedicated machine.
@@ -69,9 +69,9 @@ env:
     DB_HOST: mediateca_broadcast-db
 
     ACTIVE_STORAGE_SERVICE: rustfs
-    # AWS_REGION: ru-central-1
+    AWS_REGION: ru-central-1
     AWS_S3_BUCKET: media
-    # AWS_ENDPOINT_URL_S3: http://192.168.1.14:9010
+    AWS_ENDPOINT_URL_S3: http://192.168.1.14:9010
     AWS_REQUEST_CHECKSUM_CALCULATION: when_required
     AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
     # Large media uploads + rustfs proxying. Thruster default HTTP_READ_TIMEOUT is 30s.
