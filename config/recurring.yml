@@ -27,5 +27,8 @@ production:
     schedule: at 4am every day
   backup_db:
     class: OpsBackups::BackupDbJob
-    args: [tag: "db_pg_backup", cleanup: "retain_tiered"]
+    queue: operations
+    args:
+      - tag: db_pg_backup
+        cleanup: retain_tiered
     schedule: every hour
