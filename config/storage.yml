@@ -24,3 +24,21 @@ rustfs:
   http_read_timeout: 300
   upload:
     server_side_encryption: AES256
+
+# Logical dumps from OpsBackups::BackupDbJob. Same rustfs cluster as media, separate bucket.
+backups:
+  service: S3
+  access_key_id: <%= ENV["AWS_ACCESS_KEY_ID"] %>
+  secret_access_key: <%= ENV["AWS_SECRET_ACCESS_KEY"] %>
+  region: <%= ENV.fetch("AWS_REGION", "ru-central-1") %>
+  bucket: db-backup
+  endpoint: <%= ENV.fetch("AWS_ENDPOINT_URL_S3", "http://192.168.1.14:9010") %>
+  force_path_style: true
+  public: false
+  # aws-sdk-s3 default CRC32 checksums break many S3-compatible servers.
+  request_checksum_calculation: when_required
+  response_checksum_validation: when_required
+  http_open_timeout: 15
+  http_read_timeout: 300
+  upload:
+    server_side_encryption: AES256
