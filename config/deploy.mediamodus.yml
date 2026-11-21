@@ -1,15 +1,18 @@
-# Destination mediabox: будущий production на временном адресе.
+# Destination mediamodus: будущий production на временном адресе.
 # База — config/deploy.yml, этот файл только перекрывает хосты.
 #
 # Подготовка (Docker + accessories, без деплоя приложения):
-#   bin/deploy server bootstrap -d mediabox
-#   bin/deploy accessory boot all -d mediabox
+#   bin/deploy server bootstrap -d mediamodus
+#   bin/deploy accessory boot all -d mediamodus
 #
-# SSH как в Host mediabox: administrator, порт 22.
-# Перед kamal deploy -d mediabox на хосте и на машине сборки нужен HTTP-registry:
+# SSH как в Host mediamodus: administrator, порт 5956.
+# Перед kamal deploy -d mediamodus на хосте и на машине сборки нужен HTTP-registry:
 #   "insecure-registries": ["192.168.77.5:5555"]
 # Let's Encrypt для proxy.host заработает, когда DNS broadcast.mediateca.store
 # будет указывать на этот сервер.
+
+# --hosts 95.170.176.130
+# bin/deploy deploy -d mediamodus --hosts 95.170.176.130
 
 servers:
   web:
@@ -17,7 +20,7 @@ servers:
 
 proxy:
   ssl: true
-  host: mediateca.store
+  host: mediamodus.ru
 
 ssh:
   user: administrator
@@ -36,7 +39,7 @@ env:
     # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
     # When you start using multiple servers, you should split out job processing to a dedicated machine.
     SOLID_QUEUE_IN_PUMA: true
-    APP_HOST: mediateca.store
+    APP_HOST: mediamodus.ru
     APP_PROTOCOL: https
 
     # Set number of processes dedicated to Solid Queue (default: 1)
@@ -49,7 +52,7 @@ env:
     DB_HOST: mediateca_broadcast-db
 
     ACTIVE_STORAGE_SERVICE: rustfs
-    AWS_REGION: ru-central-1
+    AWS_REGION: us-east-1
     AWS_S3_BUCKET: media
     AWS_ENDPOINT_URL_S3: http://192.168.88.252:9000
     AWS_REQUEST_CHECKSUM_CALCULATION: when_required
@@ -59,7 +62,7 @@ env:
     HTTP_WRITE_TIMEOUT: 300
 
 accessories:
-  registry:
-    host: 95.170.176.130
+#  registry:
+#    host: 95.170.176.130
   db:
     host: 95.170.176.130
