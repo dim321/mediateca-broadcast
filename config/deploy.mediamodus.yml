@@ -5,6 +5,10 @@
 #   bin/deploy server bootstrap -d mediamodus
 #   bin/deploy accessory boot all -d mediamodus
 #
+# VPN (WireGuard) — отдельно, после одноразовой подготовки хоста.
+# Пока sshd слушает публичный адрес, Kamal ходит на 95.170.176.130:5956.
+# Ограничение SSH адресом хаба 10.11.0.1 — ручной шаг после рабочего клиента.
+#
 # SSH как в Host mediamodus: administrator, порт 5956.
 # Перед kamal deploy -d mediamodus на хосте и на машине сборки нужен HTTP-registry:
 #   "insecure-registries": ["192.168.77.5:5555"]
@@ -66,3 +70,83 @@ accessories:
 #    host: 95.170.176.130
   db:
     host: 95.170.176.130
+
+  # WireGuard (wg-easy 15) на network host. Один интерфейс wg-easy умеет
+  # раздавать клиентов только из своего CIDR, поэтому пул станций — это
+  # и есть сеть wg0:
+  #   10.20.0.0/22  станции и оператор; wg0 = 10.20.0.1 (шлюз, не адрес SSH)
+  #   10.11.0.0/22  хаб и S3; этот хост = 10.11.0.1/32
+  # Клиентам в туннель отдаются обе подсети. iptables контейнера живут в netns хоста.
+  # Оператору оставьте Allowed IPs по умолчанию. У станции в UI сузьте их
+  # до 10.11.0.0/22,10.20.0.1/32: хаб, S3 и шлюз, без остальных станций.
+  #
+  # Один раз по текущему SSH, до boot:
+  #   sudo apt-get update && sudo apt-get install -y wireguard
+  #   sudo modprobe wireguard
+  #   printf '%s\n' net.ipv4.ip_forward=1 net.ipv4.conf.all.src_valid_mark=1 | sudo tee /etc/sysctl.d/90-wireguard.conf
+  #   sudo sysctl --system
+  #   sudo ufw allow 51820/udp comment wireguard
+  # Адрес хаба — dummy в netplan (рендерер уже systemd-networkd).
+  # Файл отдельный: cloud-init перезаписывает только 50-cloud-init.yaml.
+  # /32, чтобы остальной 10.11.0.0/22 не стал on-link на hub0.
+  # S3 в этой подсети добавьте маршрутом в том же файле, когда появится её адрес.
+  #   sudo tee /etc/netplan/60-hub0.yaml >/dev/null <<'EOF'
+  #   network:
+  #     version: 2
+  #     renderer: networkd
+  #     dummy-devices:
+  #       hub0:
+  #         addresses:
+  #           - 10.11.0.1/32
+  #   EOF
+  #   sudo chmod 600 /etc/netplan/60-hub0.yaml
+  #   sudo netplan apply
+  # Пароль UI: WIREGUARD_ADMIN_PASSWORD в .env (bin/deploy его экспортирует).
+  # INIT_* читаются только при пустом каталоге data. После первого входа в UI
+  # уберите секрет INIT_PASSWORD и сделайте accessory reboot, чтобы пароль
+  # не оставался в docker inspect.
+  #
+  #   bin/deploy accessory boot vpn -d mediamodus
+  #   bin/deploy accessory logs vpn -d mediamodus
+  # UI только на localhost сервера (не публикуем 51821):
+  #   ssh -p 5956 -L 51821:127.0.0.1:51821 administrator@95.170.176.130
+  #   открыть http://127.0.0.1:51821 , завести клиента, в клиенте PersistentKeepalive = 25.
+  # Проверка туннеля: ssh -p 5956 administrator@10.11.0.1
+  #
+  # Когда вход по 10.11.0.1 стабилен — закрыть публичный SSH и перевести Kamal
+  # на адрес хаба (servers.web, db.host, vpn.host). Пока туннель не поднят,
+  # эти адреса не менять: Kamal сам ходит по SSH.
+  # ListenAddress 10.11.0.1 принимает пакеты со всего туннеля. SSH оставьте
+  # операторам из 10.20.0.0/28, станциям выдавайте адреса с 10.20.0.16:
+  #   sudo ufw allow from 10.20.0.0/28 to any port 5956 proto tcp
+  #   echo 'ListenAddress 10.11.0.1' | sudo tee /etc/ssh/sshd_config.d/99-vpn-only.conf
+  #   sudo sshd -t && sudo systemctl reload ssh
+  # Откат с консоли хостера: удалить этот файл и reload ssh.
+  vpn:
+    image: ghcr.io/wg-easy/wg-easy:15
+    host: 95.170.176.130
+    network: host
+    directories:
+      - data:/etc/wireguard
+    volumes:
+      - /lib/modules:/lib/modules:ro
+    options:
+      cap-add:
+        - NET_ADMIN
+        - SYS_MODULE
+      device: /dev/net/tun:/dev/net/tun
+    env:
+      clear:
+        INIT_ENABLED: "true"
+        INIT_USERNAME: admin
+        INIT_HOST: mediamodus.ru
+        INIT_PORT: "51820"
+        INIT_IPV4_CIDR: 10.20.0.0/22
+        INIT_IPV6_CIDR: fd42:42:42::/64
+        INIT_ALLOWED_IPS: 10.11.0.0/22,10.20.0.0/22
+        DISABLE_IPV6: "true"
+        INSECURE: "true"
+        HOST: 127.0.0.1
+        PORT: "51821"
+      secret:
+        - INIT_PASSWORD:WIREGUARD_ADMIN_PASSWORD
