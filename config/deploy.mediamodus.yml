@@ -71,58 +71,64 @@ accessories:
   db:
     host: 95.170.176.130
 
-  # WireGuard (wg-easy 15) на network host. Один интерфейс wg-easy умеет
-  # раздавать клиентов только из своего CIDR, поэтому пул станций — это
-  # и есть сеть wg0:
-  #   10.20.0.0/22  станции и оператор; wg0 = 10.20.0.1 (шлюз, не адрес SSH)
-  #   10.11.0.0/22  хаб и S3; этот хост = 10.11.0.1/32
-  # Клиентам в туннель отдаются обе подсети. iptables контейнера живут в netns хоста.
-  # Оператору оставьте Allowed IPs по умолчанию. У станции в UI сузьте их
-  # до 10.11.0.0/22,10.20.0.1/32: хаб, S3 и шлюз, без остальных станций.
+  # Два WireGuard (wg-easy 15) на network host. Один контейнер раздаёт
+  # клиентов только из своего CIDR, поэтому сети разведены по интерфейсам:
+  #   vpn-station  wg0  UDP 51820  UI 51821  10.20.0.0/22  станции и оператор
+  #   vpn-hub  wg1  UDP 51822  UI 51823  10.11.0.0/22  хаб и S3
+  # Адреса сервера: wg0 = 10.20.0.1, wg1 = 10.11.0.1. SSH остаётся на 10.11.0.1,
+  # потому что wg1 в netns хоста. Оба контейнера пишут iptables туда же.
+  # Ядро форвардит wg0 ↔ wg1 (ip_forward уже включён). MASQUERADE у wg-easy
+  # висит на внешний NIC, не на второй wg, поэтому станция видна S3 своим
+  # адресом 10.20.0.x.
   #
-  # Один раз по текущему SSH, до boot:
+  # Оператору в vpn-station оставьте Allowed IPs по умолчанию. У станции сузьте их
+  # до 10.11.0.0/22,10.20.0.1/32: хранилище, хаб и шлюз, без остальных станций.
+  # Префикс 10.11.0.0/22 обязателен, иначе станция не скачает файл с S3.
+  # Клиенту S3 в vpn-hub назначьте 10.11.0.2/32 и Allowed IPs
+  # 10.11.0.0/22,10.20.0.0/22. На самой СХД откройте 9000/tcp с 10.20.0.0/22.
+  #
+  # Один раз по текущему SSH, до первого boot:
   #   sudo apt-get update && sudo apt-get install -y wireguard
   #   sudo modprobe wireguard
   #   printf '%s\n' net.ipv4.ip_forward=1 net.ipv4.conf.all.src_valid_mark=1 | sudo tee /etc/sysctl.d/90-wireguard.conf
   #   sudo sysctl --system
   #   sudo ufw allow 51820/udp comment wireguard
-  # Адрес хаба — dummy в netplan (рендерер уже systemd-networkd).
-  # Файл отдельный: cloud-init перезаписывает только 50-cloud-init.yaml.
-  # /32, чтобы остальной 10.11.0.0/22 не стал on-link на hub0.
-  # S3 в этой подсети добавьте маршрутом в том же файле, когда появится её адрес.
-  #   sudo tee /etc/netplan/60-hub0.yaml >/dev/null <<'EOF'
-  #   network:
-  #     version: 2
-  #     renderer: networkd
-  #     dummy-devices:
-  #       hub0:
-  #         addresses:
-  #           - 10.11.0.1/32
-  #   EOF
-  #   sudo chmod 600 /etc/netplan/60-hub0.yaml
+  #   sudo ufw allow 51822/udp comment wireguard-hub
+  # ufw на этом хосте выключен. Docker держит nftables filter FORWARD с policy drop,
+  # а PostUp wg-easy пишет ACCEPT в iptables-legacy, ядро эти правила не применяет.
+  # Форвард wg0 ↔ wg1 принимается в DOCKER-USER скриптом /usr/local/sbin/wg-forward.sh
+  # (systemd wg-forward.service, после docker).
+  # На MikroTik тот же dst-nat, что для 51820, но на UDP 51822 → 192.168.88.2:51822.
+  # СХД в LAN 192.168.88.0/24 пусть ходит на 192.168.88.2:51822, без hairpin через WAN.
+  #
+  # Раньше 10.11.0.1 висел на dummy hub0. Перед boot vpn-hub его надо снять,
+  # иначе wg1 не возьмёт этот адрес:
+  #   sudo ip link delete hub0
+  #   sudo rm -f /etc/netplan/60-hub0.yaml
   #   sudo netplan apply
-  # Пароль UI: WIREGUARD_ADMIN_PASSWORD в .env (bin/deploy его экспортирует).
+  # Пароль обоих UI: WIREGUARD_ADMIN_PASSWORD в .env.
   # INIT_* читаются только при пустом каталоге data. После первого входа в UI
-  # уберите секрет INIT_PASSWORD и сделайте accessory reboot, чтобы пароль
+  # уберите секрет INIT_PASSWORD у этого accessory и сделайте reboot, чтобы пароль
   # не оставался в docker inspect.
   #
-  #   bin/deploy accessory boot vpn -d mediamodus
-  #   bin/deploy accessory logs vpn -d mediamodus
-  # UI только на localhost сервера (не публикуем 51821):
-  #   ssh -p 5956 -L 51821:127.0.0.1:51821 administrator@95.170.176.130
-  #   открыть http://127.0.0.1:51821 , завести клиента, в клиенте PersistentKeepalive = 25.
-  # Проверка туннеля: ssh -p 5956 administrator@10.11.0.1
+  #   bin/deploy accessory boot vpn-station -d mediamodus
+  #   bin/deploy accessory boot vpn-hub -d mediamodus
+  # UI только на localhost сервера:
+  #   ssh -p 5956 -L 51821:127.0.0.1:51821 -L 51823:127.0.0.1:51823 administrator@95.170.176.130
+  #   http://127.0.0.1:51821 — станции, http://127.0.0.1:51823 — S3.
+  # В клиенте PersistentKeepalive = 25. Проверка: ssh -p 5956 administrator@10.11.0.1
+  # со станции curl -I http://10.11.0.2:9000
   #
   # Когда вход по 10.11.0.1 стабилен — закрыть публичный SSH и перевести Kamal
-  # на адрес хаба (servers.web, db.host, vpn.host). Пока туннель не поднят,
-  # эти адреса не менять: Kamal сам ходит по SSH.
+  # на адрес хаба (servers.web, db.host, vpn-station.host, vpn-hub.host). Пока туннель
+  # не поднят, эти адреса не менять: Kamal сам ходит по SSH.
   # ListenAddress 10.11.0.1 принимает пакеты со всего туннеля. SSH оставьте
   # операторам из 10.20.0.0/28, станциям выдавайте адреса с 10.20.0.16:
   #   sudo ufw allow from 10.20.0.0/28 to any port 5956 proto tcp
   #   echo 'ListenAddress 10.11.0.1' | sudo tee /etc/ssh/sshd_config.d/99-vpn-only.conf
   #   sudo sshd -t && sudo systemctl reload ssh
   # Откат с консоли хостера: удалить этот файл и reload ssh.
-  vpn:
+  vpn-station:
     image: ghcr.io/wg-easy/wg-easy:15
     host: 95.170.176.130
     network: host
@@ -148,5 +154,39 @@ accessories:
         INSECURE: "true"
         HOST: 127.0.0.1
         PORT: "51821"
+        WG_INTERFACE: wg0
+      secret:
+        - INIT_PASSWORD:WIREGUARD_ADMIN_PASSWORD
+
+  # Сеть хаба и S3. Каталог data свой, интерфейс wg1, чтобы не столкнуться
+  # с vpn-station. Клиенты — только из 10.11.0.0/22; первый свободный адрес 10.11.0.2
+  # закрепите за хранилищем. Станции до него доходят через форвард wg0 → wg1.
+  vpn-hub:
+    image: ghcr.io/wg-easy/wg-easy:15
+    host: 95.170.176.130
+    network: host
+    directories:
+      - data:/etc/wireguard
+    volumes:
+      - /lib/modules:/lib/modules:ro
+    options:
+      cap-add:
+        - NET_ADMIN
+        - SYS_MODULE
+      device: /dev/net/tun:/dev/net/tun
+    env:
+      clear:
+        INIT_ENABLED: "true"
+        INIT_USERNAME: admin
+        INIT_HOST: mediamodus.ru
+        INIT_PORT: "51822"
+        INIT_IPV4_CIDR: 10.11.0.0/22
+        INIT_IPV6_CIDR: fd42:42:43::/64
+        INIT_ALLOWED_IPS: 10.11.0.0/22,10.20.0.0/22
+        DISABLE_IPV6: "true"
+        INSECURE: "true"
+        HOST: 127.0.0.1
+        PORT: "51823"
+        WG_INTERFACE: wg1
       secret:
         - INIT_PASSWORD:WIREGUARD_ADMIN_PASSWORD
