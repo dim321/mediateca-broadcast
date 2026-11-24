@@ -1,0 +1,192 @@
+# Destination mediamodus: будущий production на временном адресе.
+# База — config/deploy.yml, этот файл только перекрывает хосты.
+#
+# Подготовка (Docker + accessories, без деплоя приложения):
+#   bin/deploy server bootstrap -d mediamodus
+#   bin/deploy accessory boot all -d mediamodus
+#
+# VPN (WireGuard) — отдельно, после одноразовой подготовки хоста.
+# Пока sshd слушает публичный адрес, Kamal ходит на 95.170.176.130:5956.
+# Ограничение SSH адресом хаба 10.11.0.1 — ручной шаг после рабочего клиента.
+#
+# SSH как в Host mediamodus: administrator, порт 5956.
+# Перед kamal deploy -d mediamodus на хосте и на машине сборки нужен HTTP-registry:
+#   "insecure-registries": ["192.168.77.5:5555"]
+# Let's Encrypt для proxy.host заработает, когда DNS broadcast.mediateca.store
+# будет указывать на этот сервер.
+
+# --hosts 95.170.176.130
+# bin/deploy deploy -d mediamodus --hosts 95.170.176.130
+
+servers:
+  web:
+    - 95.170.176.130
+
+proxy:
+  ssl: true
+  host: mediamodus.ru
+
+ssh:
+  user: administrator
+  port: 5956
+
+registry:
+  server: localhost:5555
+env:
+  secret:
+    - RAILS_MASTER_KEY
+    # Must match POSTGRES_PASSWORD on the db accessory (see .kamal/secrets)
+    - MEDIATECA_BROADCAST_DATABASE_PASSWORD
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+  clear:
+    # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
+    # When you start using multiple servers, you should split out job processing to a dedicated machine.
+    SOLID_QUEUE_IN_PUMA: true
+    APP_HOST: mediamodus.ru
+    APP_PROTOCOL: https
+
+    # Set number of processes dedicated to Solid Queue (default: 1)
+    # JOB_CONCURRENCY: 3
+
+    # Set number of cores available to the application on each server (default: 1).
+    # WEB_CONCURRENCY: 2
+
+    # PostgreSQL accessory (same Docker network): hostname is <service>-<accessory name>
+    DB_HOST: mediateca_broadcast-db
+
+    ACTIVE_STORAGE_SERVICE: rustfs
+    AWS_REGION: us-east-1
+    AWS_S3_BUCKET: media
+    AWS_ENDPOINT_URL_S3: http://192.168.88.252:9000
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    # Large media uploads + rustfs proxying. Thruster default HTTP_READ_TIMEOUT is 30s.
+    HTTP_READ_TIMEOUT: 300
+    HTTP_WRITE_TIMEOUT: 300
+
+accessories:
+#  registry:
+#    host: 95.170.176.130
+  db:
+    host: 95.170.176.130
+
+  # Два WireGuard (wg-easy 15) на network host. Один контейнер раздаёт
+  # клиентов только из своего CIDR, поэтому сети разведены по интерфейсам:
+  #   vpn-station  wg0  UDP 51820  UI 51821  10.20.0.0/22  станции и оператор
+  #   vpn-hub  wg1  UDP 51822  UI 51823  10.11.0.0/22  хаб и S3
+  # Адреса сервера: wg0 = 10.20.0.1, wg1 = 10.11.0.1. SSH остаётся на 10.11.0.1,
+  # потому что wg1 в netns хоста. Оба контейнера пишут iptables туда же.
+  # Ядро форвардит wg0 ↔ wg1 (ip_forward уже включён). MASQUERADE у wg-easy
+  # висит на внешний NIC, не на второй wg, поэтому станция видна S3 своим
+  # адресом 10.20.0.x.
+  #
+  # Оператору в vpn-station оставьте Allowed IPs по умолчанию. У станции сузьте их
+  # до 10.11.0.0/22,10.20.0.1/32: хранилище, хаб и шлюз, без остальных станций.
+  # Префикс 10.11.0.0/22 обязателен, иначе станция не скачает файл с S3.
+  # Клиенту S3 в vpn-hub назначьте 10.11.0.2/32 и Allowed IPs
+  # 10.11.0.0/22,10.20.0.0/22. На самой СХД откройте 9000/tcp с 10.20.0.0/22.
+  #
+  # Один раз по текущему SSH, до первого boot:
+  #   sudo apt-get update && sudo apt-get install -y wireguard
+  #   sudo modprobe wireguard
+  #   printf '%s\n' net.ipv4.ip_forward=1 net.ipv4.conf.all.src_valid_mark=1 | sudo tee /etc/sysctl.d/90-wireguard.conf
+  #   sudo sysctl --system
+  #   sudo ufw allow 51820/udp comment wireguard
+  #   sudo ufw allow 51822/udp comment wireguard-hub
+  # ufw на этом хосте выключен. Docker держит nftables filter FORWARD с policy drop,
+  # а PostUp wg-easy пишет ACCEPT в iptables-legacy, ядро эти правила не применяет.
+  # Форвард wg0 ↔ wg1 принимается в DOCKER-USER скриптом /usr/local/sbin/wg-forward.sh
+  # (systemd wg-forward.service, после docker).
+  # На MikroTik тот же dst-nat, что для 51820, но на UDP 51822 → 192.168.88.2:51822.
+  # СХД в LAN 192.168.88.0/24 пусть ходит на 192.168.88.2:51822, без hairpin через WAN.
+  #
+  # Раньше 10.11.0.1 висел на dummy hub0. Перед boot vpn-hub его надо снять,
+  # иначе wg1 не возьмёт этот адрес:
+  #   sudo ip link delete hub0
+  #   sudo rm -f /etc/netplan/60-hub0.yaml
+  #   sudo netplan apply
+  # Пароль обоих UI: WIREGUARD_ADMIN_PASSWORD в .env.
+  # INIT_* читаются только при пустом каталоге data. После первого входа в UI
+  # уберите секрет INIT_PASSWORD у этого accessory и сделайте reboot, чтобы пароль
+  # не оставался в docker inspect.
+  #
+  #   bin/deploy accessory boot vpn-station -d mediamodus
+  #   bin/deploy accessory boot vpn-hub -d mediamodus
+  # UI только на localhost сервера:
+  #   ssh -p 5956 -L 51821:127.0.0.1:51821 -L 51823:127.0.0.1:51823 administrator@95.170.176.130
+  #   http://127.0.0.1:51821 — станции, http://127.0.0.1:51823 — S3.
+  # В клиенте PersistentKeepalive = 25. Проверка: ssh -p 5956 administrator@10.11.0.1
+  # со станции curl -I http://10.11.0.2:9000
+  #
+  # Когда вход по 10.11.0.1 стабилен — закрыть публичный SSH и перевести Kamal
+  # на адрес хаба (servers.web, db.host, vpn-station.host, vpn-hub.host). Пока туннель
+  # не поднят, эти адреса не менять: Kamal сам ходит по SSH.
+  # ListenAddress 10.11.0.1 принимает пакеты со всего туннеля. SSH оставьте
+  # операторам из 10.20.0.0/28, станциям выдавайте адреса с 10.20.0.16:
+  #   sudo ufw allow from 10.20.0.0/28 to any port 5956 proto tcp
+  #   echo 'ListenAddress 10.11.0.1' | sudo tee /etc/ssh/sshd_config.d/99-vpn-only.conf
+  #   sudo sshd -t && sudo systemctl reload ssh
+  # Откат с консоли хостера: удалить этот файл и reload ssh.
+  vpn-station:
+    image: ghcr.io/wg-easy/wg-easy:15
+    host: 95.170.176.130
+    network: host
+    directories:
+      - data:/etc/wireguard
+    volumes:
+      - /lib/modules:/lib/modules:ro
+    options:
+      cap-add:
+        - NET_ADMIN
+        - SYS_MODULE
+      device: /dev/net/tun:/dev/net/tun
+    env:
+      clear:
+        INIT_ENABLED: "true"
+        INIT_USERNAME: admin
+        INIT_HOST: mediamodus.ru
+        INIT_PORT: "51820"
+        INIT_IPV4_CIDR: 10.20.0.0/22
+        INIT_IPV6_CIDR: fd42:42:42::/64
+        INIT_ALLOWED_IPS: 10.11.0.0/22,10.20.0.0/22
+        DISABLE_IPV6: "true"
+        INSECURE: "true"
+        HOST: 127.0.0.1
+        PORT: "51821"
+        WG_INTERFACE: wg0
+      secret:
+        - INIT_PASSWORD:WIREGUARD_ADMIN_PASSWORD
+
+  # Сеть хаба и S3. Каталог data свой, интерфейс wg1, чтобы не столкнуться
+  # с vpn-station. Клиенты — только из 10.11.0.0/22; первый свободный адрес 10.11.0.2
+  # закрепите за хранилищем. Станции до него доходят через форвард wg0 → wg1.
+  vpn-hub:
+    image: ghcr.io/wg-easy/wg-easy:15
+    host: 95.170.176.130
+    network: host
+    directories:
+      - data:/etc/wireguard
+    volumes:
+      - /lib/modules:/lib/modules:ro
+    options:
+      cap-add:
+        - NET_ADMIN
+        - SYS_MODULE
+      device: /dev/net/tun:/dev/net/tun
+    env:
+      clear:
+        INIT_ENABLED: "true"
+        INIT_USERNAME: admin
+        INIT_HOST: mediamodus.ru
+        INIT_PORT: "51822"
+        INIT_IPV4_CIDR: 10.11.0.0/22
+        INIT_IPV6_CIDR: fd42:42:43::/64
+        INIT_ALLOWED_IPS: 10.11.0.0/22,10.20.0.0/22
+        DISABLE_IPV6: "true"
+        INSECURE: "true"
+        HOST: 127.0.0.1
+        PORT: "51823"
+        WG_INTERFACE: wg1
+      secret:
+        - INIT_PASSWORD:WIREGUARD_ADMIN_PASSWORD
