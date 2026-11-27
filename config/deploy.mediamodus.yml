@@ -96,8 +96,8 @@ accessories:
   #   sudo ufw allow 51822/udp comment wireguard-hub
   # ufw на этом хосте выключен. Docker держит nftables filter FORWARD с policy drop,
   # а PostUp wg-easy пишет ACCEPT в iptables-legacy, ядро эти правила не применяет.
-  # Форвард wg0 ↔ wg1 принимается в DOCKER-USER скриптом /usr/local/sbin/wg-forward.sh
-  # (systemd wg-forward.service, после docker).
+  # Форвард wg0 ↔ wg1 и wg0 → wg0 принимается в DOCKER-USER скриптом
+  # /usr/local/sbin/wg-forward.sh (systemd wg-forward.service, после docker).
   # На MikroTik тот же dst-nat, что для 51820, но на UDP 51822 → 192.168.88.2:51822.
   # СХД в LAN 192.168.88.0/24 пусть ходит на 192.168.88.2:51822, без hairpin через WAN.
   #

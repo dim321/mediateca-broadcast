@@ -1,6 +1,6 @@
 # Development image for docker compose. Production uses ./Dockerfile + Kamal.
 # Make sure RUBY_VERSION matches .ruby-version
-ARG RUBY_VERSION=4.0.9
+ARG RUBY_VERSION=4.0.10
 FROM docker.io/library/ruby:$RUBY_VERSION-slim
 
 WORKDIR /rails
@@ -28,7 +28,7 @@ ENV RAILS_ENV="development" \
     LD_PRELOAD="/usr/local/lib/libjemalloc.so"
 
 COPY Gemfile Gemfile.lock ./
-RUN gem install bundler:4.0.9 foreman && \
+RUN gem install bundler:4.0.10 foreman && \
     bundle install
 
 COPY bin/docker-dev-entrypoint /usr/local/bin/
