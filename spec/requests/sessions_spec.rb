@@ -40,6 +40,15 @@ RSpec.describe "Sessions", type: :request do
   end
 
   describe "GET /login" do
+    it "renders the Media Modus banner as the page background" do
+      get login_path
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include("media-modus-login-bg")
+      expect(response.body).to include("bg-cover")
+      expect(response.body).to include("bg-left")
+    end
+
     it "redirects a signed-in client to the cabinet" do
       user = create(:user)
       sign_in_as(user)

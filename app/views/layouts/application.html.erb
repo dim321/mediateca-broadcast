@@ -22,7 +22,7 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="min-h-screen bg-base-200 text-base-content">
+  <body class="min-h-screen text-base-content <%= content_for?(:body_class) ? yield(:body_class) : "bg-base-200" %>">
     <% if Current.user %>
       <div class="drawer lg:drawer-open">
         <input id="cabinet-drawer" type="checkbox" class="drawer-toggle"
@@ -74,14 +74,17 @@
         </aside>
       </div>
     <% else %>
-      <div id="flash" class="space-y-2 px-4 pt-4">
+      <% if content_for?(:login_shell) %>
+        <div class="pointer-events-none fixed inset-0 z-0 bg-neutral/35" aria-hidden="true"></div>
+      <% end %>
+      <div id="flash" class="relative z-10 space-y-2 px-4 pt-4">
         <% flash.each do |type, message| %>
           <div role="alert" class="alert <%= flash_alert_class(type) %>">
             <span><%= message %></span>
           </div>
         <% end %>
       </div>
-      <main class="flex min-h-screen items-center justify-center p-4">
+      <main class="relative z-10 flex min-h-screen items-center justify-center p-4">
         <%= yield %>
       </main>
     <% end %>
