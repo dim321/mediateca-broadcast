@@ -280,6 +280,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_093000) do
     t.index ["status"], name: "index_media_plans_on_status"
   end
 
+  create_table "ops_backups", id: :serial, force: :cascade do |t|
+    t.string "name", null: false
+    t.string "tag", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
+  end
+
   create_table "organizations", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "kind", default: "client", null: false
