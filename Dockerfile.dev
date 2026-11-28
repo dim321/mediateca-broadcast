@@ -6,6 +6,9 @@ FROM docker.io/library/ruby:$RUBY_VERSION-slim
 WORKDIR /rails
 
 RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y postgresql-common ca-certificates && \
+    /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y && \
+    apt-get update -qq && \
     apt-get install --no-install-recommends -y \
       build-essential \
       curl \
@@ -18,7 +21,7 @@ RUN apt-get update -qq && \
       nodejs \
       npm \
       pkg-config \
-      postgresql-client && \
+      postgresql-client-18 && \
     ln -s /usr/lib/$(uname -m)-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
@@ -28,7 +31,7 @@ ENV RAILS_ENV="development" \
     LD_PRELOAD="/usr/local/lib/libjemalloc.so"
 
 COPY Gemfile Gemfile.lock ./
-RUN gem install bundler:4.0.10 foreman && \
+RUN gem install bundler:4.0.20 foreman && \
     bundle install
 
 COPY bin/docker-dev-entrypoint /usr/local/bin/
